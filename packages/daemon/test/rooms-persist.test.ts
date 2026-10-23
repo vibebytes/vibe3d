@@ -64,7 +64,19 @@ describe('RoomManager', () => {
 
     const b = rooms.create({ name: 'b' });
     rooms.close(b.id, false);
-    flushRoom(dir, b);
+    expect(existsSync(join(dir, `${b.id}.json`))).toBe(true);
+  });
+
+  it('purge 取消未落盘的防抖写，避免档案复活；非 purge 立即落盘', async () => {
+    const dir = tmp('v3d-purge-');
+    const rooms = new RoomManager({ maxRooms: 4, persistDir: dir, logger: silentLogger() });
+    const a = rooms.create({ name: 'a' });
+    rooms.close(a.id, true);
+    await new Promise((r) => setTimeout(r, 1100));
+    expect(existsSync(join(dir, `${a.id}.json`))).toBe(false);
+
+    const b = rooms.create({ name: 'b' });
+    rooms.close(b.id, false);
     expect(existsSync(join(dir, `${b.id}.json`))).toBe(true);
   });
 

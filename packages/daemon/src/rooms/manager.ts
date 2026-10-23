@@ -9,9 +9,9 @@ import {
   makeRoomId,
   sceneDocSchema,
 } from '@vibebyte/vibe3d-protocol';
-import { saveRoom } from '../doc/persist';
+import { cancelRoomSave, flushRoom, saveRoom } from '../doc/persist';
 import type { Logger } from '../logger';
-import { Room, type RoomOptions } from './room';
+import { type ChangeInfo, Room, type RoomOptions } from './room';
 
 export type Template = 'empty' | 'showroom' | 'product';
 
@@ -19,7 +19,7 @@ export interface RoomManagerOptions {
   maxRooms: number;
   persistDir?: string;
   logger: Logger;
-  onChange?: (room: Room) => void;
+  onChange?: (room: Room, change: ChangeInfo) => void;
 }
 
 export class RoomManager {
@@ -64,6 +64,7 @@ export class RoomManager {
     const room = this.get(id);
     this.rooms.delete(room.id);
     if (purge && this.opts.persistDir) {
+      cancelRoomSave(this.opts.persistDir, room.id);
       const file = join(this.opts.persistDir, `${room.id}.json`);
       try {
         unlinkSync(file);
@@ -71,7 +72,7 @@ export class RoomManager {
         /* 文件不存在即视为已清除 */
       }
     } else {
-      saveRoom(this.opts.persistDir, room);
+      flushRoom(this.opts.persistDir, room);
     }
     this.opts.logger.info({ event: 'room.close', roomId: room.id, purge });
   }
@@ -108,9 +109,9 @@ export class RoomManager {
 
   private roomOptions(): RoomOptions {
     return {
-      onChange: (room) => {
+      onChange: (room, change) => {
         saveRoom(this.opts.persistDir, room);
-        this.opts.onChange?.(room);
+        this.opts.onChange?.(room, change);
       },
     };
   }

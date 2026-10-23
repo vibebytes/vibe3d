@@ -47,10 +47,11 @@ async function main(): Promise<void> {
     maxRooms: config.maxRooms,
     persistDir: config.persist ? dirs.rooms : undefined,
     logger,
-    onChange: (room) =>
+    onChange: (room, change) =>
       hub.event(room.id, 'scene.changed', {
         revision: room.revision,
-        ops: room.opsAt(room.revision),
+        change: change.kind,
+        ops: change.ops,
         actor: { kind: 'agent', id: 'daemon' },
       }),
   });

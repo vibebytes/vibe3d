@@ -20,13 +20,18 @@ export function saveRoom(dir: string | undefined, room: Room): void {
   );
 }
 
-export function flushRoom(dir: string | undefined, room: Room): void {
+export function cancelRoomSave(dir: string | undefined, roomId: string): void {
   if (!dir) return;
-  const pending = timers.get(room.id);
+  const pending = timers.get(roomId);
   if (pending) {
     clearTimeout(pending);
-    timers.delete(room.id);
+    timers.delete(roomId);
   }
+}
+
+export function flushRoom(dir: string | undefined, room: Room): void {
+  if (!dir) return;
+  cancelRoomSave(dir, room.id);
   writeRoom(dir, room);
 }
 

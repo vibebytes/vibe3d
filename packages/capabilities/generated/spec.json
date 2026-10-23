@@ -1636,7 +1636,8 @@
       "errors": [
         "E_INVALID_PARAMS",
         "E_CONFLICT",
-        "E_PAYLOAD_TOO_LARGE"
+        "E_PAYLOAD_TOO_LARGE",
+        "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
         "tool": "vibe3d_apply_ops",
@@ -6668,7 +6669,8 @@
       "hostCoupled": false,
       "errors": [
         "E_INVALID_PARAMS",
-        "E_PAYLOAD_TOO_LARGE"
+        "E_PAYLOAD_TOO_LARGE",
+        "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
         "tool": "vibe3d_create_node",
@@ -7022,7 +7024,8 @@
       "mutating": true,
       "hostCoupled": false,
       "errors": [
-        "E_INVALID_PARAMS"
+        "E_INVALID_PARAMS",
+        "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
         "tool": "vibe3d_update_node",
@@ -7267,7 +7270,8 @@
       "mutating": true,
       "hostCoupled": false,
       "errors": [
-        "E_INVALID_PARAMS"
+        "E_INVALID_PARAMS",
+        "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
         "tool": "vibe3d_delete_node",
@@ -7327,7 +7331,8 @@
       "mutating": true,
       "hostCoupled": false,
       "errors": [
-        "E_INVALID_PARAMS"
+        "E_INVALID_PARAMS",
+        "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
         "tool": "vibe3d_set_stage",
@@ -7438,7 +7443,8 @@
       "mutating": true,
       "hostCoupled": false,
       "errors": [
-        "E_INVALID_PARAMS"
+        "E_INVALID_PARAMS",
+        "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
         "tool": "vibe3d_play_animation",
@@ -7597,7 +7603,8 @@
       "mutating": false,
       "hostCoupled": false,
       "errors": [
-        "E_INVALID_PARAMS"
+        "E_INVALID_PARAMS",
+        "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
         "tool": "vibe3d_scene_diff",
@@ -10117,12 +10124,16 @@
               ]
             },
             "maxItems": 500
+          },
+          "reset": {
+            "type": "boolean"
           }
         },
         "required": [
           "from",
           "to",
-          "ops"
+          "ops",
+          "reset"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -10189,7 +10200,8 @@
         "E_ASSET_FORMAT",
         "E_ASSET_EXTERNAL_REFS",
         "E_PAYLOAD_TOO_LARGE",
-        "E_UNSUPPORTED"
+        "E_UNSUPPORTED",
+        "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
         "tool": "vibe3d_import_asset",
@@ -10690,7 +10702,7 @@
       "hostCoupled": false,
       "errors": [
         "E_INVALID_PARAMS",
-        "E_RENDER_UNAVAILABLE"
+        "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
         "tool": "vibe3d_set_camera",
@@ -10951,7 +10963,8 @@
       "hostCoupled": false,
       "errors": [
         "E_RENDER_UNAVAILABLE",
-        "E_JOB_NOT_FOUND"
+        "E_JOB_NOT_FOUND",
+        "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
         "tool": "vibe3d_export_glb",

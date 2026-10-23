@@ -70,7 +70,7 @@ export const sceneOps = {
     wire: 'scene.apply' as const,
     mcp: { tool: 'vibe3d_apply_ops' as const, annotations: { readOnlyHint: false } },
     cli: { command: 'scene apply', args: '<roomId> --ops <json|@file>' },
-    errors: ['E_INVALID_PARAMS', 'E_CONFLICT', 'E_PAYLOAD_TOO_LARGE'] as const,
+    errors: ['E_INVALID_PARAMS', 'E_CONFLICT', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
   },
   'node.create': {
     title: '建节点：基础体 / 组 / 灯光',
@@ -97,7 +97,7 @@ export const sceneOps = {
     wire: 'scene.apply' as const,
     mcp: { tool: 'vibe3d_create_node' as const },
     cli: { command: 'node create', args: '<roomId> --kind mesh --shape box' },
-    errors: ['E_INVALID_PARAMS', 'E_PAYLOAD_TOO_LARGE'] as const,
+    errors: ['E_INVALID_PARAMS', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
   },
   'node.update': {
     title: '改节点：名称、可见、变换、灯光、动画参数',
@@ -108,7 +108,7 @@ export const sceneOps = {
     wire: 'scene.apply' as const,
     mcp: { tool: 'vibe3d_update_node' as const },
     cli: { command: 'node update', args: '<roomId> <nodeId> --patch <json>' },
-    errors: ['E_INVALID_PARAMS'] as const,
+    errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'node.delete': {
     title: '删节点，默认级联子树',
@@ -119,7 +119,7 @@ export const sceneOps = {
     wire: 'scene.apply' as const,
     mcp: { tool: 'vibe3d_delete_node' as const },
     cli: { command: 'node rm', args: '<roomId> <nodeId> [--no-cascade]' },
-    errors: ['E_INVALID_PARAMS'] as const,
+    errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'stage.set': {
     title: '换舞台预设：光影、背景、地面',
@@ -130,7 +130,7 @@ export const sceneOps = {
     wire: 'scene.apply' as const,
     mcp: { tool: 'vibe3d_set_stage' as const },
     cli: { command: 'stage set', args: '<roomId> --preset cine' },
-    errors: ['E_INVALID_PARAMS'] as const,
+    errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'animation.play': {
     title: '播放模型动画，默认取首条 clip',
@@ -146,7 +146,7 @@ export const sceneOps = {
     wire: 'scene.apply' as const,
     mcp: { tool: 'vibe3d_play_animation' as const },
     cli: { command: 'anim play', args: '<roomId> <nodeId> [--clip <name>] [--speed 1]' },
-    errors: ['E_INVALID_PARAMS'] as const,
+    errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'scene.undo': {
     title: '撤销一步',
@@ -177,13 +177,18 @@ export const sceneOps = {
       from: z.number().int().min(0).optional(),
       to: z.number().int().min(0).optional(),
     }),
-    output: z.object({ from: z.number().int(), to: z.number().int(), ops: opListSchema }),
+    output: z.object({
+      from: z.number().int(),
+      to: z.number().int(),
+      ops: opListSchema,
+      reset: z.boolean(),
+    }),
     scope: 'room' as const,
     mutating: false,
     wire: 'scene.diff' as const,
     mcp: { tool: 'vibe3d_scene_diff' as const, annotations: { readOnlyHint: true } },
     cli: { command: 'scene diff', args: '<roomId> [--from n] [--to n]' },
-    errors: ['E_INVALID_PARAMS'] as const,
+    errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'selection.get': {
     title: '读取 UI 当前选中',

@@ -25,7 +25,13 @@ export const assetOps = {
     wire: 'scene.apply' as const,
     mcp: { tool: 'vibe3d_import_asset' as const },
     cli: { command: 'model import', args: '<roomId> <src> [--name n] [--autoplay]' },
-    errors: ['E_ASSET_FORMAT', 'E_ASSET_EXTERNAL_REFS', 'E_PAYLOAD_TOO_LARGE', 'E_UNSUPPORTED'] as const,
+    errors: [
+      'E_ASSET_FORMAT',
+      'E_ASSET_EXTERNAL_REFS',
+      'E_PAYLOAD_TOO_LARGE',
+      'E_UNSUPPORTED',
+      'E_ROOM_NOT_FOUND',
+    ] as const,
   },
   'asset.inspect': {
     title: '解析 glTF，返回尺寸、动画、蒙皮、外部引用',

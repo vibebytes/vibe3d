@@ -18,7 +18,7 @@ export const renderOps = {
     wire: 'camera.set' as const,
     mcp: { tool: 'vibe3d_set_camera' as const },
     cli: { command: 'camera set', args: '<roomId> [--frame fit] [--p x,y,z] [--target x,y,z]' },
-    errors: ['E_INVALID_PARAMS', 'E_RENDER_UNAVAILABLE'] as const,
+    errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'render.snapshot': {
     title: '离屏渲染一张图，可选等待动画稳定',
@@ -60,7 +60,7 @@ export const renderOps = {
     wire: 'export.glb' as const,
     mcp: { tool: 'vibe3d_export_glb' as const, annotations: { readOnlyHint: true } },
     cli: { command: 'export glb', args: '<roomId> [--out scene.glb]' },
-    errors: ['E_RENDER_UNAVAILABLE', 'E_JOB_NOT_FOUND'] as const,
+    errors: ['E_RENDER_UNAVAILABLE', 'E_JOB_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'editor.open': {
     title: '在浏览器打开房间编辑器',

@@ -105,8 +105,8 @@ export const roomHandlers: HandlersFor<Keys> = {
 
   'scene.diff': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    const diff = room.diff(p.from ?? 0);
-    return { from: diff.fromRevision, to: diff.toRevision, ops: diff.ops };
+    const diff = room.diff(p.from ?? 0, p.to);
+    return { from: diff.fromRevision, to: diff.toRevision, ops: diff.ops, reset: diff.reset };
   },
 
   'selection.get': async (p, ctx) => ({ nodeIds: ctx.selection(p.roomId) }),

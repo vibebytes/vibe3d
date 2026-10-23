@@ -1,11 +1,4 @@
-import {
-  AppError,
-  type AssetMeta,
-  type Op,
-  type RoomId,
-  type SceneDoc,
-  type StageState,
-} from '@vibebyte/vibe3d-protocol';
+import { AppError, type AssetMeta, type Op, type RoomId, type SceneDoc } from '@vibebyte/vibe3d-protocol';
 import { applyOps, validateDoc } from '@vibebyte/vibe3d-scene';
 
 export interface ApplyResult {
@@ -13,6 +6,11 @@ export interface ApplyResult {
   applied: number;
   warnings: string[];
   inverse: Op[];
+}
+
+export interface ChangeInfo {
+  kind: 'ops' | 'undo' | 'redo' | 'assets';
+  ops: Op[];
 }
 
 export interface RoomMeta {
@@ -29,7 +27,7 @@ const MAX_REVISIONS = 200;
 
 export interface RoomOptions {
   createdAt?: string;
-  onChange?: (room: Room) => void;
+  onChange?: (room: Room, change: ChangeInfo) => void;
 }
 
 export class Room {
@@ -37,7 +35,7 @@ export class Room {
   readonly createdAt: string;
   doc: SceneDoc;
   updatedAt: string;
-  private readonly onChange?: (room: Room) => void;
+  private readonly onChange?: (room: Room, change: ChangeInfo) => void;
 
   private queue: Promise<unknown> = Promise.resolve();
   private undoStack: SceneDoc[] = [];
@@ -129,9 +127,10 @@ export class Room {
       undone++;
     }
     if (undone === 0) return { revision: base, undone: 0 };
-    this.doc = { ...this.doc, revision: base + 1, updatedAt: new Date().toISOString() };
+    this.doc = { ...this.doc, revision: base + undone, updatedAt: new Date().toISOString() };
     this.updatedAt = this.doc.updatedAt;
-    this.onChange?.(this);
+    this.applied.clear();
+    this.onChange?.(this, { kind: 'undo', ops: [] });
     return { revision: this.doc.revision, undone };
   }
 
@@ -146,37 +145,30 @@ export class Room {
       redone++;
     }
     if (redone === 0) return { revision: base, redone: 0 };
-    this.doc = { ...this.doc, revision: base + 1, updatedAt: new Date().toISOString() };
+    this.doc = { ...this.doc, revision: base + redone, updatedAt: new Date().toISOString() };
     this.updatedAt = this.doc.updatedAt;
-    this.onChange?.(this);
+    this.applied.clear();
+    this.onChange?.(this, { kind: 'redo', ops: [] });
     return { revision: this.doc.revision, redone };
   }
 
-  diff(since: number): { fromRevision: number; toRevision: number; ops: Op[] } {
+  diff(since: number, to?: number): { fromRevision: number; toRevision: number; ops: Op[]; reset: boolean } {
+    const toRevision = Math.min(to ?? this.doc.revision, this.doc.revision);
     const ops: Op[] = [];
-    for (const [rev, batch] of [...this.opLog.entries()].sort((a, b) => a[0] - b[0])) {
-      if (rev > since) ops.push(...batch);
+    let reset = false;
+    for (let rev = since + 1; rev <= toRevision; rev++) {
+      const batch = this.opLog.get(rev);
+      if (!batch) {
+        reset = true;
+        continue;
+      }
+      ops.push(...batch);
     }
-    return { fromRevision: since, toRevision: this.doc.revision, ops };
+    return { fromRevision: since, toRevision, ops: reset ? [] : ops, reset };
   }
 
   opsAt(revision: number): Op[] {
     return this.opLog.get(revision) ?? [];
-  }
-
-  setStage(stage: Partial<StageState>): { revision: number; stage: StageState } {
-    const merged: StageState = { ...this.doc.stage, ...stage };
-    const next: SceneDoc = {
-      ...this.doc,
-      stage: merged,
-      revision: this.doc.revision + 1,
-      updatedAt: new Date().toISOString(),
-    };
-    validateDoc(next);
-    this.undoStack.push(structuredClone(this.doc));
-    this.redoStack = [];
-    this.commit(next, []);
-    return { revision: next.revision, stage: merged };
   }
 
   registerAsset(meta: AssetMeta): AssetMeta {
@@ -189,7 +181,7 @@ export class Room {
       updatedAt,
     };
     this.updatedAt = updatedAt;
-    this.onChange?.(this);
+    this.onChange?.(this, { kind: 'assets', ops: [] });
     return meta;
   }
 
@@ -202,6 +194,6 @@ export class Room {
     }
     this.doc = next;
     this.updatedAt = next.updatedAt;
-    this.onChange?.(this);
+    this.onChange?.(this, { kind: 'ops', ops: [...ops] });
   }
 }
