@@ -1,3 +1,6 @@
+# Golden 渲染差异快照
+fixtures/golden/.actual/
+
 # Logs
 logs
 *.log
@@ -147,3 +150,13 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# vibe3d local state
+.smoke-home/
+.vibe3d/
+.tmp/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/

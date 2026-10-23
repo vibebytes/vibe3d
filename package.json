@@ -1,0 +1,44 @@
+{
+  "name": "vibe3d",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "gen": "tsx packages/capabilities/src/gen/cli.ts",
+    "build": "turbo run build",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "biome check .",
+    "check": "pnpm typecheck && pnpm lint && pnpm gen && git diff --exit-code -- packages/capabilities/generated",
+    "check:full": "pnpm check && pnpm contract && pnpm test:e2e && pnpm test:coverage",
+    "dev": "pnpm --filter @vibebyte/vibe3d-daemon dev",
+    "smoke": "zsh scripts/smoke-all.sh",
+    "contract": "tsx scripts/contract.ts",
+    "budget": "node scripts/check-budget.mjs",
+    "test:recover": "node scripts/recover-kill9.mjs",
+    "bench": "NODE_OPTIONS=--max-old-space-size=8192 vitest bench --run && node scripts/bench.mjs",
+    "golden": "node scripts/make-golden.mjs",
+    "golden:update": "node scripts/make-golden.mjs --update",
+    "test:e2e": "pnpm --filter @vibebyte/vibe3d-editor build && playwright test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@playwright/test": "^1.49.0",
+    "@tailwindcss/oxide-darwin-x64": "4.3.3",
+    "@types/node": "^22.10.2",
+    "@vitest/coverage-v8": "2.1.9",
+    "fast-check": "^4.10.2",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "turbo": "2.11.10",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8",
+    "ws": "^8.18.0",
+    "zod": "^3.25.76"
+  }
+}

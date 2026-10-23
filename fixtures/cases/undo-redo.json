@@ -1,0 +1,81 @@
+{
+  "name": "undo-redo",
+  "template": "empty",
+  "steps": [
+    {
+      "call": "ops.apply",
+      "params": {
+        "ops": [
+          {
+            "op": "node.create",
+            "node": {
+              "id": "n_00000001",
+              "name": "Cube",
+              "parent": null,
+              "visible": true,
+              "kind": "mesh",
+              "geometry": { "type": "box", "size": [1, 1, 1] },
+              "material": "m_00000001",
+              "transform": { "p": [0, 0.5, 0], "r": [0, 0, 0], "s": [1, 1, 1] }
+            }
+          },
+          {
+            "op": "material.set",
+            "id": "m_00000001",
+            "material": { "baseColor": [0.8, 0.8, 0.82, 1], "metalness": 0.1, "roughness": 0.6, "emissive": [0, 0, 0], "emissiveIntensity": 0, "opacity": 1, "doubleSided": false }
+          }
+        ]
+      },
+      "expect": { "assert": [{ "path": "revision", "eq": 1 }] }
+    },
+    {
+      "call": "scene.get",
+      "as": "snap1",
+      "expect": { "assert": [{ "path": "doc.revision", "eq": 1 }] }
+    },
+    {
+      "call": "ops.apply",
+      "params": {
+        "ops": [{ "op": "node.update", "id": "n_00000001", "patch": { "name": "Cube 2", "visible": false } }]
+      },
+      "expect": { "assert": [{ "path": "revision", "eq": 2 }] }
+    },
+    {
+      "call": "scene.undo",
+      "expect": { "assert": [{ "path": "revision", "exists": true }] }
+    },
+    {
+      "call": "scene.get",
+      "expect": {
+        "assert": [
+          { "path": "doc.nodes.n_00000001.name", "eq": "$snap1.doc.nodes.n_00000001.name" },
+          { "path": "doc.nodes.n_00000001.name", "eq": "Cube" },
+          { "path": "doc.nodes.n_00000001.visible", "eq": true }
+        ]
+      }
+    },
+    {
+      "call": "scene.redo",
+      "expect": {
+        "assert": [
+          { "path": "revision", "exists": true },
+          { "path": "doc.nodes.n_00000001.name", "eq": "Cube 2" },
+          { "path": "doc.nodes.n_00000001.visible", "eq": false }
+        ]
+      }
+    },
+    {
+      "call": "scene.undo",
+      "expect": { "assert": [{ "path": "revision", "exists": true }] }
+    },
+    {
+      "call": "scene.get",
+      "expect": {
+        "assert": [
+          { "path": "doc.nodes.n_00000001.visible", "eq": true },
+          { "path": "doc.roots", "len": 1 }
+        ]
+      }
+    }
+  ]
+}

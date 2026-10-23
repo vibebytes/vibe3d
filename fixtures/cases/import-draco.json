@@ -1,0 +1,39 @@
+{
+  "name": "import-draco",
+  "template": "empty",
+  "steps": [
+    {
+      "call": "node.import",
+      "params": { "src": "assets/draco-box.glb", "name": "Draco" },
+      "expect": { "error": "E_ASSET_FORMAT" }
+    },
+    {
+      "call": "scene.get",
+      "expect": {
+        "assert": [
+          { "path": "doc.revision", "eq": 0 },
+          { "path": "doc.roots", "len": 0 }
+        ]
+      }
+    },
+    {
+      "call": "node.import",
+      "params": { "src": "assets/fake.glb.txt", "name": "Fake" },
+      "expect": { "error": "E_ASSET_TYPE" }
+    },
+    {
+      "call": "node.import",
+      "params": { "src": "assets/truncated.glb", "name": "Trunc" },
+      "expect": { "error": "E_ASSET_FORMAT" }
+    },
+    {
+      "call": "scene.get",
+      "expect": {
+        "assert": [
+          { "path": "doc.revision", "eq": 0 },
+          { "path": "doc.roots", "len": 0 }
+        ]
+      }
+    }
+  ]
+}

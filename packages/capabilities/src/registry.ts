@@ -1,0 +1,21 @@
+import { assetOps } from './specs/asset';
+import { renderOps } from './specs/render';
+import { roomCreate } from './specs/room';
+import { sceneOps } from './specs/scene';
+import { defineCapabilities } from './types';
+
+const all = {
+  ...roomCreate,
+  ...sceneOps,
+  ...assetOps,
+  ...renderOps,
+};
+
+export const CAPABILITIES = defineCapabilities(all);
+
+export type CapabilityName = keyof typeof CAPABILITIES;
+export type RoomCapability = {
+  [K in CapabilityName]: (typeof CAPABILITIES)[K] extends { scope: 'room' } ? K : never;
+}[CapabilityName];
+
+export const CAPABILITY_NAMES = Object.keys(CAPABILITIES) as CapabilityName[];

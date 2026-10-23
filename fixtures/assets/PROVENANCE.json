@@ -1,0 +1,30 @@
+{
+  "generator": "scripts/make-fixtures.mjs",
+  "license": "CC0-1.0",
+  "assets": {
+    "box-textured.glb": {
+      "bytes": 2232,
+      "sha256": "d2463a113466de0be84b0875b0af36ce4a8c988c72f929f07f884e8e07bb625d"
+    },
+    "pbr-metal.glb": {
+      "bytes": 19248,
+      "sha256": "1e790b8cfbf24f54524709d61a5604c8e7db83e0b04fb6645c5f6b1036125dce"
+    },
+    "skinned-walk.glb": {
+      "bytes": 2636,
+      "sha256": "31cf5540e90c763cb4f0181129010dc73528d51e4ff90c0a82f515609eae8239"
+    },
+    "draco-box.glb": {
+      "bytes": 1196,
+      "sha256": "1026e34c7fba904f48877cdc8584b7eab27b21225d8fe827e9205d753c8b1f0f"
+    },
+    "external.gltf": {
+      "bytes": 1277,
+      "sha256": "419d4abc77d9f85d073d0c007ca9ba68374aba581881c50433f3b6812b13d230"
+    },
+    "external.bin": {
+      "bytes": 42,
+      "sha256": "da6a558d6b6af65846b717b81d06857d17a419ab4ba29b78e34dd7326cf0f1d6"
+    }
+  }
+}

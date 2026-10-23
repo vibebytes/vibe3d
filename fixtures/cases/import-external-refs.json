@@ -1,0 +1,21 @@
+{
+  "name": "import-external-refs",
+  "template": "empty",
+  "steps": [
+    {
+      "call": "node.import",
+      "params": { "src": "assets/external.gltf", "name": "Bad" },
+      "expect": { "error": "E_ASSET_EXTERNAL_REFS" }
+    },
+    {
+      "call": "scene.get",
+      "expect": {
+        "assert": [
+          { "path": "doc.revision", "eq": 0 },
+          { "path": "doc.roots", "len": 0 },
+          { "path": "doc.assets", "len": 0 }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@vibebyte/vibe3d-protocol": ["packages/protocol/src/index.ts"],
+      "@vibebyte/vibe3d-scene": ["packages/scene/src/index.ts"],
+      "@vibebyte/vibe3d-capabilities": ["packages/capabilities/src/index.ts"],
+      "@vibebyte/vibe3d-client": ["packages/client/src/index.ts"]
+    }
+  },
+  "include": ["packages/*/src/**/*.ts", "packages/*/test/**/*.ts", "vitest.config.ts"],
+  "exclude": ["node_modules", "dist", "packages/editor"]
+}

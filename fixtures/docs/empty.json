@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "revision": 0,
+  "name": "空场景",
+  "nodes": {},
+  "roots": [],
+  "materials": {},
+  "assets": {},
+  "env": { "background": [0.043, 0.055, 0.071, 1], "ambient": [1, 1, 1, 1], "ambientIntensity": 0.35 },
+  "stage": { "preset": "clean", "autoExposure": true, "ground": true, "keepModelLights": false },
+  "camera": { "mode": "persp", "p": [3.2, 2.2, 4.2], "target": [0, 0.75, 0], "fov": 45, "zoom": 1 },
+  "updatedAt": "1970-01-01T00:00:00.000Z"
+}

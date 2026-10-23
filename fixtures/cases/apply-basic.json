@@ -1,0 +1,87 @@
+{
+  "name": "apply-basic",
+  "template": "empty",
+  "steps": [
+    {
+      "call": "ops.apply",
+      "params": {
+        "ops": [
+          {
+            "op": "node.create",
+            "node": {
+              "id": "n_00000001",
+              "name": "Cube",
+              "parent": null,
+              "visible": true,
+              "kind": "mesh",
+              "geometry": { "type": "box", "size": [1, 1, 1] },
+              "material": "m_00000001",
+              "transform": { "p": [0, 1, 0], "r": [0, 0, 0], "s": [1, 1, 1] }
+            }
+          },
+          {
+            "op": "material.set",
+            "id": "m_00000001",
+            "material": {
+              "baseColor": [0.8, 0.8, 0.82, 1],
+              "metalness": 0.1,
+              "roughness": 0.6,
+              "emissive": [0, 0, 0],
+              "emissiveIntensity": 0,
+              "opacity": 1,
+              "doubleSided": false
+            }
+          },
+          {
+            "op": "node.update",
+            "id": "n_00000001",
+            "patch": { "name": "Cube A", "transform": { "p": [0, 1.5, 0], "r": [0, 0.7853981633974483, 0], "s": [1, 1, 1] } }
+          },
+          { "op": "env.set", "env": { "ambientIntensity": 0.5 } }
+        ]
+      },
+      "as": "a",
+      "expect": {
+        "assert": [
+          { "path": "revision", "eq": 1 },
+          { "path": "applied", "eq": 4 },
+          { "path": "warnings", "len": 0 },
+          { "path": "doc.roots", "len": 1 },
+          { "path": "doc.roots.0", "eq": "n_00000001" },
+          { "path": "doc.nodes.n_00000001.name", "eq": "Cube A" },
+          { "path": "doc.nodes.n_00000001.transform.p.1", "eq": 1.5 },
+          { "path": "doc.materials.m_00000001.roughness", "eq": 0.6 },
+          { "path": "doc.env.ambientIntensity", "eq": 0.5 }
+        ]
+      }
+    },
+    {
+      "call": "ops.apply",
+      "params": {
+        "ops": [
+          {
+            "op": "node.create",
+            "node": {
+              "id": "n_00000002",
+              "name": "Lamp",
+              "parent": null,
+              "visible": true,
+              "kind": "light",
+              "light": { "type": "point", "color": [1, 1, 1, 1], "intensity": 12, "position": [2, 3, 2] },
+              "transform": { "p": [0, 0, 0], "r": [0, 0, 0], "s": [1, 1, 1] }
+            }
+          },
+          { "op": "node.reparent", "id": "n_00000002", "parent": "n_00000001" }
+        ]
+      },
+      "expect": {
+        "assert": [
+          { "path": "revision", "eq": 2 },
+          { "path": "doc.roots", "len": 1 },
+          { "path": "doc.nodes.n_00000002.parent", "eq": "n_00000001" },
+          { "path": "doc.nodes.n_00000001.transform.p.1", "eq": 1.5 }
+        ]
+      }
+    }
+  ]
+}

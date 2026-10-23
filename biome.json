@@ -1,0 +1,76 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "files": {
+    "ignore": [
+      "dist",
+      "node_modules",
+      ".pnpm-store",
+      ".tmp",
+      ".smoke-home",
+      ".turbo",
+      "coverage",
+      "test-results",
+      "playwright-report",
+      "packages/*/generated",
+      "fixtures",
+      "*.md"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 110
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "always",
+      "trailingCommas": "all"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        "noNonNullAssertion": "off",
+        "useImportType": "error"
+      },
+      "suspicious": {
+        "noExplicitAny": "error"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "include": ["packages/*/test/**", "e2e/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          },
+          "complexity": {
+            "useLiteralKeys": "off"
+          },
+          "performance": {
+            "noDelete": "off"
+          }
+        }
+      }
+    },
+    {
+      "include": ["packages/editor/src/styles/globals.css"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnknownProperty": "off"
+          }
+        }
+      }
+    }
+  ],
+  "organizeImports": {
+    "enabled": true
+  }
+}

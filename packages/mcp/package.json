@@ -1,0 +1,19 @@
+{
+  "name": "@vibebyte/vibe3d-mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "vibe3d-mcp": "./dist/index.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@vibebyte/vibe3d-capabilities": "workspace:*",
+    "@vibebyte/vibe3d-client": "workspace:*",
+    "@vibebyte/vibe3d-protocol": "workspace:*",
+    "zod": "^3.25.76"
+  }
+}

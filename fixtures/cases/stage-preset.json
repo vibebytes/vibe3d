@@ -1,0 +1,54 @@
+{
+  "name": "stage-preset",
+  "template": "showroom",
+  "steps": [
+    {
+      "call": "scene.get",
+      "as": "base",
+      "expect": {
+        "assert": [
+          { "path": "doc.stage.preset", "eq": "clean" },
+          { "path": "doc.roots", "len": 3 }
+        ]
+      }
+    },
+    {
+      "call": "stage.set",
+      "params": { "stage": { "preset": "cine", "exposure": 1.25 } },
+      "expect": {
+        "assert": [
+          { "path": "stage.preset", "eq": "cine" },
+          { "path": "stage.exposure", "eq": 1.25 },
+          { "path": "stage.ground", "eq": true }
+        ]
+      }
+    },
+    {
+      "call": "ops.apply",
+      "params": { "ops": [{ "op": "env.set", "env": { "background": [0.02, 0.03, 0.05, 1], "ambientIntensity": 0.2 } }] },
+      "expect": { "assert": [{ "path": "revision", "eq": 2 }] }
+    },
+    {
+      "call": "scene.get",
+      "expect": {
+        "assert": [
+          { "path": "doc.stage.preset", "eq": "cine" },
+          { "path": "doc.env.background.2", "eq": 0.05 },
+          { "path": "doc.env.ambientIntensity", "eq": 0.2 },
+          { "path": "doc.roots", "len": 3 }
+        ]
+      }
+    },
+    {
+      "call": "stage.set",
+      "params": { "stage": { "preset": "flat", "ground": false } },
+      "expect": {
+        "assert": [
+          { "path": "stage.preset", "eq": "flat" },
+          { "path": "stage.ground", "eq": false },
+          { "path": "stage.exposure", "eq": 1.25 }
+        ]
+      }
+    }
+  ]
+}

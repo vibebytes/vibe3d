@@ -1,0 +1,48 @@
+{
+  "name": "animation-play",
+  "template": "empty",
+  "steps": [
+    {
+      "call": "node.import",
+      "params": { "src": "assets/skinned-walk.glb", "name": "Walker", "autoplay": false },
+      "as": "imp",
+      "expect": {
+        "assert": [
+          { "path": "report.animations", "len": 1 },
+          { "path": "report.animations.0.name", "eq": "Walk" },
+          { "path": "report.skins", "eq": 1 }
+        ]
+      }
+    },
+    {
+      "call": "animation.play",
+      "params": { "nodeId": "$imp.nodeId", "clip": "Walk", "speed": 0.5 },
+      "expect": { "assert": [{ "path": "revision", "eq": 2 }] }
+    },
+    {
+      "call": "scene.get",
+      "expect": {
+        "assert": [
+          { "path": "doc.revision", "eq": 2 },
+          { "path": "doc.nodes{imp:nodeId}.anim.playing", "eq": true },
+          { "path": "doc.nodes{imp:nodeId}.anim.clip", "eq": "Walk" },
+          { "path": "doc.nodes{imp:nodeId}.anim.speed", "eq": 0.5 }
+        ]
+      }
+    },
+    {
+      "call": "ops.apply",
+      "params": { "ops": [{ "op": "animation.stop", "target": "$imp.nodeId" }] },
+      "expect": { "assert": [{ "path": "revision", "eq": 3 }] }
+    },
+    {
+      "call": "scene.get",
+      "expect": {
+        "assert": [
+          { "path": "doc.revision", "eq": 3 },
+          { "path": "doc.nodes{imp:nodeId}.anim.playing", "eq": false }
+        ]
+      }
+    }
+  ]
+}

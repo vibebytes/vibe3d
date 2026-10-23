@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["vite/client"],
+    "paths": {
+      "@vibebyte/vibe3d-scene": ["../scene/src/index.ts"],
+      "@vibebyte/vibe3d-protocol": ["../protocol/src/index.ts"]
+    }
+  },
+  "include": ["src", "vite.config.ts"]
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "revision": 0,
+  "name": "产品单件",
+  "nodes": {
+    "n_00000001": {
+      "id": "n_00000001",
+      "name": "Product",
+      "parent": null,
+      "visible": true,
+      "kind": "mesh",
+      "geometry": { "type": "box", "size": [1.2, 0.9, 0.8] },
+      "material": "m_00000001",
+      "transform": { "p": [0, 0.45, 0], "r": [0, 0.35, 0], "s": [1, 1, 1] }
+    },
+    "n_00000002": {
+      "id": "n_00000002",
+      "name": "Fill",
+      "parent": null,
+      "visible": true,
+      "kind": "light",
+      "light": { "type": "point", "color": [1, 1, 1, 1], "intensity": 18, "position": [2, 3, 2.4] },
+      "transform": { "p": [0, 0, 0], "r": [0, 0, 0], "s": [1, 1, 1] }
+    }
+  },
+  "roots": ["n_00000001", "n_00000002"],
+  "materials": {
+    "m_00000001": { "baseColor": [0.86, 0.86, 0.9, 1], "metalness": 0.2, "roughness": 0.5, "emissive": [0, 0, 0], "emissiveIntensity": 0, "opacity": 1, "doubleSided": false }
+  },
+  "assets": {},
+  "env": { "background": [0.06, 0.06, 0.065, 1], "ambient": [1, 1, 1, 1], "ambientIntensity": 0.45 },
+  "stage": { "preset": "flat", "autoExposure": false, "ground": false, "keepModelLights": false },
+  "camera": { "mode": "persp", "p": [2.6, 1.7, 3.2], "target": [0, 0.5, 0], "fov": 38, "zoom": 1 },
+  "updatedAt": "1970-01-01T00:00:00.000Z"
+}

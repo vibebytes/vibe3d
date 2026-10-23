@@ -1,0 +1,38 @@
+{
+  "name": "import-gltf",
+  "template": "empty",
+  "steps": [
+    {
+      "call": "node.import",
+      "params": { "src": "assets/box-textured.glb", "name": "TexBox" },
+      "as": "imp",
+      "expect": {
+        "assert": [
+          { "path": "revision", "eq": 1 },
+          { "path": "nodeId", "exists": true },
+          { "path": "report.version", "eq": "2.0" },
+          { "path": "report.selfContained", "eq": true },
+          { "path": "report.missing", "len": 0 },
+          { "path": "report.tris", "eq": 12 },
+          { "path": "report.textures", "eq": 1 },
+          { "path": "report.materials", "eq": 1 }
+        ]
+      }
+    },
+    {
+      "call": "scene.get",
+      "expect": {
+        "assert": [
+          { "path": "doc.revision", "eq": 1 },
+          { "path": "doc.roots", "len": 1 },
+          { "path": "doc.nodes{imp:nodeId}.kind", "eq": "model" },
+          { "path": "doc.nodes{imp:nodeId}.name", "eq": "TexBox" },
+          { "path": "doc.nodes{imp:nodeId}.sha", "eq": "$imp.sha" },
+          { "path": "doc.assets{imp:sha}.kind", "eq": "gltf" },
+          { "path": "doc.assets{imp:sha}.mime", "eq": "model/gltf-binary" },
+          { "path": "doc.assets{imp:sha}.gltf.tris", "eq": 12 }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@vibebyte/vibe3d-cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "vibe3d": "./dist/index.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@vibebyte/vibe3d-client": "workspace:*",
+    "@vibebyte/vibe3d-daemon": "workspace:*",
+    "@vibebyte/vibe3d-protocol": "workspace:*"
+  }
+}

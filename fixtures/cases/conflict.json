@@ -1,0 +1,77 @@
+{
+  "name": "conflict",
+  "template": "empty",
+  "steps": [
+    {
+      "call": "ops.apply",
+      "params": {
+        "baseRevision": 0,
+        "ops": [
+          {
+            "op": "node.create",
+            "node": {
+              "id": "n_00000001",
+              "name": "Box",
+              "parent": null,
+              "visible": true,
+              "kind": "mesh",
+              "geometry": { "type": "box", "size": [1, 1, 1] },
+              "material": "m_00000001",
+              "transform": { "p": [0, 0.5, 0], "r": [0, 0, 0], "s": [1, 1, 1] }
+            }
+          },
+          {
+            "op": "material.set",
+            "id": "m_00000001",
+            "material": { "baseColor": [0.8, 0.8, 0.82, 1], "metalness": 0.1, "roughness": 0.6, "emissive": [0, 0, 0], "emissiveIntensity": 0, "opacity": 1, "doubleSided": false }
+          }
+        ]
+      },
+      "expect": { "assert": [{ "path": "revision", "eq": 1 }] }
+    },
+    {
+      "call": "ops.apply",
+      "params": {
+        "baseRevision": 0,
+        "ops": [{ "op": "node.update", "id": "n_00000001", "patch": { "name": "Stale" } }]
+      },
+      "expect": { "error": "E_CONFLICT" }
+    },
+    {
+      "call": "scene.get",
+      "expect": {
+        "assert": [
+          { "path": "doc.revision", "eq": 1 },
+          { "path": "doc.nodes.n_00000001.name", "eq": "Box" }
+        ]
+      }
+    },
+    {
+      "call": "ops.apply",
+      "params": {
+        "baseRevision": 1,
+        "opId": "retry-1",
+        "ops": [{ "op": "node.update", "id": "n_00000001", "patch": { "name": "Fresh" } }]
+      },
+      "as": "first"
+    },
+    {
+      "call": "ops.apply",
+      "params": {
+        "baseRevision": 1,
+        "opId": "retry-1",
+        "ops": [{ "op": "node.update", "id": "n_00000001", "patch": { "name": "Fresh" } }]
+      },
+      "expect": { "assert": [{ "path": "revision", "eq": "$first.revision" }] }
+    },
+    {
+      "call": "scene.get",
+      "expect": {
+        "assert": [
+          { "path": "doc.revision", "eq": 2 },
+          { "path": "doc.nodes.n_00000001.name", "eq": "Fresh" }
+        ]
+      }
+    }
+  ]
+}

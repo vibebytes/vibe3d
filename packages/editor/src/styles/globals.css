@@ -1,0 +1,88 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: false;
+}
+
+@plugin "daisyui/theme" {
+  name: "vibe3d";
+  default: true;
+  color-scheme: dark;
+  --color-base-100: #0b0f14;
+  --color-base-200: #111820;
+  --color-base-300: #232d38;
+  --color-base-content: #e9eff5;
+  --color-primary: #5fe3c0;
+  --color-primary-content: #04211b;
+  --color-secondary: #7aa7ff;
+  --color-accent: #f2b45c;
+  --color-neutral: #1a222c;
+  --color-info: #7aa7ff;
+  --color-success: #5fe3c0;
+  --color-warning: #f2b45c;
+  --color-error: #ff6b6b;
+  --radius-box: 10px;
+  --radius-field: 8px;
+  --border: 1px;
+}
+
+:root {
+  --background: var(--color-base-100);
+  --foreground: var(--color-base-content);
+  --card: var(--color-base-200);
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-primary-content);
+  --muted: var(--color-base-300);
+  --border: var(--color-base-300);
+  --ring: var(--color-primary);
+  --radius: var(--radius-box);
+  font-family: ui-sans-serif, "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: var(--color-base-100);
+  color: var(--color-base-content);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.viewport canvas {
+  display: block;
+  touch-action: none;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: color-mix(in oklab, var(--color-base-content) 62%, transparent);
+}
+
+.field input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--color-base-300);
+  border-radius: var(--radius-field);
+  background: var(--color-base-100);
+  padding: 0.25rem 0.4rem;
+  font-size: 0.75rem;
+  color: var(--color-base-content);
+  font-variant-numeric: tabular-nums;
+}
+
+.field input:focus {
+  outline: 1px solid var(--color-primary);
+  outline-offset: 0;
+}
+
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-base-300) transparent;
+}

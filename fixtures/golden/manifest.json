@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "renderer": "auto",
+  "template": "showroom",
+  "viewport": [
+    1280,
+    720
+  ],
+  "deviceScaleFactor": 1,
+  "cases": [
+    {
+      "file": "1280x720-showroom.png",
+      "preset": null,
+      "width": 1280,
+      "height": 720,
+      "bytes": 148680,
+      "sha256": "06eb49c398f6c6a72cfb00ef0937ed1529a9d71453afcfcaf09de71fae1a3b59"
+    },
+    {
+      "file": "1280x720-stage-cine.png",
+      "preset": "cine",
+      "width": 1280,
+      "height": 720,
+      "bytes": 329725,
+      "sha256": "2bf1ec54388f97e6039db214f46c4a5a2a11f032f142fa7cb21d6cee297cc69f"
+    },
+    {
+      "file": "1280x720-stage-flat.png",
+      "preset": "flat",
+      "width": 1280,
+      "height": 720,
+      "bytes": 343711,
+      "sha256": "0232d41d97bf806446389eaed3da3c79cb5654954178ff841041dbce92598c0e"
+    }
+  ],
+  "generatedAt": "2026-10-23T11:44:30.992Z"
+}

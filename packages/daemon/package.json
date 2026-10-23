@@ -1,0 +1,54 @@
+{
+  "name": "@vibebyte/vibe3d-daemon",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./app": {
+      "types": "./src/server.ts",
+      "default": "./src/server.ts"
+    }
+  },
+  "files": ["dist"],
+  "bin": {
+    "vibe3d-daemon": "./dist/index.js"
+  },
+  "publishConfig": {
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./app": {
+        "types": "./dist/server.d.ts",
+        "import": "./dist/server.js"
+      }
+    }
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.7",
+    "@vibebyte/vibe3d-capabilities": "workspace:*",
+    "@vibebyte/vibe3d-protocol": "workspace:*",
+    "@vibebyte/vibe3d-scene": "workspace:*",
+    "hono": "^4.6.14",
+    "ws": "^8.18.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.13",
+    "tsx": "^4.19.2"
+  }
+}
