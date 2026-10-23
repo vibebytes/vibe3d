@@ -15,6 +15,7 @@ import { SceneTree } from '../scene/SceneTree';
 import { useDoc } from '../stores/doc';
 import { useSelection } from '../stores/selection';
 import { useUi } from '../stores/ui';
+import { CaptureBridge } from '../viewport/CaptureBridge';
 import { SceneCanvas } from '../viewport/SceneCanvas';
 import { HeadlessPage } from './HeadlessPage';
 import { editorCommands } from './useEditorCommands';
@@ -141,7 +142,9 @@ export function EditorPage() {
           ) : undefined
         }
       >
-        <SceneCanvas doc={doc} />
+        <SceneCanvas doc={doc}>
+          <CaptureBridge roomId={roomId} />
+        </SceneCanvas>
       </AppShell>
 
       <CommandPalette

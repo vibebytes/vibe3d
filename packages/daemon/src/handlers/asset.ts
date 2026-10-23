@@ -58,7 +58,7 @@ export const assetHandlers: HandlersFor<Keys> = {
   },
 
   'asset.inspect': async (p, ctx) => {
-    const { sha, report } = await ctx.inspect(p.src, p.policy);
-    return { sha, cached: false, report };
+    const { sha, cached, report } = await ctx.inspect(p.src, p.policy);
+    return { sha, cached, report };
   },
 };

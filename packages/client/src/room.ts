@@ -20,6 +20,8 @@ export interface SnapshotOptions {
   height?: number;
   format?: 'png' | 'jpeg';
   settleMs?: number;
+  at?: number;
+  transparent?: boolean;
 }
 
 export class RoomHandle {
@@ -118,6 +120,8 @@ export class RoomHandle {
       height: opts.height,
       format: opts.format,
       settleMs: opts.settleMs,
+      at: opts.at,
+      transparent: opts.transparent,
     });
     return {
       revision: out.revision,

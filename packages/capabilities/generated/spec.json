@@ -10885,7 +10885,7 @@
       },
       "cli": {
         "command": "render snapshot",
-        "args": "<roomId> [--out shot.png] [--size 1280x720]"
+        "args": "<roomId> [--out shot.png] [--size 1280x720] [--format png] [--settle-ms 180] [--at 1.2] [--transparent]"
       },
       "input": {
         "type": "object",
@@ -10915,6 +10915,14 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 10000
+          },
+          "at": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 3600
+          },
+          "transparent": {
+            "type": "boolean"
           }
         },
         "required": [

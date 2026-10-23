@@ -20,15 +20,35 @@ export class EditorRenderer implements Renderer {
     return true;
   }
 
+  available(roomId: string): boolean {
+    return this.hub.count(roomId) > 0;
+  }
+
   async snapshot(input: RenderInput, opts: SnapshotOptions = {}): Promise<Snapshot> {
-    let png: string;
+    const settleMs = opts.settleMs ?? 0;
+    if (settleMs > 0) await new Promise((resolve) => setTimeout(resolve, settleMs));
+    const format = opts.format ?? 'png';
+    let shot: { base64: string; mime?: string; width?: number; height?: number };
     try {
-      png = await this.hub.requestSnapshot(input.roomId, this.timeoutMs);
+      shot = await this.hub.requestSnapshot(
+        input.roomId,
+        {
+          width: opts.width,
+          height: opts.height,
+          format,
+          at: opts.at,
+          transparent: opts.transparent,
+        },
+        this.timeoutMs + settleMs,
+      );
     } catch (err) {
       throw new AppError('E_RENDER_UNAVAILABLE', `editor 快照失败：${String(err)}`);
     }
-    const size = pngSize(png) ?? { width: opts.width ?? 1280, height: opts.height ?? 720 };
-    return { mime: 'image/png', base64: png, ...size };
+    const size =
+      shot.width && shot.height
+        ? { width: shot.width, height: shot.height }
+        : (pngSize(shot.base64) ?? { width: opts.width ?? 1280, height: opts.height ?? 720 });
+    return { mime: shot.mime ?? `image/${format}`, base64: shot.base64, ...size };
   }
 
   async exportGlb(): Promise<{ jobId: string; url: string; bytes: number }> {

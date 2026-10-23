@@ -3623,6 +3623,14 @@ export const MCP_TOOLS = [
           "type": "integer",
           "minimum": 0,
           "maximum": 10000
+        },
+        "at": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3600
+        },
+        "transparent": {
+          "type": "boolean"
         }
       },
       "required": [

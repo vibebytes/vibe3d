@@ -28,6 +28,8 @@ export const renderOps = {
       height: z.number().int().min(64).max(4096).optional(),
       format: z.enum(['png', 'jpeg']).optional(),
       settleMs: z.number().int().min(0).max(10_000).optional(),
+      at: z.number().min(0).max(3600).optional(),
+      transparent: z.boolean().optional(),
     }),
     output: z.object({
       revision: z.number().int().min(0),
@@ -43,7 +45,10 @@ export const renderOps = {
       tool: 'vibe3d_render_snapshot' as const,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
-    cli: { command: 'render snapshot', args: '<roomId> [--out shot.png] [--size 1280x720]' },
+    cli: {
+      command: 'render snapshot',
+      args: '<roomId> [--out shot.png] [--size 1280x720] [--format png] [--settle-ms 180] [--at 1.2] [--transparent]',
+    },
     errors: ['E_RENDER_UNAVAILABLE', 'E_ROOM_NOT_FOUND'] as const,
   },
   'export.glb': {

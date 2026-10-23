@@ -96,7 +96,7 @@ describe('WS 慢消费者', () => {
   it('快照请求超时后清理 waiter', async () => {
     const hub = new WsHub();
     hub.add(ROOM, socket());
-    await expect(hub.requestSnapshot(ROOM, 10)).rejects.toThrow('editor 快照超时');
+    await expect(hub.requestSnapshot(ROOM, {}, 10)).rejects.toThrow('editor 快照超时');
     hub.resolveSnapshot('nope');
   });
 });

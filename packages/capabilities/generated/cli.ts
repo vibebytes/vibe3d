@@ -19,7 +19,7 @@ export const CLI_COMMANDS = [
   { command: "model import", args: "<roomId> <src> [--name n] [--autoplay]", capability: "node.import" },
   { command: "asset inspect", args: "<roomId> <src>", capability: "asset.inspect" },
   { command: "camera set", args: "<roomId> [--frame fit] [--p x,y,z] [--target x,y,z]", capability: "camera.set" },
-  { command: "render snapshot", args: "<roomId> [--out shot.png] [--size 1280x720]", capability: "render.snapshot" },
+  { command: "render snapshot", args: "<roomId> [--out shot.png] [--size 1280x720] [--format png] [--settle-ms 180] [--at 1.2] [--transparent]", capability: "render.snapshot" },
   { command: "export glb", args: "<roomId> [--out scene.glb]", capability: "export.glb" },
   { command: "open", args: "<roomId>", capability: "editor.open" },
 ] as const;

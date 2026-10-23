@@ -161,6 +161,8 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
       height: size?.height,
       format: str(flags, 'format') as never,
       settleMs: num(flags, 'settle-ms'),
+      at: num(flags, 'at'),
+      transparent: bool(flags, 'transparent') ? true : undefined,
     });
     const out = str(flags, 'out');
     if (!out) return { ...shot, bytes: shot.bytes.toString('base64') };
@@ -177,9 +179,16 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
   }
 
   if (group === 'export' && command === 'glb') {
-    return room.exportGlb(
-      pick({ nodeIds: str(flags, 'node') ? ([str(flags, 'node')] as never) : undefined }),
-    );
+    const node = str(flags, 'node');
+    const out = await room.exportGlb(pick({ nodeIds: node ? ([node] as never) : undefined }));
+    const dest = str(flags, 'out');
+    if (!dest) return out;
+    const res = await fetch(new URL(out.url, studio.url));
+    if (!res.ok) throw new Error(`下载 GLB 失败：HTTP ${res.status}`);
+    const bytes = Buffer.from(await res.arrayBuffer());
+    const path = resolve(dest);
+    await writeFile(path, bytes);
+    return { path, bytes: bytes.length, jobId: out.jobId, url: out.url, revision: out.revision };
   }
 
   if (group === 'open') {

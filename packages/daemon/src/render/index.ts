@@ -1,3 +1,4 @@
+import { AppError } from '@vibebyte/vibe3d-protocol';
 import type { Config } from '../config';
 import type { Renderer } from '../context';
 import type { Logger } from '../logger';
@@ -16,7 +17,11 @@ class AutoRenderer implements Renderer {
   ) {}
 
   get ready(): boolean {
-    return this.chromium.ready;
+    return this.chromium.ready || this.hub.total() > 0;
+  }
+
+  available(roomId: string): boolean {
+    return this.hub.count(roomId) > 0 || this.chromium.ready;
   }
 
   async snapshot(input: Parameters<Renderer['snapshot']>[0], opts: Parameters<Renderer['snapshot']>[1]) {
@@ -25,12 +30,16 @@ class AutoRenderer implements Renderer {
         return await this.editor.snapshot(input, opts);
       } catch (err) {
         this.logger.warn({ event: 'renderer.editor_fallback', err: String(err) });
+        if (!this.chromium.ready) throw err;
       }
     }
     return this.chromium.snapshot(input, opts);
   }
 
   exportGlb(input: Parameters<Renderer['exportGlb']>[0], nodeIds?: string[]) {
+    if (!this.chromium.ready) {
+      throw new AppError('E_RENDER_UNAVAILABLE', 'GLB 导出需要可用的 chromium 渲染器');
+    }
     return this.chromium.exportGlb(input, nodeIds);
   }
 

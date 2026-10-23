@@ -8,6 +8,8 @@ export interface SnapshotOptions {
   height?: number;
   format?: 'png' | 'jpeg';
   settleMs?: number;
+  at?: number;
+  transparent?: boolean;
 }
 
 export interface Snapshot {
@@ -25,6 +27,7 @@ export interface RenderInput {
 export interface Renderer {
   readonly name: string;
   readonly ready: boolean;
+  available?(roomId: string): boolean;
   snapshot(input: RenderInput, opts: SnapshotOptions): Promise<Snapshot>;
   exportGlb(input: RenderInput, nodeIds?: string[]): Promise<{ jobId: string; url: string; bytes: number }>;
   close?(): Promise<void>;
@@ -39,10 +42,15 @@ export interface IngestResult {
 export interface DispatchContext {
   rooms: RoomManager;
   baseUrl: string;
+  token?: string;
   renderer?: Renderer;
   ingest: (src: string, policy?: AssetPolicy) => Promise<IngestResult>;
-  inspect: (src: string, policy?: AssetPolicy) => Promise<{ sha: string; report: GltfReport }>;
+  inspect: (
+    src: string,
+    policy?: AssetPolicy,
+  ) => Promise<{ sha: string; cached: boolean; report: GltfReport }>;
   selection: (roomId: string) => string[];
+  surfaces?: (roomId: string) => number;
 }
 
 export interface HelloResult {

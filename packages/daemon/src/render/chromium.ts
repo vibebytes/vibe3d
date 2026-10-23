@@ -42,6 +42,10 @@ export class ChromiumRenderer implements Renderer {
     return this.executable !== null && Date.now() - this.lastErrorAt > 60_000;
   }
 
+  available(): boolean {
+    return this.ready;
+  }
+
   async snapshot(input: RenderInput, opts: SnapshotOptions = {}): Promise<Snapshot> {
     const width = opts.width ?? 1280;
     const height = opts.height ?? 720;
@@ -50,6 +54,37 @@ export class ChromiumRenderer implements Renderer {
       this.withRecovery(async () => {
         const page = await this.openPage(input.roomId, width, height);
         await sleep(opts.settleMs ?? 180);
+        const captured = await this.cdp?.send<{
+          result: {
+            value?: { base64?: string; mime?: string; width?: number; height?: number } | string | null;
+          };
+        }>(
+          'Runtime.evaluate',
+          {
+            expression: `window.__vibe3dCapture?.(${JSON.stringify({
+              width,
+              height,
+              format,
+              at: opts.at,
+              transparent: opts.transparent,
+            })}) ?? null`,
+            awaitPromise: true,
+            returnByValue: true,
+          },
+          page.sessionId,
+          60_000,
+        );
+        const value = captured?.result?.value;
+        if (typeof value === 'string') {
+          if (value.length > 0) return { mime: 'image/png', base64: value, width, height };
+        } else if (value?.base64) {
+          return {
+            mime: value.mime ?? `image/${format}`,
+            base64: value.base64,
+            width: value.width ?? width,
+            height: value.height ?? height,
+          };
+        }
         const shot = await this.cdp?.send<{ data: string }>(
           'Page.captureScreenshot',
           {

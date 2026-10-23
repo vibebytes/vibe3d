@@ -129,7 +129,7 @@ describe('attachWebSocket', () => {
     const pong = await c.next((f) => f.type === 'pong');
     expect(typeof pong.t).toBe('number');
 
-    const pending = hub.requestSnapshot(room.id, 2_000);
+    const pending = hub.requestSnapshot(room.id, {}, 2_000);
     const request = await c.next((f) => f.type === 'event' && f.event === 'snapshot.request');
     c.ws.send(
       JSON.stringify({
@@ -138,7 +138,7 @@ describe('attachWebSocket', () => {
         png: 'data:image/png;base64,AAA',
       }),
     );
-    await expect(pending).resolves.toBe('data:image/png;base64,AAA');
+    await expect(pending).resolves.toMatchObject({ base64: 'data:image/png;base64,AAA' });
     await shutdown(c);
   });
 

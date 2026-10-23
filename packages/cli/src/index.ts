@@ -18,9 +18,9 @@ const HELP = `vibe3d — 专家级 3D 场景 CLI（与 MCP / HTTP 同一套能�
   stage set <roomId> --preset <name> | --stage <json|@file>
   anim play <roomId> <nodeId> [--clip n] [--speed 1]
   camera set <roomId> [--frame fit|close|wide] [--p x,y,z] [--target x,y,z]
-  render snapshot <roomId> [--out shot.png] [--size 1280x720]
-  export glb <roomId> [--node id]...
-  open <roomId> [--focus nodeId]
+  render snapshot <roomId> [--out shot.png] [--size 1280x720] [--format png|jpeg] [--settle-ms 180] [--at 1.2] [--transparent]
+  export glb <roomId> [--node id] [--out scene.glb]
+  open <roomId> [--focus nodeId] [--no-reuse]
   model import <roomId> <src> [--name n] [--autoplay]
   asset inspect <roomId> <src>
   call <method> [--params <json|@file>] [--room <roomId>]

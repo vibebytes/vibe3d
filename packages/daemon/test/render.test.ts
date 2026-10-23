@@ -70,10 +70,14 @@ const input = { roomId: 'r_aaaaaaaa', doc: {} as any };
 
 describe('EditorRenderer', () => {
   it('reads PNG dimensions and falls back to requested size', async () => {
-    const r = new EditorRenderer({ requestSnapshot: async () => png(64, 32) } as unknown as WsHub);
+    const r = new EditorRenderer({
+      requestSnapshot: async () => ({ base64: png(64, 32) }),
+    } as unknown as WsHub);
     expect(r.ready).toBe(true);
     await expect(r.snapshot(input)).resolves.toMatchObject({ width: 64, height: 32 });
-    const bogus = new EditorRenderer({ requestSnapshot: async () => 'oops' } as unknown as WsHub);
+    const bogus = new EditorRenderer({
+      requestSnapshot: async () => ({ base64: 'oops' }),
+    } as unknown as WsHub);
     await expect(bogus.snapshot(input, { width: 800, height: 600 })).resolves.toMatchObject({
       width: 800,
       height: 600,
@@ -225,7 +229,7 @@ describe('AutoRenderer', () => {
 
     const hub3 = {
       count: () => 1,
-      requestSnapshot: vi.fn().mockResolvedValue(png(7, 9)),
+      requestSnapshot: vi.fn().mockResolvedValue({ base64: png(7, 9) }),
     } as unknown as WsHub;
     const auto3 = createRenderer({
       config: settings,

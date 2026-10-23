@@ -12,13 +12,35 @@ export interface HubClient {
   roomId: string;
 }
 
+export interface SnapshotRequest {
+  width?: number;
+  height?: number;
+  format?: 'png' | 'jpeg';
+  at?: number;
+  transparent?: boolean;
+}
+
+export interface SnapshotCapture {
+  base64: string;
+  mime?: string;
+  width?: number;
+  height?: number;
+}
+
 const MAX_BUFFER_BYTES = 4 * 1024 * 1024;
 
 export class WsHub {
   private readonly rooms = new Map<string, Set<HubClient>>();
   private readonly waiters = new Map<
     string,
-    { resolve: (png: string) => void; reject: (err: Error) => void; timer: NodeJS.Timeout }
+    {
+      resolve: (shot: SnapshotCapture) => void;
+      reject: (err: Error) => void;
+      timer: NodeJS.Timeout;
+      candidates: HubClient[];
+      index: number;
+      opts?: SnapshotRequest;
+    }
   >();
 
   add(roomId: string, socket: SocketLike): HubClient {
@@ -45,6 +67,12 @@ export class WsHub {
     return this.rooms.get(roomId)?.size ?? 0;
   }
 
+  total(): number {
+    let n = 0;
+    for (const set of this.rooms.values()) n += set.size;
+    return n;
+  }
+
   broadcast(roomId: string, frame: ServerFrame): void {
     const set = this.rooms.get(roomId);
     if (!set) return;
@@ -66,28 +94,55 @@ export class WsHub {
     this.broadcast(roomId, { type: 'event', event, data });
   }
 
-  requestSnapshot(roomId: string, timeoutMs = 5_000): Promise<string> {
-    if (this.count(roomId) === 0) {
-      return Promise.reject(new Error('房间没有在线 editor 页面'));
+  requestSnapshot(roomId: string, opts: SnapshotRequest = {}, timeoutMs = 5_000): Promise<SnapshotCapture> {
+    const candidates = [...(this.rooms.get(roomId) ?? [])];
+    if (candidates.length === 0) {
+      return Promise.reject(new Error('房间没有在线 editor / headless 页面'));
     }
     const requestId = randomUUID();
-    return new Promise<string>((resolve, reject) => {
+    return new Promise<SnapshotCapture>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.waiters.delete(requestId);
         reject(new Error('editor 快照超时'));
       }, timeoutMs);
-      this.waiters.set(requestId, { resolve, reject, timer });
-      this.event(roomId, 'snapshot.request', { requestId });
+      const waiter = { resolve, reject, timer, candidates, index: 0 };
+      this.waiters.set(requestId, waiter);
+      this.sendSnapshotRequest(requestId, waiter, opts);
     });
   }
 
-  resolveSnapshot(requestId: string, png?: string, error?: string): void {
+  resolveSnapshot(
+    requestId: string,
+    capture?: { base64?: string; mime?: string; width?: number; height?: number },
+    error?: string,
+  ): void {
     const waiter = this.waiters.get(requestId);
     if (!waiter) return;
+    const failure = error ?? (capture?.base64 ? undefined : 'editor 快照失败');
+    if (failure) {
+      waiter.index += 1;
+      if (waiter.index < waiter.candidates.length) {
+        this.sendSnapshotRequest(requestId, waiter, waiter.opts ?? {});
+        return;
+      }
+    }
     this.waiters.delete(requestId);
     clearTimeout(waiter.timer);
-    if (png) waiter.resolve(png);
-    else waiter.reject(new Error(error ?? 'editor 快照失败'));
+    if (capture?.base64) waiter.resolve({ base64: capture.base64, ...capture });
+    else waiter.reject(new Error(failure ?? 'editor 快照失败'));
+  }
+
+  private sendSnapshotRequest(
+    requestId: string,
+    waiter: { candidates: HubClient[]; index: number; opts?: SnapshotRequest },
+    opts: SnapshotRequest,
+  ): void {
+    waiter.opts = opts;
+    const target = waiter.candidates[waiter.index];
+    if (!target) return;
+    target.socket.send(
+      encodeFrame({ type: 'event', event: 'snapshot.request', data: { requestId, ...opts } }),
+    );
   }
 
   private overflow(client: HubClient, frame: ServerFrame): void {

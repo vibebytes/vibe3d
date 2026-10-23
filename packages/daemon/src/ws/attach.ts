@@ -73,7 +73,11 @@ export function attachWebSocket(deps: WsDeps): WebSocketServer {
           return;
         }
         if (frame.type === 'snapshot.result') {
-          deps.hub.resolveSnapshot(frame.requestId, frame.png, frame.error);
+          deps.hub.resolveSnapshot(
+            frame.requestId,
+            { base64: frame.png, mime: frame.mime, width: frame.width, height: frame.height },
+            frame.error,
+          );
           return;
         }
         deps.onClientFrame?.(roomId, ws, frame);

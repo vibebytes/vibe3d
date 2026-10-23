@@ -191,7 +191,7 @@ describe('handlers: scene', () => {
 
     const editor = await call(h, 'editor.open', { roomId, focus: 'n_abcdefg1', reuse: true }, roomId);
     expect(editor.body.result.url).toContain(`/r/${roomId}?focus=n_abcdefg1`);
-    expect(editor.body.result.reused).toBe(true);
+    expect(editor.body.result.reused).toBe(false);
     const plain = await call(h, 'editor.open', { roomId }, roomId);
     expect(plain.body.result.url).toContain(`/r/${roomId}`);
 

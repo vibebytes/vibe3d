@@ -14,6 +14,7 @@ export const configSchema = z.object({
   rateLimit: z.coerce.number().min(0).max(100_000).default(200),
   rateBurst: z.coerce.number().int().min(1).max(100_000).default(200),
   token: z.string().min(8),
+  assetRoots: z.array(z.string()).default([]),
   renderer: z.enum(['auto', 'none', 'chromium', 'editor']).default('auto'),
   chromePath: z.string().optional(),
   renderTimeoutMs: z.coerce.number().int().min(1000).max(120_000).default(20_000),
@@ -59,6 +60,7 @@ export function parseConfig(argv: string[], env: NodeJS.ProcessEnv = process.env
     rateLimit: flags['rate-limit'] ?? env.VIBE3D_RATE_LIMIT,
     rateBurst: flags['rate-burst'] ?? env.VIBE3D_RATE_BURST,
     token: flags.token ?? env.VIBE3D_TOKEN ?? randomBytes(32).toString('hex'),
+    assetRoots: flags['asset-root'] ?? env.VIBE3D_ASSET_ROOTS,
     renderer: flags.renderer ?? env.VIBE3D_RENDERER,
     chromePath: flags.chrome ?? env.VIBE3D_CHROME,
     renderTimeoutMs: flags['render-timeout'] ?? env.VIBE3D_RENDER_TIMEOUT,
@@ -75,5 +77,14 @@ export function parseConfig(argv: string[], env: NodeJS.ProcessEnv = process.env
   if (parsed.data.host !== '127.0.0.1' && parsed.data.host !== 'localhost') {
     throw new Error('只允许监听 127.0.0.1 / localhost');
   }
-  return { ...parsed.data, home: resolve(parsed.data.home) };
+  const roots = String(parsed.data.assetRoots)
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map((s) => resolve(s));
+  return {
+    ...parsed.data,
+    home: resolve(parsed.data.home),
+    assetRoots: roots.length > 0 ? roots : [process.cwd()],
+  };
 }

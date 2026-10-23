@@ -67,8 +67,16 @@ async function main(): Promise<void> {
       .catch((err: unknown) => logger.warn({ event: 'blob.gc.failed', err: String(err) }));
   }
 
-  const { ingest, inspect } = createIngest({ blobs });
-  const ctx: DispatchContext = { rooms, baseUrl: '', ingest, inspect, selection: () => [] };
+  const { ingest, inspect } = createIngest({ blobs, roots: config.assetRoots });
+  const ctx: DispatchContext = {
+    rooms,
+    baseUrl: '',
+    token: config.token,
+    ingest,
+    inspect,
+    selection: () => [],
+    surfaces: (roomId) => hub.count(roomId),
+  };
   ctx.renderer = createRenderer({
     config,
     hub,

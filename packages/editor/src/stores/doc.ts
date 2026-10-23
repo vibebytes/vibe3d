@@ -2,18 +2,19 @@ import type { CameraState, Material, SceneDoc, StageState } from '@vibebyte/vibe
 import { create } from 'zustand';
 import { rpc } from '../lib/rpc';
 import { type RoomSocket, connectRoom } from '../lib/ws';
+import type { CaptureOptions, CaptureResult } from '../viewport/CaptureBridge';
 import { useConn } from './conn';
 import { useSelection } from './selection';
 
 declare global {
   interface Window {
-    __vibe3dCapture?: () => string | null;
+    __vibe3dCapture?: (opts?: CaptureOptions) => CaptureResult | null;
     __vibe3dReady?: boolean;
     __vibe3dExport?: (nodeIds?: string[] | null) => Promise<string>;
     vibe3d?: {
       roomId: string;
       select(id: string | null): void;
-      capture(): string | null;
+      capture(opts?: CaptureOptions): CaptureResult | null;
       exportGlb(nodeIds?: string[] | null): Promise<string>;
     };
   }
@@ -66,10 +67,35 @@ export const useDoc = create<DocStore>((set, get) => ({
           if (evt.event === 'scene.changed') void get().refresh();
           if (evt.event === 'snapshot.request') {
             const requestId = typeof evt.data.requestId === 'string' ? evt.data.requestId : null;
-            const png = window.__vibe3dCapture?.();
-            if (requestId && png) get().socket?.send({ type: 'snapshot.result', requestId, png });
-            else if (requestId)
-              get().socket?.send({ type: 'snapshot.result', requestId, error: 'capture unavailable' });
+            if (!requestId) return;
+            const num = (key: string): number | undefined => {
+              const value = evt.data[key];
+              return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+            };
+            try {
+              const shot = window.__vibe3dCapture?.({
+                width: num('width'),
+                height: num('height'),
+                format: evt.data.format === 'jpeg' ? 'jpeg' : 'png',
+                at: num('at'),
+                transparent: evt.data.transparent === true,
+              });
+              if (shot) {
+                get().socket?.send({
+                  type: 'snapshot.result',
+                  requestId,
+                  png: shot.base64,
+                  mime: shot.mime,
+                  width: shot.width,
+                  height: shot.height,
+                });
+              } else {
+                get().socket?.send({ type: 'snapshot.result', requestId, error: 'capture unavailable' });
+              }
+            } catch (err) {
+              const message = err instanceof Error ? err.message : String(err);
+              get().socket?.send({ type: 'snapshot.result', requestId, error: message });
+            }
           }
         },
         (online) => {

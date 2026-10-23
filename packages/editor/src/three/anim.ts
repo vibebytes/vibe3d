@@ -64,6 +64,10 @@ export class AnimationController {
     entry.actions.get(name)?.setEffectiveTimeScale(speed);
   }
 
+  seekAll(seconds: number): void {
+    for (const entry of this.entries.values()) entry.mixer.setTime(seconds);
+  }
+
   seek(nodeId: string, seconds: number): void {
     const entry = this.entries.get(nodeId);
     const name = entry?.current;
