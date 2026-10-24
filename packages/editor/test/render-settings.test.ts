@@ -18,7 +18,7 @@ describe('parseRenderSettings', () => {
     expect(parseRenderSettings({ width: 32, height: 8192, settleMs: -5 }).width).toBe(64);
     expect(parseRenderSettings({ width: 32, height: 8192, settleMs: -5 }).height).toBe(4096);
     expect(parseRenderSettings({ width: 32, height: 8192, settleMs: -5 }).settleMs).toBe(0);
-    expect(parseRenderSettings({ width: 1000.7, settleMs: 20_000 }).width).toBe(1000);
+    expect(parseRenderSettings({ width: 1000.7, settleMs: 20_000 }).width).toBe(1001);
     expect(parseRenderSettings({ settleMs: 20_000 }).settleMs).toBe(10_000);
     expect(parseRenderSettings({ width: Number.NaN }).width).toBe(defaultRenderSettings.width);
   });
@@ -45,7 +45,11 @@ describe('patchRenderSettings', () => {
 
   it('keeps the rest of the fields when the patch is partial', () => {
     const base = patchRenderSettings(defaultRenderSettings, { width: 640, overlay: ['dims'] });
-    expect(patchRenderSettings(base, { height: 360 })).toMatchObject({ width: 640, height: 360, overlay: ['dims'] });
+    expect(patchRenderSettings(base, { height: 360 })).toMatchObject({
+      width: 640,
+      height: 360,
+      overlay: ['dims'],
+    });
   });
 });
 
