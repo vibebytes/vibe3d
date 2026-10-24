@@ -45,19 +45,34 @@ function axisAligned(m: Mat3): boolean {
   return m.every((row) => row.every((v) => near(v, 0) || near(v, 1) || near(v, -1)));
 }
 
+const identity = (m: Mat3): boolean =>
+  m.every((row, i) => row.every((v, j) => near(v, i === j ? 1 : 0)));
+
+const unitScale = (t: Transform): boolean =>
+  near(t.s[0], 1) && near(t.s[1], 1) && near(t.s[2], 1);
+
 function worldOrigin(doc: SceneDoc, node: SceneNode): [number, number, number] {
   let cursor: SceneNode | undefined = node;
+  let depth = 0;
   const out: [number, number, number] = [0, 0, 0];
   while (cursor) {
-    if (!axisAligned(rotMat(cursor.transform.r))) {
+    const rot = rotMat(cursor.transform.r);
+    if (!axisAligned(rot)) {
       throw new AppError('E_UNSUPPORTED', `布尔暂只支持 90° 倍数旋转：${cursor.name}`, {
         nodeId: cursor.id,
+      });
+    }
+    if (depth > 0 && (!identity(rot) || !unitScale(cursor.transform))) {
+      throw new AppError('E_UNSUPPORTED', `布尔要求父级只有平移：${cursor.name}`, {
+        nodeId: cursor.id,
+        hint: '先把目标 / 刀具 reparent 到根（keepWorld 默认保世界坐标），再执行布尔',
       });
     }
     out[0] += cursor.transform.p[0];
     out[1] += cursor.transform.p[1];
     out[2] += cursor.transform.p[2];
     cursor = cursor.parent ? doc.nodes[cursor.parent] : undefined;
+    depth += 1;
   }
   return out;
 }
