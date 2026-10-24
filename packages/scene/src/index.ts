@@ -38,6 +38,13 @@ export {
 } from './query';
 export { geometryTris, sceneStats, type SceneStats } from './stats';
 export {
+  checkBudget,
+  type BudgetKey,
+  type BudgetMetric,
+  type BudgetReport,
+  type SceneBudget,
+} from './budget';
+export {
   pickNode,
   type PickHit,
   type PickOptions,

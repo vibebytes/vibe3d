@@ -9,7 +9,7 @@ export const CLI_COMMANDS = [
   { command: "scene summary", args: "<roomId>", capability: "scene.summary" },
   { command: "scene query", args: "<roomId> [--name <text>] [--kind mesh] [--tags a,b] [--parent <nodeId>|root] [--has-children] [--within-bbox <json>] [--bbox <json>] [--min-y 0.9] [--limit 50] [--cursor 0]", capability: "scene.query" },
   { command: "node get", args: "<roomId> <nodeId>", capability: "node.get" },
-  { command: "scene stats", args: "<roomId>", capability: "scene.stats" },
+  { command: "scene stats", args: "<roomId> [--budget <json>] [--enforce]", capability: "scene.stats" },
   { command: "scene pick", args: "<roomId> [--point 0.5,0.5] [--width 1280] [--height 720]", capability: "scene.pick" },
   { command: "scene validate", args: "<roomId> [--checks floating,intersect] [--tolerance 0.02]", capability: "scene.validate" },
   { command: "node transform-many", args: "<roomId> [--ids a,b] [--filter <json>] [--translate 0,1,0]", capability: "node.transform_many" },

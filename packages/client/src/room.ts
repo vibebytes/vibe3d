@@ -106,8 +106,8 @@ export class RoomHandle {
     return this.invoke('node.get', { nodeId });
   }
 
-  stats(): Promise<CapResult<'scene.stats'>> {
-    return this.invoke('scene.stats');
+  stats(params: Omit<CapParams<'scene.stats'>, 'roomId'> = {}): Promise<CapResult<'scene.stats'>> {
+    return this.invoke('scene.stats', params);
   }
 
   validate(params: Omit<CapParams<'scene.validate'>, 'roomId'> = {}): Promise<CapResult<'scene.validate'>> {

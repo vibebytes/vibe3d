@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { type Harness, call, makeHarness, post } from './helpers/harness';
-
-const codeOf = (body: any): string => body?.error?.data?.code ?? body?.error?.code;
+import { type Harness, call, codeOf, makeHarness, post } from './helpers/harness';
 
 async function setup(): Promise<{ h: Harness; roomId: string; first: string }> {
   const h = makeHarness();

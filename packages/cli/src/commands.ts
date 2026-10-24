@@ -124,7 +124,13 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
         }) as never,
       );
     }
-    if (command === 'stats') return room.stats();
+    if (command === 'stats')
+      return room.stats(
+        pick({
+          budget: jsonArg(str(flags, 'budget')),
+          enforce: flags.enforce === undefined ? undefined : bool(flags, 'enforce'),
+        }) as never,
+      );
     if (command === 'validate') {
       return room.validate(
         pick({

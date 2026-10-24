@@ -4035,13 +4035,14 @@
     },
     {
       "name": "scene.stats",
-      "title": "场景统计：节点数、按类型分组、三角面、材质、贴图与预估 draw call",
+      "title": "场景统计：节点数、按类型分组、三角面、材质、贴图与预估 draw call；可带预算上限回余量/超限项",
       "wire": "scene.stats",
       "scope": "room",
       "mutating": false,
       "hostCoupled": false,
       "errors": [
-        "E_ROOM_NOT_FOUND"
+        "E_ROOM_NOT_FOUND",
+        "E_BUDGET_EXCEEDED"
       ],
       "mcp": {
         "tool": "vibe3d_scene_stats",
@@ -4052,7 +4053,7 @@
       },
       "cli": {
         "command": "scene stats",
-        "args": "<roomId>"
+        "args": "<roomId> [--budget <json>] [--enforce]"
       },
       "input": {
         "type": "object",
@@ -4060,6 +4061,27 @@
           "roomId": {
             "type": "string",
             "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "budget": {
+            "type": "object",
+            "properties": {
+              "maxNodes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxTris": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "maxTextures": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          },
+          "enforce": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -4109,6 +4131,155 @@
           "drawCallsEst": {
             "type": "integer",
             "minimum": 0
+          },
+          "budget": {
+            "type": "object",
+            "properties": {
+              "over": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "maxNodes",
+                    "maxTris",
+                    "maxTextures"
+                  ]
+                }
+              },
+              "metrics": {
+                "type": "object",
+                "properties": {
+                  "maxNodes": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "limit": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "used": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "remaining": {
+                            "type": "integer"
+                          },
+                          "ratio": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "exceeded": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "limit",
+                          "used",
+                          "remaining",
+                          "ratio",
+                          "exceeded"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "maxTris": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "limit": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "used": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "remaining": {
+                            "type": "integer"
+                          },
+                          "ratio": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "exceeded": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "limit",
+                          "used",
+                          "remaining",
+                          "ratio",
+                          "exceeded"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "maxTextures": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "limit": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "used": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "remaining": {
+                            "type": "integer"
+                          },
+                          "ratio": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "exceeded": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "limit",
+                          "used",
+                          "remaining",
+                          "ratio",
+                          "exceeded"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "maxNodes",
+                  "maxTris",
+                  "maxTextures"
+                ],
+                "additionalProperties": false
+              },
+              "hint": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "over",
+              "metrics"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [

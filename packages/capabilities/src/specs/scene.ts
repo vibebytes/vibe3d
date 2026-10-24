@@ -30,6 +30,16 @@ const stagePatch = stageStateSchema.partial().extend({
   npr: nprSchema.nullable().optional(),
 });
 
+const budgetMetric = z
+  .object({
+    limit: z.number().int().min(0),
+    used: z.number().int().min(0),
+    remaining: z.number().int(),
+    ratio: z.number().min(0),
+    exceeded: z.boolean(),
+  })
+  .nullable();
+
 const nodePatch = z.object({
   name: z.string().min(1).max(200).optional(),
   visible: z.boolean().optional(),
@@ -140,8 +150,18 @@ export const sceneOps = {
     errors: ['E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'scene.stats': {
-    title: '场景统计：节点数、按类型分组、三角面、材质、贴图与预估 draw call',
-    input: z.object({ roomId }),
+    title: '场景统计：节点数、按类型分组、三角面、材质、贴图与预估 draw call；可带预算上限回余量/超限项',
+    input: z.object({
+      roomId,
+      budget: z
+        .object({
+          maxNodes: z.number().int().min(0).optional(),
+          maxTris: z.number().int().min(0).optional(),
+          maxTextures: z.number().int().min(0).optional(),
+        })
+        .optional(),
+      enforce: z.boolean().optional(),
+    }),
     output: z.object({
       nodes: z.number().int().min(0),
       byKind: z.record(z.enum(['mesh', 'group', 'light', 'model']), z.number().int().min(0)),
@@ -150,13 +170,24 @@ export const sceneOps = {
       materials: z.number().int().min(0),
       textures: z.number().int().min(0),
       drawCallsEst: z.number().int().min(0),
+      budget: z
+        .object({
+          over: z.array(z.enum(['maxNodes', 'maxTris', 'maxTextures'])),
+          metrics: z.object({
+            maxNodes: budgetMetric,
+            maxTris: budgetMetric,
+            maxTextures: budgetMetric,
+          }),
+          hint: z.string().optional(),
+        })
+        .optional(),
     }),
     scope: 'room' as const,
     mutating: false,
     wire: 'scene.stats' as const,
     mcp: { tool: 'vibe3d_scene_stats' as const, annotations: { readOnlyHint: true } },
-    cli: { command: 'scene stats', args: '<roomId>' },
-    errors: ['E_ROOM_NOT_FOUND'] as const,
+    cli: { command: 'scene stats', args: '<roomId> [--budget <json>] [--enforce]' },
+    errors: ['E_ROOM_NOT_FOUND', 'E_BUDGET_EXCEEDED'] as const,
   },
   'scene.pick': {
     title: '屏幕点/射线拾取：命中节点、命中点、距离与候选列表（AABB，空白返回 null）',

@@ -313,12 +313,34 @@ export const MCP_TOOLS = [
   },
   {
     name: "vibe3d_scene_stats",
-    title: "场景统计：节点数、按类型分组、三角面、材质、贴图与预估 draw call",
+    title: "场景统计：节点数、按类型分组、三角面、材质、贴图与预估 draw call；可带预算上限回余量/超限项",
     capability: "scene.stats",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
       "type": "object",
-      "properties": {},
+      "properties": {
+        "budget": {
+          "type": "object",
+          "properties": {
+            "max_nodes": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_tris": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "max_textures": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "enforce": {
+          "type": "boolean"
+        }
+      },
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
     },

@@ -33,6 +33,7 @@ export const ERROR_CODES = [
   'E_DAEMON_OUTDATED',
   'E_MATERIAL_IN_USE',
   'E_EXPORT_DRIFT',
+  'E_BUDGET_EXCEEDED',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
@@ -80,6 +81,7 @@ export const ERROR_SPECS: Record<ErrorCode, ErrorSpec> = {
   },
   E_MATERIAL_IN_USE: { rpc: -32024, http: 409, retryable: false, message: '材质仍被节点引用' },
   E_EXPORT_DRIFT: { rpc: -32025, http: 500, retryable: true, message: '导出 GLB 与场景不一致' },
+  E_BUDGET_EXCEEDED: { rpc: -32026, http: 422, retryable: false, message: '场景超出预算上限' },
 };
 
 export interface AppErrorData {

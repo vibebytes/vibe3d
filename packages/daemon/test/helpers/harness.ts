@@ -106,3 +106,7 @@ export async function call(
   const res = await post(h, path, { jsonrpc: '2.0', id: 1, method, params });
   return { status: res.status, body: await res.json() };
 }
+
+export function codeOf(body: any): string {
+  return body?.error?.data?.code ?? body?.error?.code;
+}

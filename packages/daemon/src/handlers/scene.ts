@@ -18,6 +18,7 @@ import {
   type NodeFilter,
   arrayPlacements,
   attachDelta,
+  checkBudget,
   frameTarget,
   mergeGroup,
   nodeBounds,
@@ -173,7 +174,17 @@ export const sceneHandlers: HandlersFor<Keys> = {
   },
   'scene.stats': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    return sceneStats(room.doc);
+    const stats = sceneStats(room.doc);
+    if (!p.budget) return stats;
+    const report = checkBudget(stats, p.budget);
+    if (p.enforce && report.over.length > 0) {
+      throw new AppError('E_BUDGET_EXCEEDED', undefined, {
+        over: report.over,
+        metrics: report.metrics,
+        hint: report.hint,
+      });
+    }
+    return { ...stats, budget: report };
   },
   'scene.pick': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);

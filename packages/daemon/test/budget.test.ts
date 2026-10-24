@@ -73,12 +73,7 @@ describe('scene.stats budget', () => {
     const h = makeHarness();
     const roomId = await room(h);
     await box(h, roomId, '箱子');
-    const { body } = await call(
-      h,
-      'scene.stats',
-      { roomId, budget: { maxNodes: 5 }, enforce: true },
-      roomId,
-    );
+    const { body } = await call(h, 'scene.stats', { roomId, budget: { maxNodes: 5 }, enforce: true }, roomId);
     expect(body.error).toBeUndefined();
     expect(body.result.budget.over).toEqual([]);
   });
