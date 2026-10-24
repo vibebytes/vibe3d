@@ -3726,6 +3726,323 @@
       }
     },
     {
+      "name": "scene.pick",
+      "title": "屏幕点/射线拾取：命中节点、命中点、距离与候选列表（AABB，空白返回 null）",
+      "wire": "scene.pick",
+      "scope": "room",
+      "mutating": false,
+      "hostCoupled": false,
+      "errors": [
+        "E_INVALID_PARAMS",
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_pick_node",
+        "annotations": {
+          "readOnlyHint": true
+        },
+        "roomArg": false
+      },
+      "cli": {
+        "command": "scene pick",
+        "args": "<roomId> [--point 0.5,0.5] [--width 1280] [--height 720]"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "point": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            ]
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8192
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8192
+          },
+          "camera": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "persp",
+                  "ortho"
+                ]
+              },
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "target": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "fov": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 179
+              },
+              "zoom": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": [
+              "mode",
+              "p",
+              "target",
+              "fov",
+              "zoom"
+            ],
+            "additionalProperties": false
+          },
+          "ray": {
+            "type": "object",
+            "properties": {
+              "origin": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "direction": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "origin",
+              "direction"
+            ],
+            "additionalProperties": false
+          },
+          "maxDistance": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "tolerance": {
+            "type": "number",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": [
+          "roomId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "nodeId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hitPoint": {
+            "anyOf": [
+              {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "distance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "nodeId": {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                "distance": {
+                  "type": "number"
+                },
+                "hitPoint": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "nodeId",
+                "distance",
+                "hitPoint"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "ray": {
+            "type": "object",
+            "properties": {
+              "origin": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "direction": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "origin",
+              "direction"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "nodeId",
+          "hitPoint",
+          "distance",
+          "candidates",
+          "ray"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
       "name": "scene.validate",
       "title": "几何体检：悬空 / 穿模 / 沉地 / 出界，忽略列表可豁免",
       "wire": "scene.validate",
@@ -3820,6 +4137,12 @@
               "max"
             ],
             "additionalProperties": false
+          },
+          "groundY": {
+            "type": "number"
+          },
+          "semantics": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -3842,7 +4165,11 @@
                     "floating",
                     "intersect",
                     "belowGround",
-                    "outsideBounds"
+                    "outsideBounds",
+                    "orphan-child",
+                    "suspect-scale",
+                    "mixed-semantics",
+                    "bimodal-local"
                   ]
                 },
                 "nodeIds": {
@@ -3878,6 +4205,36 @@
           },
           "groundY": {
             "type": "number"
+          },
+          "groundEvidence": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "string",
+                "enum": [
+                  "inferred",
+                  "explicit"
+                ]
+              },
+              "top": {
+                "type": "number"
+              },
+              "nodeId": {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              },
+              "area": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "source",
+              "top"
+            ],
+            "additionalProperties": false
+          },
+          "warning": {
+            "type": "string"
           },
           "stats": {
             "type": "object",
@@ -5659,11 +6016,6 @@
                               ]
                             }
                           },
-                          "required": [
-                            "p",
-                            "r",
-                            "s"
-                          ],
                           "additionalProperties": false
                         },
                         "light": {
@@ -6405,6 +6757,9 @@
                     "id": {
                       "type": "string",
                       "pattern": "^m_[a-z0-9]{8}$"
+                    },
+                    "force": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -11197,11 +11552,6 @@
                               ]
                             }
                           },
-                          "required": [
-                            "p",
-                            "r",
-                            "s"
-                          ],
                           "additionalProperties": false
                         },
                         "light": {
@@ -11943,6 +12293,9 @@
                     "id": {
                       "type": "string",
                       "pattern": "^m_[a-z0-9]{8}$"
+                    },
+                    "force": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -15467,6 +15820,33 @@
             },
             "maxItems": 500
           },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "created": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "updated": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "deleted": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "trisDelta": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "created",
+              "updated",
+              "deleted",
+              "trisDelta"
+            ],
+            "additionalProperties": false
+          },
           "nodeCount": {
             "type": "integer",
             "minimum": 0
@@ -15484,6 +15864,7 @@
           "applied",
           "warnings",
           "inverse",
+          "summary",
           "nodeCount"
         ],
         "additionalProperties": false,
@@ -19388,11 +19769,6 @@
                               ]
                             }
                           },
-                          "required": [
-                            "p",
-                            "r",
-                            "s"
-                          ],
                           "additionalProperties": false
                         },
                         "light": {
@@ -20134,6 +20510,9 @@
                     "id": {
                       "type": "string",
                       "pattern": "^m_[a-z0-9]{8}$"
+                    },
+                    "force": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -29704,6 +30083,64 @@
             "enum": [
               "miniature_45"
             ]
+          },
+          "bbox": {
+            "type": "object",
+            "properties": {
+              "min": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "max": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "min",
+              "max"
+            ],
+            "additionalProperties": false
+          },
+          "padding": {
+            "type": "number",
+            "minimum": 0.2,
+            "maximum": 5
+          },
+          "view": {
+            "type": "string",
+            "enum": [
+              "front",
+              "back",
+              "left",
+              "right",
+              "top",
+              "three_quarter"
+            ]
           }
         },
         "required": [
@@ -29777,6 +30214,86 @@
               "target",
               "fov",
               "zoom"
+            ],
+            "additionalProperties": false
+          },
+          "frame": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "string",
+                "enum": [
+                  "bbox",
+                  "ids",
+                  "scene"
+                ]
+              },
+              "bounds": {
+                "type": "object",
+                "properties": {
+                  "min": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "max": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "min",
+                  "max"
+                ],
+                "additionalProperties": false
+              },
+              "diag": {
+                "type": "number"
+              },
+              "view": {
+                "type": "string",
+                "enum": [
+                  "front",
+                  "back",
+                  "left",
+                  "right",
+                  "top",
+                  "three_quarter"
+                ]
+              },
+              "padding": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "source",
+              "bounds",
+              "diag",
+              "view",
+              "padding"
             ],
             "additionalProperties": false
           }
@@ -30292,6 +30809,22 @@
               ]
             },
             "maxItems": 3
+          },
+          "highlight": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "maxItems": 200
+          },
+          "isolate": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "maxItems": 200
           }
         },
         "required": [
@@ -30435,6 +30968,22 @@
               ]
             },
             "maxItems": 3
+          },
+          "highlight": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "maxItems": 200
+          },
+          "isolate": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "maxItems": 200
           }
         },
         "required": [
@@ -30707,6 +31256,22 @@
               ]
             },
             "maxItems": 3
+          },
+          "highlight": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "maxItems": 200
+          },
+          "isolate": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "maxItems": 200
           }
         },
         "required": [
@@ -30992,6 +31557,22 @@
               ]
             },
             "maxItems": 3
+          },
+          "highlight": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "maxItems": 200
+          },
+          "isolate": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "maxItems": 200
           }
         },
         "required": [

@@ -139,7 +139,7 @@ export function applyProceduralClips(
 ): void {
   root.traverse((obj) => {
     const nodeId = obj.userData.nodeId as string | undefined;
-    if (!nodeId) return;
+    if (!nodeId || !obj.userData.ownsTransform) return;
     const clip = clips[nodeId];
     const declared = bases?.[nodeId];
     if (!clip) {

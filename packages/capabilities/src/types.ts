@@ -39,6 +39,7 @@ export const WIRE_METHODS = [
   'scene.checkpoints',
   'scene.restore',
   'scene.query',
+  'scene.pick',
   'node.get',
   'scene.stats',
   'scene.validate',

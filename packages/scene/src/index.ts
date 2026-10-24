@@ -1,9 +1,11 @@
-export { applyOps, inverseOps, type ReduceResult } from './reduce';
+export { worldMatrix, worldPointToLocal } from './frame';
+export { applyOps, inverseOps, type OpSummary, type ReduceResult } from './reduce';
 export { applyClipTransform, sampleClip } from './anim';
 export { MAX_PARTICLES, particleCount, sampleParticles, type ParticleSample } from './fx';
 export {
   sceneBounds,
   nodeBounds,
+  nodeOwnBounds,
   frameCamera,
   frameNode,
   frameTarget,
@@ -26,6 +28,13 @@ export {
 } from './query';
 export { geometryTris, sceneStats, type SceneStats } from './stats';
 export {
+  pickNode,
+  type PickHit,
+  type PickOptions,
+  type PickRay,
+  type PickResult,
+} from './pick';
+export {
   bakeBoxes,
   booleanBoxes,
   boxFromCenter,
@@ -39,6 +48,7 @@ export {
 export {
   validateScene,
   type CheckCode,
+  type GroundEvidence,
   type SceneIssue,
   type ValidateOptions,
   type ValidateResult,

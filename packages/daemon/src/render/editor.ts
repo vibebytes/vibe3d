@@ -41,6 +41,8 @@ export class EditorRenderer implements Renderer {
           camera: opts.camera,
           shading: opts.shading,
           overlay: opts.overlay,
+          highlight: opts.highlight,
+          isolate: opts.isolate,
         },
         this.timeoutMs + settleMs,
       );

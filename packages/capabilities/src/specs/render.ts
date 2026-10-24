@@ -19,6 +19,8 @@ const imageOpts = {
   transparent: z.boolean().optional(),
   shading: shadingMode.optional(),
   overlay: z.array(overlayKind).max(3).optional(),
+  highlight: z.array(nodeIdSchema).max(200).optional(),
+  isolate: z.array(nodeIdSchema).max(200).optional(),
 };
 
 const pickImageOpts = {
@@ -29,6 +31,8 @@ const pickImageOpts = {
   transparent: imageOpts.transparent,
   shading: imageOpts.shading,
   overlay: imageOpts.overlay,
+  highlight: imageOpts.highlight,
+  isolate: imageOpts.isolate,
 };
 
 export const jobStateSchema = z.enum(['queued', 'running', 'done', 'failed', 'cancelled']);
@@ -59,8 +63,22 @@ export const renderOps = {
       frame: frameMode.optional(),
       name: cameraNameSchema.optional(),
       preset: z.enum(['miniature_45']).optional(),
+      bbox: targetBox.optional(),
+      padding: numIn(0.2, 5).optional(),
+      view: viewName.optional(),
     }),
-    output: revisionOut.extend({ camera: cameraStateSchema }),
+    output: revisionOut.extend({
+      camera: cameraStateSchema,
+      frame: z
+        .object({
+          source: z.enum(['bbox', 'ids', 'scene']),
+          bounds: targetBox,
+          diag: z.number().finite(),
+          view: viewName,
+          padding: z.number().finite(),
+        })
+        .optional(),
+    }),
     scope: 'room' as const,
     mutating: true,
     wire: 'camera.set' as const,

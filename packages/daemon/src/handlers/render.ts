@@ -56,6 +56,8 @@ interface ImageParams {
   transparent?: boolean;
   shading?: ShadingMode;
   overlay?: OverlayKind[];
+  highlight?: string[];
+  isolate?: string[];
 }
 
 function hasDocAnimation(doc: SceneDoc): boolean {
@@ -76,6 +78,8 @@ function imageOptions(p: ImageParams, doc?: SceneDoc): SnapshotOptions {
     transparent: p.transparent,
     shading: p.shading,
     overlay: p.overlay?.length ? [...new Set(p.overlay)] : undefined,
+    highlight: p.highlight?.length ? [...new Set(p.highlight)] : undefined,
+    isolate: p.isolate?.length ? [...new Set(p.isolate)] : undefined,
   };
 }
 

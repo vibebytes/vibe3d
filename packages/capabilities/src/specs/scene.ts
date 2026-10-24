@@ -1,5 +1,6 @@
 import {
   assetMetaSchema,
+  cameraStateSchema,
   clipSchema,
   envSchema,
   fogSchema,
@@ -150,6 +151,38 @@ export const sceneOps = {
     cli: { command: 'scene stats', args: '<roomId>' },
     errors: ['E_ROOM_NOT_FOUND'] as const,
   },
+  'scene.pick': {
+    title: '屏幕点/射线拾取：命中节点、命中点、距离与候选列表（AABB，空白返回 null）',
+    input: z.object({
+      roomId,
+      point: z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]).optional(),
+      width: z.number().int().min(1).max(8192).optional(),
+      height: z.number().int().min(1).max(8192).optional(),
+      camera: cameraStateSchema.optional(),
+      ray: z.object({ origin: vec3, direction: vec3 }).optional(),
+      maxDistance: z.number().finite().positive().optional(),
+      tolerance: z.number().finite().min(0).optional(),
+      limit: z.number().int().min(1).max(50).optional(),
+    }),
+    output: z.object({
+      nodeId: nodeIdSchema.nullable(),
+      hitPoint: vec3.nullable(),
+      distance: z.number().finite().nullable(),
+      candidates: z.array(
+        z.object({ nodeId: nodeIdSchema, distance: z.number().finite(), hitPoint: vec3 }),
+      ),
+      ray: z.object({ origin: vec3, direction: vec3 }),
+    }),
+    scope: 'room' as const,
+    mutating: false,
+    wire: 'scene.pick' as const,
+    mcp: { tool: 'vibe3d_pick_node' as const, annotations: { readOnlyHint: true } },
+    cli: {
+      command: 'scene pick',
+      args: '<roomId> [--point 0.5,0.5] [--width 1280] [--height 720]',
+    },
+    errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
+  },
   'scene.validate': {
     title: '几何体检：悬空 / 穿模 / 沉地 / 出界，忽略列表可豁免',
     input: z.object({
@@ -158,11 +191,22 @@ export const sceneOps = {
       tolerance: z.number().finite().min(0).max(1).optional(),
       ignore: z.array(nodeIdSchema).max(500).optional(),
       bounds: z.object({ min: vec3, max: vec3 }).optional(),
+      groundY: z.number().finite().optional(),
+      semantics: z.boolean().optional(),
     }),
     output: z.object({
       issues: z.array(
         z.object({
-          code: z.enum(['floating', 'intersect', 'belowGround', 'outsideBounds']),
+          code: z.enum([
+            'floating',
+            'intersect',
+            'belowGround',
+            'outsideBounds',
+            'orphan-child',
+            'suspect-scale',
+            'mixed-semantics',
+            'bimodal-local',
+          ]),
           nodeIds: z.array(nodeIdSchema),
           severity: z.enum(['warn', 'error']),
           detail: z.string(),
@@ -170,6 +214,15 @@ export const sceneOps = {
         }),
       ),
       groundY: z.number().finite(),
+      groundEvidence: z
+        .object({
+          source: z.enum(['inferred', 'explicit']),
+          top: z.number().finite(),
+          nodeId: nodeIdSchema.optional(),
+          area: z.number().finite().optional(),
+        })
+        .optional(),
+      warning: z.string().optional(),
       stats: z.object({
         nodes: z.number().int().min(0),
         byKind: z.record(z.enum(['mesh', 'group', 'light', 'model']), z.number().int().min(0)),
@@ -296,6 +349,12 @@ export const sceneOps = {
       applied: z.number().int().min(0),
       warnings: z.array(z.string()),
       inverse: opListSchema,
+      summary: z.object({
+        created: z.number().int().min(0),
+        updated: z.number().int().min(0),
+        deleted: z.number().int().min(0),
+        trisDelta: z.number().int(),
+      }),
       nodeCount: z.number().int().min(0),
       editors: z.number().int().min(0).optional(),
       hint: z.string().optional(),

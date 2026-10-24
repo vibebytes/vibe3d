@@ -153,6 +153,14 @@ export const useDoc = create<DocStore>((set, get) => ({
                   (k): k is 'grid' | 'axes' | 'bbox' => k === 'grid' || k === 'axes' || k === 'bbox',
                 ) as CaptureOptions['overlay'])
               : undefined;
+            const ids = (key: string): string[] | undefined => {
+              const value = evt.data[key];
+              return Array.isArray(value)
+                ? value.filter((id): id is string => typeof id === 'string' && id.length > 0)
+                : undefined;
+            };
+            const highlight = ids('highlight');
+            const isolate = ids('isolate');
             try {
               const shot = window.__vibe3dCapture?.({
                 width: num('width'),
@@ -163,6 +171,8 @@ export const useDoc = create<DocStore>((set, get) => ({
                 camera: parseSnapshotCamera(evt.data.camera),
                 shading,
                 overlay: overlay && overlay.length > 0 ? overlay : undefined,
+                highlight: highlight && highlight.length > 0 ? highlight : undefined,
+                isolate: isolate && isolate.length > 0 ? isolate : undefined,
               });
               if (shot) {
                 get().socket?.send({

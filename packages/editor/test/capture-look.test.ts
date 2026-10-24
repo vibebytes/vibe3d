@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { addOverlays, applyShading } from '../src/viewport/capture-look';
+import { addOverlays, applyHighlight, applyIsolate, applyShading } from '../src/viewport/capture-look';
 
 function makeScene(): { scene: THREE.Scene; mesh: THREE.Mesh; material: THREE.MeshStandardMaterial } {
   const scene = new THREE.Scene();
@@ -142,5 +142,83 @@ describe('诊断叠加 addOverlays', () => {
     expect(scene.overrideMaterial).toBeNull();
     clear();
     restore();
+  });
+});
+
+function taggedScene(): { scene: THREE.Scene; a: THREE.Mesh; b: THREE.Mesh; bMaterial: THREE.MeshStandardMaterial } {
+  const scene = new THREE.Scene();
+  const root = new THREE.Group();
+  root.name = 'vibe3d-export';
+  const a = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+  a.userData.nodeId = 'n_00000001';
+  const bMaterial = new THREE.MeshStandardMaterial({ color: 0x222222, transparent: true, opacity: 0.4, name: 'b-mat' });
+  const b = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), bMaterial);
+  b.userData.nodeId = 'n_00000002';
+  b.position.x = 2;
+  root.add(a, b);
+  scene.add(root);
+  return { scene, a, b, bMaterial };
+}
+
+const uniqueMaterials = (scene: THREE.Scene): number => {
+  const set = new Set<THREE.Material>();
+  scene.traverse((child) => {
+    const mesh = child as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    for (const item of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) set.add(item);
+  });
+  return set.size;
+};
+
+describe('高亮与隔离 applyHighlight / applyIsolate', () => {
+  it('只替换目标节点材质，非目标保持原材质', () => {
+    const { scene, a, b, bMaterial } = taggedScene();
+    const restore = applyHighlight(scene, ['n_00000001']);
+    expect((a.material as THREE.MeshBasicMaterial).color.getHex()).toBe(0xf2b45c);
+    expect(b.material).toBe(bMaterial);
+    restore();
+  });
+
+  it('还原后按引用恢复原材质，并保留透明与不透明度', () => {
+    const { scene, b, bMaterial } = taggedScene();
+    const restore = applyHighlight(scene, ['n_00000002']);
+    const next = b.material as THREE.MeshBasicMaterial;
+    expect(next.transparent).toBe(true);
+    expect(next.opacity).toBeCloseTo(0.4);
+    restore();
+    expect(b.material).toBe(bMaterial);
+  });
+
+  it('isolate 隐藏非目标节点，还原后 visible 复原', () => {
+    const { scene, a, b } = taggedScene();
+    const restore = applyIsolate(scene, ['n_00000002']);
+    expect(a.visible).toBe(false);
+    expect(b.visible).toBe(true);
+    restore();
+    expect(a.visible).toBe(true);
+    expect(b.visible).toBe(true);
+  });
+
+  it('与 shading 叠加：目标用高亮材质，其余保持线框', () => {
+    const { scene, a, b } = taggedScene();
+    const restoreShading = applyShading(scene, 'wireframe');
+    const restoreHighlight = applyHighlight(scene, ['n_00000002']);
+    expect((b.material as THREE.MeshBasicMaterial).wireframe).toBe(false);
+    expect((a.material as THREE.MeshBasicMaterial).wireframe).toBe(true);
+    restoreHighlight();
+    expect((b.material as THREE.MeshBasicMaterial).wireframe).toBe(true);
+    restoreShading();
+  });
+
+  it('连续 5 轮高亮/还原后场景材质数量不增长', () => {
+    const { scene } = taggedScene();
+    const before = uniqueMaterials(scene);
+    for (let i = 0; i < 5; i++) {
+      const restoreHighlight = applyHighlight(scene, ['n_00000001']);
+      const restoreIsolate = applyIsolate(scene, ['n_00000001', 'n_00000002']);
+      restoreIsolate();
+      restoreHighlight();
+    }
+    expect(uniqueMaterials(scene)).toBe(before);
   });
 });

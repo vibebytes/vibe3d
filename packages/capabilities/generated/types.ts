@@ -13,6 +13,7 @@ export type CapabilityName =
   | "scene.query"
   | "node.get"
   | "scene.stats"
+  | "scene.pick"
   | "scene.validate"
   | "node.transform_many"
   | "node.array"
@@ -74,6 +75,7 @@ export type InputOf<N extends CapabilityName> = {
   "scene.query": z.infer<(typeof CAPABILITIES)["scene.query"]['input']>;
   "node.get": z.infer<(typeof CAPABILITIES)["node.get"]['input']>;
   "scene.stats": z.infer<(typeof CAPABILITIES)["scene.stats"]['input']>;
+  "scene.pick": z.infer<(typeof CAPABILITIES)["scene.pick"]['input']>;
   "scene.validate": z.infer<(typeof CAPABILITIES)["scene.validate"]['input']>;
   "node.transform_many": z.infer<(typeof CAPABILITIES)["node.transform_many"]['input']>;
   "node.array": z.infer<(typeof CAPABILITIES)["node.array"]['input']>;
@@ -136,6 +138,7 @@ export type OutputOf<N extends CapabilityName> = {
   "scene.query": z.infer<(typeof CAPABILITIES)["scene.query"]['output']>;
   "node.get": z.infer<(typeof CAPABILITIES)["node.get"]['output']>;
   "scene.stats": z.infer<(typeof CAPABILITIES)["scene.stats"]['output']>;
+  "scene.pick": z.infer<(typeof CAPABILITIES)["scene.pick"]['output']>;
   "scene.validate": z.infer<(typeof CAPABILITIES)["scene.validate"]['output']>;
   "node.transform_many": z.infer<(typeof CAPABILITIES)["node.transform_many"]['output']>;
   "node.array": z.infer<(typeof CAPABILITIES)["node.array"]['output']>;

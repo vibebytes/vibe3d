@@ -16,8 +16,11 @@ import {
 import {
   DEFAULT_LIMITS,
   type NodeFilter,
+  frameTarget,
   nodeBounds,
   nodeView,
+  worldPointToLocal,
+  pickNode,
   queryNodes,
   sceneStats,
   validateScene,
@@ -40,6 +43,7 @@ type Keys =
   | 'node.get'
   | 'scene.validate'
   | 'scene.stats'
+  | 'scene.pick'
   | 'stage.set'
   | 'animation.play'
   | 'animation.define'
@@ -161,6 +165,19 @@ export const sceneHandlers: HandlersFor<Keys> = {
     const room = ctx.rooms.get(p.roomId);
     return sceneStats(room.doc);
   },
+  'scene.pick': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    return pickNode(room.doc, {
+      point: p.point,
+      width: p.width,
+      height: p.height,
+      camera: p.camera,
+      ray: p.ray,
+      maxDistance: p.maxDistance,
+      tolerance: p.tolerance,
+      limit: p.limit,
+    });
+  },
   'scene.validate': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     return validateScene(room.doc, {
@@ -168,6 +185,8 @@ export const sceneHandlers: HandlersFor<Keys> = {
       tolerance: p.tolerance,
       ignore: p.ignore,
       bounds: p.bounds,
+      groundY: p.groundY,
+      semantics: p.semantics,
     });
   },
   'node.transform_many': async (p, ctx) => {
@@ -259,13 +278,14 @@ export const sceneHandlers: HandlersFor<Keys> = {
       ? [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2]
       : [0, 0, 0];
 
+    const pivot = worldPointToLocal(room.doc, parent, center);
     const groupId = makeNodeId();
     const group: SceneNode = {
       id: groupId,
       name: uniqueName(room.doc, parent, p.name, new Set()),
       parent,
       visible: true,
-      transform: { p: center, r: [0, 0, 0], s: [1, 1, 1] },
+      transform: { p: pivot, r: [0, 0, 0], s: [1, 1, 1] },
       kind: 'group',
     };
     const ops: Op[] = [{ op: 'node.create', node: group }];
@@ -281,9 +301,9 @@ export const sceneHandlers: HandlersFor<Keys> = {
             transform: {
               ...node.transform,
               p: [
-                node.transform.p[0] - center[0],
-                node.transform.p[1] - center[1],
-                node.transform.p[2] - center[2],
+                node.transform.p[0] - pivot[0],
+                node.transform.p[1] - pivot[1],
+                node.transform.p[2] - pivot[2],
               ],
             },
           },
@@ -570,9 +590,26 @@ export const sceneHandlers: HandlersFor<Keys> = {
 
   'camera.set': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    const op: Op = { op: 'camera.set', camera: p.camera, frame: p.frame, name: p.name, preset: p.preset };
+    const framed = p.bbox ? frameTarget(room.doc, { bbox: p.bbox, padding: p.padding, view: p.view }) : null;
+    const op: Op = framed
+      ? { op: 'camera.set', camera: { ...p.camera, ...framed.camera } }
+      : { op: 'camera.set', camera: p.camera, frame: p.frame, name: p.name, preset: p.preset };
     const result = await room.run(() => room.apply([op]));
-    return { revision: result.revision, camera: room.doc.camera };
+    return {
+      revision: result.revision,
+      camera: room.doc.camera,
+      ...(framed
+        ? {
+            frame: {
+              source: framed.source,
+              bounds: framed.bounds,
+              diag: framed.diag,
+              view: framed.view,
+              padding: framed.padding,
+            },
+          }
+        : {}),
+    };
   },
 
   'camera.save': async (p, ctx) => {

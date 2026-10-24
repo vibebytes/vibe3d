@@ -1,8 +1,16 @@
 import type { SceneDoc, SceneNode } from '@vibebyte/vibe3d-protocol';
-import { type Bounds, nodeBounds } from './frame';
+import { type Bounds, nodeBounds, nodeOwnBounds } from './frame';
 import { type SceneStats, sceneStats } from './stats';
 
-export type CheckCode = 'floating' | 'intersect' | 'belowGround' | 'outsideBounds';
+export type CheckCode =
+  | 'floating'
+  | 'intersect'
+  | 'belowGround'
+  | 'outsideBounds'
+  | 'orphan-child'
+  | 'suspect-scale'
+  | 'mixed-semantics'
+  | 'bimodal-local';
 
 export interface SceneIssue {
   code: CheckCode;
@@ -12,16 +20,27 @@ export interface SceneIssue {
   fixHint: string;
 }
 
+export interface GroundEvidence {
+  source: 'inferred' | 'explicit';
+  top: number;
+  nodeId?: string;
+  area?: number;
+}
+
 export interface ValidateOptions {
   checks?: readonly CheckCode[];
   tolerance?: number;
   ignore?: readonly string[];
   bounds?: Bounds;
+  groundY?: number;
+  semantics?: boolean;
 }
 
 export interface ValidateResult {
   issues: SceneIssue[];
   groundY: number;
+  groundEvidence?: GroundEvidence;
+  warning?: string;
   stats: SceneStats;
 }
 
@@ -32,22 +51,39 @@ function isSolid(node: { kind: string }): boolean {
   return node.kind === 'mesh' || node.kind === 'model';
 }
 
-function groundLevel(doc: SceneDoc, tolerance: number): number {
-  let groundY = 0;
-  let found = false;
+function inferGround(doc: SceneDoc, tolerance: number): { groundY: number; evidence?: GroundEvidence; warning?: string } {
+  const boxes: { id: string; box: Bounds }[] = [];
   for (const node of Object.values(doc.nodes)) {
     if (!node.visible || !isSolid(node)) continue;
     const box = nodeBounds(doc, node.id);
-    if (!box) continue;
+    if (box) boxes.push({ id: node.id, box });
+  }
+  if (!boxes.length) {
+    return { groundY: 0, warning: '场景没有实体节点，groundY 回退 0' };
+  }
+  let minY = Number.POSITIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+  for (const { box } of boxes) {
+    minY = Math.min(minY, box.min[1]);
+    maxY = Math.max(maxY, box.max[1]);
+  }
+  const band = Math.max(tolerance, 0.25 * (maxY - minY));
+  let best: { id: string; area: number; top: number } | undefined;
+  for (const { id, box } of boxes) {
     const height = box.max[1] - box.min[1];
     const span = Math.max(box.max[0] - box.min[0], box.max[2] - box.min[2], 1);
     if (height > span * 0.1 + EPS) continue;
-    if (!found || box.max[1] > groundY) {
-      groundY = box.max[1];
-      found = true;
+    if (box.max[1] > minY + band) continue;
+    const area = (box.max[0] - box.min[0]) * (box.max[2] - box.min[2]);
+    if (area <= EPS) continue;
+    if (!best || area > best.area || (area === best.area && box.max[1] < best.top)) {
+      best = { id, area, top: box.max[1] };
     }
   }
-  return groundY;
+  if (!best) {
+    return { groundY: 0, warning: `未找到可作地面的水平面，groundY 回退 0（可显式传 groundY）` };
+  }
+  return { groundY: best.top, evidence: { source: 'inferred', nodeId: best.id, area: best.area, top: best.top } };
 }
 
 function overlap(a: Bounds, b: Bounds, tolerance: number): boolean {
@@ -65,11 +101,107 @@ function outside(box: Bounds, bounds: Bounds, tolerance: number): boolean {
   return false;
 }
 
+const norm = (p: readonly number[]): number => Math.hypot(p[0]!, p[1]!, p[2]!);
+
+function auditSemantics(doc: SceneDoc, tolerance: number, ignore: Set<string>): SceneIssue[] {
+  const issues: SceneIssue[] = [];
+  const children = new Map<string, SceneNode[]>();
+  for (const node of Object.values(doc.nodes)) {
+    if (!node.parent) continue;
+    const list = children.get(node.parent);
+    if (list) list.push(node);
+    else children.set(node.parent, [node]);
+  }
+
+  for (const node of Object.values(doc.nodes)) {
+    if (!node.visible || !node.parent || ignore.has(node.id) || ignore.has(node.parent)) continue;
+    const parent = doc.nodes[node.parent];
+    if (!parent || !parent.visible || !isSolid(parent)) continue;
+    const parentBox = nodeOwnBounds(doc, parent.id);
+    const childBox = nodeBounds(doc, node.id);
+    if (!parentBox || !childBox || overlap(parentBox, childBox, tolerance)) continue;
+    issues.push({
+      code: 'orphan-child',
+      nodeIds: [node.id, parent.id],
+      severity: 'warn',
+      detail: `${node.name} 的世界包围盒完全落在实体父节点 ${parent.name} 之外`,
+      fixHint: '核对父节点的 transform，或用 node.reparent 保持世界坐标重新挂载',
+    });
+  }
+
+  const groups = Object.values(doc.nodes)
+    .filter((node) => node.kind === 'group' && !ignore.has(node.id))
+    .sort((a, b) => (a.id < b.id ? -1 : 1));
+
+  for (const g of groups) {
+    const kids = children.get(g.id) ?? [];
+    if (!kids.length) continue;
+    const s = g.transform.s;
+    const nonUnit = s.some((v) => Math.abs(v - 1) > 0.05);
+    const suspect = s.some((v) => v < 0.2 - EPS || v > 5 + EPS);
+    if (suspect) {
+      issues.push({
+        code: 'suspect-scale',
+        nodeIds: [g.id],
+        severity: 'warn',
+        detail: `${g.name} 的缩放 [${s.map((v) => v.toFixed(2)).join(', ')}] 超出 [0.2, 5]`,
+        fixHint: '把缩放烘进子节点几何，或拆成更小的组；异常缩放会放大后续变换误差',
+      });
+    }
+
+    if (nonUnit) {
+      const suspects = kids.filter(
+        (child) => child.visible && !ignore.has(child.id) && norm(child.transform.p) > 1,
+      );
+      if (suspects.length > 0) {
+        issues.push({
+          code: 'mixed-semantics',
+          nodeIds: [g.id, ...suspects.map((child) => child.id)],
+          severity: 'warn',
+          detail: `${g.name} 缩放 [${s.map((v) => v.toFixed(2)).join(', ')}] 下仍有 ${suspects.length} 个子节点以大于 1 的局部 p 定位`,
+          fixHint: '用 node.group keepWorld 重新归一化，或把子节点 p 减去组锚点',
+        });
+      }
+    }
+
+    const visibleKids = kids.filter((child) => child.visible && !ignore.has(child.id));
+    if (visibleKids.length < 4) continue;
+    const values = visibleKids
+      .map((child) => ({ child, value: norm(child.transform.p) }))
+      .filter((entry) => entry.value > EPS)
+      .sort((a, b) => a.value - b.value);
+    if (values.length < 4) continue;
+    let split = -1;
+    let gap = 0;
+    for (let i = 1; i < values.length; i += 1) {
+      const step = Math.log10(values[i]!.value / values[i - 1]!.value);
+      if (step > gap) {
+        gap = step;
+        split = i;
+      }
+    }
+    if (split < 2 || values.length - split < 2 || gap < 1.5) continue;
+    issues.push({
+      code: 'bimodal-local',
+      nodeIds: visibleKids.map((child) => child.id),
+      severity: 'warn',
+      detail: `${g.name} 的子节点 |p| 从 ${values[split - 1]!.value.toFixed(2)} 跳到 ${values[split]!.value.toFixed(2)}（${Math.round(10 ** gap)}×），量级双峰`,
+      fixHint: '检查是否一部分子节点用局部坐标、另一部分用世界坐标；统一到组局部坐标系',
+    });
+  }
+
+  return issues;
+}
+
 export function validateScene(doc: SceneDoc, opts: ValidateOptions = {}): ValidateResult {
   const tolerance = opts.tolerance ?? 0.02;
   const checks = new Set(opts.checks ?? DEFAULT_CHECKS);
   const ignore = new Set(opts.ignore ?? []);
-  const groundY = groundLevel(doc, tolerance);
+  const inferred = opts.groundY === undefined ? inferGround(doc, tolerance) : undefined;
+  const groundY = opts.groundY ?? inferred?.groundY ?? 0;
+  const groundEvidence: GroundEvidence | undefined =
+    opts.groundY === undefined ? inferred?.evidence : { source: 'explicit', top: opts.groundY };
+  const warning = inferred?.warning;
   const issues: SceneIssue[] = [];
 
   const solid: { node: SceneNode; box: Bounds }[] = [];
@@ -143,5 +275,13 @@ export function validateScene(doc: SceneDoc, opts: ValidateOptions = {}): Valida
     }
   }
 
-  return { issues, groundY, stats: sceneStats(doc) };
+  if (opts.semantics) issues.push(...auditSemantics(doc, tolerance, ignore));
+
+  return {
+    issues,
+    groundY,
+    ...(groundEvidence ? { groundEvidence } : {}),
+    ...(warning ? { warning } : {}),
+    stats: sceneStats(doc),
+  };
 }

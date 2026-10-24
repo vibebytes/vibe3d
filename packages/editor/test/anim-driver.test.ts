@@ -6,6 +6,7 @@ import { applyProceduralClips, clipsOf } from '../src/three/anim';
 function obj(id: string, p: [number, number, number] = [0, 0, 0]) {
   const o = new THREE.Object3D();
   o.userData.nodeId = id;
+  o.userData.ownsTransform = true;
   o.position.set(p[0], p[1], p[2]);
   return o;
 }
@@ -22,6 +23,25 @@ describe('applyProceduralClips', () => {
     applyProceduralClips(root, clips, 1);
     expect(a.position.y).toBeCloseTo(2);
     expect(b.position.y).toBe(0);
+  });
+
+  it('does not double-apply a node transform when wrapper and mesh share a node id', () => {
+    const wrapper = obj('n_aaaaaaaa', [2, 1, -3]);
+    wrapper.rotation.set(0, 0.5, 0);
+    const mesh = new THREE.Object3D();
+    mesh.userData.nodeId = 'n_aaaaaaaa';
+    wrapper.add(mesh);
+    const root = new THREE.Object3D();
+    root.add(wrapper);
+    const bases = {
+      n_aaaaaaaa: { p: [2, 1, -3] as [number, number, number], r: [0, 0.5, 0] as [number, number, number], s: [1, 1, 1] as [number, number, number] },
+    };
+    applyProceduralClips(root, {}, 0, bases);
+    const world = mesh.getWorldPosition(new THREE.Vector3());
+    expect(world.x).toBeCloseTo(2);
+    expect(world.y).toBeCloseTo(1);
+    expect(world.z).toBeCloseTo(-3);
+    expect(wrapper.rotation.y).toBeCloseTo(0.5);
   });
 
   it('leaves nodes without a clip untouched', () => {

@@ -93,7 +93,7 @@ function NodeView({ node, doc, npr }: { node: SceneNode; doc: SceneDoc; npr?: Np
       scale={[sx, sy, sz]}
       visible={node.visible}
       name={node.name}
-      userData={{ nodeId: node.id }}
+      userData={{ nodeId: node.id, ownsTransform: true }}
     >
       {node.kind === 'mesh' && <MeshView node={node} material={doc.materials[node.material]} npr={npr} />}
       {node.kind === 'light' && <LightView node={node} />}

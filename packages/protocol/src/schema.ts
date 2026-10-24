@@ -21,6 +21,12 @@ export const transformSchema = z.object({
   s: z.tuple([nonZeroScale, nonZeroScale, nonZeroScale]),
 });
 
+export const transformPatchSchema = z.object({
+  p: vec3.optional(),
+  r: vec3.optional(),
+  s: z.tuple([nonZeroScale, nonZeroScale, nonZeroScale]).optional(),
+});
+
 const segments = z.number().int().min(3).max(128);
 
 export const bakedGeometrySchema = z.object({
@@ -171,6 +177,7 @@ export type Vec3 = z.infer<typeof vec3>;
 export type Rgb = z.infer<typeof rgb>;
 export type Rgba = z.infer<typeof rgba>;
 export type Transform = z.infer<typeof transformSchema>;
+export type TransformPatch = z.infer<typeof transformPatchSchema>;
 export type Geometry = z.infer<typeof geometrySchema>;
 export type MaterialPreset = z.infer<typeof materialPresetSchema>;
 export type Material = z.infer<typeof materialSchema>;

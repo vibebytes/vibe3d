@@ -31,6 +31,8 @@ export const ERROR_CODES = [
   'E_MATERIAL_NOT_FOUND',
   'E_CAMERA_NOT_FOUND',
   'E_DAEMON_OUTDATED',
+  'E_MATERIAL_IN_USE',
+  'E_EXPORT_DRIFT',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
@@ -76,6 +78,8 @@ export const ERROR_SPECS: Record<ErrorCode, ErrorSpec> = {
     retryable: true,
     message: 'daemon 版本过旧，不认识该方法',
   },
+  E_MATERIAL_IN_USE: { rpc: -32024, http: 409, retryable: false, message: '材质仍被节点引用' },
+  E_EXPORT_DRIFT: { rpc: -32025, http: 500, retryable: true, message: '导出 GLB 与场景不一致' },
 };
 
 export interface AppErrorData {

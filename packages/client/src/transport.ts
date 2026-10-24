@@ -1,5 +1,6 @@
 import { setTimeout as delay } from 'node:timers/promises';
 import { CAPABILITY_NAMES } from '@vibebyte/vibe3d-capabilities';
+import { timeoutFor } from '@vibebyte/vibe3d-protocol';
 import { Vibe3DError, isVibe3DError, toVibe3DError } from './errors';
 
 const KNOWN_CAPABILITIES = new Set<string>(CAPABILITY_NAMES);
@@ -108,7 +109,8 @@ export class RpcClient implements Transport {
 
   private async once<T>(target: string, body: Envelope, opts: CallOptions): Promise<T> {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(new Error('timeout')), opts.timeoutMs ?? 30_000);
+    const timeoutMs = opts.timeoutMs ?? timeoutFor(body.method);
+    const timeout = setTimeout(() => controller.abort(new Error('timeout')), timeoutMs);
     const onAbort = () => controller.abort(opts.signal?.reason);
     opts.signal?.addEventListener('abort', onAbort, { once: true });
     let res: Response;
@@ -123,7 +125,11 @@ export class RpcClient implements Transport {
       if (controller.signal.aborted && opts.signal?.aborted) {
         throw new Vibe3DError('E_NETWORK', '请求已取消', { cause: String(err) });
       }
-      if (controller.signal.aborted) throw new Vibe3DError('E_TIMEOUT', `请求超时：${body.method}`);
+      if (controller.signal.aborted)
+        throw new Vibe3DError('E_TIMEOUT', `请求超时：${body.method}（${timeoutMs}ms）`, {
+          method: body.method,
+          timeoutMs,
+        });
       throw new Vibe3DError('E_NETWORK', `无法连接 daemon：${this.url}`, { cause: String(err) });
     } finally {
       clearTimeout(timeout);

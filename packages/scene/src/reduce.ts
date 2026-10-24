@@ -1,6 +1,7 @@
 import {
   AppError,
   type MapTransform,
+  type Material,
   type ModelAnim,
   type NodePatch,
   type Op,
@@ -9,21 +10,45 @@ import {
 } from '@vibebyte/vibe3d-protocol';
 import { frameCamera, miniatureCamera } from './frame';
 import { normalizeMap, presetMaterial } from './material';
+import { sceneStats } from './stats';
 import { DEFAULT_LIMITS, type Limits, validateDoc } from './validate';
+
+export interface OpSummary {
+  created: number;
+  updated: number;
+  deleted: number;
+  trisDelta: number;
+}
 
 export interface ReduceResult {
   doc: SceneDoc;
   inverse: Op[];
   warnings: string[];
+  summary: OpSummary;
 }
 
 function fail(message: string, data?: Record<string, unknown>): never {
   throw new AppError('E_INVALID_PARAMS', message, data);
 }
 
-function failWith(code: 'E_MATERIAL_NOT_FOUND', message: string, data?: Record<string, unknown>): never {
+function failWith(
+  code: 'E_MATERIAL_NOT_FOUND' | 'E_MATERIAL_IN_USE',
+  message: string,
+  data?: Record<string, unknown>,
+): never {
   throw new AppError(code, message, data);
 }
+
+const DEFAULT_MATERIAL_ID = 'm_00000000';
+const DEFAULT_MATERIAL: Material = {
+  baseColor: [0.8, 0.8, 0.82, 1],
+  metalness: 0,
+  roughness: 0.9,
+  emissive: [0, 0, 0],
+  emissiveIntensity: 1,
+  opacity: 1,
+  doubleSided: false,
+};
 
 const clone = <T>(v: T): T => structuredClone(v);
 
@@ -116,7 +141,11 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       }
       if (patch.transform !== undefined) {
         old.transform = clone(node.transform);
-        node.transform = clone(patch.transform);
+        node.transform = {
+          p: clone(patch.transform.p ?? node.transform.p),
+          r: clone(patch.transform.r ?? node.transform.r),
+          s: clone(patch.transform.s ?? node.transform.s),
+        };
       }
       if (patch.light !== undefined) {
         if (node.kind !== 'light') fail('只有 light 节点有 light 字段', { id: op.id });
@@ -224,8 +253,28 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
     case 'material.delete': {
       const previous = doc.materials[op.id];
       if (!previous) return;
-      delete doc.materials[op.id];
       inverse.push({ op: 'material.set', id: op.id, material: clone(previous) });
+      const refs = Object.values(doc.nodes)
+        .filter((n) => 'material' in n && n.material === op.id)
+        .map((n) => n.id)
+        .sort();
+      if (refs.length > 0 && !op.force) {
+        failWith('E_MATERIAL_IN_USE', `材质仍被 ${refs.length} 个节点引用；确认要删请传 force:true`, {
+          material: op.id,
+          nodes: refs,
+        });
+      }
+      if (refs.length > 0) {
+        const created = !doc.materials[DEFAULT_MATERIAL_ID];
+        if (created) doc.materials[DEFAULT_MATERIAL_ID] = clone(DEFAULT_MATERIAL);
+        for (const id of refs) {
+          const node = doc.nodes[id];
+          if (node && 'material' in node) node.material = DEFAULT_MATERIAL_ID;
+          inverse.push({ op: 'node.update', id: id as `n_${string}`, patch: { material: op.id } });
+        }
+        if (created) inverse.push({ op: 'material.delete', id: DEFAULT_MATERIAL_ID });
+      }
+      delete doc.materials[op.id];
       return;
     }
     case 'material.create': {
@@ -400,6 +449,7 @@ export function applyOps(doc: SceneDoc, ops: readonly Op[], limits: Limits = DEF
   let current = clone(doc);
   const inverse: Op[] = [];
   const warnings: string[] = [];
+  const trisBefore = sceneStats(current).tris;
   for (const op of ops) {
     if (op.op === 'scene.replace') {
       inverse.push({ op: 'scene.replace', doc: clone(current) });
@@ -409,7 +459,21 @@ export function applyOps(doc: SceneDoc, ops: readonly Op[], limits: Limits = DEF
     applyOne(current, op, inverse, warnings);
   }
   validateDoc(current, limits);
-  return { doc: current, inverse, warnings };
+  const added = new Set<string>();
+  const updated = new Set<string>();
+  const removed = new Set<string>();
+  for (const op of ops) {
+    if (op.op === 'node.create') added.add(op.node.id);
+    else if (op.op === 'node.delete') removed.add(op.id);
+    else if ('id' in op && typeof op.id === 'string' && op.id.startsWith('n_')) updated.add(op.id);
+  }
+  const summary: OpSummary = {
+    created: added.size,
+    updated: [...updated].filter((id) => !added.has(id) && !removed.has(id)).length,
+    deleted: [...removed].filter((id) => !added.has(id)).length,
+    trisDelta: sceneStats(current).tris - trisBefore,
+  };
+  return { doc: current, inverse, warnings, summary };
 }
 
 export const inverseOps = (result: ReduceResult): Op[] => result.inverse;

@@ -1,11 +1,12 @@
 import { AppError, type AssetMeta, type Op, type RoomId, type SceneDoc } from '@vibebyte/vibe3d-protocol';
-import { applyOps, validateDoc } from '@vibebyte/vibe3d-scene';
+import { applyOps, validateDoc, type OpSummary } from '@vibebyte/vibe3d-scene';
 
 export interface ApplyResult {
   revision: number;
   applied: number;
   warnings: string[];
   inverse: Op[];
+  summary: OpSummary;
 }
 
 export interface ChangeInfo {
@@ -93,7 +94,7 @@ export class Room {
     }
 
     const before = this.doc;
-    const { doc, inverse, warnings } = applyOps(before, ops);
+    const { doc, inverse, warnings, summary } = applyOps(before, ops);
     const next: SceneDoc = {
       ...doc,
       revision: before.revision + 1,
@@ -108,7 +109,7 @@ export class Room {
     this.redoStack = [];
     this.commit(next, ops);
 
-    const result: ApplyResult = { revision: next.revision, applied: ops.length, warnings, inverse };
+    const result: ApplyResult = { revision: next.revision, applied: ops.length, warnings, inverse, summary };
     if (opts.opId) {
       this.opIds.set(opts.opId, next.revision);
       this.applied.set(opts.opId, result);

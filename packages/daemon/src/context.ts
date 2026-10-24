@@ -18,6 +18,8 @@ export interface SnapshotOptions {
   camera?: CameraState;
   shading?: ShadingMode;
   overlay?: OverlayKind[];
+  highlight?: string[];
+  isolate?: string[];
 }
 
 export interface Snapshot {

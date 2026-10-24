@@ -23,6 +23,8 @@ export interface SnapshotRequest {
   camera?: CameraState;
   shading?: ShadingMode;
   overlay?: OverlayKind[];
+  highlight?: string[];
+  isolate?: string[];
 }
 
 export interface SnapshotCapture {

@@ -171,6 +171,53 @@ describe('ChromiumRenderer', () => {
     await r.close?.();
   });
 
+  it('rejects an export whose GLB drifts from the doc', async () => {
+    state.executable = '/fake/chrome';
+    state.evalQueue = [];
+    const h = makeHarness();
+    const r = createRenderer({
+      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      hub: { count: () => 0 } as unknown as WsHub,
+      logger: h.logger,
+      baseUrl: () => 'http://127.0.0.1:1',
+      exportsDir: h.dirs.exports,
+    })!;
+    const json = Buffer.from(JSON.stringify({ asset: { version: '2.0' }, nodes: [] }), 'utf8');
+    const padded = Buffer.alloc(Math.ceil(json.length / 4) * 4, 0x20);
+    json.copy(padded);
+    const glbBytes = Buffer.alloc(20 + padded.length);
+    glbBytes.writeUInt32LE(0x46546c67, 0);
+    glbBytes.writeUInt32LE(2, 4);
+    glbBytes.writeUInt32LE(glbBytes.length, 8);
+    glbBytes.writeUInt32LE(padded.length, 12);
+    glbBytes.writeUInt32LE(0x4e4f534a, 16);
+    padded.copy(glbBytes, 20);
+    state.evalQueue = [
+      { result: { value: { ready: true } } },
+      { result: { value: glbBytes.toString('base64') } },
+    ];
+    const doc = {
+      nodes: {
+        n_00000001: {
+          id: 'n_00000001',
+          kind: 'mesh',
+          name: '台阶',
+          parent: null,
+          visible: true,
+          transform: { p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] },
+          geometry: { type: 'box', size: [1, 1, 1] },
+          material: 'm_00000001',
+        },
+      },
+      roots: ['n_00000001'],
+    };
+    await expect(r.exportGlb({ roomId: 'r_aaaaaaaa', doc } as never)).rejects.toMatchObject({
+      code: 'E_EXPORT_DRIFT',
+    });
+    expect(readdirSync(h.dirs.exports)).toEqual([]);
+    await r.close?.();
+  });
+
   it('retries once without sandbox after losing the connection', async () => {
     state.navFailures = 1;
     state.launches = 0;

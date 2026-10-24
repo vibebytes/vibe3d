@@ -123,6 +123,46 @@ function localBox(doc: SceneDoc, node: SceneNode): Aabb | null {
   return null;
 }
 
+export function worldMatrix(doc: SceneDoc, id: string): number[] | null {
+  const node = doc.nodes[id];
+  if (!node) return null;
+  const local = composeLocal(node);
+  if (!node.parent) return local;
+  const parent = worldMatrix(doc, node.parent);
+  return parent ? multiply(parent as Mat4, local) : local;
+}
+
+export function worldPointToLocal(
+  doc: SceneDoc,
+  parentId: string | null,
+  point: readonly [number, number, number],
+): [number, number, number] {
+  const chain: string[] = [];
+  let cursor = parentId;
+  while (cursor) {
+    chain.unshift(cursor);
+    cursor = doc.nodes[cursor]?.parent ?? null;
+  }
+  let out: [number, number, number] = [point[0], point[1], point[2]];
+  for (const id of chain) {
+    const node = doc.nodes[id];
+    if (!node) continue;
+    const [sx, sy, sz] = node.transform.s;
+    const m = composeLocal(node);
+    const d: [number, number, number] = [
+      out[0] - node.transform.p[0],
+      out[1] - node.transform.p[1],
+      out[2] - node.transform.p[2],
+    ];
+    out = [
+      (m[0]! * d[0] + m[1]! * d[1] + m[2]! * d[2]) / (sx * sx),
+      (m[4]! * d[0] + m[5]! * d[1] + m[6]! * d[2]) / (sy * sy),
+      (m[8]! * d[0] + m[9]! * d[1] + m[10]! * d[2]) / (sz * sz),
+    ];
+  }
+  return out;
+}
+
 function worldMatrices(doc: SceneDoc): Map<string, Mat4> {
   const out = new Map<string, Mat4>();
   const walk = (id: string): Mat4 => {
@@ -198,11 +238,37 @@ export function nodeBounds(doc: SceneDoc, id: string): Aabb | null {
   return boundsOf(doc, subtreeIds(doc, id));
 }
 
+export function nodeOwnBounds(doc: SceneDoc, id: string): Aabb | null {
+  const node = doc.nodes[id];
+  if (!node) return null;
+  const local = localBox(doc, node);
+  const m = worldMatrix(doc, id);
+  if (!local || !m) return null;
+  return expand(null, m as Mat4, local);
+}
+
 export interface FrameTargetOptions {
   ids?: readonly string[];
   mode?: FrameMode;
   view?: ViewName;
   padding?: number;
+  bbox?: Bounds;
+}
+
+export interface FrameResult {
+  camera: CameraState;
+  bounds: Aabb;
+  diag: number;
+  source: 'bbox' | 'ids' | 'scene';
+  view: ViewName;
+  padding: number;
+}
+
+function validBox(box: Bounds | undefined): box is Bounds {
+  if (!box) return false;
+  const values = [...box.min, ...box.max];
+  if (!values.every((value) => Number.isFinite(value))) return false;
+  return Math.hypot(box.max[0] - box.min[0], box.max[1] - box.min[1], box.max[2] - box.min[2]) > 1e-6;
 }
 
 function frameBox(camera: CameraState, box: Aabb, mode: FrameMode, view: ViewName, padding = 1): CameraState {
@@ -227,22 +293,28 @@ function frameBox(camera: CameraState, box: Aabb, mode: FrameMode, view: ViewNam
   };
 }
 
-export function frameTarget(
-  doc: SceneDoc,
-  opts: FrameTargetOptions = {},
-): { camera: CameraState; bounds: Aabb } | null {
+export function frameTarget(doc: SceneDoc, opts: FrameTargetOptions = {}): FrameResult | null {
   const ids = opts.ids && opts.ids.length > 0 ? opts.ids : null;
-  const box = ids
-    ? boundsOf(
-        doc,
-        ids.flatMap((id) => subtreeIds(doc, id)),
-      )
-    : sceneBounds(doc);
+  const box = validBox(opts.bbox)
+    ? opts.bbox
+    : ids
+      ? boundsOf(
+          doc,
+          ids.flatMap((id) => subtreeIds(doc, id)),
+        )
+      : sceneBounds(doc);
   if (!box) return null;
-  const mode = opts.mode ?? (ids ? 'close' : 'fit');
+  const source = validBox(opts.bbox) ? 'bbox' : ids ? 'ids' : 'scene';
+  const mode = opts.mode ?? (source === 'scene' ? 'fit' : 'close');
+  const view = opts.view ?? 'three_quarter';
+  const padding = opts.padding ?? 1;
   return {
-    camera: frameBox(doc.camera, box, mode, opts.view ?? 'three_quarter', opts.padding ?? 1),
+    camera: frameBox(doc.camera, box, mode, view, padding),
     bounds: box,
+    diag: Math.hypot(box.max[0] - box.min[0], box.max[1] - box.min[1], box.max[2] - box.min[2]),
+    source,
+    view,
+    padding,
   };
 }
 

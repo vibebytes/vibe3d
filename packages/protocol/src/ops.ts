@@ -25,6 +25,7 @@ import {
   postSchema,
   shaSchema,
   stageStateSchema,
+  transformPatchSchema,
   transformSchema,
 } from './schema';
 
@@ -40,7 +41,7 @@ const cameraPatchSchema = cameraStateSchema.partial();
 const nodePatchSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   visible: z.boolean().optional(),
-  transform: transformSchema.optional(),
+  transform: transformPatchSchema.optional(),
   light: lightSpecSchema.optional(),
   anim: modelAnimSchema.nullable().optional(),
   geometry: geometrySchema.optional(),
@@ -61,7 +62,7 @@ export const opSchema = z.discriminatedUnion('op', [
     index: z.number().int().min(0).optional(),
   }),
   z.object({ op: z.literal('material.set'), id: materialIdSchema, material: materialSchema }),
-  z.object({ op: z.literal('material.delete'), id: materialIdSchema }),
+  z.object({ op: z.literal('material.delete'), id: materialIdSchema, force: z.boolean().optional() }),
   z.object({
     op: z.literal('material.create'),
     id: materialIdSchema,

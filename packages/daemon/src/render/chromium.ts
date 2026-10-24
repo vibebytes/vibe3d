@@ -7,6 +7,7 @@ import { signExportUrl } from '../http/export-url';
 import type { Logger } from '../logger';
 import { Cdp, CdpError } from './cdp';
 import { type ChromeHandle, findChrome, launchChrome } from './chrome';
+import { verifyGlbExport } from './verify-glb';
 
 interface PageSession {
   sessionId: string;
@@ -71,6 +72,8 @@ export class ChromiumRenderer implements Renderer {
               camera: opts.camera,
               shading: opts.shading,
               overlay: opts.overlay,
+              highlight: opts.highlight,
+              isolate: opts.isolate,
             })}) ?? null`,
             awaitPromise: true,
             returnByValue: true,
@@ -125,6 +128,9 @@ export class ChromiumRenderer implements Renderer {
           throw new AppError('E_RENDER_UNAVAILABLE', '页面未返回 GLB 数据');
         }
         const bytes = Buffer.from(base64, 'base64');
+        if (Object.keys(input.doc?.nodes ?? {}).length > 0) {
+          verifyGlbExport(input.doc, bytes, { nodeIds });
+        }
         const jobId = randomUUID().replace(/-/g, '');
         const file = `${jobId}.glb`;
         await mkdir(this.opts.exportsDir, { recursive: true });

@@ -195,12 +195,13 @@ export const roomHandlers: HandlersFor<Keys> = {
     const room = ctx.rooms.get(p.roomId);
     const ops = p.ops as Op[];
     if (p.dryRun) {
-      const { doc, inverse, warnings } = applyOps(room.doc, ops);
+      const { doc, inverse, warnings, summary } = applyOps(room.doc, ops);
       return {
         revision: room.revision,
         applied: ops.length,
         warnings,
         inverse,
+        summary,
         ...sceneFeedback(doc, ctx, p.roomId),
       };
     }

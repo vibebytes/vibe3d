@@ -259,6 +259,162 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "vibe3d_pick_node",
+    title: "屏幕点/射线拾取：命中节点、命中点、距离与候选列表（AABB，空白返回 null）",
+    capability: "scene.pick",
+    annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "point": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ]
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8192
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8192
+        },
+        "camera": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "persp",
+                "ortho"
+              ]
+            },
+            "p": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "target": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "fov": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 179
+            },
+            "zoom": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "mode",
+            "p",
+            "target",
+            "fov",
+            "zoom"
+          ],
+          "additionalProperties": false
+        },
+        "ray": {
+          "type": "object",
+          "properties": {
+            "origin": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "direction": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          "required": [
+            "origin",
+            "direction"
+          ],
+          "additionalProperties": false
+        },
+        "max_distance": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "tolerance": {
+          "type": "number",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
     name: "vibe3d_validate_scene",
     title: "几何体检：悬空 / 穿模 / 沉地 / 出界，忽略列表可豁免",
     capability: "scene.validate",
@@ -332,6 +488,12 @@ export const MCP_TOOLS = [
             "max"
           ],
           "additionalProperties": false
+        },
+        "ground_y": {
+          "type": "number"
+        },
+        "semantics": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false,
@@ -1857,11 +2019,6 @@ export const MCP_TOOLS = [
                             ]
                           }
                         },
-                        "required": [
-                          "p",
-                          "r",
-                          "s"
-                        ],
                         "additionalProperties": false
                       },
                       "light": {
@@ -2603,6 +2760,9 @@ export const MCP_TOOLS = [
                   "id": {
                     "type": "string",
                     "pattern": "^m_[a-z0-9]{8}$"
+                  },
+                  "force": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -10487,6 +10647,64 @@ export const MCP_TOOLS = [
           "enum": [
             "miniature_45"
           ]
+        },
+        "bbox": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "max": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          "required": [
+            "min",
+            "max"
+          ],
+          "additionalProperties": false
+        },
+        "padding": {
+          "type": "number",
+          "minimum": 0.2,
+          "maximum": 5
+        },
+        "view": {
+          "type": "string",
+          "enum": [
+            "front",
+            "back",
+            "left",
+            "right",
+            "top",
+            "three_quarter"
+          ]
         }
       },
       "additionalProperties": false,
@@ -10644,6 +10862,22 @@ export const MCP_TOOLS = [
             ]
           },
           "maxItems": 3
+        },
+        "highlight": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "maxItems": 200
+        },
+        "isolate": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "maxItems": 200
         }
       },
       "additionalProperties": false,
@@ -10731,6 +10965,22 @@ export const MCP_TOOLS = [
             ]
           },
           "maxItems": 3
+        },
+        "highlight": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "maxItems": 200
+        },
+        "isolate": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "maxItems": 200
         }
       },
       "additionalProperties": false,
@@ -10814,6 +11064,22 @@ export const MCP_TOOLS = [
             ]
           },
           "maxItems": 3
+        },
+        "highlight": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "maxItems": 200
+        },
+        "isolate": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "maxItems": 200
         }
       },
       "required": [
@@ -10935,6 +11201,22 @@ export const MCP_TOOLS = [
             ]
           },
           "maxItems": 3
+        },
+        "highlight": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "maxItems": 200
+        },
+        "isolate": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "maxItems": 200
         }
       },
       "additionalProperties": false,

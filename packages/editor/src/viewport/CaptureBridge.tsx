@@ -7,7 +7,8 @@ import { useDoc } from '../stores/doc';
 import { useSelection } from '../stores/selection';
 import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
 import { applyFxAt } from '../three/fx';
-import { addOverlays, applyShading } from './capture-look';
+import { missingModelIds } from '../three/model-ready';
+import { addOverlays, applyHighlight, applyIsolate, applyShading } from './capture-look';
 import type { OverlayKind, ShadingMode } from './capture-look';
 
 export type { OverlayKind, ShadingMode } from './capture-look';
@@ -21,6 +22,8 @@ export interface CaptureOptions {
   camera?: CameraState;
   shading?: ShadingMode;
   overlay?: OverlayKind[];
+  highlight?: string[];
+  isolate?: string[];
 }
 
 export interface CaptureResult {
@@ -59,6 +62,15 @@ function exportRoot(scene: THREE.Scene, nodeIds?: string[] | null): THREE.Object
     if (!wanted.has(String(child.userData.nodeId ?? ''))) clone.remove(child);
   }
   return clone;
+}
+
+function pendingModels(root: THREE.Object3D, nodeIds?: string[] | null): string[] {
+  const present = new Set<string>();
+  root.traverse((obj) => {
+    const id = obj.userData?.nodeId;
+    if (typeof id === 'string') present.add(id);
+  });
+  return missingModelIds(useDoc.getState().doc, present, nodeIds);
 }
 
 function captureFrame(
@@ -119,7 +131,11 @@ function captureFrame(
 
   const restoreShading = applyShading(scene, opts.shading);
   const clearOverlays = addOverlays(scene, opts.overlay);
+  const restoreHighlight = applyHighlight(scene, opts.highlight);
+  const restoreIsolate = applyIsolate(scene, opts.isolate);
   const restoreLook = (): void => {
+    restoreIsolate();
+    restoreHighlight();
     clearOverlays();
     restoreShading();
   };
@@ -190,7 +206,17 @@ export function CaptureBridge({ roomId, headless = false }: { roomId: string; he
       return captureFrame(gl, scene, camera, size, opts);
     };
     const exportGlb = async (nodeIds?: string[] | null): Promise<string> => {
-      const target = exportRoot(scene, nodeIds);
+      const deadline = Date.now() + 12_000;
+      let target = exportRoot(scene, nodeIds);
+      let missing = pendingModels(target, nodeIds);
+      while (missing.length > 0 && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 120));
+        target = exportRoot(scene, nodeIds);
+        missing = pendingModels(target, nodeIds);
+      }
+      if (missing.length > 0) {
+        throw new Error(`模型尚未加载完成，导出会丢失节点：${missing.join(', ')}`);
+      }
       const out = await new GLTFExporter().parseAsync(target, { binary: true, onlyVisible: true });
       if (!(out instanceof ArrayBuffer)) throw new Error('GLTFExporter 未返回二进制数据');
       return toBase64(out);
