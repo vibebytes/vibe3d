@@ -485,6 +485,8 @@ export const sceneOps = {
       shape: z.enum(['box', 'sphere', 'cylinder', 'plane']).optional(),
       size: vec3.optional(),
       radius: z.number().positive().optional(),
+      radiusTop: z.number().min(0).optional(),
+      radiusBottom: z.number().min(0).optional(),
       height: z.number().positive().optional(),
       color: z
         .string()

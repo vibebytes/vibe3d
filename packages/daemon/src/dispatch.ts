@@ -5,9 +5,10 @@ import {
   describeIssues,
   toIssues,
 } from '@vibebyte/vibe3d-capabilities';
-import { AppError, DAEMON_VERSION, PROTOCOL_VERSION } from '@vibebyte/vibe3d-protocol';
+import { AppError, DAEMON_VERSION, PROTOCOL_VERSION, legacyGeometryNotes } from '@vibebyte/vibe3d-protocol';
 import type { AutoOpenState, DispatchContext, HelloResult } from './context';
 import { assetHandlers } from './handlers/asset';
+import { backdropHandlers } from './handlers/backdrop';
 import { booleanHandlers } from './handlers/boolean';
 import { checkpointHandlers } from './handlers/checkpoints';
 import { decalHandlers } from './handlers/decal';
@@ -16,7 +17,6 @@ import { renderHandlers } from './handlers/render';
 import { roomHandlers } from './handlers/room';
 import { sceneHandlers } from './handlers/scene';
 import { tubeHandlers } from './handlers/tube';
-import { backdropHandlers } from './handlers/backdrop';
 
 type AnyHandler = (p: never, ctx: DispatchContext) => Promise<unknown>;
 
@@ -123,6 +123,15 @@ export function resolveMethod(method: string): CapabilityName {
   return name;
 }
 
+// 迁移提示只能用未解析的入参算：geometrySchema 解析时就把 radius 展开掉了
+function withMigrationNotes(name: CapabilityName, raw: unknown, result: unknown): unknown {
+  if (name !== 'ops.apply' || !result || typeof result !== 'object') return result;
+  const notes = legacyGeometryNotes((raw ?? {}) as { ops?: ReadonlyArray<unknown> });
+  if (notes.length === 0) return result;
+  const { warnings } = result as { warnings?: unknown };
+  return { ...result, warnings: [...(Array.isArray(warnings) ? warnings : []), ...notes] };
+}
+
 export async function dispatch(method: string, params: unknown, ctx: DispatchContext): Promise<unknown> {
   const name = resolveMethod(method);
   const spec = CAPABILITIES[name];
@@ -135,7 +144,7 @@ export async function dispatch(method: string, params: unknown, ctx: DispatchCon
   }
 
   const result = await HANDLERS[name](input.data as never, ctx);
-  const output = spec.output.safeParse(result);
+  const output = spec.output.safeParse(withMigrationNotes(name, params, result));
   if (!output.success) {
     throw new AppError('E_INTERNAL', `${name} 返回值不符合协议`, {
       issues: output.error.issues.map((issue) => ({

@@ -1506,6 +1506,10 @@ export const MCP_TOOLS = [
                                     "type": "string",
                                     "const": "cylinder"
                                   },
+                                  "radius": {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0
+                                  },
                                   "radius_top": {
                                     "type": "number",
                                     "minimum": 0
@@ -1526,8 +1530,6 @@ export const MCP_TOOLS = [
                                 },
                                 "required": [
                                   "type",
-                                  "radius_top",
-                                  "radius_bottom",
                                   "height",
                                   "segments"
                                 ],
@@ -2596,6 +2598,10 @@ export const MCP_TOOLS = [
                                 "type": "string",
                                 "const": "cylinder"
                               },
+                              "radius": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
                               "radius_top": {
                                 "type": "number",
                                 "minimum": 0
@@ -2616,8 +2622,6 @@ export const MCP_TOOLS = [
                             },
                             "required": [
                               "type",
-                              "radius_top",
-                              "radius_bottom",
                               "height",
                               "segments"
                             ],
@@ -5419,6 +5423,10 @@ export const MCP_TOOLS = [
                                           "type": "string",
                                           "const": "cylinder"
                                         },
+                                        "radius": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0
+                                        },
                                         "radius_top": {
                                           "type": "number",
                                           "minimum": 0
@@ -5439,8 +5447,6 @@ export const MCP_TOOLS = [
                                       },
                                       "required": [
                                         "type",
-                                        "radius_top",
-                                        "radius_bottom",
                                         "height",
                                         "segments"
                                       ],
@@ -7346,6 +7352,14 @@ export const MCP_TOOLS = [
         "radius": {
           "type": "number",
           "exclusiveMinimum": 0
+        },
+        "radius_top": {
+          "type": "number",
+          "minimum": 0
+        },
+        "radius_bottom": {
+          "type": "number",
+          "minimum": 0
         },
         "height": {
           "type": "number",
@@ -9857,6 +9871,10 @@ export const MCP_TOOLS = [
                                 "type": "string",
                                 "const": "cylinder"
                               },
+                              "radius": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
                               "radius_top": {
                                 "type": "number",
                                 "minimum": 0
@@ -9877,8 +9895,6 @@ export const MCP_TOOLS = [
                             },
                             "required": [
                               "type",
-                              "radius_top",
-                              "radius_bottom",
                               "height",
                               "segments"
                             ],

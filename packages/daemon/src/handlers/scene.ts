@@ -90,13 +90,16 @@ function geometryOf(p: {
   shape?: 'box' | 'sphere' | 'cylinder' | 'plane';
   size?: [number, number, number];
   radius?: number;
+  radiusTop?: number;
+  radiusBottom?: number;
   height?: number;
 }): Geometry {
   const shape = p.shape ?? 'box';
   if (shape === 'sphere') return { type: 'sphere', radius: p.radius ?? 0.5, segments: 48 };
   if (shape === 'cylinder') {
-    const r = p.radius ?? 0.5;
-    return { type: 'cylinder', radiusTop: r, radiusBottom: r, height: p.height ?? 1, segments: 48 };
+    const radiusTop = p.radiusTop ?? p.radius ?? 0.5;
+    const radiusBottom = p.radiusBottom ?? p.radius ?? 0.5;
+    return { type: 'cylinder', radiusTop, radiusBottom, height: p.height ?? 1, segments: 48 };
   }
   if (shape === 'plane') {
     const size = p.size ?? [1, 1, 1];

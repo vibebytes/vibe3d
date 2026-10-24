@@ -40,22 +40,71 @@ export const bakedGeometrySchema = z.object({
   bbox: z.object({ min: vec3, max: vec3 }),
 });
 
-export const geometrySchema = z.discriminatedUnion('type', [
+const issue = (message: string) => ({ code: z.ZodIssueCode.custom, message });
+
+const cylinderGeometrySchema = z
+  .object({
+    type: z.literal('cylinder'),
+    radius: finite.positive().optional(),
+    radiusTop: finite.min(0).optional(),
+    radiusBottom: finite.min(0).optional(),
+    height: finite.positive(),
+    segments,
+  })
+  .superRefine((g, ctx) => {
+    const [top, bottom] = [g.radiusTop !== undefined, g.radiusBottom !== undefined];
+    if (g.radius !== undefined) {
+      if (top || bottom) ctx.addIssue(issue('cylinder takes radius or radiusTop/radiusBottom, not both'));
+      return;
+    }
+    if (!top && !bottom) {
+      ctx.addIssue(issue('cylinder needs radius, or radiusTop and radiusBottom'));
+      return;
+    }
+    if (!top || !bottom) ctx.addIssue(issue('radiusTop and radiusBottom must be given together'));
+  })
+  .transform((g) => ({
+    type: g.type,
+    radiusTop: g.radius ?? g.radiusTop!,
+    radiusBottom: g.radius ?? g.radiusBottom!,
+    height: g.height,
+    segments: g.segments,
+  }));
+
+export const geometrySchema = z.union([
   z.object({
     type: z.literal('box'),
     size: z.tuple([finite.positive(), finite.positive(), finite.positive()]),
   }),
   z.object({ type: z.literal('sphere'), radius: finite.positive(), segments }),
-  z.object({
-    type: z.literal('cylinder'),
-    radiusTop: finite.min(0),
-    radiusBottom: finite.min(0),
-    height: finite.positive(),
-    segments,
-  }),
+  cylinderGeometrySchema,
   z.object({ type: z.literal('plane'), width: finite.positive(), height: finite.positive() }),
   bakedGeometrySchema,
 ]);
+
+interface RawNodeGeometryOp {
+  id?: unknown;
+  node?: { id?: unknown; geometry?: unknown } | null;
+  patch?: { geometry?: unknown } | null;
+}
+
+function cylinderWithRadiusAlias(geometry: unknown): boolean {
+  if (!geometry || typeof geometry !== 'object') return false;
+  const g = geometry as { type?: unknown; radius?: unknown };
+  return g.type === 'cylinder' && g.radius !== undefined;
+}
+
+export function legacyGeometryNotes(input: { ops?: ReadonlyArray<unknown> }): string[] {
+  const notes: string[] = [];
+  for (const entry of input.ops ?? []) {
+    const op = (entry ?? {}) as RawNodeGeometryOp;
+    if (!cylinderWithRadiusAlias(op.node?.geometry ?? op.patch?.geometry)) continue;
+    const raw = op.node?.id ?? op.id;
+    const id = typeof raw === 'string' ? raw : 'unknown';
+    notes.push(`节点 ${id} 的圆柱用了旧写法 radius，已按上下同半径展开；请改用 radiusTop / radiusBottom`);
+  }
+  return notes;
+}
 
 export const materialPresetSchema = z.enum(['concrete', 'rust', 'wet_moss', 'toon', 'water', 'glass']);
 

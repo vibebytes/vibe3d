@@ -894,6 +894,10 @@
                                   "type": "string",
                                   "const": "cylinder"
                                 },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
                                 "radiusTop": {
                                   "type": "number",
                                   "minimum": 0
@@ -914,8 +918,6 @@
                               },
                               "required": [
                                 "type",
-                                "radiusTop",
-                                "radiusBottom",
                                 "height",
                                 "segments"
                               ],
@@ -6170,6 +6172,10 @@
                                       "type": "string",
                                       "const": "cylinder"
                                     },
+                                    "radius": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
+                                    },
                                     "radiusTop": {
                                       "type": "number",
                                       "minimum": 0
@@ -6190,8 +6196,6 @@
                                   },
                                   "required": [
                                     "type",
-                                    "radiusTop",
-                                    "radiusBottom",
                                     "height",
                                     "segments"
                                   ],
@@ -7260,6 +7264,10 @@
                                   "type": "string",
                                   "const": "cylinder"
                                 },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
                                 "radiusTop": {
                                   "type": "number",
                                   "minimum": 0
@@ -7280,8 +7288,6 @@
                               },
                               "required": [
                                 "type",
-                                "radiusTop",
-                                "radiusBottom",
                                 "height",
                                 "segments"
                               ],
@@ -10083,6 +10089,10 @@
                                             "type": "string",
                                             "const": "cylinder"
                                           },
+                                          "radius": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0
+                                          },
                                           "radiusTop": {
                                             "type": "number",
                                             "minimum": 0
@@ -10103,8 +10113,6 @@
                                         },
                                         "required": [
                                           "type",
-                                          "radiusTop",
-                                          "radiusBottom",
                                           "height",
                                           "segments"
                                         ],
@@ -12443,6 +12451,10 @@
                                       "type": "string",
                                       "const": "cylinder"
                                     },
+                                    "radius": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
+                                    },
                                     "radiusTop": {
                                       "type": "number",
                                       "minimum": 0
@@ -12463,8 +12475,6 @@
                                   },
                                   "required": [
                                     "type",
-                                    "radiusTop",
-                                    "radiusBottom",
                                     "height",
                                     "segments"
                                   ],
@@ -13533,6 +13543,10 @@
                                   "type": "string",
                                   "const": "cylinder"
                                 },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
                                 "radiusTop": {
                                   "type": "number",
                                   "minimum": 0
@@ -13553,8 +13567,6 @@
                               },
                               "required": [
                                 "type",
-                                "radiusTop",
-                                "radiusBottom",
                                 "height",
                                 "segments"
                               ],
@@ -16356,6 +16368,10 @@
                                             "type": "string",
                                             "const": "cylinder"
                                           },
+                                          "radius": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0
+                                          },
                                           "radiusTop": {
                                             "type": "number",
                                             "minimum": 0
@@ -16376,8 +16392,6 @@
                                         },
                                         "required": [
                                           "type",
-                                          "radiusTop",
-                                          "radiusBottom",
                                           "height",
                                           "segments"
                                         ],
@@ -18334,6 +18348,14 @@
           "radius": {
             "type": "number",
             "exclusiveMinimum": 0
+          },
+          "radiusTop": {
+            "type": "number",
+            "minimum": 0
+          },
+          "radiusBottom": {
+            "type": "number",
+            "minimum": 0
           },
           "height": {
             "type": "number",
@@ -21817,6 +21839,10 @@
                                       "type": "string",
                                       "const": "cylinder"
                                     },
+                                    "radius": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
+                                    },
                                     "radiusTop": {
                                       "type": "number",
                                       "minimum": 0
@@ -21837,8 +21863,6 @@
                                   },
                                   "required": [
                                     "type",
-                                    "radiusTop",
-                                    "radiusBottom",
                                     "height",
                                     "segments"
                                   ],
@@ -22907,6 +22931,10 @@
                                   "type": "string",
                                   "const": "cylinder"
                                 },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
                                 "radiusTop": {
                                   "type": "number",
                                   "minimum": 0
@@ -22927,8 +22955,6 @@
                               },
                               "required": [
                                 "type",
-                                "radiusTop",
-                                "radiusBottom",
                                 "height",
                                 "segments"
                               ],
@@ -25730,6 +25756,10 @@
                                             "type": "string",
                                             "const": "cylinder"
                                           },
+                                          "radius": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0
+                                          },
                                           "radiusTop": {
                                             "type": "number",
                                             "minimum": 0
@@ -25750,8 +25780,6 @@
                                         },
                                         "required": [
                                           "type",
-                                          "radiusTop",
-                                          "radiusBottom",
                                           "height",
                                           "segments"
                                         ],
@@ -28219,6 +28247,10 @@
                                   "type": "string",
                                   "const": "cylinder"
                                 },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
                                 "radiusTop": {
                                   "type": "number",
                                   "minimum": 0
@@ -28239,8 +28271,6 @@
                               },
                               "required": [
                                 "type",
-                                "radiusTop",
-                                "radiusBottom",
                                 "height",
                                 "segments"
                               ],
@@ -30575,6 +30605,10 @@
                                   "type": "string",
                                   "const": "cylinder"
                                 },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
                                 "radiusTop": {
                                   "type": "number",
                                   "minimum": 0
@@ -30595,8 +30629,6 @@
                               },
                               "required": [
                                 "type",
-                                "radiusTop",
-                                "radiusBottom",
                                 "height",
                                 "segments"
                               ],
