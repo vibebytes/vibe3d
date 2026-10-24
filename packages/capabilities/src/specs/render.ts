@@ -10,6 +10,17 @@ const targetBox = z.object({
 });
 export const shadingMode = z.enum(['flat', 'wireframe', 'normals']);
 export const overlayKind = z.enum(['grid', 'axes', 'bbox']);
+
+export const qualityLevel = z.enum(['draft', 'standard', 'high']);
+
+export const qualityPreset = z.object({
+  level: qualityLevel,
+  pixelRatio: z.number().positive(),
+  samples: z.number().int().min(0),
+  shadowMapSize: z.number().int().min(64),
+  supersample: z.boolean(),
+});
+
 const imageOpts = {
   width: intIn(64, 4096).optional(),
   height: intIn(64, 4096).optional(),
@@ -21,6 +32,7 @@ const imageOpts = {
   overlay: z.array(overlayKind).max(3).optional(),
   highlight: z.array(nodeIdSchema).max(200).optional(),
   isolate: z.array(nodeIdSchema).max(200).optional(),
+  quality: qualityLevel.optional(),
 };
 
 const pickImageOpts = {
@@ -134,6 +146,7 @@ export const renderOps = {
       base64: z.string(),
       width: z.number().int(),
       height: z.number().int(),
+      quality: qualityPreset,
     }),
     scope: 'room' as const,
     mutating: false,
@@ -173,6 +186,7 @@ export const renderOps = {
       partial: z.boolean(),
       failedView: viewName.nullable(),
       failures: z.array(z.object({ view: viewName, code: z.string(), message: z.string() })),
+      quality: qualityPreset,
     }),
     scope: 'room' as const,
     mutating: false,
@@ -205,6 +219,7 @@ export const renderOps = {
       width: z.number().int(),
       height: z.number().int(),
       camera: cameraStateSchema,
+      quality: qualityPreset,
     }),
     scope: 'room' as const,
     mutating: false,

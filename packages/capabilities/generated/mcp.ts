@@ -10878,6 +10878,14 @@ export const MCP_TOOLS = [
             "pattern": "^n_[a-z0-9]{8}$"
           },
           "maxItems": 200
+        },
+        "quality": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "standard",
+            "high"
+          ]
         }
       },
       "additionalProperties": false,
@@ -10981,6 +10989,14 @@ export const MCP_TOOLS = [
             "pattern": "^n_[a-z0-9]{8}$"
           },
           "maxItems": 200
+        },
+        "quality": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "standard",
+            "high"
+          ]
         }
       },
       "additionalProperties": false,
@@ -11080,6 +11096,14 @@ export const MCP_TOOLS = [
             "pattern": "^n_[a-z0-9]{8}$"
           },
           "maxItems": 200
+        },
+        "quality": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "standard",
+            "high"
+          ]
         }
       },
       "required": [

@@ -49,7 +49,7 @@ describe('render quality', () => {
     );
     expect(body.error).toBeUndefined();
     expect(seen).toHaveLength(1);
-    expect(seen[0].quality).toMatchObject({
+    expect(seen[0]?.quality).toMatchObject({
       level: 'high',
       pixelRatio: 2,
       samples: 4,
@@ -67,7 +67,7 @@ describe('render quality', () => {
 
     const { body } = await call(h, 'render.snapshot', { roomId }, roomId);
     expect(body.error).toBeUndefined();
-    expect(seen[0].quality?.level).toBe('standard');
+    expect(seen[0]?.quality?.level).toBe('standard');
     expect(body.result.quality).toMatchObject({ level: 'standard', samples: 4 });
   });
 

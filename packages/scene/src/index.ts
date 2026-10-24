@@ -64,6 +64,12 @@ export {
   type ValidateResult,
 } from './checks';
 export {
+  QUALITY_LEVELS,
+  resolveQuality,
+  type QualityLevel,
+  type QualityPreset,
+} from './quality';
+export {
   MATERIAL_PRESETS,
   applyUv,
   isMaterialPreset,

@@ -1,4 +1,5 @@
 import { useThree } from '@react-three/fiber';
+import { type QualityPreset } from '@vibebyte/vibe3d-scene';
 import type { CameraState } from '@vibebyte/vibe3d-protocol';
 import { useEffect } from 'react';
 import * as THREE from 'three';
@@ -10,6 +11,7 @@ import { applyFxAt } from '../three/fx';
 import { applyIdMaterials } from '../three/id-pass-materials';
 import { missingModelIds } from '../three/model-ready';
 import { addOverlays, applyHighlight, applyIsolate, applyShading } from './capture-look';
+import { applyShadowResolution, qualityOf } from './capture-quality';
 import type { OverlayKind, ShadingMode } from './capture-look';
 
 export type { OverlayKind, ShadingMode } from './capture-look';
@@ -25,6 +27,7 @@ export interface CaptureOptions {
   overlay?: OverlayKind[];
   highlight?: string[];
   isolate?: string[];
+  quality?: QualityPreset;
 }
 
 export interface CaptureResult {
@@ -148,7 +151,10 @@ function captureFrame(
   const clearOverlays = addOverlays(scene, opts.overlay);
   const restoreHighlight = applyHighlight(scene, opts.highlight);
   const restoreIsolate = applyIsolate(scene, opts.isolate);
+  const preset = qualityOf(opts.quality);
+  const restoreShadow = applyShadowResolution(scene, preset.shadowMapSize);
   const restoreLook = (): void => {
+    restoreShadow();
     restoreIsolate();
     restoreHighlight();
     clearOverlays();
@@ -158,11 +164,11 @@ function captureFrame(
   let dataUrl: string;
   if (opts.transparent) {
     const alphaRenderer = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: preset.samples > 0,
       alpha: true,
       preserveDrawingBuffer: true,
     });
-    alphaRenderer.setPixelRatio(1);
+    alphaRenderer.setPixelRatio(preset.pixelRatio);
     alphaRenderer.setSize(width, height, false);
     alphaRenderer.shadowMap.enabled = gl.shadowMap.enabled;
     alphaRenderer.shadowMap.type = gl.shadowMap.type;
@@ -186,7 +192,7 @@ function captureFrame(
     }
   } else {
     const prevRatio = gl.getPixelRatio();
-    gl.setPixelRatio(1);
+    gl.setPixelRatio(preset.pixelRatio);
     gl.setSize(width, height, false);
     setAspect();
     try {

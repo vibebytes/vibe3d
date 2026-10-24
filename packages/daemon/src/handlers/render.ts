@@ -3,11 +3,13 @@ import { join } from 'node:path';
 import { deflateRawSync } from 'node:zlib';
 import { AppError, type SceneDoc } from '@vibebyte/vibe3d-protocol';
 import {
+  type QualityPreset,
   type ViewName,
   buildIdLegend,
   decodeIdMask,
   fitsIdPass,
   frameTarget,
+  resolveQuality,
 } from '@vibebyte/vibe3d-scene';
 import type { DispatchContext, OverlayKind, Renderer, ShadingMode, SnapshotOptions } from '../context';
 import { signExportUrl } from '../http/export-url';
@@ -66,6 +68,7 @@ interface ImageParams {
   overlay?: OverlayKind[];
   highlight?: string[];
   isolate?: string[];
+  quality?: string;
 }
 
 function hasDocAnimation(doc: SceneDoc): boolean {
@@ -75,7 +78,7 @@ function hasDocAnimation(doc: SceneDoc): boolean {
   return false;
 }
 
-function imageOptions(p: ImageParams, doc?: SceneDoc): SnapshotOptions {
+function imageOptions(p: ImageParams, doc?: SceneDoc, quality?: QualityPreset): SnapshotOptions {
   const at = p.at ?? (doc && hasDocAnimation(doc) ? 0 : undefined);
   return {
     width: p.width,
@@ -88,6 +91,7 @@ function imageOptions(p: ImageParams, doc?: SceneDoc): SnapshotOptions {
     overlay: p.overlay?.length ? [...new Set(p.overlay)] : undefined,
     highlight: p.highlight?.length ? [...new Set(p.highlight)] : undefined,
     isolate: p.isolate?.length ? [...new Set(p.isolate)] : undefined,
+    quality: quality ?? resolveQuality(p.quality),
   };
 }
 
@@ -95,19 +99,22 @@ export const renderHandlers: HandlersFor<Keys> = {
   'render.snapshot': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     const renderer = requireRenderer(ctx, room.id);
-    const shot = await renderer.snapshot({ roomId: room.id, doc: room.doc }, imageOptions(p, room.doc));
+    const quality = resolveQuality(p.quality);
+    const shot = await renderer.snapshot({ roomId: room.id, doc: room.doc }, imageOptions(p, room.doc, quality));
     return {
       revision: room.revision,
       mime: shot.mime,
       base64: shot.base64,
       width: shot.width,
       height: shot.height,
+      quality,
     };
   },
 
   'render.views': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     const renderer = requireRenderer(ctx, room.id);
+    const quality = resolveQuality(p.quality);
     const ids = p.nodeIds && p.nodeIds.length > 0 ? p.nodeIds : undefined;
     const missing = (ids ?? []).filter((id) => !room.doc.nodes[id]);
     if (missing.length > 0) {
@@ -127,7 +134,7 @@ export const renderHandlers: HandlersFor<Keys> = {
         const shot = await renderer.snapshot(
           { roomId: room.id, doc: room.doc },
           {
-            ...imageOptions(p, room.doc),
+            ...imageOptions(p, room.doc, quality),
             camera: framed.camera,
           },
         );
@@ -157,6 +164,7 @@ export const renderHandlers: HandlersFor<Keys> = {
       partial: failures.length > 0,
       failedView: failures[0]?.view ?? null,
       failures,
+      quality,
     };
   },
 
@@ -166,6 +174,7 @@ export const renderHandlers: HandlersFor<Keys> = {
     if (!room.doc.nodes[p.nodeId]) {
       throw new AppError('E_INVALID_PARAMS', `未知节点：${p.nodeId}`);
     }
+    const quality = resolveQuality(p.quality);
     const view = p.view ?? 'three_quarter';
     const framed = frameTarget(room.doc, {
       ids: [p.nodeId],
@@ -178,7 +187,7 @@ export const renderHandlers: HandlersFor<Keys> = {
     const shot = await renderer.snapshot(
       { roomId: room.id, doc: room.doc },
       {
-        ...imageOptions(p, room.doc),
+        ...imageOptions(p, room.doc, quality),
         camera: framed.camera,
       },
     );
@@ -191,6 +200,7 @@ export const renderHandlers: HandlersFor<Keys> = {
       width: shot.width,
       height: shot.height,
       camera: framed.camera,
+      quality,
     };
   },
 

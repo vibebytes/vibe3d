@@ -1,3 +1,4 @@
+import type { QualityPreset } from '@vibebyte/vibe3d-scene';
 import type { AssetMeta, CameraState, GltfReport, SceneDoc } from '@vibebyte/vibe3d-protocol';
 import type { JobQueue } from './jobs/queue';
 import type { JobStore } from './jobs/store';
@@ -20,6 +21,7 @@ export interface SnapshotOptions {
   overlay?: OverlayKind[];
   highlight?: string[];
   isolate?: string[];
+  quality?: QualityPreset;
 }
 
 export interface Snapshot {

@@ -30825,6 +30825,14 @@
               "pattern": "^n_[a-z0-9]{8}$"
             },
             "maxItems": 200
+          },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "standard",
+              "high"
+            ]
           }
         },
         "required": [
@@ -30851,6 +30859,42 @@
           },
           "height": {
             "type": "integer"
+          },
+          "quality": {
+            "type": "object",
+            "properties": {
+              "level": {
+                "type": "string",
+                "enum": [
+                  "draft",
+                  "standard",
+                  "high"
+                ]
+              },
+              "pixelRatio": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "samples": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "shadowMapSize": {
+                "type": "integer",
+                "minimum": 64
+              },
+              "supersample": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "level",
+              "pixelRatio",
+              "samples",
+              "shadowMapSize",
+              "supersample"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -30858,7 +30902,8 @@
           "mime",
           "base64",
           "width",
-          "height"
+          "height",
+          "quality"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -30984,6 +31029,14 @@
               "pattern": "^n_[a-z0-9]{8}$"
             },
             "maxItems": 200
+          },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "standard",
+              "high"
+            ]
           }
         },
         "required": [
@@ -31197,6 +31250,42 @@
               ],
               "additionalProperties": false
             }
+          },
+          "quality": {
+            "type": "object",
+            "properties": {
+              "level": {
+                "type": "string",
+                "enum": [
+                  "draft",
+                  "standard",
+                  "high"
+                ]
+              },
+              "pixelRatio": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "samples": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "shadowMapSize": {
+                "type": "integer",
+                "minimum": 64
+              },
+              "supersample": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "level",
+              "pixelRatio",
+              "samples",
+              "shadowMapSize",
+              "supersample"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -31205,7 +31294,8 @@
           "views",
           "partial",
           "failedView",
-          "failures"
+          "failures",
+          "quality"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -31327,6 +31417,14 @@
               "pattern": "^n_[a-z0-9]{8}$"
             },
             "maxItems": 200
+          },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "standard",
+              "high"
+            ]
           }
         },
         "required": [
@@ -31461,6 +31559,42 @@
               "zoom"
             ],
             "additionalProperties": false
+          },
+          "quality": {
+            "type": "object",
+            "properties": {
+              "level": {
+                "type": "string",
+                "enum": [
+                  "draft",
+                  "standard",
+                  "high"
+                ]
+              },
+              "pixelRatio": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "samples": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "shadowMapSize": {
+                "type": "integer",
+                "minimum": 64
+              },
+              "supersample": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "level",
+              "pixelRatio",
+              "samples",
+              "shadowMapSize",
+              "supersample"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -31471,7 +31605,8 @@
           "base64",
           "width",
           "height",
-          "camera"
+          "camera",
+          "quality"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
