@@ -58,4 +58,32 @@ describe('normalizeMap', () => {
   it('returns undefined for missing maps', () => {
     expect(normalizeMap(undefined)).toBeUndefined();
   });
+
+  it('flattens nested uv transforms', () => {
+    const map = {
+      sha: 'd'.repeat(64),
+      uv: { repeat: [2, 3] as [number, number], offset: [0.1, 0.2] as [number, number], rotation: 0.5, channel: 1 as const },
+    };
+    expect(normalizeMap(map)).toEqual({
+      sha: 'd'.repeat(64),
+      tiling: [2, 3],
+      offset: [0.1, 0.2],
+      rotation: 0.5,
+      channel: 1,
+    });
+  });
+
+  it('lets nested uv win over flat fields', () => {
+    const map = {
+      sha: 'e'.repeat(64),
+      tiling: [4, 4] as [number, number],
+      uv: { repeat: [2, 2] as [number, number] },
+    };
+    expect(normalizeMap(map)).toEqual({ sha: 'e'.repeat(64), tiling: [2, 2] });
+  });
+
+  it('accepts channel without uv', () => {
+    const map = { sha: 'f'.repeat(64), channel: 1 as const };
+    expect(normalizeMap(map)).toEqual({ sha: 'f'.repeat(64), channel: 1 });
+  });
 });
