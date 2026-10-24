@@ -2890,6 +2890,57 @@ export const MCP_TOOLS = [
                               },
                               "rotation": {
                                 "type": "number"
+                              },
+                              "channel": {
+                                "type": "number",
+                                "enum": [
+                                  0,
+                                  1
+                                ]
+                              },
+                              "uv": {
+                                "type": "object",
+                                "properties": {
+                                  "offset": {
+                                    "type": "array",
+                                    "minItems": 2,
+                                    "maxItems": 2,
+                                    "items": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "number"
+                                      }
+                                    ]
+                                  },
+                                  "repeat": {
+                                    "type": "array",
+                                    "minItems": 2,
+                                    "maxItems": 2,
+                                    "items": [
+                                      {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                      },
+                                      {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                      }
+                                    ]
+                                  },
+                                  "rotation": {
+                                    "type": "number"
+                                  },
+                                  "channel": {
+                                    "type": "number",
+                                    "enum": [
+                                      0,
+                                      1
+                                    ]
+                                  }
+                                },
+                                "additionalProperties": false
                               }
                             },
                             "required": [
@@ -3079,6 +3130,57 @@ export const MCP_TOOLS = [
                               },
                               "rotation": {
                                 "type": "number"
+                              },
+                              "channel": {
+                                "type": "number",
+                                "enum": [
+                                  0,
+                                  1
+                                ]
+                              },
+                              "uv": {
+                                "type": "object",
+                                "properties": {
+                                  "offset": {
+                                    "type": "array",
+                                    "minItems": 2,
+                                    "maxItems": 2,
+                                    "items": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "number"
+                                      }
+                                    ]
+                                  },
+                                  "repeat": {
+                                    "type": "array",
+                                    "minItems": 2,
+                                    "maxItems": 2,
+                                    "items": [
+                                      {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                      },
+                                      {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                      }
+                                    ]
+                                  },
+                                  "rotation": {
+                                    "type": "number"
+                                  },
+                                  "channel": {
+                                    "type": "number",
+                                    "enum": [
+                                      0,
+                                      1
+                                    ]
+                                  }
+                                },
+                                "additionalProperties": false
                               }
                             },
                             "required": [
@@ -3227,6 +3329,57 @@ export const MCP_TOOLS = [
                               },
                               "rotation": {
                                 "type": "number"
+                              },
+                              "channel": {
+                                "type": "number",
+                                "enum": [
+                                  0,
+                                  1
+                                ]
+                              },
+                              "uv": {
+                                "type": "object",
+                                "properties": {
+                                  "offset": {
+                                    "type": "array",
+                                    "minItems": 2,
+                                    "maxItems": 2,
+                                    "items": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "number"
+                                      }
+                                    ]
+                                  },
+                                  "repeat": {
+                                    "type": "array",
+                                    "minItems": 2,
+                                    "maxItems": 2,
+                                    "items": [
+                                      {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                      },
+                                      {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                      }
+                                    ]
+                                  },
+                                  "rotation": {
+                                    "type": "number"
+                                  },
+                                  "channel": {
+                                    "type": "number",
+                                    "enum": [
+                                      0,
+                                      1
+                                    ]
+                                  }
+                                },
+                                "additionalProperties": false
                               }
                             },
                             "required": [
@@ -3295,6 +3448,57 @@ export const MCP_TOOLS = [
                       },
                       "rotation": {
                         "type": "number"
+                      },
+                      "channel": {
+                        "type": "number",
+                        "enum": [
+                          0,
+                          1
+                        ]
+                      },
+                      "uv": {
+                        "type": "object",
+                        "properties": {
+                          "offset": {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "repeat": {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "items": [
+                              {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              }
+                            ]
+                          },
+                          "rotation": {
+                            "type": "number"
+                          },
+                          "channel": {
+                            "type": "number",
+                            "enum": [
+                              0,
+                              1
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
                       }
                     },
                     "additionalProperties": false
@@ -5661,6 +5865,57 @@ export const MCP_TOOLS = [
                                     },
                                     "rotation": {
                                       "type": "number"
+                                    },
+                                    "channel": {
+                                      "type": "number",
+                                      "enum": [
+                                        0,
+                                        1
+                                      ]
+                                    },
+                                    "uv": {
+                                      "type": "object",
+                                      "properties": {
+                                        "offset": {
+                                          "type": "array",
+                                          "minItems": 2,
+                                          "maxItems": 2,
+                                          "items": [
+                                            {
+                                              "type": "number"
+                                            },
+                                            {
+                                              "type": "number"
+                                            }
+                                          ]
+                                        },
+                                        "repeat": {
+                                          "type": "array",
+                                          "minItems": 2,
+                                          "maxItems": 2,
+                                          "items": [
+                                            {
+                                              "type": "number",
+                                              "exclusiveMinimum": 0
+                                            },
+                                            {
+                                              "type": "number",
+                                              "exclusiveMinimum": 0
+                                            }
+                                          ]
+                                        },
+                                        "rotation": {
+                                          "type": "number"
+                                        },
+                                        "channel": {
+                                          "type": "number",
+                                          "enum": [
+                                            0,
+                                            1
+                                          ]
+                                        }
+                                      },
+                                      "additionalProperties": false
                                     }
                                   },
                                   "required": [
@@ -6669,6 +6924,57 @@ export const MCP_TOOLS = [
                     },
                     "rotation": {
                       "type": "number"
+                    },
+                    "channel": {
+                      "type": "number",
+                      "enum": [
+                        0,
+                        1
+                      ]
+                    },
+                    "uv": {
+                      "type": "object",
+                      "properties": {
+                        "offset": {
+                          "type": "array",
+                          "minItems": 2,
+                          "maxItems": 2,
+                          "items": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "repeat": {
+                          "type": "array",
+                          "minItems": 2,
+                          "maxItems": 2,
+                          "items": [
+                            {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            }
+                          ]
+                        },
+                        "rotation": {
+                          "type": "number"
+                        },
+                        "channel": {
+                          "type": "number",
+                          "enum": [
+                            0,
+                            1
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
                     }
                   },
                   "required": [
@@ -7792,6 +8098,57 @@ export const MCP_TOOLS = [
                     },
                     "rotation": {
                       "type": "number"
+                    },
+                    "channel": {
+                      "type": "number",
+                      "enum": [
+                        0,
+                        1
+                      ]
+                    },
+                    "uv": {
+                      "type": "object",
+                      "properties": {
+                        "offset": {
+                          "type": "array",
+                          "minItems": 2,
+                          "maxItems": 2,
+                          "items": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "repeat": {
+                          "type": "array",
+                          "minItems": 2,
+                          "maxItems": 2,
+                          "items": [
+                            {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            }
+                          ]
+                        },
+                        "rotation": {
+                          "type": "number"
+                        },
+                        "channel": {
+                          "type": "number",
+                          "enum": [
+                            0,
+                            1
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
                     }
                   },
                   "required": [
@@ -7941,6 +8298,57 @@ export const MCP_TOOLS = [
                     },
                     "rotation": {
                       "type": "number"
+                    },
+                    "channel": {
+                      "type": "number",
+                      "enum": [
+                        0,
+                        1
+                      ]
+                    },
+                    "uv": {
+                      "type": "object",
+                      "properties": {
+                        "offset": {
+                          "type": "array",
+                          "minItems": 2,
+                          "maxItems": 2,
+                          "items": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "repeat": {
+                          "type": "array",
+                          "minItems": 2,
+                          "maxItems": 2,
+                          "items": [
+                            {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            }
+                          ]
+                        },
+                        "rotation": {
+                          "type": "number"
+                        },
+                        "channel": {
+                          "type": "number",
+                          "enum": [
+                            0,
+                            1
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
                     }
                   },
                   "required": [
@@ -9541,6 +9949,57 @@ export const MCP_TOOLS = [
                           },
                           "rotation": {
                             "type": "number"
+                          },
+                          "channel": {
+                            "type": "number",
+                            "enum": [
+                              0,
+                              1
+                            ]
+                          },
+                          "uv": {
+                            "type": "object",
+                            "properties": {
+                              "offset": {
+                                "type": "array",
+                                "minItems": 2,
+                                "maxItems": 2,
+                                "items": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "number"
+                                  }
+                                ]
+                              },
+                              "repeat": {
+                                "type": "array",
+                                "minItems": 2,
+                                "maxItems": 2,
+                                "items": [
+                                  {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0
+                                  },
+                                  {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0
+                                  }
+                                ]
+                              },
+                              "rotation": {
+                                "type": "number"
+                              },
+                              "channel": {
+                                "type": "number",
+                                "enum": [
+                                  0,
+                                  1
+                                ]
+                              }
+                            },
+                            "additionalProperties": false
                           }
                         },
                         "required": [

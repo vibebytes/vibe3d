@@ -62,7 +62,12 @@ describe('normalizeMap', () => {
   it('flattens nested uv transforms', () => {
     const map = {
       sha: 'd'.repeat(64),
-      uv: { repeat: [2, 3] as [number, number], offset: [0.1, 0.2] as [number, number], rotation: 0.5, channel: 1 as const },
+      uv: {
+        repeat: [2, 3] as [number, number],
+        offset: [0.1, 0.2] as [number, number],
+        rotation: 0.5,
+        channel: 1 as const,
+      },
     };
     expect(normalizeMap(map)).toEqual({
       sha: 'd'.repeat(64),

@@ -79,9 +79,20 @@ export function presetMaterial(preset: MaterialPreset, params?: Partial<Material
   };
 }
 
-export function normalizeMap(map: MaterialMap | undefined): MapTransform | undefined {
+export type NormalizedMap = Omit<MapTransform, 'uv'>;
+
+export function normalizeMap(map: MaterialMap | undefined): NormalizedMap | undefined {
   if (map === undefined) return undefined;
-  return typeof map === 'string' ? { sha: map } : map;
+  if (typeof map === 'string') return { sha: map };
+  const { uv, ...flat } = map;
+  if (!uv) return flat;
+  return {
+    ...flat,
+    ...(uv.offset ? { offset: uv.offset } : {}),
+    ...(uv.repeat ? { tiling: uv.repeat } : {}),
+    ...(uv.rotation !== undefined ? { rotation: uv.rotation } : {}),
+    ...(uv.channel !== undefined ? { channel: uv.channel } : {}),
+  };
 }
 
 const TILING: [number, number] = [1, 1];

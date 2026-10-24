@@ -1,4 +1,5 @@
 import type { AssetMeta, MapTransform, Material, MaterialPreset, MeshNode } from '@vibebyte/vibe3d-protocol';
+import { normalizeMap } from '@vibebyte/vibe3d-scene';
 import { useRef, useState } from 'react';
 import { IMAGE_ACCEPT, imageAssets } from '../lib/asset-files';
 import { assetUrl } from '../lib/rpc';
@@ -94,7 +95,7 @@ export function MaterialPanel({ node, material }: { node: MeshNode; material: Ma
   const update = (patch: Partial<Material>) => void patchMaterial(node.material, { ...material, ...patch });
   const textures = doc ? imageAssets(doc) : [];
   const mapSha = mapShaOf(material.map);
-  const uv = typeof material.map === 'object' ? material.map : undefined;
+  const uv = normalizeMap(material.map);
   const setMap = (patch: Partial<MapTransform>) => void mapMaterial(node.material, patch);
   const applyPreset = (preset: MaterialPreset) => {
     void createMaterial(preset).then((id) => {

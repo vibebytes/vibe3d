@@ -61,6 +61,15 @@ export const mapTransformSchema = z.object({
   tiling: z.tuple([finite.positive(), finite.positive()]).optional(),
   offset: z.tuple([finite, finite]).optional(),
   rotation: finite.optional(),
+  channel: z.union([z.literal(0), z.literal(1)]).optional(),
+  uv: z
+    .object({
+      offset: z.tuple([finite, finite]).optional(),
+      repeat: z.tuple([finite.positive(), finite.positive()]).optional(),
+      rotation: finite.optional(),
+      channel: z.union([z.literal(0), z.literal(1)]).optional(),
+    })
+    .optional(),
 });
 
 export const materialMapSchema = z.union([shaSchema, mapTransformSchema]);
