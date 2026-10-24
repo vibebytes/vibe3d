@@ -701,7 +701,7 @@ export const sceneOps = {
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'scene.diff': {
-    title: '两点版本之间的 op 差异；visual 时额外给出节点级增删改',
+    title: '两点版本之间的 op 差异；visual 时额外给出节点级增删改；authors 给每步作者（取 VIBE3D_AUTHOR）',
     input: z.object({
       roomId,
       from: z.number().int().min(0).optional(),
@@ -713,6 +713,12 @@ export const sceneOps = {
       to: z.number().int(),
       ops: opListSchema,
       reset: z.boolean(),
+      authors: z.array(
+        z.object({
+          revision: z.number().int().min(0),
+          author: z.string(),
+        }),
+      ),
       nodes: z
         .object({
           added: z.array(nodeIdSchema),

@@ -6,6 +6,7 @@ import {
   changedPaths,
   validateDoc,
 } from '@vibebyte/vibe3d-scene';
+import { currentAuthor } from '../author';
 
 export interface ApplyResult {
   revision: number;
@@ -13,6 +14,11 @@ export interface ApplyResult {
   warnings: string[];
   inverse: Op[];
   summary: OpSummary;
+}
+
+export interface AuthorEntry {
+  revision: number;
+  author: string;
 }
 
 export interface ChangeInfo {
@@ -50,6 +56,7 @@ export class Room {
   private opLog = new Map<number, Op[]>();
   private history = new Map<number, SceneDoc>();
   private opIds = new Map<string, number>();
+  private authors = new Map<number, string>();
   private applied = new Map<string, ApplyResult>();
 
   constructor(doc: SceneDoc, roomId: RoomId, opts: RoomOptions = {}) {
@@ -87,7 +94,7 @@ export class Room {
 
   async apply(
     ops: readonly Op[],
-    opts: { expectRevision?: number; opId?: string } = {},
+    opts: { expectRevision?: number; opId?: string; author?: string } = {},
   ): Promise<ApplyResult> {
     if (opts.opId) {
       const hit = this.applied.get(opts.opId);
@@ -111,7 +118,7 @@ export class Room {
     if (this.undoStack.length > MAX_HISTORY) this.undoStack.shift();
     this.remember(before.revision, snapshot);
     this.redoStack = [];
-    this.commit(next, ops);
+    this.commit(next, ops, opts.author ?? currentAuthor());
 
     const result: ApplyResult = { revision: next.revision, applied: ops.length, warnings, inverse, summary };
     if (opts.opId) {
@@ -201,7 +208,16 @@ export class Room {
     return { revision: this.doc.revision, redone };
   }
 
-  diff(since: number, to?: number): { fromRevision: number; toRevision: number; ops: Op[]; reset: boolean } {
+  diff(
+    since: number,
+    to?: number,
+  ): {
+    fromRevision: number;
+    toRevision: number;
+    ops: Op[];
+    reset: boolean;
+    authors: AuthorEntry[];
+  } {
     const toRevision = Math.min(to ?? this.doc.revision, this.doc.revision);
     const ops: Op[] = [];
     let reset = false;
@@ -213,7 +229,13 @@ export class Room {
       }
       ops.push(...batch);
     }
-    return { fromRevision: since, toRevision, ops: reset ? [] : ops, reset };
+    const authors = reset
+      ? []
+      : [...this.authors.entries()]
+          .filter(([revision]) => revision > since && revision <= toRevision)
+          .sort(([a], [b]) => a - b)
+          .map(([revision, author]) => ({ revision, author }));
+    return { fromRevision: since, toRevision, ops: reset ? [] : ops, reset, authors };
   }
 
   opsAt(revision: number): Op[] {
@@ -273,12 +295,14 @@ export class Room {
     }
   }
 
-  private commit(next: SceneDoc, ops: readonly Op[]): void {
+  private commit(next: SceneDoc, ops: readonly Op[], author?: string): void {
     this.opLog.set(next.revision, [...ops]);
+    if (author) this.authors.set(next.revision, author);
     while (this.opLog.size > MAX_REVISIONS) {
       const oldest = this.opLog.keys().next().value;
       if (oldest === undefined) break;
       this.opLog.delete(oldest);
+      this.authors.delete(oldest);
     }
     this.doc = next;
     this.updatedAt = next.updatedAt;

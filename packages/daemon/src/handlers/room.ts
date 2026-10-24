@@ -235,6 +235,7 @@ export const roomHandlers: HandlersFor<Keys> = {
       to: diff.toRevision,
       ops: diff.ops,
       reset: diff.reset,
+      authors: diff.authors,
       ...(p.visual ? { nodes: nodeSets(diff.ops) } : {}),
     };
   },

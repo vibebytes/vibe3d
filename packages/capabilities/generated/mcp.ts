@@ -9243,7 +9243,7 @@ export const MCP_TOOLS = [
   },
   {
     name: "vibe3d_scene_diff",
-    title: "两点版本之间的 op 差异；visual 时额外给出节点级增删改",
+    title: "两点版本之间的 op 差异；visual 时额外给出节点级增删改；authors 给每步作者（取 VIBE3D_AUTHOR）",
     capability: "scene.diff",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {

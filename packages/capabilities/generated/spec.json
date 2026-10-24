@@ -21060,7 +21060,7 @@
     },
     {
       "name": "scene.diff",
-      "title": "两点版本之间的 op 差异；visual 时额外给出节点级增删改",
+      "title": "两点版本之间的 op 差异；visual 时额外给出节点级增删改；authors 给每步作者（取 VIBE3D_AUTHOR）",
       "wire": "scene.diff",
       "scope": "room",
       "mutating": false,
@@ -27353,6 +27353,26 @@
           "reset": {
             "type": "boolean"
           },
+          "authors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "revision": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "author": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "revision",
+                "author"
+              ],
+              "additionalProperties": false
+            }
+          },
           "nodes": {
             "type": "object",
             "properties": {
@@ -27390,7 +27410,8 @@
           "from",
           "to",
           "ops",
-          "reset"
+          "reset",
+          "authors"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
