@@ -1,5 +1,6 @@
 import { AppError, type Op, type SceneDoc, makeNodeId } from '@vibebyte/vibe3d-protocol';
 import { applyOps } from '@vibebyte/vibe3d-scene';
+import { thumbUrl } from '../thumbs';
 import { assertAssetRefs } from './asset-refs';
 import { surfaceHint } from './editor-url';
 import type { HandlersFor } from './types';
@@ -173,21 +174,27 @@ export const roomHandlers: HandlersFor<Keys> = {
     const limit = p.limit ?? 50;
     const all = ctx.rooms
       .list()
-      .map((room) => room.meta())
-      .sort(compareRoom);
+      .map((room) => {
+        ctx.thumbs?.ensure(ctx, room);
+        const meta = room.meta();
+        const thumb = ctx.thumbs?.latest(room.id);
+        return { meta, thumbUrl: thumb ? thumbUrl(ctx.baseUrl, room.id, thumb) : undefined };
+      })
+      .sort((a, b) => compareRoom(a.meta, b.meta));
     const start = p.cursor ? decodeCursor(p.cursor) : undefined;
-    const rest = start ? all.filter((m) => compareRoom(m, start) > 0) : all;
+    const rest = start ? all.filter((m) => compareRoom(m.meta, start) > 0) : all;
     const page = rest.slice(0, limit);
-    const last = page.at(-1);
+    const last = page.at(-1)?.meta;
     const nextCursor = last && rest.length > page.length ? encodeCursor(last) : undefined;
     return {
-      rooms: page.map((meta) => ({
+      rooms: page.map(({ meta, thumbUrl: url }) => ({
         roomId: meta.roomId,
         name: meta.name,
         revision: meta.revision,
         nodeCount: meta.nodes,
         createdAt: meta.createdAt,
         updatedAt: meta.updatedAt,
+        ...(url ? { thumbUrl: url } : {}),
       })),
       ...(nextCursor ? { nextCursor } : {}),
     };
@@ -206,7 +213,10 @@ export const roomHandlers: HandlersFor<Keys> = {
   },
 
   'room.get': async (p, ctx) => {
-    const meta = ctx.rooms.get(p.roomId).meta();
+    const room = ctx.rooms.get(p.roomId);
+    const meta = room.meta();
+    ctx.thumbs?.ensure(ctx, room);
+    const thumb = ctx.thumbs?.latest(room.id);
     return {
       roomId: meta.roomId,
       name: meta.name,
@@ -216,6 +226,7 @@ export const roomHandlers: HandlersFor<Keys> = {
       updatedAt: meta.updatedAt,
       editors: ctx.surfaces?.(p.roomId) ?? 0,
       url: `${ctx.baseUrl}/editor/r/${p.roomId}`,
+      ...(thumb ? { thumbUrl: thumbUrl(ctx.baseUrl, room.id, thumb) } : {}),
     };
   },
 

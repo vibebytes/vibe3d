@@ -3,6 +3,7 @@ import type { QualityPreset } from '@vibebyte/vibe3d-scene';
 import type { JobQueue } from './jobs/queue';
 import type { JobStore } from './jobs/store';
 import type { RoomManager } from './rooms/manager';
+import type { ThumbsStore } from './thumbs';
 
 export type AssetPolicy = 'strict' | 'local' | 'allow';
 
@@ -94,6 +95,7 @@ export interface DispatchContext {
   selection: (roomId: string) => string[];
   surfaces?: (roomId: string) => number;
   openExternal?: (url: string) => boolean | Promise<boolean>;
+  thumbs?: ThumbsStore;
   autoOpen?: Map<string, AutoOpenState>;
 }
 

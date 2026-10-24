@@ -135,6 +135,9 @@
                 },
                 "updatedAt": {
                   "type": "string"
+                },
+                "thumbUrl": {
+                  "type": "string"
                 }
               },
               "required": [
@@ -295,6 +298,9 @@
             "minimum": 0
           },
           "url": {
+            "type": "string"
+          },
+          "thumbUrl": {
             "type": "string"
           }
         },

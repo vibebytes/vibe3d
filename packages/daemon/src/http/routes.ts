@@ -169,6 +169,20 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
     });
   });
 
+  app.get('/thumbs/:roomId/:revision/:file', (c) => {
+    const roomId = c.req.param('roomId');
+    const rev = c.req.param('revision');
+    const file = c.req.param('file');
+    const entry =
+      /^\d+$/.test(rev) && /^[0-9a-f]{12}\.png$/.test(file)
+        ? ctx.thumbs?.get(roomId, Number(rev), file.slice(0, 12))
+        : undefined;
+    if (!entry) throw new AppError('E_THUMB_MISSING', '缩略图不存在或已过期');
+    return new Response(new Uint8Array(entry.bytes), {
+      headers: { 'content-type': entry.mime, 'cache-control': 'public, max-age=31536000, immutable' },
+    });
+  });
+
   app.get('/exports/:file', async (c) => {
     const file = c.req.param('file');
     if (!EXPORT_FILE_RE.test(file)) throw new AppError('E_JOB_NOT_FOUND', '非法导出文件名');

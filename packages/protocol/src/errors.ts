@@ -34,6 +34,7 @@ export const ERROR_CODES = [
   'E_MATERIAL_IN_USE',
   'E_EXPORT_DRIFT',
   'E_BUDGET_EXCEEDED',
+  'E_THUMB_MISSING',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
@@ -148,6 +149,13 @@ export const ERROR_SPECS: Record<ErrorCode, ErrorSpec> = {
     retryable: false,
     message: '场景超出预算上限',
     hint: '删减节点 / 三角面 / 贴图，或放宽 budget 上限后重跑',
+  },
+  E_THUMB_MISSING: {
+    rpc: -32027,
+    http: 404,
+    retryable: false,
+    message: '缩略图不存在或已过期',
+    hint: '缩略图按读路径懒生成：先调 get_room 触发生成，用返回的 thumbUrl 取图',
   },
 };
 

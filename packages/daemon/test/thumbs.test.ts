@@ -37,7 +37,7 @@ describe('thumbs: 无 renderer 静默降级', () => {
     const h = makeHarness();
     const room = await call(h, 'room.create', { name: 'no-renderer' });
     const roomId = room.body.result.roomId as string;
-    const got = await call(h, 'room.get', { roomId });
+    const got = await call(h, 'room.get', {}, roomId);
     expect(got.status).toBe(200);
     expect(got.body.result.thumbUrl).toBeUndefined();
   });
@@ -46,14 +46,14 @@ describe('thumbs: 无 renderer 静默降级', () => {
 describe('thumbs: 读路径触发生成并回 thumbUrl', () => {
   it('room.get 触发生成，完成后带 thumbUrl 且 hash 稳定', async () => {
     const { h, renderer, roomId } = await makeRoomWithThumbs();
-    const first = await call(h, 'room.get', { roomId });
+    const first = await call(h, 'room.get', {}, roomId);
     expect(first.status).toBe(200);
     await h.ctx.thumbs!.idle();
     expect(renderer.calls).toBe(1);
-    const second = await call(h, 'room.get', { roomId });
+    const second = await call(h, 'room.get', {}, roomId);
     const url = second.body.result.thumbUrl as string;
-    expect(url).toMatch(new RegExp(`/thumbs/${roomId}/1/[0-9a-f]{12}\\.png$`));
-    const third = await call(h, 'room.get', { roomId });
+    expect(url).toMatch(new RegExp(`/thumbs/${roomId}/\\d+/[0-9a-f]{12}\\.png$`));
+    const third = await call(h, 'room.get', {}, roomId);
     expect(third.body.result.thumbUrl).toBe(url);
     await h.ctx.thumbs!.idle();
     expect(renderer.calls).toBe(1);
@@ -61,26 +61,35 @@ describe('thumbs: 读路径触发生成并回 thumbUrl', () => {
 
   it('GET thumbUrl 回 PNG，revision 前进后旧 URL 404 新 URL 200', async () => {
     const { h, roomId } = await makeRoomWithThumbs();
-    await call(h, 'room.get', { roomId });
+    await call(h, 'room.get', {}, roomId);
     await h.ctx.thumbs!.idle();
-    const url = new URL((await (await call(h, 'room.get', { roomId })).body).result.thumbUrl);
+    const url = new URL((await (await call(h, 'room.get', {}, roomId)).body).result.thumbUrl);
     const oldPath = url.pathname;
     const hit = await h.app.request(oldPath, { headers: { host: '127.0.0.1' } });
     expect(hit.status).toBe(200);
     expect(hit.headers.get('content-type')).toBe('image/png');
     expect(Buffer.from(await hit.arrayBuffer()).toString()).toBe(`thumb:${roomId}:320`);
 
-    await call(h, 'ops.apply', {
+    await call(h, 'node.create', { roomId, kind: 'mesh', shape: 'box', name: 'box' }, roomId);
+    const doc = (await call(h, 'scene.export', { roomId }, roomId)).body.result.doc;
+    const src = Object.values(doc.nodes)[0] as Record<string, unknown>;
+    const applied = await call(
+      h,
+      'ops.apply',
+      {
+        roomId,
+        ops: [{ op: 'node.create', node: { ...src, name: 'box-2', id: undefined } }],
+      },
       roomId,
-      baseRevision: 1,
-      ops: [{ op: 'node.create', name: 'box', geometry: { kind: 'box', size: [1, 1, 1] } }],
-    });
-    await call(h, 'room.get', { roomId });
+    );
+    expect(applied.status).toBe(200);
+    const newRev = applied.body.result.revision as number;
+    await call(h, 'room.get', {}, roomId);
     await h.ctx.thumbs!.idle();
-    const fresh = await call(h, 'room.get', { roomId });
+    const fresh = await call(h, 'room.get', {}, roomId);
     const freshUrl = new URL(fresh.body.result.thumbUrl as string);
     expect(freshUrl.pathname).not.toBe(oldPath);
-    expect(freshUrl.pathname).toContain('/2/');
+    expect(freshUrl.pathname).toContain(`/${newRev}/`);
     const stale = await h.app.request(oldPath, { headers: { host: '127.0.0.1' } });
     expect(stale.status).toBe(404);
     expect(codeOf(await stale.json())).toBe('E_THUMB_MISSING');
@@ -88,11 +97,11 @@ describe('thumbs: 读路径触发生成并回 thumbUrl', () => {
 
   it('room.list 同样带 thumbUrl', async () => {
     const { h, roomId } = await makeRoomWithThumbs();
-    await call(h, 'room.get', { roomId });
+    await call(h, 'room.get', {}, roomId);
     await h.ctx.thumbs!.idle();
     const list = await call(h, 'room.list', {});
     const row = list.body.result.rooms.find((r: { roomId: string }) => r.roomId === roomId);
-    expect(row.thumbUrl).toMatch(new RegExp(`/thumbs/${roomId}/1/[0-9a-f]{12}\\.png$`));
+    expect(row.thumbUrl).toMatch(new RegExp(`/thumbs/${roomId}/\\d+/[0-9a-f]{12}\\.png$`));
   });
 
   it('renderer 抛错不冒泡，room.get 正常且无 thumbUrl', async () => {
@@ -104,11 +113,11 @@ describe('thumbs: 读路径触发生成并回 thumbUrl', () => {
     });
     const room = await call(h, 'room.create', { name: 'boom' });
     const roomId = room.body.result.roomId as string;
-    const got = await call(h, 'room.get', { roomId });
+    const got = await call(h, 'room.get', {}, roomId);
     expect(got.status).toBe(200);
     await h.ctx.thumbs.idle();
     expect(got.body.result.thumbUrl).toBeUndefined();
-    const again = await call(h, 'room.get', { roomId });
+    const again = await call(h, 'room.get', {}, roomId);
     expect(again.status).toBe(200);
     expect(again.body.result.thumbUrl).toBeUndefined();
   });
@@ -121,7 +130,7 @@ describe('thumbs: HTTP 缓存边界', () => {
     const roomId = room.body.result.roomId as string;
     for (const path of [
       `/thumbs/${roomId}/1/abc.png`,
-      `/thumbs/nope/1/0123456789ab.png`,
+      '/thumbs/nope/1/0123456789ab.png',
       `/thumbs/${roomId}/1/zzzzzzzzzzzz.png`,
     ]) {
       const res = await h.app.request(path, { headers: { host: '127.0.0.1' } });

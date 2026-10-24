@@ -7,6 +7,7 @@ import { signExportUrl } from './http/export-url';
 import { hostGuard, requestId } from './http/middleware';
 import { type RouteDeps, mountRoutes, serveEditorAsset, serveVendorAsset } from './http/routes';
 import type { Logger } from './logger';
+import { ThumbsStore } from './thumbs';
 
 export interface AppDeps {
   config: Config;
@@ -31,6 +32,7 @@ export function createApp(deps: AppDeps): Hono {
 
   deps.ctx.exportsDir ??= deps.exportsDir;
   deps.ctx.signExport ??= (file: string) => signExportUrl(deps.config.token, file);
+  deps.ctx.thumbs ??= new ThumbsStore({ getRenderer: (c) => c.renderer });
 
   const routes: RouteDeps = {
     ctx: deps.ctx,

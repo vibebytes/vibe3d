@@ -27,7 +27,10 @@ export const roomCreate = {
       limit: intIn(1, 100).optional(),
       cursor: z.string().min(1).optional(),
     }),
-    output: z.object({ rooms: z.array(roomSummary), nextCursor: z.string().optional() }),
+    output: z.object({
+      rooms: z.array(roomSummary.extend({ thumbUrl: z.string().optional() })),
+      nextCursor: z.string().optional(),
+    }),
     scope: 'daemon' as const,
     mutating: false,
     wire: 'room.list' as const,
@@ -53,7 +56,11 @@ export const roomCreate = {
   'room.get': {
     title: '读取房间摘要（含 editors：0 表示暂无窗口在看，下一次写操作会自动开窗）',
     input: z.object({ roomId }),
-    output: roomSummary.extend({ editors: z.number().int().min(0), url: z.string() }),
+    output: roomSummary.extend({
+      editors: z.number().int().min(0),
+      url: z.string(),
+      thumbUrl: z.string().optional(),
+    }),
     scope: 'room' as const,
     mutating: false,
     wire: 'room.get' as const,
