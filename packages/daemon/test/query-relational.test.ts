@@ -44,8 +44,7 @@ async function build(h: Harness): Promise<Built> {
   };
 }
 
-const idsOf = (body: any): string[] =>
-  body.result.nodes.map((item: { id: string }) => item.id).sort();
+const idsOf = (body: any): string[] => body.result.nodes.map((item: { id: string }) => item.id).sort();
 
 describe('scene.query 关系过滤', () => {
   it('parentId / hasChildren 透传到查询层', async () => {
@@ -79,12 +78,7 @@ describe('scene.query 关系过滤', () => {
   it('withinBBox 参数形状非法时报 E_INVALID_PARAMS', async () => {
     const h = makeHarness();
     const { roomId } = await build(h);
-    const { body } = await call(
-      h,
-      'scene.query',
-      { roomId, withinBBox: { min: [0, 0, 0] } },
-      roomId,
-    );
+    const { body } = await call(h, 'scene.query', { roomId, withinBBox: { min: [0, 0, 0] } }, roomId);
     expect(body?.error?.data?.code ?? body?.error?.code).toBe('E_INVALID_PARAMS');
   });
 });

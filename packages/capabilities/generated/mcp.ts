@@ -134,7 +134,7 @@ export const MCP_TOOLS = [
   },
   {
     name: "vibe3d_query_nodes",
-    title: "按名称 / 类型 / 材质 / 标签 / 区域查询节点，返回世界包围盒，支持 limit+cursor 分页",
+    title: "按名称 / 类型 / 材质 / 标签 / 区域 / 父子关系查询节点，返回世界包围盒，支持 limit+cursor 分页",
     capability: "scene.query",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
@@ -208,6 +208,62 @@ export const MCP_TOOLS = [
             "max"
           ],
           "additionalProperties": false
+        },
+        "within_b_box": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "max": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          "required": [
+            "min",
+            "max"
+          ],
+          "additionalProperties": false
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "has_children": {
+          "type": "boolean"
         },
         "min_y": {
           "type": "number"

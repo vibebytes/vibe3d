@@ -113,6 +113,14 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
           limit: num(flags, 'limit'),
           cursor: num(flags, 'cursor'),
           bbox: jsonArg(str(flags, 'bbox')),
+          withinBBox: jsonArg(str(flags, 'within-bbox')),
+          parentId:
+            flags.parent === undefined
+              ? undefined
+              : str(flags, 'parent') === 'root'
+                ? null
+                : str(flags, 'parent'),
+          hasChildren: flags['has-children'] === undefined ? undefined : bool(flags, 'has-children'),
         }) as never,
       );
     }

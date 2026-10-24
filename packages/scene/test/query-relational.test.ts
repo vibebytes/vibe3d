@@ -54,7 +54,9 @@ function fixture(): SceneDoc {
 }
 
 const ids = (doc: SceneDoc, filter: Parameters<typeof queryNodes>[1]): string[] =>
-  queryNodes(doc, filter).nodes.map((item) => item.id).sort();
+  queryNodes(doc, filter)
+    .nodes.map((item) => item.id)
+    .sort();
 
 describe('J3 query 关系过滤', () => {
   it('parentId 只取直接子节点', () => {
@@ -79,7 +81,10 @@ describe('J3 query 关系过滤', () => {
     };
     expect(ids(doc, { bbox: window })).toContain('n_child002');
     expect(ids(doc, { withinBBox: window })).toEqual([]);
-    const around = { min: [-1, 0, -1] as [number, number, number], max: [1, 2, 1] as [number, number, number] };
+    const around = {
+      min: [-1, 0, -1] as [number, number, number],
+      max: [1, 2, 1] as [number, number, number],
+    };
     expect(ids(doc, { withinBBox: around })).toEqual(['n_child001', 'n_grand001']);
   });
 

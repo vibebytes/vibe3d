@@ -23,6 +23,9 @@ export interface NodeFilter {
   materialId?: string;
   tags?: string[];
   bbox?: { min: Vec3; max: Vec3 };
+  withinBBox?: { min: Vec3; max: Vec3 };
+  parentId?: string | null;
+  hasChildren?: boolean;
   minY?: number;
   maxY?: number;
   hasAnim?: boolean;
@@ -88,7 +91,15 @@ function intersects(box: Bounds, filter: { min: Vec3; max: Vec3 }): boolean {
   return true;
 }
 
-function matches(node: SceneNode, filter: NodeFilter, box: Bounds | null): boolean {
+function contains(box: Bounds, filter: { min: Vec3; max: Vec3 }): boolean {
+  for (let i = 0; i < 3; i++) {
+    if (box.min[i]! < filter.min[i]!) return false;
+    if (box.max[i]! > filter.max[i]!) return false;
+  }
+  return true;
+}
+
+function matches(node: SceneNode, filter: NodeFilter, box: Bounds | null, childCount: number): boolean {
   if (filter.name && !node.name.toLowerCase().includes(filter.name.toLowerCase())) return false;
   if (filter.kind && node.kind !== filter.kind) return false;
   if (filter.materialId && materialIdOf(node) !== filter.materialId) return false;
@@ -96,9 +107,12 @@ function matches(node: SceneNode, filter: NodeFilter, box: Bounds | null): boole
     return false;
   if (filter.visible !== undefined && node.visible !== filter.visible) return false;
   if (filter.hasAnim !== undefined && hasAnim(node) !== filter.hasAnim) return false;
-  if (filter.bbox || filter.minY !== undefined || filter.maxY !== undefined) {
+  if (filter.parentId !== undefined && (node.parent ?? null) !== filter.parentId) return false;
+  if (filter.hasChildren !== undefined && childCount > 0 !== filter.hasChildren) return false;
+  if (filter.bbox || filter.withinBBox || filter.minY !== undefined || filter.maxY !== undefined) {
     if (!box) return false;
     if (filter.bbox && !intersects(box, filter.bbox)) return false;
+    if (filter.withinBBox && !contains(box, filter.withinBBox)) return false;
     if (filter.minY !== undefined && box.min[1] < filter.minY) return false;
     if (filter.maxY !== undefined && box.max[1] > filter.maxY) return false;
   }
@@ -117,7 +131,7 @@ export function queryNodes(doc: SceneDoc, filter: NodeFilter = {}): QueryResult 
   for (const node of ordered) {
     const id = node.id;
     const box = nodeBounds(doc, id);
-    if (!matches(node, filter, box)) continue;
+    if (!matches(node, filter, box, children.get(id)?.length ?? 0)) continue;
     hits.push({
       id: node.id,
       name: node.name,

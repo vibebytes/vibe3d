@@ -3016,7 +3016,7 @@
     },
     {
       "name": "scene.query",
-      "title": "按名称 / 类型 / 材质 / 标签 / 区域查询节点，返回世界包围盒，支持 limit+cursor 分页",
+      "title": "按名称 / 类型 / 材质 / 标签 / 区域 / 父子关系查询节点，返回世界包围盒，支持 limit+cursor 分页",
       "wire": "scene.query",
       "scope": "room",
       "mutating": false,
@@ -3034,7 +3034,7 @@
       },
       "cli": {
         "command": "scene query",
-        "args": "<roomId> [--name <text>] [--kind mesh] [--tags a,b] [--min-y 0.9] [--limit 50] [--cursor 0]"
+        "args": "<roomId> [--name <text>] [--kind mesh] [--tags a,b] [--parent <nodeId>|root] [--has-children] [--within-bbox <json>] [--bbox <json>] [--min-y 0.9] [--limit 50] [--cursor 0]"
       },
       "input": {
         "type": "object",
@@ -3111,6 +3111,62 @@
               "max"
             ],
             "additionalProperties": false
+          },
+          "withinBBox": {
+            "type": "object",
+            "properties": {
+              "min": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "max": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "min",
+              "max"
+            ],
+            "additionalProperties": false
+          },
+          "parentId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hasChildren": {
+            "type": "boolean"
           },
           "minY": {
             "type": "number"
