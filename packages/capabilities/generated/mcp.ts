@@ -725,6 +725,55 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "vibe3d_attach_node",
+    title: "吸附：按目标包围盒的面对齐，可用 corner 贴角、gap 留缝，世界位置写回节点 TRS",
+    capability: "node.attach",
+    annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^n_[a-z0-9]{8}$"
+        },
+        "target_id": {
+          "type": "string",
+          "pattern": "^n_[a-z0-9]{8}$"
+        },
+        "face": {
+          "type": "string",
+          "enum": [
+            "top",
+            "bottom",
+            "left",
+            "right",
+            "front",
+            "back"
+          ]
+        },
+        "corner": {
+          "type": "string",
+          "enum": [
+            "min-min",
+            "min-max",
+            "max-min",
+            "max-max"
+          ]
+        },
+        "gap": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "target_id",
+        "face"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
     name: "vibe3d_group_nodes",
     title: "编组：按选区包围盒中心建组，keepWorld 保持世界位置",
     capability: "node.group",

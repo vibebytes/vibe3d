@@ -4622,6 +4622,141 @@
       }
     },
     {
+      "name": "node.attach",
+      "title": "吸附：按目标包围盒的面对齐，可用 corner 贴角、gap 留缝，世界位置写回节点 TRS",
+      "wire": "node.attach",
+      "scope": "room",
+      "mutating": true,
+      "hostCoupled": false,
+      "errors": [
+        "E_INVALID_PARAMS",
+        "E_NODE_NOT_FOUND",
+        "E_UNSUPPORTED",
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_attach_node",
+        "annotations": {
+          "readOnlyHint": false
+        },
+        "roomArg": false
+      },
+      "cli": {
+        "command": "node attach",
+        "args": "<roomId> <nodeId> --target <id> --face top [--corner min-min] [--gap 0.05]"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "targetId": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "face": {
+            "type": "string",
+            "enum": [
+              "top",
+              "bottom",
+              "left",
+              "right",
+              "front",
+              "back"
+            ]
+          },
+          "corner": {
+            "type": "string",
+            "enum": [
+              "min-min",
+              "min-max",
+              "max-min",
+              "max-max"
+            ]
+          },
+          "gap": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "roomId",
+          "id",
+          "targetId",
+          "face"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "nodeId": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "box": {
+            "type": "object",
+            "properties": {
+              "min": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "max": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "min",
+              "max"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "revision",
+          "nodeId",
+          "box"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
       "name": "node.group",
       "title": "编组：按选区包围盒中心建组，keepWorld 保持世界位置",
       "wire": "node.group",

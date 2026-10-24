@@ -298,6 +298,31 @@ export const sceneOps = {
     cli: { command: 'node array', args: '<roomId> <nodeId> --count 5 --offset 1,0,0' },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_LIMIT_EXCEEDED', 'E_ROOM_NOT_FOUND'] as const,
   },
+  'node.attach': {
+    title: '吸附：按目标包围盒的面对齐，可用 corner 贴角、gap 留缝，世界位置写回节点 TRS',
+    input: z.object({
+      roomId,
+      id: nodeIdSchema,
+      targetId: nodeIdSchema,
+      face: z.enum(['top', 'bottom', 'left', 'right', 'front', 'back']),
+      corner: z.enum(['min-min', 'min-max', 'max-min', 'max-max']).optional(),
+      gap: z.number().finite().optional(),
+    }),
+    output: z.object({
+      revision: z.number().int().min(0),
+      nodeId: nodeIdSchema,
+      box: z.object({ min: vec3, max: vec3 }),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'node.attach' as const,
+    mcp: { tool: 'vibe3d_attach_node' as const, annotations: { readOnlyHint: false } },
+    cli: {
+      command: 'node attach',
+      args: '<roomId> <nodeId> --target <id> --face top [--corner min-min] [--gap 0.05]',
+    },
+    errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_UNSUPPORTED', 'E_ROOM_NOT_FOUND'] as const,
+  },
   'node.group': {
     title: '编组：按选区包围盒中心建组，keepWorld 保持世界位置',
     input: z.object({

@@ -14,6 +14,7 @@ export const CLI_COMMANDS = [
   { command: "scene validate", args: "<roomId> [--checks floating,intersect] [--tolerance 0.02]", capability: "scene.validate" },
   { command: "node transform-many", args: "<roomId> [--ids a,b] [--filter <json>] [--translate 0,1,0]", capability: "node.transform_many" },
   { command: "node array", args: "<roomId> <nodeId> --count 5 --offset 1,0,0", capability: "node.array" },
+  { command: "node attach", args: "<roomId> <nodeId> --target <id> --face top [--corner min-min] [--gap 0.05]", capability: "node.attach" },
   { command: "node group", args: "<roomId> --ids a,b --name 组名 [--no-keep-world]", capability: "node.group" },
   { command: "node merge", args: "<roomId> <nodeId> [--material <id>]", capability: "node.merge" },
   { command: "node reparent", args: "<roomId> <nodeId> --parent <id>|--root [--no-keep-world]", capability: "node.reparent" },

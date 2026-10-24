@@ -17,10 +17,13 @@ import {
   DEFAULT_LIMITS,
   type NodeFilter,
   arrayPlacements,
+  attachDelta,
   frameTarget,
   nodeBounds,
+  nodeOwnBounds,
   nodeView,
   relativeTransform,
+  worldMatrix,
   worldPointToLocal,
   pickNode,
   mergeGroup,
@@ -37,6 +40,7 @@ type Keys =
   | 'node.clone'
   | 'node.transform_many'
   | 'node.array'
+  | 'node.attach'
   | 'node.reparent'
   | 'node.group'
   | 'node.merge'
@@ -252,6 +256,28 @@ export const sceneHandlers: HandlersFor<Keys> = {
     }
     const result = await room.run(() => room.apply(ops));
     return { revision: result.revision, nodeIds };
+  },
+  'node.attach': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const node = room.doc.nodes[p.id];
+    if (!node) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.id} 不存在`);
+    if (!room.doc.nodes[p.targetId]) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.targetId} 不存在`);
+    const delta = attachDelta(room.doc, p.id, p.targetId, { face: p.face, corner: p.corner, offset: p.gap });
+    if (!delta) {
+      throw new AppError('E_UNSUPPORTED', `节点 ${p.id} 不可见或缺少可吸附的包围盒`, { id: p.id, targetId: p.targetId });
+    }
+    const m = worldMatrix(room.doc, p.id);
+    const world: Vec = [(m?.[12] ?? 0) + delta[0], (m?.[13] ?? 0) + delta[1], (m?.[14] ?? 0) + delta[2]];
+    const local = worldPointToLocal(room.doc, node.parent, world);
+    const out = await room.run(() =>
+      room.apply([{ op: 'node.update', id: p.id, patch: { transform: { ...node.transform, p: local } } }]),
+    );
+    const box = nodeOwnBounds(room.doc, p.id) ?? nodeBounds(room.doc, p.id);
+    return {
+      revision: out.revision,
+      nodeId: p.id,
+      box: { min: [...(box?.min ?? local)], max: [...(box?.max ?? local)] },
+    };
   },
   'node.reparent': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);

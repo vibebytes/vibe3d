@@ -46,6 +46,7 @@ export const WIRE_METHODS = [
   'scene.validate',
   'node.transform_many',
   'node.array',
+  'node.attach',
   'node.reparent',
   'node.group',
   'node.merge',

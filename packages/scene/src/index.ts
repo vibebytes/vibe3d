@@ -1,5 +1,11 @@
 export { relativeTransform, worldMatrix, worldPointToLocal } from './frame';
 export { arrayPlacements, type ArrayAxis, type ArrayMode, type ArrayOptions, type Placement } from './array';
+export {
+  attachDelta,
+  type AttachCorner,
+  type AttachFace,
+  type AttachOptions,
+} from './attach';
 export { applyOps, inverseOps, type OpSummary, type ReduceResult } from './reduce';
 export { applyClipTransform, sampleClip } from './anim';
 export { MAX_PARTICLES, particleCount, sampleParticles, type ParticleSample } from './fx';
