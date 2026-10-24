@@ -133,6 +133,18 @@ describe('render shading & overlay', () => {
     expect(get(seen, 2).overlay).toEqual(['axes']);
   });
 
+  it('forwards the new material and rendered shading modes', async () => {
+    for (const mode of ['material', 'rendered'] as const) {
+      const h = makeHarness();
+      const seen: SnapshotOptions[] = [];
+      h.ctx.renderer = fakeRenderer(seen) as unknown as DispatchContext['renderer'];
+      const { roomId } = await roomWithBox(h);
+      const { body } = await call(h, 'render.snapshot', { roomId, shading: mode, width: 200, height: 160 }, roomId);
+      expect(body.error).toBeUndefined();
+      expect(get(seen, 0).shading).toBe(mode);
+    }
+  });
+
   it('rejects unknown shading and overlay values', async () => {
     const h = makeHarness();
     const seen: SnapshotOptions[] = [];

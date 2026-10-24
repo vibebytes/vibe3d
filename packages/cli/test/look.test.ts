@@ -6,10 +6,10 @@ describe('CLI 渲染外观标志', () => {
     expect(parseLookFlags({})).toEqual({});
   });
 
-  it('解析 --shading 三种取值', () => {
-    expect(parseLookFlags({ shading: 'flat' })).toEqual({ shading: 'flat' });
-    expect(parseLookFlags({ shading: 'wireframe' })).toEqual({ shading: 'wireframe' });
-    expect(parseLookFlags({ shading: 'normals' })).toEqual({ shading: 'normals' });
+  it('解析 --shading 五种取值', () => {
+    for (const mode of ['flat', 'wireframe', 'normals', 'material', 'rendered'] as const) {
+      expect(parseLookFlags({ shading: mode })).toEqual({ shading: mode });
+    }
   });
 
   it('--overlay 支持逗号列表并去重', () => {
@@ -17,8 +17,12 @@ describe('CLI 渲染外观标志', () => {
     expect(parseLookFlags({ overlay: 'bbox,bbox' })).toEqual({ overlay: ['bbox'] });
   });
 
+  it('--overlay 接受诊断类叠加（ground/centerline/scale/normal）', () => {
+    expect(parseLookFlags({ overlay: 'ground,scale' })).toEqual({ overlay: ['ground', 'scale'] });
+  });
+
   it('非法取值抛错并列出合法值', () => {
-    expect(() => parseLookFlags({ shading: 'material' })).toThrow(/shading/);
+    expect(() => parseLookFlags({ shading: 'toon' })).toThrow(/shading/);
     expect(() => parseLookFlags({ overlay: 'grid+camera' })).toThrow(/overlay/);
   });
 
