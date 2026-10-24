@@ -308,6 +308,26 @@ export const sceneOps = {
     cli: { command: 'node group', args: '<roomId> --ids a,b --name 组名 [--no-keep-world]' },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
+  'node.reparent': {
+    title: '改挂父级：默认保持世界位置与朝向（TRS 可表达范围内）',
+    input: z.object({
+      roomId,
+      id: nodeIdSchema,
+      parent: nodeIdSchema.nullable(),
+      index: z.number().int().min(0).optional(),
+      keepWorld: z.boolean().optional(),
+    }),
+    output: z.object({ revision: z.number().int().min(0) }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'node.reparent' as const,
+    mcp: { tool: 'vibe3d_reparent_node' as const, annotations: { readOnlyHint: false } },
+    cli: {
+      command: 'node reparent',
+      args: '<roomId> <nodeId> --parent <id>|--root [--no-keep-world]',
+    },
+    errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
+  },
   'material.assign': {
     title: '批量换材质：ids 或 filter 二选一，仅作用于 mesh',
     input: z.object({

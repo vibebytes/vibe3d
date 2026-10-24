@@ -46,6 +46,7 @@ export const WIRE_METHODS = [
   'scene.validate',
   'node.transform_many',
   'node.array',
+  'node.reparent',
   'node.group',
   'material.assign',
   'decal.create',

@@ -19,6 +19,7 @@ import {
   frameTarget,
   nodeBounds,
   nodeView,
+  relativeTransform,
   worldPointToLocal,
   pickNode,
   queryNodes,
@@ -34,6 +35,7 @@ type Keys =
   | 'node.clone'
   | 'node.transform_many'
   | 'node.array'
+  | 'node.reparent'
   | 'node.group'
   | 'material.assign'
   | 'material.create'
@@ -246,6 +248,21 @@ export const sceneHandlers: HandlersFor<Keys> = {
     }
     const result = await room.run(() => room.apply(ops));
     return { revision: result.revision, nodeIds };
+  },
+  'node.reparent': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const node = room.doc.nodes[p.id];
+    if (!node) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.id} 不存在`);
+    if (p.parent !== null && !room.doc.nodes[p.parent]) {
+      throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.parent} 不存在`);
+    }
+    const transform = (p.keepWorld ?? true) ? relativeTransform(room.doc, p.id, p.parent) : null;
+    const ops: Op[] = [
+      { op: 'node.reparent', id: p.id, parent: p.parent, ...(p.index === undefined ? {} : { index: p.index }) },
+    ];
+    if (transform) ops.push({ op: 'node.update', id: p.id, patch: { transform } });
+    const result = await room.run(() => room.apply(ops));
+    return { revision: result.revision };
   },
   'node.group': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);

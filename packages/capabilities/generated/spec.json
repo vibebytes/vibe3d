@@ -4648,6 +4648,82 @@
       }
     },
     {
+      "name": "node.reparent",
+      "title": "改挂父级：默认保持世界位置与朝向（TRS 可表达范围内）",
+      "wire": "node.reparent",
+      "scope": "room",
+      "mutating": true,
+      "hostCoupled": false,
+      "errors": [
+        "E_INVALID_PARAMS",
+        "E_NODE_NOT_FOUND",
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_reparent_node",
+        "annotations": {
+          "readOnlyHint": false
+        },
+        "roomArg": false
+      },
+      "cli": {
+        "command": "node reparent",
+        "args": "<roomId> <nodeId> --parent <id>|--root [--no-keep-world]"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "index": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "keepWorld": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "roomId",
+          "id",
+          "parent"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "revision"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
       "name": "material.assign",
       "title": "批量换材质：ids 或 filter 二选一，仅作用于 mesh",
       "wire": "material.assign",

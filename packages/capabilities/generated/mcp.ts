@@ -716,6 +716,45 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "vibe3d_reparent_node",
+    title: "改挂父级：默认保持世界位置与朝向（TRS 可表达范围内）",
+    capability: "node.reparent",
+    annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^n_[a-z0-9]{8}$"
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "keep_world": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "parent"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
     name: "vibe3d_assign_material",
     title: "批量换材质：ids 或 filter 二选一，仅作用于 mesh",
     capability: "material.assign",

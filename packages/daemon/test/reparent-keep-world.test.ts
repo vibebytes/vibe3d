@@ -7,6 +7,8 @@ const near = (a: number[], b: number[]) => {
   a.forEach((v, i) => expect(Math.abs(v - b[i]!)).toBeLessThan(1e-6));
 };
 
+const origin = (m: number[]) => [m[12]!, m[13]!, m[14]!];
+
 async function scene(h: Harness, roomId: string) {
   return (await call(h, 'scene.export', { roomId }, roomId)).body.result.doc;
 }
@@ -21,7 +23,7 @@ async function fixture(h: Harness) {
       roomId,
       kind: 'group',
       name: '旧父级',
-      transform: { p: [1, 2, 0], r: [0, 0.7, 0], s: [2, 1, 0.5] },
+      transform: { p: [1, 2, 0], r: [0, 0.7, 0], s: [1.5, 1.5, 1.5] },
     },
     roomId,
   );
@@ -33,11 +35,23 @@ async function fixture(h: Harness) {
       roomId,
       kind: 'group',
       name: '新父级',
-      transform: { p: [-3, 0.5, 2], r: [0.3, -0.4, 0.9], s: [0.5, 3, 1.5] },
+      transform: { p: [-3, 0.5, 2], r: [0.3, -0.4, 0.9], s: [0.5, 0.5, 0.5] },
     },
     roomId,
   );
   const toId = to.body.result.nodeId;
+  const squash = await call(
+    h,
+    'node.create',
+    {
+      roomId,
+      kind: 'group',
+      name: '非均匀父级',
+      transform: { p: [2, -1, 0.5], r: [0.1, 0.2, -0.2], s: [0.5, 3, 1.5] },
+    },
+    roomId,
+  );
+  const squashId = squash.body.result.nodeId;
   const mesh = await call(
     h,
     'node.create',
@@ -50,11 +64,11 @@ async function fixture(h: Harness) {
     },
     roomId,
   );
-  return { roomId, fromId, toId, id: mesh.body.result.nodeId };
+  return { roomId, fromId, toId, squashId, id: mesh.body.result.nodeId };
 }
 
 describe('node.reparent：默认保持世界坐标', () => {
-  it('换到带旋转与缩放的新父级后，世界矩阵逐元素不变', async () => {
+  it('换父级后世界矩阵逐元素不变', async () => {
     const h = makeHarness();
     const { roomId, toId, id } = await fixture(h);
     const before = await scene(h, roomId);
@@ -63,6 +77,15 @@ describe('node.reparent：默认保持世界坐标', () => {
     const after = await scene(h, roomId);
     expect(after.nodes[id]?.parent).toBe(toId);
     near(worldMatrix(after, id)!, worldMatrix(before, id)!);
+  });
+
+  it('非均匀缩放父级下世界位置严格保持', async () => {
+    const h = makeHarness();
+    const { roomId, squashId, id } = await fixture(h);
+    const before = await scene(h, roomId);
+    await call(h, 'node.reparent', { roomId, id, parent: squashId }, roomId);
+    const after = await scene(h, roomId);
+    near(origin(worldMatrix(after, id)!), origin(worldMatrix(before, id)!));
   });
 
   it('keepWorld:false 保留 local TRS，只换父级', async () => {
@@ -75,7 +98,7 @@ describe('node.reparent：默认保持世界坐标', () => {
     expect(after.nodes[id]?.parent).toBe(toId);
   });
 
-  it('parent:null 回到根节点，世界矩阵不变', async () => {
+  it('parent:null 回到根节点，世界位置不变', async () => {
     const h = makeHarness();
     const { roomId, id } = await fixture(h);
     const before = await scene(h, roomId);

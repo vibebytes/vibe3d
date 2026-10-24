@@ -163,6 +163,81 @@ export function worldPointToLocal(
   return out;
 }
 
+type Transform = SceneNode['transform'];
+
+function column(m: Mat4, i: 0 | 1 | 2): [number, number, number] {
+  return [m[i * 4]!, m[i * 4 + 1]!, m[i * 4 + 2]!];
+}
+
+function normalize(v: [number, number, number]): [number, number, number] {
+  const len = Math.hypot(v[0], v[1], v[2]) || 1;
+  return [v[0] / len, v[1] / len, v[2] / len];
+}
+
+function cross(a: [number, number, number], b: [number, number, number]): [number, number, number] {
+  return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+}
+
+function rotationOf(m: Mat4): [number, number, number][] {
+  const c0 = normalize(column(m, 0));
+  const raw1 = column(m, 1);
+  const dot = c0[0] * raw1[0] + c0[1] * raw1[1] + c0[2] * raw1[2];
+  const c1 = normalize([raw1[0] - c0[0] * dot, raw1[1] - c0[1] * dot, raw1[2] - c0[2] * dot]);
+  const c2 = normalize(cross(c0, c1));
+  return [c0, c1, c2];
+}
+
+function eulerOf(r: [number, number, number][]): [number, number, number] {
+  const r00 = r[0]![0];
+  const r10 = r[0]![1];
+  const r20 = r[0]![2];
+  const r01 = r[1]![0];
+  const r11 = r[1]![1];
+  const r21 = r[1]![2];
+  const r02 = r[2]![0];
+  const r12 = r[2]![1];
+  const r22 = r[2]![2];
+  const ry = Math.asin(Math.max(-1, Math.min(1, r02)));
+  if (Math.abs(r02) < 0.999999) {
+    return [Math.atan2(-r12, r22), ry, Math.atan2(-r01, r00)];
+  }
+  return [Math.atan2(r21, r11), ry, 0];
+}
+
+export function relativeTransform(doc: SceneDoc, id: string, parentId: string | null): Transform {
+  const world = worldMatrix(doc, id) as Mat4 | null;
+  if (!world) throw new Error(`节点 ${id} 不存在`);
+  const parent = parentId ? (worldMatrix(doc, parentId) as Mat4 | null) : null;
+  const worldPoint: [number, number, number] = [world[12]!, world[13]!, world[14]!];
+  const p = worldPointToLocal(doc, parentId, worldPoint);
+
+  const wr = rotationOf(world);
+  const pr = parent ? rotationOf(parent) : null;
+  const rel: [number, number, number][] = [0, 1, 2].map((i) => {
+    const wc = wr[i]!;
+    if (!pr) return wc;
+    return [0, 1, 2].map(
+      (j) => pr[j]![0] * wc[0] + pr[j]![1] * wc[1] + pr[j]![2] * wc[2],
+    ) as [number, number, number];
+  });
+
+  const ws = [0, 1, 2].map((i) => {
+    const c = column(world, i as 0 | 1 | 2);
+    return Math.hypot(c[0], c[1], c[2]);
+  });
+  const ps = parent
+    ? [0, 1, 2].map((i) => {
+        const c = column(parent, i as 0 | 1 | 2);
+        return Math.hypot(c[0], c[1], c[2]);
+      })
+    : [1, 1, 1];
+  return {
+    p,
+    r: eulerOf(rel),
+    s: [ws[0]! / ps[0]!, ws[1]! / ps[1]!, ws[2]! / ps[2]!],
+  };
+}
+
 function worldMatrices(doc: SceneDoc): Map<string, Mat4> {
   const out = new Map<string, Mat4>();
   const walk = (id: string): Mat4 => {

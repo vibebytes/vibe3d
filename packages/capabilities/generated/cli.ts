@@ -15,6 +15,7 @@ export const CLI_COMMANDS = [
   { command: "node transform-many", args: "<roomId> [--ids a,b] [--filter <json>] [--translate 0,1,0]", capability: "node.transform_many" },
   { command: "node array", args: "<roomId> <nodeId> --count 5 --offset 1,0,0", capability: "node.array" },
   { command: "node group", args: "<roomId> --ids a,b --name 组名 [--no-keep-world]", capability: "node.group" },
+  { command: "node reparent", args: "<roomId> <nodeId> --parent <id>|--root [--no-keep-world]", capability: "node.reparent" },
   { command: "material assign", args: "<roomId> --material <id> [--ids a,b] [--filter <json>]", capability: "material.assign" },
   { command: "scene apply", args: "<roomId> --ops <json|@file>", capability: "ops.apply" },
   { command: "node create", args: "<roomId> --kind mesh --shape box", capability: "node.create" },
