@@ -411,8 +411,11 @@ export class RoomHandle {
     return this.invoke('scene.checkpoints');
   }
 
-  restore(checkpointId: string): Promise<CapResult<'scene.restore'>> {
-    return this.invoke('scene.restore', { checkpointId });
+  restore(
+    checkpointId: string,
+    params: Omit<CapParams<'scene.restore'>, 'roomId' | 'checkpointId'> = {},
+  ): Promise<CapResult<'scene.restore'>> {
+    return this.invoke('scene.restore', defined({ checkpointId, ...params } as never));
   }
 
   async exportGlbJob(params: Omit<CapParams<'export.glb'>, 'roomId'> = {}): Promise<JobHandle> {

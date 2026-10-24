@@ -24,6 +24,7 @@ export {
   type ViewName,
 } from './frame';
 export { changedPaths, type ChangedPathOptions, type ChangedPaths } from './changed';
+export { mergeSubtrees, type MergeSubtreesResult } from './restore';
 export { validateDoc, DEFAULT_LIMITS, type Limits } from './validate';
 export {
   queryNodes,

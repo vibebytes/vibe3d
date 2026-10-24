@@ -10,7 +10,7 @@ export const HELP = `vibe3d — 专家级 3D 场景 CLI（与 MCP / HTTP 同一�
   scene apply <roomId> --ops <json|@file> [--dry-run]
   scene export <roomId> [--out scene.json]
   scene import <roomId> <file.json> [--expect-revision n]
-  scene checkpoint <roomId> [--name n] | scene checkpoints <roomId> | scene restore <roomId> <checkpointId>
+  scene checkpoint <roomId> [--name n] | scene checkpoints <roomId> | scene restore <roomId> <checkpointId> [--scope subtree] [--ids a,b]
   node create <roomId> --kind mesh|group|light [--shape box|sphere|cylinder|plane] [--tags a,b]
   node update <roomId> <nodeId> --patch <json|@file>
   node rm <roomId> <nodeId> [--no-cascade]

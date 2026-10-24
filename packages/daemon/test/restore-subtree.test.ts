@@ -8,11 +8,7 @@ async function room(h: Harness): Promise<string> {
   return body.result.roomId;
 }
 
-async function create(
-  h: Harness,
-  roomId: string,
-  body: Record<string, unknown>,
-): Promise<string> {
+async function create(h: Harness, roomId: string, body: Record<string, unknown>): Promise<string> {
   const res = await call(h, 'node.create', { roomId, ...body }, roomId);
   return res.body.result.nodeId;
 }
@@ -45,26 +41,16 @@ describe('scene.restore scope/subtree', () => {
     const b = await create(h, roomId, { kind: 'group', name: 'B' });
     const checkpointId = await checkpoint(h, roomId);
 
-    await call(
-      h,
-      'node.update',
-      { roomId, nodeId: child, patch: { transform: { p: [9, 0, 0] } } },
-      roomId,
-    );
+    await call(h, 'node.update', { roomId, nodeId: child, patch: { transform: { p: [9, 0, 0] } } }, roomId);
     await call(h, 'node.update', { roomId, nodeId: b, patch: { name: 'B2' } }, roomId);
     const extra = await create(h, roomId, { kind: 'mesh', shape: 'sphere' });
 
-    const res = await call(
-      h,
-      'scene.restore',
-      { roomId, checkpointId, scope: 'subtree', ids: [a] },
-      roomId,
-    );
+    const res = await call(h, 'scene.restore', { roomId, checkpointId, scope: 'subtree', ids: [a] }, roomId);
     expect(res.status).toBe(200);
     expect(res.body.result.scope).toBe('subtree');
     expect(res.body.result.restored).toEqual([a]);
 
-    const restoredChild = (await call(h, 'node.get', { roomId, nodeId: child }, roomId)).body.result;
+    const restoredChild = (await call(h, 'scene.get', { roomId }, roomId)).body.result.doc.nodes[child];
     expect(restoredChild.transform.p).toEqual([0, 0, 0]);
     const kept = (await call(h, 'node.get', { roomId, nodeId: b }, roomId)).body.result;
     expect(kept.name).toBe('B2');
@@ -80,12 +66,7 @@ describe('scene.restore scope/subtree', () => {
     const checkpointId = await checkpoint(h, roomId);
     await call(h, 'node.delete', { roomId, nodeId: child, cascade: true }, roomId);
 
-    const res = await call(
-      h,
-      'scene.restore',
-      { roomId, checkpointId, scope: 'subtree', ids: [a] },
-      roomId,
-    );
+    const res = await call(h, 'scene.restore', { roomId, checkpointId, scope: 'subtree', ids: [a] }, roomId);
     expect(res.status).toBe(200);
     const back = (await call(h, 'node.get', { roomId, nodeId: child }, roomId)).body.result;
     expect(back.parentId).toBe(a);
@@ -109,7 +90,7 @@ describe('scene.restore scope/subtree', () => {
     expect(res.status).toBe(200);
     expect(res.body.result.added).toEqual([sub]);
     const doc = (await call(h, 'scene.get', { roomId }, roomId)).body.result.doc;
-    expect(doc.nodes[sub].parentId).toBe(parent);
+    expect(doc.nodes[sub].parent).toBe(parent);
     expect(Object.keys(doc.nodes)).toHaveLength(3);
   });
 
@@ -123,7 +104,7 @@ describe('scene.restore scope/subtree', () => {
     const res = await call(
       h,
       'scene.restore',
-      { roomId, checkpointId, scope: 'subtree', ids: [a, 'n_missing'] },
+      { roomId, checkpointId, scope: 'subtree', ids: [a, 'n_00000000'] },
       roomId,
     );
     expect(res.status).toBe(404);
@@ -139,12 +120,7 @@ describe('scene.restore scope/subtree', () => {
     const checkpointId = await checkpoint(h, roomId);
 
     for (const ids of [undefined, []]) {
-      const res = await call(
-        h,
-        'scene.restore',
-        { roomId, checkpointId, scope: 'subtree', ids },
-        roomId,
-      );
+      const res = await call(h, 'scene.restore', { roomId, checkpointId, scope: 'subtree', ids }, roomId);
       expect(res.status).toBe(400);
       expect(codeOf(res.body)).toBe('E_INVALID_PARAMS');
     }

@@ -11659,7 +11659,7 @@ export const MCP_TOOLS = [
   },
   {
     name: "vibe3d_restore_scene",
-    title: "回到检查点：先自动留底再整份回灌",
+    title: "回到检查点：整份回灌或只回灌指定子树",
     capability: "scene.restore",
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
@@ -11669,6 +11669,22 @@ export const MCP_TOOLS = [
           "type": "string",
           "minLength": 1,
           "maxLength": 120
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "room",
+            "subtree"
+          ]
+        },
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "minItems": 1,
+          "maxItems": 200
         }
       },
       "required": [

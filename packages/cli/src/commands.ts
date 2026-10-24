@@ -153,7 +153,12 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
       return room.checkpoint(pick({ name: str(flags, 'name') }) as never);
     }
     if (command === 'checkpoints' || command === 'ckpt') return room.checkpoints();
-    if (command === 'restore') return room.restore(need(rest[1], 'scene restore 需要 <checkpointId>'));
+    if (command === 'restore') {
+      return room.restore(need(rest[1], 'scene restore 需要 <checkpointId>'), {
+        scope: str(flags, 'scope') as never,
+        ids: str(flags, 'ids')?.split(','),
+      } as never);
+    }
   }
 
   if (group === 'node') {

@@ -42,7 +42,7 @@ export const CLI_COMMANDS = [
   { command: "scene import", args: "<roomId> --file doc.json", capability: "scene.import" },
   { command: "scene checkpoint", args: "<roomId> [--name baseline]", capability: "scene.checkpoint" },
   { command: "scene checkpoints", args: "<roomId>", capability: "scene.checkpoints" },
-  { command: "scene restore", args: "<roomId> <checkpointId>", capability: "scene.restore" },
+  { command: "scene restore", args: "<roomId> <checkpointId> [--scope subtree] [--ids a,b]", capability: "scene.restore" },
   { command: "decal create", args: "<roomId> --text 标语 | --image-sha <sha> [--at x,y,z]", capability: "decal.create" },
   { command: "mesh boolean", args: "<roomId> <target> <tool> [--op subtract] [--keep-tool]", capability: "mesh.boolean" },
   { command: "mesh tube", args: "<roomId> --points x,y,z;x,y,z;… --radius r [--radius-end r] [--segments 24] [--radial 8] [--closed] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]", capability: "mesh.tube" },

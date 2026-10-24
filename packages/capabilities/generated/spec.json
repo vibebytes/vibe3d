@@ -32331,7 +32331,7 @@
     },
     {
       "name": "scene.restore",
-      "title": "回到检查点：先自动留底再整份回灌",
+      "title": "回到检查点：整份回灌或只回灌指定子树",
       "wire": "scene.restore",
       "scope": "room",
       "mutating": true,
@@ -32340,6 +32340,7 @@
         "E_CHECKPOINT_NOT_FOUND",
         "E_INVALID_PARAMS",
         "E_ASSET_MISSING",
+        "E_NODE_NOT_FOUND",
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
@@ -32351,7 +32352,7 @@
       },
       "cli": {
         "command": "scene restore",
-        "args": "<roomId> <checkpointId>"
+        "args": "<roomId> <checkpointId> [--scope subtree] [--ids a,b]"
       },
       "input": {
         "type": "object",
@@ -32364,6 +32365,22 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 120
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "room",
+              "subtree"
+            ]
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "minItems": 1,
+            "maxItems": 200
           }
         },
         "required": [
@@ -32379,10 +32396,32 @@
           "revision": {
             "type": "integer",
             "minimum": 0
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "room",
+              "subtree"
+            ]
+          },
+          "restored": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "added": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
-          "revision"
+          "revision",
+          "scope",
+          "restored",
+          "added"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
