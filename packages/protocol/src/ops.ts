@@ -4,8 +4,8 @@ import {
   clipSchema,
   fxSchema,
   modelAnimSchema,
+  newNodeSchema,
   sceneDocSchema,
-  sceneNodeSchema,
 } from './scene';
 import {
   cameraNameSchema,
@@ -54,7 +54,7 @@ const nodePatchSchema = z.object({
 });
 
 export const opSchema = z.discriminatedUnion('op', [
-  z.object({ op: z.literal('node.create'), node: sceneNodeSchema }),
+  z.object({ op: z.literal('node.create'), node: newNodeSchema }),
   z.object({ op: z.literal('node.update'), id: nodeIdSchema, patch: nodePatchSchema }),
   z.object({ op: z.literal('node.delete'), id: nodeIdSchema, cascade: z.boolean().optional() }),
   z.object({

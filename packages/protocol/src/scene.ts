@@ -102,6 +102,13 @@ export const sceneNodeSchema = z.discriminatedUnion('kind', [
   modelNodeSchema,
 ]);
 
+export const newNodeSchema = z.discriminatedUnion('kind', [
+  groupNodeSchema.extend({ id: nodeIdSchema.optional() }),
+  meshNodeSchema.extend({ id: nodeIdSchema.optional() }),
+  lightNodeSchema.extend({ id: nodeIdSchema.optional() }),
+  modelNodeSchema.extend({ id: nodeIdSchema.optional() }),
+]);
+
 export const gltfAnimationSchema = z.object({
   name: z.string(),
   durationSec: z.number().finite().min(0),

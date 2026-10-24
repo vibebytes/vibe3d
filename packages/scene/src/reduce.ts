@@ -99,14 +99,19 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
   switch (op.op) {
     case 'node.create': {
       const node = op.node;
-      if (doc.nodes[node.id])
+      const id =
+        node.id ??
+        fail('node.create 缺少 id；走 ops.apply 时由服务端补齐，或直接用 vibe3d_create_node', {
+          name: node.name,
+        });
+      if (doc.nodes[id])
         fail('节点已存在；新建节点请用 vibe3d_create_node（服务端生成 id），或换一个 n_ + 8 位 id', {
-          id: node.id,
+          id,
         });
       if (node.parent && !doc.nodes[node.parent]) fail('父节点不存在', { id: node.parent });
-      doc.nodes[node.id] = clone(node);
-      if (!node.parent) doc.roots.push(node.id);
-      inverse.push({ op: 'node.delete', id: node.id, cascade: true });
+      doc.nodes[id] = clone(node) as SceneNode;
+      if (!node.parent) doc.roots.push(id);
+      inverse.push({ op: 'node.delete', id, cascade: true });
       return;
     }
     case 'node.update': {
@@ -464,8 +469,9 @@ export function applyOps(doc: SceneDoc, ops: readonly Op[], limits: Limits = DEF
   const updated = new Set<string>();
   const removed = new Set<string>();
   for (const op of ops) {
-    if (op.op === 'node.create') added.add(op.node.id);
-    else if (op.op === 'node.delete') removed.add(op.id);
+    if (op.op === 'node.create') {
+      if (op.node.id) added.add(op.node.id);
+    } else if (op.op === 'node.delete') removed.add(op.id);
     else if ('id' in op && typeof op.id === 'string' && op.id.startsWith('n_')) updated.add(op.id);
   }
   const summary: OpSummary = {

@@ -1024,7 +1024,7 @@ export const MCP_TOOLS = [
   },
   {
     name: "vibe3d_apply_ops",
-    title: "原子应用一批 op（ops 传数组，不要传 JSON 字符串；返回逆操作与 nodeCount；node.create 需带 geometry 与已存在的 material，基础体优先用 vibe3d_create_node）",
+    title: "原子应用一批 op（ops 传数组，不要传 JSON 字符串；node.create 可省 id，服务端补齐并在 assigned 回报；返回逆操作与 nodeCount；基础体优先用 vibe3d_create_node）",
     capability: "ops.apply",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
@@ -1238,7 +1238,6 @@ export const MCP_TOOLS = [
                           }
                         },
                         "required": [
-                          "id",
                           "name",
                           "parent",
                           "visible",
@@ -1733,7 +1732,6 @@ export const MCP_TOOLS = [
                           }
                         },
                         "required": [
-                          "id",
                           "name",
                           "parent",
                           "visible",
@@ -2044,7 +2042,6 @@ export const MCP_TOOLS = [
                           }
                         },
                         "required": [
-                          "id",
                           "name",
                           "parent",
                           "visible",
@@ -2289,7 +2286,6 @@ export const MCP_TOOLS = [
                           }
                         },
                         "required": [
-                          "id",
                           "name",
                           "parent",
                           "visible",

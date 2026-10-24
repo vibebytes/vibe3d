@@ -1,4 +1,4 @@
-import { AppError, type Op, type SceneDoc } from '@vibebyte/vibe3d-protocol';
+import { AppError, type Op, type SceneDoc, makeNodeId } from '@vibebyte/vibe3d-protocol';
 import { applyOps } from '@vibebyte/vibe3d-scene';
 import { assertAssetRefs } from './asset-refs';
 import { surfaceHint } from './editor-url';
@@ -52,6 +52,19 @@ const nodeSets = (ops: readonly Op[]): NodeSets => {
     updated: [...updated].filter((id) => !removed.has(id)),
     removed: [...removed].filter((id) => !added.has(id)),
   };
+};
+
+type AssignedId = { index: number; name: string; id: string };
+
+const assignNodeIds = (ops: readonly Op[]): { ops: Op[]; assigned: AssignedId[] } => {
+  const assigned: AssignedId[] = [];
+  const out = ops.map((op, index) => {
+    if (op.op !== 'node.create' || op.node.id) return op;
+    const id = makeNodeId();
+    assigned.push({ index, name: op.node.name, id });
+    return { ...op, node: { ...op.node, id } } as Op;
+  });
+  return { ops: out, assigned };
 };
 
 const sceneFeedback = (
@@ -193,7 +206,8 @@ export const roomHandlers: HandlersFor<Keys> = {
 
   'ops.apply': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    const ops = p.ops as Op[];
+    const { ops, assigned } = assignNodeIds(p.ops as Op[]);
+    const extra = assigned.length ? { assigned } : {};
     if (p.dryRun) {
       const { doc, inverse, warnings, summary } = applyOps(room.doc, ops);
       return {
@@ -202,12 +216,13 @@ export const roomHandlers: HandlersFor<Keys> = {
         warnings,
         inverse,
         summary,
+        ...extra,
         ...sceneFeedback(doc, ctx, p.roomId),
       };
     }
     return room.run(async () => {
       const result = await room.apply(ops, { expectRevision: p.baseRevision, opId: p.opId });
-      return { ...result, ...sceneFeedback(room.doc, ctx, p.roomId) };
+      return { ...result, ...extra, ...sceneFeedback(room.doc, ctx, p.roomId) };
     });
   },
 
