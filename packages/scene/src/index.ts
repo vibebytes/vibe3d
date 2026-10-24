@@ -77,6 +77,12 @@ export {
   type QualityPreset,
 } from './quality';
 export { tubeMesh, type TubeMesh, type TubeSpec } from './tube';
+export {
+  BACKDROP_DEFAULTS,
+  backdropSweep,
+  type BackdropMesh,
+  type BackdropSpec,
+} from './backdrop';
 export { bakeGeometry, type BakedMesh } from './bake';
 export { mergeGroup, type MergeOptions, type MergePlan } from './merge';
 export {

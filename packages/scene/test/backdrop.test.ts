@@ -48,8 +48,10 @@ describe('backdropSweep', () => {
       expect(Math.hypot(p[1] - cy, p[2] - cz)).toBeCloseTo(1.2, 9);
     }
     expect(normalAt(m.normals, 0, 0)).toEqual([0, 1, 0]);
+    const th = Math.PI / 2 / 8;
     expect(normalAt(m.normals, 1, 0)[0]).toBeCloseTo(0, 12);
-    expect(normalAt(m.normals, 1, 0)[1]).toBeCloseTo(1, 12);
+    expect(normalAt(m.normals, 1, 0)[1]).toBeCloseTo(Math.cos(th), 12);
+    expect(normalAt(m.normals, 1, 0)[2]).toBeCloseTo(Math.sin(th), 12);
     expect(normalAt(m.normals, 8, 0)[1]).toBeCloseTo(0, 12);
     expect(normalAt(m.normals, 8, 0)[2]).toBeCloseTo(1, 12);
     expect(normalAt(m.normals, 9, 0)).toEqual([0, 0, 1]);

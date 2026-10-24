@@ -6,7 +6,7 @@ import { dirname, join, resolve } from 'node:path';
 import { Studio, type StudioOptions } from '@vibebyte/vibe3d-client';
 import { type ParsedArgs, bool, jsonArg, num, parseSize, str, vec } from './args';
 import { cameraFromFlags, saveNameFrom } from './camera-args';
-import { booleanFromFlags, decalFromFlags, tubeFromFlags } from './decal-args';
+import { backdropFromFlags, booleanFromFlags, decalFromFlags, tubeFromFlags } from './decal-args';
 import { clipFromFlags, fogFromFlags, fxSpecFromFlags } from './fx-args';
 import { parseLookFlags } from './look';
 import { mapFromFlags, materialPatchFromFlags } from './material-args';
@@ -277,6 +277,10 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
 
   if (group === 'mesh' && command === 'tube') {
     return room.tubeMesh(tubeFromFlags(flags) as never);
+  }
+
+  if (group === 'mesh' && command === 'backdrop') {
+    return room.backdropMesh(backdropFromFlags(flags) as never);
   }
 
   if (group === 'stage' && command === 'set') {

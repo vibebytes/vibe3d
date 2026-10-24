@@ -85,3 +85,22 @@ export function tubeFromFlags(flags: Flags): Omit<CapParams<'mesh.tube'>, 'roomI
     parent: str(flags, 'parent'),
   }) as Omit<CapParams<'mesh.tube'>, 'roomId'>;
 }
+
+export function backdropFromFlags(flags: Flags): Omit<CapParams<'mesh.backdrop'>, 'roomId'> {
+  const transform = pick({
+    p: vec(flags, 'at'),
+    r: vec(flags, 'rotation'),
+    s: vec(flags, 'scale'),
+  });
+
+  return pick({
+    width: num(flags, 'width'),
+    depth: num(flags, 'depth'),
+    height: num(flags, 'height'),
+    curve: num(flags, 'curve'),
+    segments: num(flags, 'segments'),
+    transform: Object.keys(transform).length === 0 ? undefined : transform,
+    color: str(flags, 'color'),
+    parent: str(flags, 'parent'),
+  }) as Omit<CapParams<'mesh.backdrop'>, 'roomId'>;
+}

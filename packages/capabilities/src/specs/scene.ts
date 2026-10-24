@@ -884,4 +884,38 @@ export const sceneOps = {
     },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
   },
+  'mesh.backdrop': {
+    title: '背板：地面→四分之一弧→立墙的无缝扫掠曲面，法线两端连续，单节点 baked 几何',
+    input: z.object({
+      roomId,
+      name: z.string().min(1).max(200).optional(),
+      width: z.number().positive().max(200).optional(),
+      depth: z.number().positive().max(200).optional(),
+      height: z.number().positive().max(200).optional(),
+      curve: z.number().positive().max(100).optional(),
+      segments: z.number().int().min(4).max(64).optional(),
+      transform: transformInput.optional(),
+      color: z
+        .string()
+        .regex(/^#[0-9a-fA-F]{6}$/)
+        .optional(),
+      parent: nodeIdSchema.nullable().optional(),
+    }),
+    output: z.object({
+      nodeId: nodeIdSchema,
+      materialId: materialIdSchema,
+      revision: z.number().int().min(0),
+      tris: z.number().int().min(0),
+      vertices: z.number().int().min(0),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'mesh.backdrop' as const,
+    mcp: { tool: 'vibe3d_backdrop_mesh' as const },
+    cli: {
+      command: 'mesh backdrop',
+      args: '<roomId> [--width 10] [--depth 4] [--height 6] [--curve 1.2] [--segments 16] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]',
+    },
+    errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
+  },
 };

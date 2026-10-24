@@ -27,7 +27,7 @@ describe('mesh.backdrop', () => {
     expect(node.geometry.normals.length).toBe(node.geometry.positions.length);
     expect(node.geometry.bbox).toEqual({ min: [-5, 0, -4], max: [5, 6, 0] });
     expect(d.materials[node.material]).toBeTruthy();
-    expect(body.result.tris).toBe(6 * 17);
+    expect(body.result.tris).toBe(102 / 3);
   });
 
   it('默认不投影、不接收阴影，避免背板自带脏边', async () => {

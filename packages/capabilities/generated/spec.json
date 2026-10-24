@@ -30716,6 +30716,176 @@
       }
     },
     {
+      "name": "mesh.backdrop",
+      "title": "背板：地面→四分之一弧→立墙的无缝扫掠曲面，法线两端连续，单节点 baked 几何",
+      "wire": "mesh.backdrop",
+      "scope": "room",
+      "mutating": true,
+      "hostCoupled": false,
+      "errors": [
+        "E_INVALID_PARAMS",
+        "E_NODE_NOT_FOUND",
+        "E_PAYLOAD_TOO_LARGE",
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_backdrop_mesh",
+        "annotations": {},
+        "roomArg": false
+      },
+      "cli": {
+        "command": "mesh backdrop",
+        "args": "<roomId> [--width 10] [--depth 4] [--height 6] [--curve 1.2] [--segments 16] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "width": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 200
+          },
+          "depth": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 200
+          },
+          "height": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 200
+          },
+          "curve": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 100
+          },
+          "segments": {
+            "type": "integer",
+            "minimum": 4,
+            "maximum": 64
+          },
+          "transform": {
+            "type": "object",
+            "properties": {
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "r": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "s": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "roomId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "nodeId": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "materialId": {
+            "type": "string",
+            "pattern": "^m_[a-z0-9]{8}$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "tris": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "vertices": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "nodeId",
+          "materialId",
+          "revision",
+          "tris",
+          "vertices"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
       "name": "node.import",
       "title": "导入 glTF/GLB 为 model 节点",
       "wire": "scene.apply",

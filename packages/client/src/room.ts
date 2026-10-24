@@ -249,6 +249,10 @@ export class RoomHandle {
     return this.invoke('mesh.tube', params);
   }
 
+  backdropMesh(params: Omit<CapParams<'mesh.backdrop'>, 'roomId'>): Promise<CapResult<'mesh.backdrop'>> {
+    return this.invoke('mesh.backdrop', params);
+  }
+
   deleteAsset(sha: string): Promise<CapResult<'asset.delete'>> {
     return this.invoke('asset.delete', { sha });
   }

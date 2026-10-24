@@ -11196,6 +11196,118 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "vibe3d_backdrop_mesh",
+    title: "背板：地面→四分之一弧→立墙的无缝扫掠曲面，法线两端连续，单节点 baked 几何",
+    capability: "mesh.backdrop",
+    annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 200
+        },
+        "depth": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 200
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 200
+        },
+        "curve": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 100
+        },
+        "segments": {
+          "type": "integer",
+          "minimum": 4,
+          "maximum": 64
+        },
+        "transform": {
+          "type": "object",
+          "properties": {
+            "p": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "r": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "s": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
     name: "vibe3d_import_asset",
     title: "导入 glTF/GLB 为 model 节点",
     capability: "node.import",
