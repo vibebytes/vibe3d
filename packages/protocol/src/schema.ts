@@ -105,16 +105,28 @@ export const assetImageSchema = z.object({
   hdri: z.boolean(),
 });
 
-export const lightSpecSchema = z.object({
-  type: z.enum(['directional', 'point', 'spot', 'ambient']),
-  color: rgba,
-  intensity: finite.min(0),
-  position: vec3.optional(),
-  target: vec3.optional(),
-  angle: finite.min(0).max(Math.PI).optional(),
-  penumbra: unit.optional(),
-  castShadow: z.boolean().optional(),
-});
+export const lightSpecSchema = z
+  .object({
+    type: z.enum(['directional', 'point', 'spot', 'ambient', 'area']),
+    color: rgba,
+    intensity: finite.min(0),
+    position: vec3.optional(),
+    target: vec3.optional(),
+    angle: finite.min(0).max(Math.PI).optional(),
+    penumbra: unit.optional(),
+    width: finite.positive().optional(),
+    height: finite.positive().optional(),
+    castShadow: z.boolean().optional(),
+  })
+  .superRefine((light, ctx) => {
+    const area = light.type === 'area';
+    if (!area && (light.width !== undefined || light.height !== undefined)) {
+      ctx.addIssue({ code: 'custom', path: ['width'], message: 'width/height only apply to area lights' });
+    }
+    if (area && light.castShadow) {
+      ctx.addIssue({ code: 'custom', path: ['castShadow'], message: 'area lights cannot cast shadows' });
+    }
+  });
 
 export const cameraNameSchema = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/, 'invalid camera name');
 

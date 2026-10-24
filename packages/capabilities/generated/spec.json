@@ -1266,7 +1266,8 @@
                                 "directional",
                                 "point",
                                 "spot",
-                                "ambient"
+                                "ambient",
+                                "area"
                               ]
                             },
                             "color": {
@@ -1341,6 +1342,14 @@
                               "type": "number",
                               "minimum": 0,
                               "maximum": 1
+                            },
+                            "width": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            "height": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
                             },
                             "castShadow": {
                               "type": "boolean"
@@ -3416,7 +3425,8 @@
                   "directional",
                   "point",
                   "spot",
-                  "ambient"
+                  "ambient",
+                  "area"
                 ]
               },
               "color": {
@@ -3491,6 +3501,14 @@
                 "type": "number",
                 "minimum": 0,
                 "maximum": 1
+              },
+              "width": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "height": {
+                "type": "number",
+                "exclusiveMinimum": 0
               },
               "castShadow": {
                 "type": "boolean"
@@ -6081,7 +6099,8 @@
                                     "directional",
                                     "point",
                                     "spot",
-                                    "ambient"
+                                    "ambient",
+                                    "area"
                                   ]
                                 },
                                 "color": {
@@ -6156,6 +6175,14 @@
                                   "type": "number",
                                   "minimum": 0,
                                   "maximum": 1
+                                },
+                                "width": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "height": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
                                 },
                                 "castShadow": {
                                   "type": "boolean"
@@ -6482,7 +6509,8 @@
                                 "directional",
                                 "point",
                                 "spot",
-                                "ambient"
+                                "ambient",
+                                "area"
                               ]
                             },
                             "color": {
@@ -6557,6 +6585,14 @@
                               "type": "number",
                               "minimum": 0,
                               "maximum": 1
+                            },
+                            "width": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            "height": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
                             },
                             "castShadow": {
                               "type": "boolean"
@@ -9716,7 +9752,8 @@
                                           "directional",
                                           "point",
                                           "spot",
-                                          "ambient"
+                                          "ambient",
+                                          "area"
                                         ]
                                       },
                                       "color": {
@@ -9791,6 +9828,14 @@
                                         "type": "number",
                                         "minimum": 0,
                                         "maximum": 1
+                                      },
+                                      "width": {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                      },
+                                      "height": {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
                                       },
                                       "castShadow": {
                                         "type": "boolean"
@@ -11893,7 +11938,8 @@
                                     "directional",
                                     "point",
                                     "spot",
-                                    "ambient"
+                                    "ambient",
+                                    "area"
                                   ]
                                 },
                                 "color": {
@@ -11968,6 +12014,14 @@
                                   "type": "number",
                                   "minimum": 0,
                                   "maximum": 1
+                                },
+                                "width": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "height": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
                                 },
                                 "castShadow": {
                                   "type": "boolean"
@@ -12294,7 +12348,8 @@
                                 "directional",
                                 "point",
                                 "spot",
-                                "ambient"
+                                "ambient",
+                                "area"
                               ]
                             },
                             "color": {
@@ -12369,6 +12424,14 @@
                               "type": "number",
                               "minimum": 0,
                               "maximum": 1
+                            },
+                            "width": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            "height": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
                             },
                             "castShadow": {
                               "type": "boolean"
@@ -15528,7 +15591,8 @@
                                           "directional",
                                           "point",
                                           "spot",
-                                          "ambient"
+                                          "ambient",
+                                          "area"
                                         ]
                                       },
                                       "color": {
@@ -15603,6 +15667,14 @@
                                         "type": "number",
                                         "minimum": 0,
                                         "maximum": 1
+                                      },
+                                      "width": {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                      },
+                                      "height": {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
                                       },
                                       "castShadow": {
                                         "type": "boolean"
@@ -17158,7 +17230,8 @@
                   "directional",
                   "point",
                   "spot",
-                  "ambient"
+                  "ambient",
+                  "area"
                 ]
               },
               "color": {
@@ -17233,6 +17306,14 @@
                 "type": "number",
                 "minimum": 0,
                 "maximum": 1
+              },
+              "width": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "height": {
+                "type": "number",
+                "exclusiveMinimum": 0
               },
               "castShadow": {
                 "type": "boolean"
@@ -17432,7 +17513,8 @@
                       "directional",
                       "point",
                       "spot",
-                      "ambient"
+                      "ambient",
+                      "area"
                     ]
                   },
                   "color": {
@@ -17507,6 +17589,14 @@
                     "type": "number",
                     "minimum": 0,
                     "maximum": 1
+                  },
+                  "width": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "height": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
                   },
                   "castShadow": {
                     "type": "boolean"
@@ -20539,7 +20629,8 @@
                                     "directional",
                                     "point",
                                     "spot",
-                                    "ambient"
+                                    "ambient",
+                                    "area"
                                   ]
                                 },
                                 "color": {
@@ -20614,6 +20705,14 @@
                                   "type": "number",
                                   "minimum": 0,
                                   "maximum": 1
+                                },
+                                "width": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "height": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
                                 },
                                 "castShadow": {
                                   "type": "boolean"
@@ -20940,7 +21039,8 @@
                                 "directional",
                                 "point",
                                 "spot",
-                                "ambient"
+                                "ambient",
+                                "area"
                               ]
                             },
                             "color": {
@@ -21015,6 +21115,14 @@
                               "type": "number",
                               "minimum": 0,
                               "maximum": 1
+                            },
+                            "width": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            "height": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
                             },
                             "castShadow": {
                               "type": "boolean"
@@ -24174,7 +24282,8 @@
                                           "directional",
                                           "point",
                                           "spot",
-                                          "ambient"
+                                          "ambient",
+                                          "area"
                                         ]
                                       },
                                       "color": {
@@ -24249,6 +24358,14 @@
                                         "type": "number",
                                         "minimum": 0,
                                         "maximum": 1
+                                      },
+                                      "width": {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                      },
+                                      "height": {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
                                       },
                                       "castShadow": {
                                         "type": "boolean"
@@ -26459,7 +26576,8 @@
                                 "directional",
                                 "point",
                                 "spot",
-                                "ambient"
+                                "ambient",
+                                "area"
                               ]
                             },
                             "color": {
@@ -26534,6 +26652,14 @@
                               "type": "number",
                               "minimum": 0,
                               "maximum": 1
+                            },
+                            "width": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            "height": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
                             },
                             "castShadow": {
                               "type": "boolean"
@@ -28632,7 +28758,8 @@
                                 "directional",
                                 "point",
                                 "spot",
-                                "ambient"
+                                "ambient",
+                                "area"
                               ]
                             },
                             "color": {
@@ -28707,6 +28834,14 @@
                               "type": "number",
                               "minimum": 0,
                               "maximum": 1
+                            },
+                            "width": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            "height": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
                             },
                             "castShadow": {
                               "type": "boolean"

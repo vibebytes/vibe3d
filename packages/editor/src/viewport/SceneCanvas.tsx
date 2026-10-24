@@ -8,15 +8,24 @@ import type {
   SceneDoc,
   SceneNode,
 } from '@vibebyte/vibe3d-protocol';
-import { type ComponentRef, type ReactNode, Suspense, useEffect, useMemo, useRef } from 'react';
+import {
+  type ComponentRef,
+  type ReactNode,
+  Suspense,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import type * as THREE from 'three';
+import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import { assetUrl } from '../lib/rpc';
 import { useSelection } from '../stores/selection';
 import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
 import { buildMesh, disposeMesh } from '../three/build';
 import { applyFxAt, buildFxObject, disposeFxObject, fogSettings } from '../three/fx';
 import { animationClips, cloneGltfScene, gltfLoader } from '../three/gltf';
-import { rgbaHex } from '../three/materials';
+import { type LightPlan, lightPlan } from '../three/lights';
 import { type NprPlan, nprPlan } from '../three/npr';
 import { pickAt } from '../three/picking';
 import { postPlan } from '../three/post';
@@ -55,31 +64,60 @@ function ModelView({ node }: { node: ModelNode }) {
 }
 
 function LightView({ node }: { node: LightNode }) {
-  const spec = node.light;
-  const color = rgbaHex(spec.color);
-  const pos = spec.position ?? [0, 2, 0];
-  if (spec.type === 'ambient') return <ambientLight color={color} intensity={spec.intensity} />;
-  if (spec.type === 'directional')
+  const plan = lightPlan(node.light);
+  if (plan.kind === 'ambient') return <ambientLight color={plan.color} intensity={plan.intensity} />;
+  if (plan.kind === 'area') return <AreaLight plan={plan} />;
+  if (plan.kind === 'directional')
     return (
       <directionalLight
-        color={color}
-        intensity={spec.intensity}
-        position={pos}
-        castShadow={spec.castShadow}
+        color={plan.color}
+        intensity={plan.intensity}
+        position={plan.position}
+        castShadow={plan.castShadow}
       />
     );
-  if (spec.type === 'spot')
+  if (plan.kind === 'spot')
     return (
       <spotLight
-        color={color}
-        intensity={spec.intensity}
-        position={pos}
-        angle={spec.angle ?? Math.PI / 6}
-        penumbra={spec.penumbra ?? 0.4}
-        castShadow={spec.castShadow}
+        color={plan.color}
+        intensity={plan.intensity}
+        position={plan.position}
+        angle={plan.angle}
+        penumbra={plan.penumbra}
+        castShadow={plan.castShadow}
       />
     );
-  return <pointLight color={color} intensity={spec.intensity} position={pos} castShadow={spec.castShadow} />;
+  return (
+    <pointLight
+      color={plan.color}
+      intensity={plan.intensity}
+      position={plan.position}
+      castShadow={plan.castShadow}
+    />
+  );
+}
+
+let areaReady = false;
+
+function AreaLight({ plan }: { plan: Extract<LightPlan, { kind: 'area' }> }) {
+  if (!areaReady) {
+    RectAreaLightUniformsLib.init();
+    areaReady = true;
+  }
+  const ref = useRef<THREE.RectAreaLight>(null);
+  useLayoutEffect(() => {
+    ref.current?.lookAt(...plan.target);
+  }, [plan.target]);
+  return (
+    <rectAreaLight
+      ref={ref}
+      color={plan.color}
+      intensity={plan.intensity}
+      position={plan.position}
+      width={plan.width}
+      height={plan.height}
+    />
+  );
 }
 
 function NodeView({ node, doc, npr }: { node: SceneNode; doc: SceneDoc; npr?: NprPlan }) {

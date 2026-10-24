@@ -2,12 +2,21 @@ import type { LightNode } from '@vibebyte/vibe3d-protocol';
 import { useDoc } from '../stores/doc';
 import { ColorField, NumberField, Section, SelectField, ToggleRow, Vec3Field } from './fields';
 
-const TYPES = ['directional', 'point', 'spot', 'ambient'] as const;
+const TYPES = ['directional', 'point', 'spot', 'ambient', 'area'] as const;
 
 export function LightPanel({ node }: { node: LightNode }) {
   const patchNode = useDoc((s) => s.patchNode);
   const light = node.light;
-  const update = (patch: Partial<typeof light>) => void patchNode(node.id, { light: { ...light, ...patch } });
+  const update = (patch: Partial<typeof light>) => {
+    const next: Partial<typeof light> = { ...light, ...patch };
+    if (next.type !== 'area') {
+      next.width = undefined;
+      next.height = undefined;
+    } else {
+      next.castShadow = false;
+    }
+    void patchNode(node.id, { light: next as typeof light });
+  };
 
   return (
     <div className="space-y-4">
@@ -20,12 +29,33 @@ export function LightPanel({ node }: { node: LightNode }) {
           value={light.intensity}
           onCommit={(v) => update({ intensity: v })}
         />
-        <ToggleRow
-          label="投射阴影"
-          checked={light.castShadow ?? false}
-          onChange={(v) => update({ castShadow: v })}
-        />
+        {light.type !== 'area' && (
+          <ToggleRow
+            label="投射阴影"
+            checked={light.castShadow ?? false}
+            onChange={(v) => update({ castShadow: v })}
+          />
+        )}
       </Section>
+
+      {light.type === 'area' && (
+        <Section title="柔光箱尺寸">
+          <NumberField
+            label="宽"
+            step={0.1}
+            min={0.01}
+            value={light.width ?? 2}
+            onCommit={(width) => update({ width })}
+          />
+          <NumberField
+            label="高"
+            step={0.1}
+            min={0.01}
+            value={light.height ?? 1}
+            onCommit={(height) => update({ height })}
+          />
+        </Section>
+      )}
 
       {light.type !== 'ambient' && (
         <Section title="位置">

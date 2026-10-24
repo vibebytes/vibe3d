@@ -1791,7 +1791,8 @@ export const MCP_TOOLS = [
                                   "directional",
                                   "point",
                                   "spot",
-                                  "ambient"
+                                  "ambient",
+                                  "area"
                                 ]
                               },
                               "color": {
@@ -1866,6 +1867,14 @@ export const MCP_TOOLS = [
                                 "type": "number",
                                 "minimum": 0,
                                 "maximum": 1
+                              },
+                              "width": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "height": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
                               },
                               "cast_shadow": {
                                 "type": "boolean"
@@ -2192,7 +2201,8 @@ export const MCP_TOOLS = [
                               "directional",
                               "point",
                               "spot",
-                              "ambient"
+                              "ambient",
+                              "area"
                             ]
                           },
                           "color": {
@@ -2267,6 +2277,14 @@ export const MCP_TOOLS = [
                             "type": "number",
                             "minimum": 0,
                             "maximum": 1
+                          },
+                          "width": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "height": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
                           },
                           "cast_shadow": {
                             "type": "boolean"
@@ -5426,7 +5444,8 @@ export const MCP_TOOLS = [
                                         "directional",
                                         "point",
                                         "spot",
-                                        "ambient"
+                                        "ambient",
+                                        "area"
                                       ]
                                     },
                                     "color": {
@@ -5501,6 +5520,14 @@ export const MCP_TOOLS = [
                                       "type": "number",
                                       "minimum": 0,
                                       "maximum": 1
+                                    },
+                                    "width": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
+                                    },
+                                    "height": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
                                     },
                                     "cast_shadow": {
                                       "type": "boolean"
@@ -7005,7 +7032,8 @@ export const MCP_TOOLS = [
                 "directional",
                 "point",
                 "spot",
-                "ambient"
+                "ambient",
+                "area"
               ]
             },
             "color": {
@@ -7080,6 +7108,14 @@ export const MCP_TOOLS = [
               "type": "number",
               "minimum": 0,
               "maximum": 1
+            },
+            "width": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "type": "number",
+              "exclusiveMinimum": 0
             },
             "cast_shadow": {
               "type": "boolean"
@@ -7240,7 +7276,8 @@ export const MCP_TOOLS = [
                     "directional",
                     "point",
                     "spot",
-                    "ambient"
+                    "ambient",
+                    "area"
                   ]
                 },
                 "color": {
@@ -7315,6 +7352,14 @@ export const MCP_TOOLS = [
                   "type": "number",
                   "minimum": 0,
                   "maximum": 1
+                },
+                "width": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "height": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
                 },
                 "cast_shadow": {
                   "type": "boolean"
@@ -9510,7 +9555,8 @@ export const MCP_TOOLS = [
                               "directional",
                               "point",
                               "spot",
-                              "ambient"
+                              "ambient",
+                              "area"
                             ]
                           },
                           "color": {
@@ -9585,6 +9631,14 @@ export const MCP_TOOLS = [
                             "type": "number",
                             "minimum": 0,
                             "maximum": 1
+                          },
+                          "width": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "height": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
                           },
                           "cast_shadow": {
                             "type": "boolean"

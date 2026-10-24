@@ -28,22 +28,15 @@ describe('area 柔光箱', () => {
       { roomId, kind: 'light', name: '主柔光箱', light: AREA },
       roomId,
     );
-    expect(created.body.result.nodeId).toBeTruthy();
-
-    const listed = await call(h, 'scene.query', { roomId, kind: 'light' }, roomId);
-    expect(listed.body.result.nodes[0].light).toEqual(AREA);
+    const got = await call(h, 'node.get', { roomId, nodeId: created.body.result.nodeId }, roomId);
+    expect(got.body.result.light).toEqual(AREA);
   });
 
   it('宽高必须为正数', async () => {
     const h = makeHarness();
     const roomId = await newRoom(h);
     for (const bad of [{ width: 0 }, { height: -1 }]) {
-      const res = await call(
-        h,
-        'node.create',
-        { roomId, kind: 'light', light: { ...AREA, ...bad } },
-        roomId,
-      );
+      const res = await call(h, 'node.create', { roomId, kind: 'light', light: { ...AREA, ...bad } }, roomId);
       expect(codeOf(res.body)).toBe('E_INVALID_PARAMS');
     }
   });
@@ -85,7 +78,7 @@ describe('area 柔光箱', () => {
     const updated = await call(h, 'node.update', { roomId, nodeId, patch: { light: AREA } }, roomId);
     expect(updated.body.result.revision).toBeGreaterThan(created.body.result.revision);
 
-    const listed = await call(h, 'scene.query', { roomId, kind: 'light' }, roomId);
-    expect(listed.body.result.nodes[0].light).toEqual(AREA);
+    const got = await call(h, 'node.get', { roomId, nodeId }, roomId);
+    expect(got.body.result.light).toEqual(AREA);
   });
 });
