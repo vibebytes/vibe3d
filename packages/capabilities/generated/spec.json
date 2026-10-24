@@ -31145,12 +31145,67 @@
               ],
               "additionalProperties": false
             }
+          },
+          "partial": {
+            "type": "boolean"
+          },
+          "failedView": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "front",
+                  "back",
+                  "left",
+                  "right",
+                  "top",
+                  "three_quarter"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "failures": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "view": {
+                  "type": "string",
+                  "enum": [
+                    "front",
+                    "back",
+                    "left",
+                    "right",
+                    "top",
+                    "three_quarter"
+                  ]
+                },
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "view",
+                "code",
+                "message"
+              ],
+              "additionalProperties": false
+            }
           }
         },
         "required": [
           "revision",
           "target",
-          "views"
+          "views",
+          "partial",
+          "failedView",
+          "failures"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -32213,6 +32268,10 @@
             "type": "integer",
             "minimum": 0
           },
+          "frames": {
+            "type": "integer",
+            "minimum": 0
+          },
           "error": {
             "type": "object",
             "properties": {
@@ -32328,6 +32387,10 @@
                   "minimum": 0
                 },
                 "revision": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "frames": {
                   "type": "integer",
                   "minimum": 0
                 },
@@ -32451,6 +32514,10 @@
             "minimum": 0
           },
           "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "frames": {
             "type": "integer",
             "minimum": 0
           },

@@ -11,7 +11,7 @@ import {
 } from '@vibebyte/vibe3d-scene';
 import type { DispatchContext, OverlayKind, Renderer, ShadingMode, SnapshotOptions } from '../context';
 import { signExportUrl } from '../http/export-url';
-import { toView } from '../jobs/store';
+import { type JobError, toView } from '../jobs/store';
 import { decodeShot, hexOf, pixelAt, regionStats } from '../render/pick';
 import { editorUrl } from './editor-url';
 import type { HandlersFor } from './types';
@@ -119,26 +119,45 @@ export const renderHandlers: HandlersFor<Keys> = {
       throw new AppError('E_INVALID_PARAMS', '场景里没有可见几何，无法取景');
     }
     const shots = [];
+    const failures: { view: ViewName; code: string; message: string }[] = [];
+    let firstError: unknown;
     for (const view of views) {
-      const framed = frameTarget(room.doc, { ids, view }) ?? target;
-      const shot = await renderer.snapshot(
-        { roomId: room.id, doc: room.doc },
-        {
-          ...imageOptions(p, room.doc),
+      try {
+        const framed = frameTarget(room.doc, { ids, view }) ?? target;
+        const shot = await renderer.snapshot(
+          { roomId: room.id, doc: room.doc },
+          {
+            ...imageOptions(p, room.doc),
+            camera: framed.camera,
+          },
+        );
+        shots.push({
+          view,
+          label: VIEW_LABELS[view],
+          mime: shot.mime,
+          base64: shot.base64,
+          width: shot.width,
+          height: shot.height,
           camera: framed.camera,
-        },
-      );
-      shots.push({
-        view,
-        label: VIEW_LABELS[view],
-        mime: shot.mime,
-        base64: shot.base64,
-        width: shot.width,
-        height: shot.height,
-        camera: framed.camera,
-      });
+        });
+      } catch (err) {
+        firstError ??= err;
+        failures.push({
+          view,
+          code: err instanceof AppError ? err.code : 'E_INTERNAL',
+          message: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
-    return { revision: room.revision, target: target.bounds, views: shots };
+    if (shots.length === 0 && firstError) throw firstError;
+    return {
+      revision: room.revision,
+      target: target.bounds,
+      views: shots,
+      partial: failures.length > 0,
+      failedView: failures[0]?.view ?? null,
+      failures,
+    };
   },
 
   'render.node': async (p, ctx) => {
@@ -274,39 +293,55 @@ export const renderHandlers: HandlersFor<Keys> = {
         report(0.02, 'prepare');
         await mkdir(dir, { recursive: true });
         const frames: { index: number; at: number; file: string; bytes: number }[] = [];
-        for (let i = 0; i < count; i++) {
-          const at = p.from + i / p.fps;
-          const shot = await renderer.snapshot(
-            { roomId: room.id, doc: snapshot },
-            { ...options, at: Math.min(at, p.to) },
-          );
-          const file = `${record.id}-${String(i).padStart(4, '0')}.png`;
-          const bytes = Buffer.from(shot.base64, 'base64');
-          await writeFile(join(dir, file), bytes);
-          frames.push({ index: i, at, file, bytes: bytes.length });
-          report(0.05 + (0.85 * (i + 1)) / count, `frame ${i + 1}/${count}`);
-          if (record.cancelRequested) break;
-        }
-        const manifest = {
-          jobId: record.id,
-          roomId: room.id,
-          revision,
-          fps: p.fps,
-          from: p.from,
-          to: p.to,
-          width: options.width,
-          height: options.height,
-          frames,
-        };
         const file = `${record.id}.json`;
-        const body = Buffer.from(JSON.stringify(manifest, null, 2), 'utf8');
-        await writeFile(join(dir, file), body);
-        report(0.98, 'manifest');
-        return {
-          url: ctx.signExport?.(file) ?? signExportUrl(ctx.token ?? '', file),
-          bytes: body.length + frames.reduce((sum, f) => sum + f.bytes, 0),
-          revision,
+        const writeManifest = async (status: 'done' | 'cancelled' | 'failed', error?: JobError) => {
+          const manifest = {
+            jobId: record.id,
+            roomId: room.id,
+            revision,
+            status,
+            fps: p.fps,
+            from: p.from,
+            to: p.to,
+            expectedFrames: count,
+            width: options.width,
+            height: options.height,
+            frames,
+            ...(error ? { error } : {}),
+          };
+          const body = Buffer.from(JSON.stringify(manifest, null, 2), 'utf8');
+          await writeFile(join(dir, file), body);
+          return body;
         };
+        try {
+          for (let i = 0; i < count; i++) {
+            const at = p.from + i / p.fps;
+            const shot = await renderer.snapshot(
+              { roomId: room.id, doc: snapshot },
+              { ...options, at: Math.min(at, p.to) },
+            );
+            const frameFile = `${record.id}-${String(i).padStart(4, '0')}.png`;
+            const bytes = Buffer.from(shot.base64, 'base64');
+            await writeFile(join(dir, frameFile), bytes);
+            frames.push({ index: i, at, file: frameFile, bytes: bytes.length });
+            report(0.05 + (0.85 * (i + 1)) / count, `frame ${i + 1}/${count}`);
+            if (record.cancelRequested) break;
+          }
+          const body = await writeManifest(record.cancelRequested ? 'cancelled' : 'done');
+          report(0.98, 'manifest');
+          return {
+            url: ctx.signExport?.(file) ?? signExportUrl(ctx.token ?? '', file),
+            bytes: body.length + frames.reduce((sum, f) => sum + f.bytes, 0),
+            revision,
+            frames: frames.length,
+          };
+        } catch (err) {
+          await writeManifest('failed', {
+            code: err instanceof AppError ? err.code : 'E_INTERNAL',
+            message: err instanceof Error ? err.message : String(err),
+          }).catch(() => undefined);
+          throw err;
+        }
       });
     } catch (err) {
       jobs.store.cancel(job.id);

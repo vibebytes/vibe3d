@@ -9,6 +9,7 @@ export interface JobResult {
   url: string;
   bytes: number;
   revision: number;
+  frames?: number;
 }
 
 export interface JobError {
@@ -42,6 +43,7 @@ export interface JobView {
   url?: string;
   bytes?: number;
   revision?: number;
+  frames?: number;
   error?: JobError;
   createdAt: string;
   expiresAt: string;
@@ -58,7 +60,14 @@ export function toView(job: JobRecord): JobView {
     state: job.state,
     pct: Math.round(job.progress * 1000) / 1000,
     ...(job.phase === undefined ? {} : { phase: job.phase }),
-    ...(job.result ? { url: job.result.url, bytes: job.result.bytes, revision: job.result.revision } : {}),
+    ...(job.result
+      ? {
+          url: job.result.url,
+          bytes: job.result.bytes,
+          revision: job.result.revision,
+          ...(job.result.frames === undefined ? {} : { frames: job.result.frames }),
+        }
+      : {}),
     ...(job.error ? { error: job.error } : {}),
     createdAt: new Date(job.createdAt).toISOString(),
     expiresAt: new Date(job.expiresAt).toISOString(),

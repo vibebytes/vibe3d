@@ -86,4 +86,52 @@ describe('render.views', () => {
     const { body } = await call(h, 'render.views', { roomId }, roomId);
     expect(codeOf(body)).toBe('E_RENDER_UNAVAILABLE');
   });
+
+  it('returns confirmed shots plus partial flags when one view fails', async () => {
+    const h = makeHarness();
+    let n = 0;
+    h.ctx.renderer = {
+      ...fakeRenderer([]),
+      snapshot: async (_input: unknown, opts: SnapshotOptions = {}) => {
+        n += 1;
+        if (n === 2) throw new Error('gpu lost');
+        return {
+          mime: 'image/png',
+          base64: 'AAAA',
+          width: opts.width ?? 1280,
+          height: opts.height ?? 720,
+        };
+      },
+    } as unknown as DispatchContext['renderer'];
+    const { roomId } = await roomWithBox(h);
+
+    const { body } = await call(
+      h,
+      'render.views',
+      { roomId, views: ['front', 'top', 'left'], width: 160, height: 90 },
+      roomId,
+    );
+    expect(body.error).toBeUndefined();
+    expect(body.result.partial).toBe(true);
+    expect(body.result.failedView).toBe('top');
+    expect(body.result.views.map((v: any) => v.view)).toEqual(['front', 'left']);
+    expect(body.result.failures).toHaveLength(1);
+    expect(body.result.failures[0].view).toBe('top');
+    expect(body.result.failures[0].message).toContain('gpu lost');
+  });
+
+  it('fails the whole call when every requested view fails', async () => {
+    const h = makeHarness();
+    h.ctx.renderer = {
+      ...fakeRenderer([]),
+      snapshot: async () => {
+        throw new Error('renderer down');
+      },
+    } as unknown as DispatchContext['renderer'];
+    const { roomId } = await roomWithBox(h);
+
+    const { body } = await call(h, 'render.views', { roomId, views: ['front'] }, roomId);
+    expect(codeOf(body)).toBe('E_INTERNAL');
+    expect(JSON.stringify(body.error)).toContain('renderer down');
+  });
 });
