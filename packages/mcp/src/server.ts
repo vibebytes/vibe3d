@@ -1,4 +1,5 @@
 import { createInterface } from 'node:readline';
+import { getPrompt, listPrompts } from './guide';
 import type { ToolResult, ToolRuntime } from './tools';
 import { listTools } from './tools';
 
@@ -21,7 +22,6 @@ interface RpcError {
 const METHODS_UNAVAILABLE: Record<string, unknown> = {
   'resources/list': { resources: [] },
   'resources/templates/list': { resourceTemplates: [] },
-  'prompts/list': { prompts: [] },
 };
 
 export interface ServerDeps {
@@ -46,13 +46,14 @@ export function createServer(deps: ServerDeps) {
       const requested = typeof req.params?.protocolVersion === 'string' ? req.params.protocolVersion : '';
       reply(req.id, {
         protocolVersion: SUPPORTED.includes(requested) ? requested : SUPPORTED[0],
-        capabilities: { tools: { listChanged: false } },
+        capabilities: { tools: { listChanged: false }, prompts: { listChanged: false } },
         serverInfo: SERVER_INFO,
         instructions:
           '房间由会话绑定：先 vibe3d_create_room 建房（自动绑定当前会话），或用 vibe3d_get_room / vibe3d_open_editor 传 room_id 切换；此后 scene / node / asset / render 类工具都不要传 room_id。\n' +
           '参数约定：长度单位米，Y 轴向上；颜色一律 [r,g,b,a] 四位、0..1（缺 alpha 自动补 1，也接受 "#RRGGBB"）。\n' +
           'id 由服务端生成：node=n_、material=m_、fx=f_、room=r_ + 8 位小写字母数字；专用工具会返回 id，不要自己编。\n' +
-          '逐条操作用专用工具（create_node / update_node / create_material / set_environment / create_fx）；vibe3d_apply_ops 只用于原子批量或需要引用新建 id 的依赖场景。',
+          '逐条操作用专用工具（create_node / update_node / create_material / set_environment / create_fx）；vibe3d_apply_ops 只用于原子批量或需要引用新建 id 的依赖场景。\n' +
+          '任务剧本按需加载：prompts 里的 vibe3d.build / edit / render / verify / import / history，只在需要完整步骤时读，不要要求一次性返回全部工具 spec。'
       });
       return;
     }
@@ -62,6 +63,19 @@ export function createServer(deps: ServerDeps) {
     }
     if (req.method === 'tools/list') {
       reply(req.id, { tools: listTools() });
+      return;
+    }
+    if (req.method === 'prompts/list') {
+      reply(req.id, { prompts: listPrompts() });
+      return;
+    }
+    if (req.method === 'prompts/get') {
+      const name = String(req.params?.name ?? '');
+      try {
+        reply(req.id, getPrompt(name));
+      } catch (err) {
+        fail(req.id, { code: -32602, message: err instanceof Error ? err.message : String(err) });
+      }
       return;
     }
     if (req.method === 'tools/call') {

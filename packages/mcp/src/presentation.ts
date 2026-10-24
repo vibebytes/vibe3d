@@ -1,6 +1,7 @@
 interface Advertised {
   name: string;
   title: string;
+  capability: string;
   inputSchema: unknown;
 }
 
@@ -53,8 +54,9 @@ const LOOSE: Record<string, unknown> = {
 };
 
 export const describeTool = (tool: Advertised): string => {
-  const extra = EXTRA[tool.name];
-  return extra ? `${tool.title}\n${extra}` : tool.title;
+  const group = tool.capability.split('.')[0] ?? 'misc';
+  const body = EXTRA[tool.name] ? `${tool.title}\n${EXTRA[tool.name]}` : tool.title;
+  return `[${group}] ${body}`;
 };
 
 export const presentSchema = (tool: Advertised): unknown => LOOSE[tool.name] ?? tool.inputSchema;
