@@ -46,6 +46,7 @@ export type CapabilityName =
   | "scene.restore"
   | "decal.create"
   | "mesh.boolean"
+  | "mesh.tube"
   | "node.import"
   | "asset.inspect"
   | "asset.put"
@@ -110,6 +111,7 @@ export type InputOf<N extends CapabilityName> = {
   "scene.restore": z.infer<(typeof CAPABILITIES)["scene.restore"]['input']>;
   "decal.create": z.infer<(typeof CAPABILITIES)["decal.create"]['input']>;
   "mesh.boolean": z.infer<(typeof CAPABILITIES)["mesh.boolean"]['input']>;
+  "mesh.tube": z.infer<(typeof CAPABILITIES)["mesh.tube"]['input']>;
   "node.import": z.infer<(typeof CAPABILITIES)["node.import"]['input']>;
   "asset.inspect": z.infer<(typeof CAPABILITIES)["asset.inspect"]['input']>;
   "asset.put": z.infer<(typeof CAPABILITIES)["asset.put"]['input']>;
@@ -175,6 +177,7 @@ export type OutputOf<N extends CapabilityName> = {
   "scene.restore": z.infer<(typeof CAPABILITIES)["scene.restore"]['output']>;
   "decal.create": z.infer<(typeof CAPABILITIES)["decal.create"]['output']>;
   "mesh.boolean": z.infer<(typeof CAPABILITIES)["mesh.boolean"]['output']>;
+  "mesh.tube": z.infer<(typeof CAPABILITIES)["mesh.tube"]['output']>;
   "node.import": z.infer<(typeof CAPABILITIES)["node.import"]['output']>;
   "asset.inspect": z.infer<(typeof CAPABILITIES)["asset.inspect"]['output']>;
   "asset.put": z.infer<(typeof CAPABILITIES)["asset.put"]['output']>;

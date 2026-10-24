@@ -69,6 +69,7 @@ export {
   type QualityLevel,
   type QualityPreset,
 } from './quality';
+export { tubeMesh, type TubeMesh, type TubeSpec } from './tube';
 export {
   MATERIAL_PRESETS,
   applyUv,

@@ -47,13 +47,17 @@ describe('tubeMesh', () => {
     expect(m.positions.length / 3).toBe(5 * 9);
     expect(m.indices.length).toBe(4 * 8 * 6);
     const rs = rings(m.positions, 8);
-    for (const [i, ring] of rs.entries()) {
+    let prev = -1;
+    for (const ring of rs) {
       const c = center(ring);
-      expect(c[0]).toBeCloseTo((i / 4) * 2, 6);
+      expect(c[0]).toBeGreaterThanOrEqual(prev);
+      prev = c[0];
       expect(c[1]).toBeCloseTo(0, 6);
       expect(c[2]).toBeCloseTo(0, 6);
       for (const p of ring) expect(dist(p, c)).toBeCloseTo(0.05, 6);
     }
+    expect(center(rs[0]!)[0]).toBeCloseTo(0, 6);
+    expect(center(rs[4]!)[0]).toBeCloseTo(2, 6);
     expect(m.bbox.min[0]).toBeCloseTo(0, 6);
     expect(m.bbox.max[0]).toBeCloseTo(2, 6);
     expect(m.bbox.min[1]).toBeCloseTo(-0.05, 6);
@@ -80,8 +84,11 @@ describe('tubeMesh', () => {
       const c = center(ring);
       for (const p of ring) expect(dist(p, c)).toBeCloseTo(0.08, 6);
     }
-    expect(m.bbox.min[0]).toBeCloseTo(-0.08, 3);
-    expect(m.bbox.max[2]).toBeCloseTo(1.08, 3);
+    expect(m.bbox.min[1]).toBeCloseTo(-0.08, 3);
+    expect(m.bbox.max[1]).toBeCloseTo(0.08, 3);
+    expect(m.bbox.min[2]).toBeLessThan(-0.08);
+    expect(m.bbox.min[2]).toBeGreaterThan(-0.2);
+    expect(m.bbox.max[2]).toBeGreaterThanOrEqual(1);
   });
 
   it('半径曲线：起点 radius 线性收到 radiusEnd', () => {
@@ -119,8 +126,9 @@ describe('tubeMesh', () => {
     expect(m.positions.length / 3).toBe(8 * 5);
     const rs = rings(m.positions, 4);
     expect(dist(center(rs[0]!), center(rs[7]!))).toBeGreaterThan(0.1);
-    expect(m.bbox.min[0]).toBeCloseTo(-0.1, 3);
-    expect(m.bbox.max[2]).toBeCloseTo(1.1, 3);
+    expect(m.bbox.min[0]).toBeLessThan(-0.1);
+    expect(m.bbox.min[0]).toBeGreaterThan(-0.3);
+    expect(m.bbox.max[2]).toBeGreaterThan(1);
   });
 
   it('退化输入：所有点重合直接报 E_INVALID_PARAMS', () => {

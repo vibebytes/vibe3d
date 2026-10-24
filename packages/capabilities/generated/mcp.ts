@@ -10404,6 +10404,141 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "vibe3d_tube_mesh",
+    title: "管体：沿点序列扫掠圆管（Catmull-Rom + 平行传输标架），单节点 baked 几何",
+    capability: "mesh.tube",
+    annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "minItems": 2,
+          "maxItems": 512
+        },
+        "radius": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 50
+        },
+        "radius_end": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 50
+        },
+        "segments": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 512
+        },
+        "radial_segments": {
+          "type": "integer",
+          "minimum": 3,
+          "maximum": 64
+        },
+        "closed": {
+          "type": "boolean"
+        },
+        "transform": {
+          "type": "object",
+          "properties": {
+            "p": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "r": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "s": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "points",
+        "radius"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
     name: "vibe3d_import_asset",
     title: "导入 glTF/GLB 为 model 节点",
     capability: "node.import",

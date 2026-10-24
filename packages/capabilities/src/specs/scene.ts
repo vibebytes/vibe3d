@@ -797,4 +797,39 @@ export const sceneOps = {
       'E_ROOM_NOT_FOUND',
     ] as const,
   },
+  'mesh.tube': {
+    title: '管体：沿点序列扫掠圆管（Catmull-Rom + 平行传输标架），单节点 baked 几何',
+    input: z.object({
+      roomId,
+      name: z.string().min(1).max(200).optional(),
+      points: z.array(vec3).min(2).max(512),
+      radius: z.number().positive().max(50),
+      radiusEnd: z.number().positive().max(50).optional(),
+      segments: z.number().int().min(1).max(512).optional(),
+      radialSegments: z.number().int().min(3).max(64).optional(),
+      closed: z.boolean().optional(),
+      transform: transformInput.optional(),
+      color: z
+        .string()
+        .regex(/^#[0-9a-fA-F]{6}$/)
+        .optional(),
+      parent: nodeIdSchema.nullable().optional(),
+    }),
+    output: z.object({
+      nodeId: nodeIdSchema,
+      materialId: materialIdSchema,
+      revision: z.number().int().min(0),
+      tris: z.number().int().min(0),
+      vertices: z.number().int().min(0),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'mesh.tube' as const,
+    mcp: { tool: 'vibe3d_tube_mesh' as const },
+    cli: {
+      command: 'mesh tube',
+      args: '<roomId> --points x,y,z;x,y,z;… --radius r [--radius-end r] [--segments 24] [--radial 8] [--closed] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]',
+    },
+    errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
+  },
 };

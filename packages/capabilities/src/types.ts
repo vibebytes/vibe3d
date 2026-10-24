@@ -51,6 +51,7 @@ export const WIRE_METHODS = [
   'material.assign',
   'decal.create',
   'mesh.boolean',
+  'mesh.tube',
 ] as const;
 
 export type WireMethod = (typeof WIRE_METHODS)[number];

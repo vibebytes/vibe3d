@@ -241,6 +241,10 @@ export class RoomHandle {
     return this.invoke('mesh.boolean', params);
   }
 
+  tubeMesh(params: Omit<CapParams<'mesh.tube'>, 'roomId'>): Promise<CapResult<'mesh.tube'>> {
+    return this.invoke('mesh.tube', params);
+  }
+
   deleteAsset(sha: string): Promise<CapResult<'asset.delete'>> {
     return this.invoke('asset.delete', { sha });
   }

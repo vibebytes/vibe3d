@@ -48,3 +48,40 @@ export function booleanFromFlags(
   }
   return { op: op as (typeof OPS)[number], deleteTool: !bool(flags, 'keep-tool') };
 }
+
+export function tubeFromFlags(flags: Flags): Omit<CapParams<'mesh.tube'>, 'roomId'> {
+  const raw = str(flags, 'points');
+  if (!raw) throw new Error('mesh tube 需要 --points x,y,z;x,y,z;…');
+  const points = raw
+    .split(';')
+    .map((seg) => seg.trim())
+    .filter((seg) => seg !== '')
+    .map((seg) => {
+      const parts = seg.split(',').map((v) => Number(v.trim()));
+      if (parts.length !== 3 || parts.some((v) => !Number.isFinite(v))) {
+        throw new Error(`--points 每段需为 x,y,z，收到：${seg}`);
+      }
+      return parts as [number, number, number];
+    });
+  if (points.length < 2) throw new Error('--points 至少需要 2 个点');
+
+  const radius = num(flags, 'radius');
+  if (radius === undefined) throw new Error('mesh tube 需要 --radius r');
+  const transform = pick({
+    p: vec(flags, 'at'),
+    r: vec(flags, 'rotation'),
+    s: vec(flags, 'scale'),
+  });
+
+  return pick({
+    points,
+    radius,
+    radiusEnd: num(flags, 'radius-end'),
+    segments: num(flags, 'segments'),
+    radialSegments: num(flags, 'radial'),
+    closed: flags.closed === undefined ? undefined : bool(flags, 'closed'),
+    transform: Object.keys(transform).length === 0 ? undefined : transform,
+    color: str(flags, 'color'),
+    parent: str(flags, 'parent'),
+  }) as Omit<CapParams<'mesh.tube'>, 'roomId'>;
+}

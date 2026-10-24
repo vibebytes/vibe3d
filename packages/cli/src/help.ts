@@ -33,6 +33,7 @@ export const HELP = `vibe3d — 专家级 3D 场景 CLI（与 MCP / HTTP 同一�
   env set <roomId> [--hdri <src>] [--policy local|allow|strict] [--fog near,far]
   decal create <roomId> (--text 文字 | --image-sha <sha>) [--at x,y,z] [--width 2] [--height 1] [--rotation rx,ry,rz] [--color #rrggbb] [--background #rrggbbaa] [--font-size 64] [--bold] [--align left|center|right] [--parent <id>]
   mesh boolean <roomId> <target> <tool> [--op subtract|union|intersect] [--keep-tool]
+  mesh tube <roomId> --points x,y,z;x,y,z;… --radius r [--radius-end r] [--segments 24] [--radial 8] [--closed] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]
   asset ls <roomId> | asset rm <roomId> <sha>
   call <method> [--params <json|@file>] [--room <roomId>]
   daemon [--port 0] [--persist]   （前台运行 daemon）

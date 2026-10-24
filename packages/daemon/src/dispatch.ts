@@ -15,6 +15,7 @@ import { editorUrl } from './handlers/editor-url';
 import { renderHandlers } from './handlers/render';
 import { roomHandlers } from './handlers/room';
 import { sceneHandlers } from './handlers/scene';
+import { tubeHandlers } from './handlers/tube';
 
 type AnyHandler = (p: never, ctx: DispatchContext) => Promise<unknown>;
 
@@ -37,6 +38,7 @@ const VISUAL_MUTATIONS = new Set<CapabilityName>([
   'asset.delete',
   'decal.create',
   'mesh.boolean',
+  'mesh.tube',
 ]);
 
 // Routes build a fresh ctx per request (spread), so dedupe must key on a stable instance.
@@ -88,6 +90,7 @@ const HANDLERS = {
   ...assetHandlers,
   ...decalHandlers,
   ...booleanHandlers,
+  ...tubeHandlers,
   ...renderHandlers,
 } as unknown as Record<CapabilityName, AnyHandler>;
 

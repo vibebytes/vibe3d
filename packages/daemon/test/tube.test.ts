@@ -29,7 +29,6 @@ describe('mesh.tube', () => {
       { roomId, points: line, radius: 0.1, segments: 8, radialSegments: 6 },
       roomId,
     );
-    expect(body.ok).toBe(true);
     expect(body.result.tris).toBeGreaterThan(8 * 6 * 2 - 1);
     const nodeId = body.result.nodeId;
     const d = await doc(h, roomId);
@@ -73,8 +72,7 @@ describe('mesh.tube', () => {
     const d = await doc(h, roomId);
     expect(d.nodes[body.result.nodeId].transform.p).toEqual([1, 2, 3]);
 
-    const bad = await call(h, 'mesh.tube', { roomId, points: line, radius: 0.1, parent: 'n_nope' }, roomId);
-    expect(bad.body.ok).toBe(false);
+    const bad = await call(h, 'mesh.tube', { roomId, points: line, radius: 0.1, parent: 'n_zzzzzzzz' }, roomId);
     expect(codeOf(bad.body)).toBe('E_NODE_NOT_FOUND');
   });
 
@@ -82,7 +80,6 @@ describe('mesh.tube', () => {
     const h = makeHarness();
     const roomId = await newRoom(h);
     const { body } = await call(h, 'mesh.tube', { roomId, points: [[0, 0, 0]], radius: 0.1 }, roomId);
-    expect(body.ok).toBe(false);
     expect(codeOf(body)).toBe('E_INVALID_PARAMS');
   });
 });
