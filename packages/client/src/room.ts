@@ -128,6 +128,10 @@ export class RoomHandle {
     return this.invoke('node.group', params);
   }
 
+  mergeNodes(params: Omit<CapParams<'node.merge'>, 'roomId'>): Promise<CapResult<'node.merge'>> {
+    return this.invoke('node.merge', params);
+  }
+
   assignMaterial(
     params: Omit<CapParams<'material.assign'>, 'roomId'>,
   ): Promise<CapResult<'material.assign'>> {

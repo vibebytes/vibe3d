@@ -214,6 +214,12 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
         }) as never,
       );
     }
+    if (command === 'merge') {
+      return room.mergeNodes({
+        nodeId: need(rest[1], 'node merge 需要 nodeId'),
+        material: str(flags, 'material'),
+      } as never);
+    }
     if (command === 'group') {
       const ids = str(flags, 'ids')?.split(',');
       return room.group({

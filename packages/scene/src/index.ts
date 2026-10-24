@@ -70,6 +70,8 @@ export {
   type QualityPreset,
 } from './quality';
 export { tubeMesh, type TubeMesh, type TubeSpec } from './tube';
+export { bakeGeometry, type BakedMesh } from './bake';
+export { mergeGroup, type MergeOptions, type MergePlan } from './merge';
 export {
   MATERIAL_PRESETS,
   applyUv,

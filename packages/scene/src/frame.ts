@@ -1,6 +1,6 @@
 import type { CameraState, SceneDoc, SceneNode } from '@vibebyte/vibe3d-protocol';
 
-type Mat4 = [
+export type Mat4 = [
   number,
   number,
   number,
@@ -74,7 +74,7 @@ function composeLocal(node: SceneNode): Mat4 {
   ];
 }
 
-function multiply(a: Mat4, b: Mat4): Mat4 {
+export function multiplyMat4(a: Mat4, b: Mat4): Mat4 {
   const out = new Array<number>(16).fill(0);
   for (let col = 0; col < 4; col++) {
     for (let row = 0; row < 4; row++) {
@@ -129,7 +129,7 @@ export function worldMatrix(doc: SceneDoc, id: string): number[] | null {
   const local = composeLocal(node);
   if (!node.parent) return local;
   const parent = worldMatrix(doc, node.parent);
-  return parent ? multiply(parent as Mat4, local) : local;
+  return parent ? multiplyMat4(parent as Mat4, local) : local;
 }
 
 export function worldPointToLocal(
@@ -238,6 +238,21 @@ export function relativeTransform(doc: SceneDoc, id: string, parentId: string | 
   };
 }
 
+export function localToAncestor(doc: SceneDoc, id: string, ancestorId: string | null): Mat4 | null {
+  const chain: Mat4[] = [];
+  let cursor: string | null = id;
+  while (cursor && cursor !== ancestorId) {
+    const node: SceneNode | undefined = doc.nodes[cursor];
+    if (!node) return null;
+    chain.unshift(composeLocal(node));
+    cursor = node.parent;
+  }
+  if (ancestorId && cursor !== ancestorId) return null;
+  let out: Mat4 = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+  for (const m of chain) out = multiplyMat4(out, m);
+  return out;
+}
+
 function worldMatrices(doc: SceneDoc): Map<string, Mat4> {
   const out = new Map<string, Mat4>();
   const walk = (id: string): Mat4 => {
@@ -245,7 +260,7 @@ function worldMatrices(doc: SceneDoc): Map<string, Mat4> {
     if (cached) return cached;
     const node = doc.nodes[id]!;
     const local = composeLocal(node);
-    const world = node.parent ? multiply(walk(node.parent), local) : local;
+    const world = node.parent ? multiplyMat4(walk(node.parent), local) : local;
     out.set(id, world);
     return world;
   };

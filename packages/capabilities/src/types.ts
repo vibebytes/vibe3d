@@ -48,6 +48,7 @@ export const WIRE_METHODS = [
   'node.array',
   'node.reparent',
   'node.group',
+  'node.merge',
   'material.assign',
   'decal.create',
   'mesh.boolean',

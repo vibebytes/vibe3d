@@ -716,6 +716,30 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "vibe3d_merge_nodes",
+    title: "合并烘焙：把整组网格烘成单个 baked 节点，降 draw call",
+    capability: "node.merge",
+    annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "pattern": "^n_[a-z0-9]{8}$"
+        },
+        "material": {
+          "type": "string",
+          "pattern": "^m_[a-z0-9]{8}$"
+        }
+      },
+      "required": [
+        "node_id"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
     name: "vibe3d_reparent_node",
     title: "改挂父级：默认保持世界位置与朝向（TRS 可表达范围内）",
     capability: "node.reparent",
@@ -1322,6 +1346,13 @@ export const MCP_TOOLS = [
                                       "type": "number"
                                     },
                                     "minItems": 9,
+                                    "maxItems": 300000
+                                  },
+                                  "normals": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "number"
+                                    },
                                     "maxItems": 300000
                                   },
                                   "indices": {
@@ -2313,6 +2344,13 @@ export const MCP_TOOLS = [
                                   "type": "number"
                                 },
                                 "minItems": 9,
+                                "maxItems": 300000
+                              },
+                              "normals": {
+                                "type": "array",
+                                "items": {
+                                  "type": "number"
+                                },
                                 "maxItems": 300000
                               },
                               "indices": {
@@ -4739,6 +4777,13 @@ export const MCP_TOOLS = [
                                             "type": "number"
                                           },
                                           "minItems": 9,
+                                          "maxItems": 300000
+                                        },
+                                        "normals": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "number"
+                                          },
                                           "maxItems": 300000
                                         },
                                         "indices": {
@@ -8612,6 +8657,13 @@ export const MCP_TOOLS = [
                                   "type": "number"
                                 },
                                 "minItems": 9,
+                                "maxItems": 300000
+                              },
+                              "normals": {
+                                "type": "array",
+                                "items": {
+                                  "type": "number"
+                                },
                                 "maxItems": 300000
                               },
                               "indices": {

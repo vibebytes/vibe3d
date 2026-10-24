@@ -18,6 +18,7 @@ export type CapabilityName =
   | "node.transform_many"
   | "node.array"
   | "node.group"
+  | "node.merge"
   | "node.reparent"
   | "material.assign"
   | "ops.apply"
@@ -83,6 +84,7 @@ export type InputOf<N extends CapabilityName> = {
   "node.transform_many": z.infer<(typeof CAPABILITIES)["node.transform_many"]['input']>;
   "node.array": z.infer<(typeof CAPABILITIES)["node.array"]['input']>;
   "node.group": z.infer<(typeof CAPABILITIES)["node.group"]['input']>;
+  "node.merge": z.infer<(typeof CAPABILITIES)["node.merge"]['input']>;
   "node.reparent": z.infer<(typeof CAPABILITIES)["node.reparent"]['input']>;
   "material.assign": z.infer<(typeof CAPABILITIES)["material.assign"]['input']>;
   "ops.apply": z.infer<(typeof CAPABILITIES)["ops.apply"]['input']>;
@@ -149,6 +151,7 @@ export type OutputOf<N extends CapabilityName> = {
   "node.transform_many": z.infer<(typeof CAPABILITIES)["node.transform_many"]['output']>;
   "node.array": z.infer<(typeof CAPABILITIES)["node.array"]['output']>;
   "node.group": z.infer<(typeof CAPABILITIES)["node.group"]['output']>;
+  "node.merge": z.infer<(typeof CAPABILITIES)["node.merge"]['output']>;
   "node.reparent": z.infer<(typeof CAPABILITIES)["node.reparent"]['output']>;
   "material.assign": z.infer<(typeof CAPABILITIES)["material.assign"]['output']>;
   "ops.apply": z.infer<(typeof CAPABILITIES)["ops.apply"]['output']>;

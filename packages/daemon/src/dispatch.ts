@@ -26,6 +26,7 @@ const VISUAL_MUTATIONS = new Set<CapabilityName>([
   'node.update',
   'node.delete',
   'node.clone',
+  'node.merge',
   'node.import',
   'stage.set',
   'camera.set',

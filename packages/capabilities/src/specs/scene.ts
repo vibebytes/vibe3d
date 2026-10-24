@@ -308,6 +308,27 @@ export const sceneOps = {
     cli: { command: 'node group', args: '<roomId> --ids a,b --name 组名 [--no-keep-world]' },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
+  'node.merge': {
+    title: '合并烘焙：把整组网格烘成单个 baked 节点，降 draw call',
+    input: z.object({
+      roomId,
+      nodeId: nodeIdSchema,
+      material: materialIdSchema.optional(),
+    }),
+    output: z.object({
+      revision: z.number().int().min(0),
+      nodeId: nodeIdSchema,
+      sources: z.array(nodeIdSchema),
+      tris: z.number().int().min(0),
+      vertices: z.number().int().min(0),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'node.merge' as const,
+    mcp: { tool: 'vibe3d_merge_nodes' as const, annotations: { readOnlyHint: false } },
+    cli: { command: 'node merge', args: '<roomId> <nodeId> [--material <id>]' },
+    errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_UNSUPPORTED', 'E_ROOM_NOT_FOUND'] as const,
+  },
   'node.reparent': {
     title: '改挂父级：默认保持世界位置与朝向（TRS 可表达范围内）',
     input: z.object({

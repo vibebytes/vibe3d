@@ -22,6 +22,7 @@ import {
   relativeTransform,
   worldPointToLocal,
   pickNode,
+  mergeGroup,
   queryNodes,
   sceneStats,
   validateScene,
@@ -37,6 +38,7 @@ type Keys =
   | 'node.array'
   | 'node.reparent'
   | 'node.group'
+  | 'node.merge'
   | 'material.assign'
   | 'material.create'
   | 'material.patch'
@@ -329,6 +331,40 @@ export const sceneHandlers: HandlersFor<Keys> = {
     }
     const result = await room.run(() => room.apply(ops));
     return { revision: result.revision, groupId };
+  },
+  'node.merge': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const group = room.doc.nodes[p.nodeId];
+    const plan = mergeGroup(room.doc, { nodeId: p.nodeId, material: p.material });
+    const nodeId = makeNodeId();
+    const merged: SceneNode = {
+      id: nodeId,
+      name: group?.name ?? p.nodeId,
+      parent: group?.parent ?? null,
+      visible: group?.visible ?? true,
+      transform: group?.transform ?? { p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] },
+      kind: 'mesh',
+      geometry: {
+        type: 'baked',
+        positions: plan.positions,
+        normals: plan.normals,
+        indices: plan.indices,
+        bbox: plan.bbox,
+      },
+      material: plan.material,
+    };
+    const ops: Op[] = [
+      { op: 'node.create', node: merged },
+      { op: 'node.delete', id: p.nodeId, cascade: true },
+    ];
+    const result = await room.run(() => room.apply(ops));
+    return {
+      revision: result.revision,
+      nodeId,
+      sources: plan.sources,
+      tris: plan.tris,
+      vertices: plan.vertices,
+    };
   },
   'material.assign': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);

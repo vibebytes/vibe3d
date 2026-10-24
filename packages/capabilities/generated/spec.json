@@ -915,6 +915,13 @@
                                   "minItems": 9,
                                   "maxItems": 300000
                                 },
+                                "normals": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  },
+                                  "maxItems": 300000
+                                },
                                 "indices": {
                                   "type": "array",
                                   "items": {
@@ -4648,6 +4655,91 @@
       }
     },
     {
+      "name": "node.merge",
+      "title": "合并烘焙：把整组网格烘成单个 baked 节点，降 draw call",
+      "wire": "node.merge",
+      "scope": "room",
+      "mutating": true,
+      "hostCoupled": false,
+      "errors": [
+        "E_INVALID_PARAMS",
+        "E_NODE_NOT_FOUND",
+        "E_UNSUPPORTED",
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_merge_nodes",
+        "annotations": {
+          "readOnlyHint": false
+        },
+        "roomArg": false
+      },
+      "cli": {
+        "command": "node merge",
+        "args": "<roomId> <nodeId> [--material <id>]"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "nodeId": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "material": {
+            "type": "string",
+            "pattern": "^m_[a-z0-9]{8}$"
+          }
+        },
+        "required": [
+          "roomId",
+          "nodeId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "nodeId": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            }
+          },
+          "tris": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "vertices": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "revision",
+          "nodeId",
+          "sources",
+          "tris",
+          "vertices"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
       "name": "node.reparent",
       "title": "改挂父级：默认保持世界位置与朝向（TRS 可表达范围内）",
       "wire": "node.reparent",
@@ -5356,6 +5448,13 @@
                                         "type": "number"
                                       },
                                       "minItems": 9,
+                                      "maxItems": 300000
+                                    },
+                                    "normals": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "number"
+                                      },
                                       "maxItems": 300000
                                     },
                                     "indices": {
@@ -6347,6 +6446,13 @@
                                     "type": "number"
                                   },
                                   "minItems": 9,
+                                  "maxItems": 300000
+                                },
+                                "normals": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  },
                                   "maxItems": 300000
                                 },
                                 "indices": {
@@ -8773,6 +8879,13 @@
                                               "type": "number"
                                             },
                                             "minItems": 9,
+                                            "maxItems": 300000
+                                          },
+                                          "normals": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "number"
+                                            },
                                             "maxItems": 300000
                                           },
                                           "indices": {
@@ -10894,6 +11007,13 @@
                                       "minItems": 9,
                                       "maxItems": 300000
                                     },
+                                    "normals": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "number"
+                                      },
+                                      "maxItems": 300000
+                                    },
                                     "indices": {
                                       "type": "array",
                                       "items": {
@@ -11883,6 +12003,13 @@
                                     "type": "number"
                                   },
                                   "minItems": 9,
+                                  "maxItems": 300000
+                                },
+                                "normals": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  },
                                   "maxItems": 300000
                                 },
                                 "indices": {
@@ -14309,6 +14436,13 @@
                                               "type": "number"
                                             },
                                             "minItems": 9,
+                                            "maxItems": 300000
+                                          },
+                                          "normals": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "number"
+                                            },
                                             "maxItems": 300000
                                           },
                                           "indices": {
@@ -19111,6 +19245,13 @@
                                       "minItems": 9,
                                       "maxItems": 300000
                                     },
+                                    "normals": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "number"
+                                      },
+                                      "maxItems": 300000
+                                    },
                                     "indices": {
                                       "type": "array",
                                       "items": {
@@ -20100,6 +20241,13 @@
                                     "type": "number"
                                   },
                                   "minItems": 9,
+                                  "maxItems": 300000
+                                },
+                                "normals": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  },
                                   "maxItems": 300000
                                 },
                                 "indices": {
@@ -22528,6 +22676,13 @@
                                             "minItems": 9,
                                             "maxItems": 300000
                                           },
+                                          "normals": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "number"
+                                            },
+                                            "maxItems": 300000
+                                          },
                                           "indices": {
                                             "type": "array",
                                             "items": {
@@ -24755,6 +24910,13 @@
                                   "minItems": 9,
                                   "maxItems": 300000
                                 },
+                                "normals": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  },
+                                  "maxItems": 300000
+                                },
                                 "indices": {
                                   "type": "array",
                                   "items": {
@@ -26868,6 +27030,13 @@
                                     "type": "number"
                                   },
                                   "minItems": 9,
+                                  "maxItems": 300000
+                                },
+                                "normals": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number"
+                                  },
                                   "maxItems": 300000
                                 },
                                 "indices": {

@@ -15,7 +15,11 @@ export function createGeometry(g: Geometry): THREE.BufferGeometry {
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.Float32BufferAttribute(g.positions, 3));
       geometry.setIndex(g.indices);
-      geometry.computeVertexNormals();
+      if (g.normals && g.normals.length === g.positions.length) {
+        geometry.setAttribute('normal', new THREE.Float32BufferAttribute(g.normals, 3));
+      } else {
+        geometry.computeVertexNormals();
+      }
       geometry.computeBoundingBox();
       return geometry;
     }

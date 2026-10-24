@@ -32,6 +32,7 @@ const segments = z.number().int().min(3).max(128);
 export const bakedGeometrySchema = z.object({
   type: z.literal('baked'),
   positions: z.array(finite).min(9).max(300_000),
+  normals: z.array(finite).max(300_000).optional(),
   indices: z.array(z.number().int().min(0)).min(3).max(300_000),
   bbox: z.object({ min: vec3, max: vec3 }),
 });
