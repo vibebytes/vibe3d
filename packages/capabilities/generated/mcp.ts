@@ -6,6 +6,7 @@ export const MCP_TOOLS = [
     capability: "room.create",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "name": {
@@ -22,8 +23,7 @@ export const MCP_TOOLS = [
           ]
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -32,6 +32,7 @@ export const MCP_TOOLS = [
     capability: "room.list",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "limit": {
@@ -44,8 +45,7 @@ export const MCP_TOOLS = [
           "minLength": 1
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -54,6 +54,7 @@ export const MCP_TOOLS = [
     capability: "room.use",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "room_id": {
@@ -65,8 +66,7 @@ export const MCP_TOOLS = [
       "required": [
         "room_id"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -75,6 +75,7 @@ export const MCP_TOOLS = [
     capability: "room.get",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "room_id": {
@@ -83,8 +84,7 @@ export const MCP_TOOLS = [
           "description": "房间 id；省略时用当前会话绑定的房间"
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -93,6 +93,7 @@ export const MCP_TOOLS = [
     capability: "room.close",
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "purge": {
@@ -104,8 +105,7 @@ export const MCP_TOOLS = [
           "description": "房间 id；省略时用当前会话绑定的房间"
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -114,6 +114,7 @@ export const MCP_TOOLS = [
     capability: "room.timeline",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "limit": {
@@ -122,8 +123,7 @@ export const MCP_TOOLS = [
           "maximum": 100
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -132,10 +132,10 @@ export const MCP_TOOLS = [
     capability: "scene.get",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {},
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -144,10 +144,10 @@ export const MCP_TOOLS = [
     capability: "scene.summary",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {},
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -156,6 +156,7 @@ export const MCP_TOOLS = [
     capability: "scene.query",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "name": {
@@ -192,33 +193,17 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "max": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             }
           },
           "required": [
@@ -234,33 +219,17 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "max": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             }
           },
           "required": [
@@ -305,8 +274,7 @@ export const MCP_TOOLS = [
           "minimum": 0
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -315,6 +283,7 @@ export const MCP_TOOLS = [
     capability: "node.get",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "node_id": {
@@ -325,8 +294,7 @@ export const MCP_TOOLS = [
       "required": [
         "node_id"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -335,6 +303,7 @@ export const MCP_TOOLS = [
     capability: "scene.stats",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "budget": {
@@ -359,8 +328,7 @@ export const MCP_TOOLS = [
           "type": "boolean"
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -369,24 +337,18 @@ export const MCP_TOOLS = [
     capability: "scene.pick",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "point": {
           "type": "array",
           "minItems": 2,
           "maxItems": 2,
-          "items": [
-            {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            },
-            {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            }
-          ]
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
         },
         "width": {
           "type": "integer",
@@ -412,33 +374,17 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "target": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "fov": {
               "type": "number",
@@ -466,33 +412,17 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "direction": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             }
           },
           "required": [
@@ -515,8 +445,7 @@ export const MCP_TOOLS = [
           "maximum": 50
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -525,6 +454,7 @@ export const MCP_TOOLS = [
     capability: "scene.validate",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "checks": {
@@ -559,33 +489,17 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "max": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             }
           },
           "required": [
@@ -601,8 +515,7 @@ export const MCP_TOOLS = [
           "type": "boolean"
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -611,6 +524,7 @@ export const MCP_TOOLS = [
     capability: "node.transform_many",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "ids": {
@@ -662,53 +576,28 @@ export const MCP_TOOLS = [
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
-          "items": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ]
+          "items": {
+            "type": "number"
+          }
         },
         "rotate": {
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
-          "items": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ]
+          "items": {
+            "type": "number"
+          }
         },
         "scale": {
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
-          "items": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ]
+          "items": {
+            "type": "number"
+          }
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -717,6 +606,7 @@ export const MCP_TOOLS = [
     capability: "node.array",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "id": {
@@ -740,49 +630,25 @@ export const MCP_TOOLS = [
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
-          "items": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ]
+          "items": {
+            "type": "number"
+          }
         },
         "jitter": {
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
-          "items": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ]
+          "items": {
+            "type": "number"
+          }
         },
         "rotate_step": {
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
-          "items": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ]
+          "items": {
+            "type": "number"
+          }
         },
         "cols": {
           "type": "integer",
@@ -808,25 +674,16 @@ export const MCP_TOOLS = [
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
-          "items": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ]
+          "items": {
+            "type": "number"
+          }
         }
       },
       "required": [
         "id",
         "count"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -835,6 +692,7 @@ export const MCP_TOOLS = [
     capability: "node.attach",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "id": {
@@ -874,8 +732,7 @@ export const MCP_TOOLS = [
         "target_id",
         "face"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -884,6 +741,7 @@ export const MCP_TOOLS = [
     capability: "node.group",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "ids": {
@@ -908,8 +766,7 @@ export const MCP_TOOLS = [
         "ids",
         "name"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -918,6 +775,7 @@ export const MCP_TOOLS = [
     capability: "node.merge",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "node_id": {
@@ -932,8 +790,7 @@ export const MCP_TOOLS = [
       "required": [
         "node_id"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -942,6 +799,7 @@ export const MCP_TOOLS = [
     capability: "node.reparent",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "id": {
@@ -971,8 +829,7 @@ export const MCP_TOOLS = [
         "id",
         "parent"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -981,6 +838,7 @@ export const MCP_TOOLS = [
     capability: "material.assign",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "ids": {
@@ -1036,8 +894,7 @@ export const MCP_TOOLS = [
       "required": [
         "material_id"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -1046,6 +903,7 @@ export const MCP_TOOLS = [
     capability: "ops.apply",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "ops": {
@@ -1102,49 +960,25 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "r": {
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "s": {
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               }
                             },
                             "required": [
@@ -1313,49 +1147,25 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "r": {
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "s": {
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               }
                             },
                             "required": [
@@ -1486,20 +1296,10 @@ export const MCP_TOOLS = [
                                     "type": "array",
                                     "minItems": 3,
                                     "maxItems": 3,
-                                    "items": [
-                                      {
-                                        "type": "number",
-                                        "exclusiveMinimum": 0
-                                      },
-                                      {
-                                        "type": "number",
-                                        "exclusiveMinimum": 0
-                                      },
-                                      {
-                                        "type": "number",
-                                        "exclusiveMinimum": 0
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
+                                    }
                                   }
                                 },
                                 "required": [
@@ -1629,33 +1429,17 @@ export const MCP_TOOLS = [
                                         "type": "array",
                                         "minItems": 3,
                                         "maxItems": 3,
-                                        "items": [
-                                          {
-                                            "type": "number"
-                                          },
-                                          {
-                                            "type": "number"
-                                          },
-                                          {
-                                            "type": "number"
-                                          }
-                                        ]
+                                        "items": {
+                                          "type": "number"
+                                        }
                                       },
                                       "max": {
                                         "type": "array",
                                         "minItems": 3,
                                         "maxItems": 3,
-                                        "items": [
-                                          {
-                                            "type": "number"
-                                          },
-                                          {
-                                            "type": "number"
-                                          },
-                                          {
-                                            "type": "number"
-                                          }
-                                        ]
+                                        "items": {
+                                          "type": "number"
+                                        }
                                       }
                                     },
                                     "required": [
@@ -1695,55 +1479,21 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 4,
                                 "maxItems": 4,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
                               },
                               "background": {
                                 "type": "array",
                                 "minItems": 4,
                                 "maxItems": 4,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
                               },
                               "font_size": {
                                 "type": "integer",
@@ -1817,49 +1567,25 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "r": {
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "s": {
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               }
                             },
                             "required": [
@@ -1994,28 +1720,11 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 4,
                                 "maxItems": 4,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
                               },
                               "intensity": {
                                 "type": "number",
@@ -2025,33 +1734,17 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "target": {
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "angle": {
                                 "type": "number",
@@ -2134,49 +1827,25 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "r": {
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "s": {
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               }
                             },
                             "required": [
@@ -2391,49 +2060,25 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "r": {
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "s": {
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           }
                         },
                         "additionalProperties": false
@@ -2455,28 +2100,11 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 4,
                             "maxItems": 4,
-                            "items": [
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              }
-                            ]
+                            "items": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
                           },
                           "intensity": {
                             "type": "number",
@@ -2486,33 +2114,17 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "target": {
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "angle": {
                             "type": "number",
@@ -2599,20 +2211,10 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "exclusiveMinimum": 0
-                                  },
-                                  {
-                                    "type": "number",
-                                    "exclusiveMinimum": 0
-                                  },
-                                  {
-                                    "type": "number",
-                                    "exclusiveMinimum": 0
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                }
                               }
                             },
                             "required": [
@@ -2742,33 +2344,17 @@ export const MCP_TOOLS = [
                                     "type": "array",
                                     "minItems": 3,
                                     "maxItems": 3,
-                                    "items": [
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "number"
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number"
+                                    }
                                   },
                                   "max": {
                                     "type": "array",
                                     "minItems": 3,
                                     "maxItems": 3,
-                                    "items": [
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "number"
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number"
+                                    }
                                   }
                                 },
                                 "required": [
@@ -2932,55 +2518,21 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 4,
                                 "maxItems": 4,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
                               },
                               "background": {
                                 "type": "array",
                                 "minItems": 4,
                                 "maxItems": 4,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
                               },
                               "font_size": {
                                 "type": "integer",
@@ -3114,28 +2666,11 @@ export const MCP_TOOLS = [
                         "type": "array",
                         "minItems": 4,
                         "maxItems": 4,
-                        "items": [
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        ]
+                        "items": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
                       },
                       "metalness": {
                         "type": "number",
@@ -3151,23 +2686,11 @@ export const MCP_TOOLS = [
                         "type": "array",
                         "minItems": 3,
                         "maxItems": 3,
-                        "items": [
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        ]
+                        "items": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
                       },
                       "emissive_intensity": {
                         "type": "number",
@@ -3198,29 +2721,18 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 2,
                                 "maxItems": 2,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "exclusiveMinimum": 0
-                                  },
-                                  {
-                                    "type": "number",
-                                    "exclusiveMinimum": 0
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                }
                               },
                               "offset": {
                                 "type": "array",
                                 "minItems": 2,
                                 "maxItems": 2,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "rotation": {
                                 "type": "number"
@@ -3239,29 +2751,18 @@ export const MCP_TOOLS = [
                                     "type": "array",
                                     "minItems": 2,
                                     "maxItems": 2,
-                                    "items": [
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "number"
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number"
+                                    }
                                   },
                                   "repeat": {
                                     "type": "array",
                                     "minItems": 2,
                                     "maxItems": 2,
-                                    "items": [
-                                      {
-                                        "type": "number",
-                                        "exclusiveMinimum": 0
-                                      },
-                                      {
-                                        "type": "number",
-                                        "exclusiveMinimum": 0
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
+                                    }
                                   },
                                   "rotation": {
                                     "type": "number"
@@ -3354,28 +2855,11 @@ export const MCP_TOOLS = [
                         "type": "array",
                         "minItems": 4,
                         "maxItems": 4,
-                        "items": [
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        ]
+                        "items": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
                       },
                       "metalness": {
                         "type": "number",
@@ -3391,23 +2875,11 @@ export const MCP_TOOLS = [
                         "type": "array",
                         "minItems": 3,
                         "maxItems": 3,
-                        "items": [
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        ]
+                        "items": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
                       },
                       "emissive_intensity": {
                         "type": "number",
@@ -3438,29 +2910,18 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 2,
                                 "maxItems": 2,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "exclusiveMinimum": 0
-                                  },
-                                  {
-                                    "type": "number",
-                                    "exclusiveMinimum": 0
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                }
                               },
                               "offset": {
                                 "type": "array",
                                 "minItems": 2,
                                 "maxItems": 2,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "rotation": {
                                 "type": "number"
@@ -3479,29 +2940,18 @@ export const MCP_TOOLS = [
                                     "type": "array",
                                     "minItems": 2,
                                     "maxItems": 2,
-                                    "items": [
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "number"
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number"
+                                    }
                                   },
                                   "repeat": {
                                     "type": "array",
                                     "minItems": 2,
                                     "maxItems": 2,
-                                    "items": [
-                                      {
-                                        "type": "number",
-                                        "exclusiveMinimum": 0
-                                      },
-                                      {
-                                        "type": "number",
-                                        "exclusiveMinimum": 0
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
+                                    }
                                   },
                                   "rotation": {
                                     "type": "number"
@@ -3553,28 +3003,11 @@ export const MCP_TOOLS = [
                         "type": "array",
                         "minItems": 4,
                         "maxItems": 4,
-                        "items": [
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        ]
+                        "items": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
                       },
                       "metalness": {
                         "type": "number",
@@ -3590,23 +3023,11 @@ export const MCP_TOOLS = [
                         "type": "array",
                         "minItems": 3,
                         "maxItems": 3,
-                        "items": [
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        ]
+                        "items": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
                       },
                       "emissive_intensity": {
                         "type": "number",
@@ -3637,29 +3058,18 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 2,
                                 "maxItems": 2,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "exclusiveMinimum": 0
-                                  },
-                                  {
-                                    "type": "number",
-                                    "exclusiveMinimum": 0
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                }
                               },
                               "offset": {
                                 "type": "array",
                                 "minItems": 2,
                                 "maxItems": 2,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "rotation": {
                                 "type": "number"
@@ -3678,29 +3088,18 @@ export const MCP_TOOLS = [
                                     "type": "array",
                                     "minItems": 2,
                                     "maxItems": 2,
-                                    "items": [
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "number"
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number"
+                                    }
                                   },
                                   "repeat": {
                                     "type": "array",
                                     "minItems": 2,
                                     "maxItems": 2,
-                                    "items": [
-                                      {
-                                        "type": "number",
-                                        "exclusiveMinimum": 0
-                                      },
-                                      {
-                                        "type": "number",
-                                        "exclusiveMinimum": 0
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
+                                    }
                                   },
                                   "rotation": {
                                     "type": "number"
@@ -3756,29 +3155,18 @@ export const MCP_TOOLS = [
                         "type": "array",
                         "minItems": 2,
                         "maxItems": 2,
-                        "items": [
-                          {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          },
-                          {
-                            "type": "number",
-                            "exclusiveMinimum": 0
-                          }
-                        ]
+                        "items": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        }
                       },
                       "offset": {
                         "type": "array",
                         "minItems": 2,
                         "maxItems": 2,
-                        "items": [
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          }
-                        ]
+                        "items": {
+                          "type": "number"
+                        }
                       },
                       "rotation": {
                         "type": "number"
@@ -3797,29 +3185,18 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 2,
                             "maxItems": 2,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "repeat": {
                             "type": "array",
                             "minItems": 2,
                             "maxItems": 2,
-                            "items": [
-                              {
-                                "type": "number",
-                                "exclusiveMinimum": 0
-                              },
-                              {
-                                "type": "number",
-                                "exclusiveMinimum": 0
-                              }
-                            ]
+                            "items": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            }
                           },
                           "rotation": {
                             "type": "number"
@@ -3859,55 +3236,21 @@ export const MCP_TOOLS = [
                         "type": "array",
                         "minItems": 4,
                         "maxItems": 4,
-                        "items": [
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        ]
+                        "items": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
                       },
                       "ambient": {
                         "type": "array",
                         "minItems": 4,
                         "maxItems": 4,
-                        "items": [
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        ]
+                        "items": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
                       },
                       "ambient_intensity": {
                         "type": "number",
@@ -3933,28 +3276,11 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 4,
                                 "maxItems": 4,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
                               },
                               "near": {
                                 "type": "number",
@@ -3985,55 +3311,21 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 4,
                                 "maxItems": 4,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
                               },
                               "bottom": {
                                 "type": "array",
                                 "minItems": 4,
                                 "maxItems": 4,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
                               }
                             },
                             "required": [
@@ -4175,28 +3467,11 @@ export const MCP_TOOLS = [
                                     "type": "array",
                                     "minItems": 4,
                                     "maxItems": 4,
-                                    "items": [
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      },
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      },
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      },
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 1
+                                    }
                                   }
                                 },
                                 "additionalProperties": false
@@ -4463,33 +3738,17 @@ export const MCP_TOOLS = [
                         "type": "array",
                         "minItems": 3,
                         "maxItems": 3,
-                        "items": [
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          }
-                        ]
+                        "items": {
+                          "type": "number"
+                        }
                       },
                       "spread": {
                         "type": "array",
                         "minItems": 3,
                         "maxItems": 3,
-                        "items": [
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          }
-                        ]
+                        "items": {
+                          "type": "number"
+                        }
                       },
                       "rate": {
                         "type": "number",
@@ -4507,44 +3766,19 @@ export const MCP_TOOLS = [
                         "type": "array",
                         "minItems": 4,
                         "maxItems": 4,
-                        "items": [
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          },
-                          {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        ]
+                        "items": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
                       },
                       "gravity": {
                         "type": "array",
                         "minItems": 3,
                         "maxItems": 3,
-                        "items": [
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          }
-                        ]
+                        "items": {
+                          "type": "number"
+                        }
                       },
                       "speed": {
                         "type": "number"
@@ -4623,33 +3857,17 @@ export const MCP_TOOLS = [
                         "type": "array",
                         "minItems": 3,
                         "maxItems": 3,
-                        "items": [
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          }
-                        ]
+                        "items": {
+                          "type": "number"
+                        }
                       },
                       "target": {
                         "type": "array",
                         "minItems": 3,
                         "maxItems": 3,
-                        "items": [
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          }
-                        ]
+                        "items": {
+                          "type": "number"
+                        }
                       },
                       "fov": {
                         "type": "number",
@@ -4712,33 +3930,17 @@ export const MCP_TOOLS = [
                         "type": "array",
                         "minItems": 3,
                         "maxItems": 3,
-                        "items": [
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          }
-                        ]
+                        "items": {
+                          "type": "number"
+                        }
                       },
                       "target": {
                         "type": "array",
                         "minItems": 3,
                         "maxItems": 3,
-                        "items": [
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          },
-                          {
-                            "type": "number"
-                          }
-                        ]
+                        "items": {
+                          "type": "number"
+                        }
                       },
                       "fov": {
                         "type": "number",
@@ -4895,33 +4097,17 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "max": {
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "diag": {
                                 "type": "number"
@@ -5071,49 +4257,25 @@ export const MCP_TOOLS = [
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     },
                                     "r": {
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     },
                                     "s": {
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     }
                                   },
                                   "required": [
@@ -5275,49 +4437,25 @@ export const MCP_TOOLS = [
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     },
                                     "r": {
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     },
                                     "s": {
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     }
                                   },
                                   "required": [
@@ -5448,20 +4586,10 @@ export const MCP_TOOLS = [
                                           "type": "array",
                                           "minItems": 3,
                                           "maxItems": 3,
-                                          "items": [
-                                            {
-                                              "type": "number",
-                                              "exclusiveMinimum": 0
-                                            },
-                                            {
-                                              "type": "number",
-                                              "exclusiveMinimum": 0
-                                            },
-                                            {
-                                              "type": "number",
-                                              "exclusiveMinimum": 0
-                                            }
-                                          ]
+                                          "items": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0
+                                          }
                                         }
                                       },
                                       "required": [
@@ -5591,33 +4719,17 @@ export const MCP_TOOLS = [
                                               "type": "array",
                                               "minItems": 3,
                                               "maxItems": 3,
-                                              "items": [
-                                                {
-                                                  "type": "number"
-                                                },
-                                                {
-                                                  "type": "number"
-                                                },
-                                                {
-                                                  "type": "number"
-                                                }
-                                              ]
+                                              "items": {
+                                                "type": "number"
+                                              }
                                             },
                                             "max": {
                                               "type": "array",
                                               "minItems": 3,
                                               "maxItems": 3,
-                                              "items": [
-                                                {
-                                                  "type": "number"
-                                                },
-                                                {
-                                                  "type": "number"
-                                                },
-                                                {
-                                                  "type": "number"
-                                                }
-                                              ]
+                                              "items": {
+                                                "type": "number"
+                                              }
                                             }
                                           },
                                           "required": [
@@ -5657,55 +4769,21 @@ export const MCP_TOOLS = [
                                       "type": "array",
                                       "minItems": 4,
                                       "maxItems": 4,
-                                      "items": [
-                                        {
-                                          "type": "number",
-                                          "minimum": 0,
-                                          "maximum": 1
-                                        },
-                                        {
-                                          "type": "number",
-                                          "minimum": 0,
-                                          "maximum": 1
-                                        },
-                                        {
-                                          "type": "number",
-                                          "minimum": 0,
-                                          "maximum": 1
-                                        },
-                                        {
-                                          "type": "number",
-                                          "minimum": 0,
-                                          "maximum": 1
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      }
                                     },
                                     "background": {
                                       "type": "array",
                                       "minItems": 4,
                                       "maxItems": 4,
-                                      "items": [
-                                        {
-                                          "type": "number",
-                                          "minimum": 0,
-                                          "maximum": 1
-                                        },
-                                        {
-                                          "type": "number",
-                                          "minimum": 0,
-                                          "maximum": 1
-                                        },
-                                        {
-                                          "type": "number",
-                                          "minimum": 0,
-                                          "maximum": 1
-                                        },
-                                        {
-                                          "type": "number",
-                                          "minimum": 0,
-                                          "maximum": 1
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      }
                                     },
                                     "font_size": {
                                       "type": "integer",
@@ -5772,49 +4850,25 @@ export const MCP_TOOLS = [
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     },
                                     "r": {
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     },
                                     "s": {
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     }
                                   },
                                   "required": [
@@ -5949,28 +5003,11 @@ export const MCP_TOOLS = [
                                       "type": "array",
                                       "minItems": 4,
                                       "maxItems": 4,
-                                      "items": [
-                                        {
-                                          "type": "number",
-                                          "minimum": 0,
-                                          "maximum": 1
-                                        },
-                                        {
-                                          "type": "number",
-                                          "minimum": 0,
-                                          "maximum": 1
-                                        },
-                                        {
-                                          "type": "number",
-                                          "minimum": 0,
-                                          "maximum": 1
-                                        },
-                                        {
-                                          "type": "number",
-                                          "minimum": 0,
-                                          "maximum": 1
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      }
                                     },
                                     "intensity": {
                                       "type": "number",
@@ -5980,33 +5017,17 @@ export const MCP_TOOLS = [
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     },
                                     "target": {
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     },
                                     "angle": {
                                       "type": "number",
@@ -6082,49 +5103,25 @@ export const MCP_TOOLS = [
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     },
                                     "r": {
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     },
                                     "s": {
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     }
                                   },
                                   "required": [
@@ -6316,28 +5313,11 @@ export const MCP_TOOLS = [
                               "type": "array",
                               "minItems": 4,
                               "maxItems": 4,
-                              "items": [
-                                {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 1
-                                },
-                                {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 1
-                                },
-                                {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 1
-                                },
-                                {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 1
-                                }
-                              ]
+                              "items": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                              }
                             },
                             "metalness": {
                               "type": "number",
@@ -6353,23 +5333,11 @@ export const MCP_TOOLS = [
                               "type": "array",
                               "minItems": 3,
                               "maxItems": 3,
-                              "items": [
-                                {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 1
-                                },
-                                {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 1
-                                },
-                                {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 1
-                                }
-                              ]
+                              "items": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                              }
                             },
                             "emissive_intensity": {
                               "type": "number",
@@ -6400,29 +5368,18 @@ export const MCP_TOOLS = [
                                       "type": "array",
                                       "minItems": 2,
                                       "maxItems": 2,
-                                      "items": [
-                                        {
-                                          "type": "number",
-                                          "exclusiveMinimum": 0
-                                        },
-                                        {
-                                          "type": "number",
-                                          "exclusiveMinimum": 0
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                      }
                                     },
                                     "offset": {
                                       "type": "array",
                                       "minItems": 2,
                                       "maxItems": 2,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     },
                                     "rotation": {
                                       "type": "number"
@@ -6441,29 +5398,18 @@ export const MCP_TOOLS = [
                                           "type": "array",
                                           "minItems": 2,
                                           "maxItems": 2,
-                                          "items": [
-                                            {
-                                              "type": "number"
-                                            },
-                                            {
-                                              "type": "number"
-                                            }
-                                          ]
+                                          "items": {
+                                            "type": "number"
+                                          }
                                         },
                                         "repeat": {
                                           "type": "array",
                                           "minItems": 2,
                                           "maxItems": 2,
-                                          "items": [
-                                            {
-                                              "type": "number",
-                                              "exclusiveMinimum": 0
-                                            },
-                                            {
-                                              "type": "number",
-                                              "exclusiveMinimum": 0
-                                            }
-                                          ]
+                                          "items": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0
+                                          }
                                         },
                                         "rotation": {
                                           "type": "number"
@@ -6615,33 +5561,17 @@ export const MCP_TOOLS = [
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     },
                                     "max": {
                                       "type": "array",
                                       "minItems": 3,
                                       "maxItems": 3,
-                                      "items": [
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        },
-                                        {
-                                          "type": "number"
-                                        }
-                                      ]
+                                      "items": {
+                                        "type": "number"
+                                      }
                                     },
                                     "diag": {
                                       "type": "number"
@@ -6718,55 +5648,21 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 4,
                             "maxItems": 4,
-                            "items": [
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              }
-                            ]
+                            "items": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
                           },
                           "ambient": {
                             "type": "array",
                             "minItems": 4,
                             "maxItems": 4,
-                            "items": [
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              }
-                            ]
+                            "items": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
                           },
                           "ambient_intensity": {
                             "type": "number",
@@ -6783,28 +5679,11 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 4,
                                 "maxItems": 4,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  },
-                                  {
-                                    "type": "number",
-                                    "minimum": 0,
-                                    "maximum": 1
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
                               },
                               "near": {
                                 "type": "number",
@@ -6830,55 +5709,21 @@ export const MCP_TOOLS = [
                                     "type": "array",
                                     "minItems": 4,
                                     "maxItems": 4,
-                                    "items": [
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      },
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      },
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      },
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 1
+                                    }
                                   },
                                   "bottom": {
                                     "type": "array",
                                     "minItems": 4,
                                     "maxItems": 4,
-                                    "items": [
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      },
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      },
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      },
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 1
+                                    }
                                   }
                                 },
                                 "required": [
@@ -7002,28 +5847,11 @@ export const MCP_TOOLS = [
                                     "type": "array",
                                     "minItems": 4,
                                     "maxItems": 4,
-                                    "items": [
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      },
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      },
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      },
-                                      {
-                                        "type": "number",
-                                        "minimum": 0,
-                                        "maximum": 1
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 1
+                                    }
                                   }
                                 },
                                 "additionalProperties": false
@@ -7064,33 +5892,17 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "target": {
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "fov": {
                             "type": "number",
@@ -7127,33 +5939,17 @@ export const MCP_TOOLS = [
                               "type": "array",
                               "minItems": 3,
                               "maxItems": 3,
-                              "items": [
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "number"
-                                }
-                              ]
+                              "items": {
+                                "type": "number"
+                              }
                             },
                             "target": {
                               "type": "array",
                               "minItems": 3,
                               "maxItems": 3,
-                              "items": [
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "number"
-                                }
-                              ]
+                              "items": {
+                                "type": "number"
+                              }
                             },
                             "fov": {
                               "type": "number",
@@ -7203,33 +5999,17 @@ export const MCP_TOOLS = [
                               "type": "array",
                               "minItems": 3,
                               "maxItems": 3,
-                              "items": [
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "number"
-                                }
-                              ]
+                              "items": {
+                                "type": "number"
+                              }
                             },
                             "spread": {
                               "type": "array",
                               "minItems": 3,
                               "maxItems": 3,
-                              "items": [
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "number"
-                                }
-                              ]
+                              "items": {
+                                "type": "number"
+                              }
                             },
                             "rate": {
                               "type": "number",
@@ -7247,44 +6027,19 @@ export const MCP_TOOLS = [
                               "type": "array",
                               "minItems": 4,
                               "maxItems": 4,
-                              "items": [
-                                {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 1
-                                },
-                                {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 1
-                                },
-                                {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 1
-                                },
-                                {
-                                  "type": "number",
-                                  "minimum": 0,
-                                  "maximum": 1
-                                }
-                              ]
+                              "items": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                              }
                             },
                             "gravity": {
                               "type": "array",
                               "minItems": 3,
                               "maxItems": 3,
-                              "items": [
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "number"
-                                },
-                                {
-                                  "type": "number"
-                                }
-                              ]
+                              "items": {
+                                "type": "number"
+                              }
                             },
                             "speed": {
                               "type": "number"
@@ -7366,8 +6121,7 @@ export const MCP_TOOLS = [
       "required": [
         "ops"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -7376,6 +6130,7 @@ export const MCP_TOOLS = [
     capability: "node.create",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "kind": {
@@ -7415,17 +6170,9 @@ export const MCP_TOOLS = [
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
-          "items": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ]
+          "items": {
+            "type": "number"
+          }
         },
         "radius": {
           "type": "number",
@@ -7454,28 +6201,11 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 4,
               "maxItems": 4,
-              "items": [
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                }
-              ]
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
             },
             "metalness": {
               "type": "number",
@@ -7491,23 +6221,11 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                }
-              ]
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
             },
             "emissive_intensity": {
               "type": "number",
@@ -7538,29 +6256,18 @@ export const MCP_TOOLS = [
                       "type": "array",
                       "minItems": 2,
                       "maxItems": 2,
-                      "items": [
-                        {
-                          "type": "number",
-                          "exclusiveMinimum": 0
-                        },
-                        {
-                          "type": "number",
-                          "exclusiveMinimum": 0
-                        }
-                      ]
+                      "items": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
                     },
                     "offset": {
                       "type": "array",
                       "minItems": 2,
                       "maxItems": 2,
-                      "items": [
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "number"
-                        }
-                      ]
+                      "items": {
+                        "type": "number"
+                      }
                     },
                     "rotation": {
                       "type": "number"
@@ -7579,29 +6286,18 @@ export const MCP_TOOLS = [
                           "type": "array",
                           "minItems": 2,
                           "maxItems": 2,
-                          "items": [
-                            {
-                              "type": "number"
-                            },
-                            {
-                              "type": "number"
-                            }
-                          ]
+                          "items": {
+                            "type": "number"
+                          }
                         },
                         "repeat": {
                           "type": "array",
                           "minItems": 2,
                           "maxItems": 2,
-                          "items": [
-                            {
-                              "type": "number",
-                              "exclusiveMinimum": 0
-                            },
-                            {
-                              "type": "number",
-                              "exclusiveMinimum": 0
-                            }
-                          ]
+                          "items": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
                         },
                         "rotation": {
                           "type": "number"
@@ -7653,28 +6349,11 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 4,
               "maxItems": 4,
-              "items": [
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                }
-              ]
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
             },
             "intensity": {
               "type": "number",
@@ -7684,33 +6363,17 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "target": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "angle": {
               "type": "number",
@@ -7748,49 +6411,25 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "r": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "s": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             }
           },
           "additionalProperties": false
@@ -7808,8 +6447,7 @@ export const MCP_TOOLS = [
       "required": [
         "kind"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -7818,6 +6456,7 @@ export const MCP_TOOLS = [
     capability: "node.update",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "node_id": {
@@ -7842,49 +6481,25 @@ export const MCP_TOOLS = [
                   "type": "array",
                   "minItems": 3,
                   "maxItems": 3,
-                  "items": [
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "number"
-                    }
-                  ]
+                  "items": {
+                    "type": "number"
+                  }
                 },
                 "r": {
                   "type": "array",
                   "minItems": 3,
                   "maxItems": 3,
-                  "items": [
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "number"
-                    }
-                  ]
+                  "items": {
+                    "type": "number"
+                  }
                 },
                 "s": {
                   "type": "array",
                   "minItems": 3,
                   "maxItems": 3,
-                  "items": [
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "number"
-                    }
-                  ]
+                  "items": {
+                    "type": "number"
+                  }
                 }
               },
               "additionalProperties": false
@@ -7906,28 +6521,11 @@ export const MCP_TOOLS = [
                   "type": "array",
                   "minItems": 4,
                   "maxItems": 4,
-                  "items": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    }
-                  ]
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
                 },
                 "intensity": {
                   "type": "number",
@@ -7937,33 +6535,17 @@ export const MCP_TOOLS = [
                   "type": "array",
                   "minItems": 3,
                   "maxItems": 3,
-                  "items": [
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "number"
-                    }
-                  ]
+                  "items": {
+                    "type": "number"
+                  }
                 },
                 "target": {
                   "type": "array",
                   "minItems": 3,
                   "maxItems": 3,
-                  "items": [
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "number"
-                    }
-                  ]
+                  "items": {
+                    "type": "number"
+                  }
                 },
                 "angle": {
                   "type": "number",
@@ -8061,8 +6643,7 @@ export const MCP_TOOLS = [
         "node_id",
         "patch"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -8071,6 +6652,7 @@ export const MCP_TOOLS = [
     capability: "node.delete",
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "node_id": {
@@ -8084,8 +6666,7 @@ export const MCP_TOOLS = [
       "required": [
         "node_id"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -8094,6 +6675,7 @@ export const MCP_TOOLS = [
     capability: "node.clone",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "node_id": {
@@ -8123,49 +6705,25 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "r": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "s": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             }
           },
           "additionalProperties": false
@@ -8174,8 +6732,7 @@ export const MCP_TOOLS = [
       "required": [
         "node_id"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -8184,6 +6741,7 @@ export const MCP_TOOLS = [
     capability: "stage.set",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "stage": {
@@ -8297,28 +6855,11 @@ export const MCP_TOOLS = [
                           "type": "array",
                           "minItems": 4,
                           "maxItems": 4,
-                          "items": [
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            },
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            },
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            },
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            }
-                          ]
+                          "items": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
                         }
                       },
                       "additionalProperties": false
@@ -8348,8 +6889,7 @@ export const MCP_TOOLS = [
       "required": [
         "stage"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -8358,6 +6898,7 @@ export const MCP_TOOLS = [
     capability: "animation.play",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "node_id": {
@@ -8390,8 +6931,7 @@ export const MCP_TOOLS = [
       "required": [
         "node_id"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -8400,6 +6940,7 @@ export const MCP_TOOLS = [
     capability: "animation.define",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "node_id": {
@@ -8513,8 +7054,7 @@ export const MCP_TOOLS = [
         "node_id",
         "clip"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -8523,6 +7063,7 @@ export const MCP_TOOLS = [
     capability: "animation.clear",
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "node_id": {
@@ -8540,8 +7081,7 @@ export const MCP_TOOLS = [
       "required": [
         "node_id"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -8550,6 +7090,7 @@ export const MCP_TOOLS = [
     capability: "fx.create",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "type": {
@@ -8567,33 +7108,17 @@ export const MCP_TOOLS = [
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
-          "items": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ]
+          "items": {
+            "type": "number"
+          }
         },
         "spread": {
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
-          "items": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ]
+          "items": {
+            "type": "number"
+          }
         },
         "rate": {
           "type": "number",
@@ -8611,44 +7136,19 @@ export const MCP_TOOLS = [
           "type": "array",
           "minItems": 4,
           "maxItems": 4,
-          "items": [
-            {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            },
-            {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            },
-            {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            },
-            {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            }
-          ]
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
         },
         "gravity": {
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
-          "items": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ]
+          "items": {
+            "type": "number"
+          }
         },
         "speed": {
           "type": "number"
@@ -8678,8 +7178,7 @@ export const MCP_TOOLS = [
       "required": [
         "type"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -8688,6 +7187,7 @@ export const MCP_TOOLS = [
     capability: "fx.delete",
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "fx_id": {
@@ -8698,8 +7198,7 @@ export const MCP_TOOLS = [
       "required": [
         "fx_id"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -8708,6 +7207,7 @@ export const MCP_TOOLS = [
     capability: "material.create",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "preset": {
@@ -8728,28 +7228,11 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 4,
               "maxItems": 4,
-              "items": [
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                }
-              ]
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
             },
             "metalness": {
               "type": "number",
@@ -8765,23 +7248,11 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                }
-              ]
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
             },
             "emissive_intensity": {
               "type": "number",
@@ -8812,29 +7283,18 @@ export const MCP_TOOLS = [
                       "type": "array",
                       "minItems": 2,
                       "maxItems": 2,
-                      "items": [
-                        {
-                          "type": "number",
-                          "exclusiveMinimum": 0
-                        },
-                        {
-                          "type": "number",
-                          "exclusiveMinimum": 0
-                        }
-                      ]
+                      "items": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
                     },
                     "offset": {
                       "type": "array",
                       "minItems": 2,
                       "maxItems": 2,
-                      "items": [
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "number"
-                        }
-                      ]
+                      "items": {
+                        "type": "number"
+                      }
                     },
                     "rotation": {
                       "type": "number"
@@ -8853,29 +7313,18 @@ export const MCP_TOOLS = [
                           "type": "array",
                           "minItems": 2,
                           "maxItems": 2,
-                          "items": [
-                            {
-                              "type": "number"
-                            },
-                            {
-                              "type": "number"
-                            }
-                          ]
+                          "items": {
+                            "type": "number"
+                          }
                         },
                         "repeat": {
                           "type": "array",
                           "minItems": 2,
                           "maxItems": 2,
-                          "items": [
-                            {
-                              "type": "number",
-                              "exclusiveMinimum": 0
-                            },
-                            {
-                              "type": "number",
-                              "exclusiveMinimum": 0
-                            }
-                          ]
+                          "items": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
                         },
                         "rotation": {
                           "type": "number"
@@ -8905,8 +7354,7 @@ export const MCP_TOOLS = [
       "required": [
         "preset"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -8915,6 +7363,7 @@ export const MCP_TOOLS = [
     capability: "material.patch",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "material_id": {
@@ -8928,28 +7377,11 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 4,
               "maxItems": 4,
-              "items": [
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                }
-              ]
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
             },
             "metalness": {
               "type": "number",
@@ -8965,23 +7397,11 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                },
-                {
-                  "type": "number",
-                  "minimum": 0,
-                  "maximum": 1
-                }
-              ]
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
             },
             "emissive_intensity": {
               "type": "number",
@@ -9012,29 +7432,18 @@ export const MCP_TOOLS = [
                       "type": "array",
                       "minItems": 2,
                       "maxItems": 2,
-                      "items": [
-                        {
-                          "type": "number",
-                          "exclusiveMinimum": 0
-                        },
-                        {
-                          "type": "number",
-                          "exclusiveMinimum": 0
-                        }
-                      ]
+                      "items": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
                     },
                     "offset": {
                       "type": "array",
                       "minItems": 2,
                       "maxItems": 2,
-                      "items": [
-                        {
-                          "type": "number"
-                        },
-                        {
-                          "type": "number"
-                        }
-                      ]
+                      "items": {
+                        "type": "number"
+                      }
                     },
                     "rotation": {
                       "type": "number"
@@ -9053,29 +7462,18 @@ export const MCP_TOOLS = [
                           "type": "array",
                           "minItems": 2,
                           "maxItems": 2,
-                          "items": [
-                            {
-                              "type": "number"
-                            },
-                            {
-                              "type": "number"
-                            }
-                          ]
+                          "items": {
+                            "type": "number"
+                          }
                         },
                         "repeat": {
                           "type": "array",
                           "minItems": 2,
                           "maxItems": 2,
-                          "items": [
-                            {
-                              "type": "number",
-                              "exclusiveMinimum": 0
-                            },
-                            {
-                              "type": "number",
-                              "exclusiveMinimum": 0
-                            }
-                          ]
+                          "items": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
                         },
                         "rotation": {
                           "type": "number"
@@ -9106,8 +7504,7 @@ export const MCP_TOOLS = [
         "material_id",
         "patch"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -9116,6 +7513,7 @@ export const MCP_TOOLS = [
     capability: "material.map",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "material_id": {
@@ -9130,29 +7528,18 @@ export const MCP_TOOLS = [
           "type": "array",
           "minItems": 2,
           "maxItems": 2,
-          "items": [
-            {
-              "type": "number",
-              "exclusiveMinimum": 0
-            },
-            {
-              "type": "number",
-              "exclusiveMinimum": 0
-            }
-          ]
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
         },
         "offset": {
           "type": "array",
           "minItems": 2,
           "maxItems": 2,
-          "items": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ]
+          "items": {
+            "type": "number"
+          }
         },
         "rotation": {
           "type": "number"
@@ -9161,8 +7548,7 @@ export const MCP_TOOLS = [
       "required": [
         "material_id"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -9171,61 +7557,28 @@ export const MCP_TOOLS = [
     capability: "env.set",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "background": {
           "type": "array",
           "minItems": 4,
           "maxItems": 4,
-          "items": [
-            {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            },
-            {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            },
-            {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            },
-            {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            }
-          ]
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
         },
         "ambient": {
           "type": "array",
           "minItems": 4,
           "maxItems": 4,
-          "items": [
-            {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            },
-            {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            },
-            {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            },
-            {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            }
-          ]
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
         },
         "ambient_intensity": {
           "type": "number",
@@ -9251,28 +7604,11 @@ export const MCP_TOOLS = [
                   "type": "array",
                   "minItems": 4,
                   "maxItems": 4,
-                  "items": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    }
-                  ]
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
                 },
                 "near": {
                   "type": "number",
@@ -9303,55 +7639,21 @@ export const MCP_TOOLS = [
                   "type": "array",
                   "minItems": 4,
                   "maxItems": 4,
-                  "items": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    }
-                  ]
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
                 },
                 "bottom": {
                   "type": "array",
                   "minItems": 4,
                   "maxItems": 4,
-                  "items": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    }
-                  ]
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
                 }
               },
               "required": [
@@ -9378,8 +7680,7 @@ export const MCP_TOOLS = [
           ]
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -9388,6 +7689,7 @@ export const MCP_TOOLS = [
     capability: "scene.undo",
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "op_id": {
@@ -9395,8 +7697,7 @@ export const MCP_TOOLS = [
           "minLength": 1
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -9405,10 +7706,10 @@ export const MCP_TOOLS = [
     capability: "scene.redo",
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {},
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -9417,6 +7718,7 @@ export const MCP_TOOLS = [
     capability: "scene.diff",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "from": {
@@ -9431,8 +7733,7 @@ export const MCP_TOOLS = [
           "type": "boolean"
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -9441,10 +7742,10 @@ export const MCP_TOOLS = [
     capability: "selection.get",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {},
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -9453,10 +7754,10 @@ export const MCP_TOOLS = [
     capability: "scene.export",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {},
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -9465,6 +7766,7 @@ export const MCP_TOOLS = [
     capability: "scene.import",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "doc": {
@@ -9519,49 +7821,25 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "r": {
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "s": {
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           }
                         },
                         "required": [
@@ -9723,49 +8001,25 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "r": {
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "s": {
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           }
                         },
                         "required": [
@@ -9896,20 +8150,10 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 3,
                                 "maxItems": 3,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "exclusiveMinimum": 0
-                                  },
-                                  {
-                                    "type": "number",
-                                    "exclusiveMinimum": 0
-                                  },
-                                  {
-                                    "type": "number",
-                                    "exclusiveMinimum": 0
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                }
                               }
                             },
                             "required": [
@@ -10039,33 +8283,17 @@ export const MCP_TOOLS = [
                                     "type": "array",
                                     "minItems": 3,
                                     "maxItems": 3,
-                                    "items": [
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "number"
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number"
+                                    }
                                   },
                                   "max": {
                                     "type": "array",
                                     "minItems": 3,
                                     "maxItems": 3,
-                                    "items": [
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "number"
-                                      },
-                                      {
-                                        "type": "number"
-                                      }
-                                    ]
+                                    "items": {
+                                      "type": "number"
+                                    }
                                   }
                                 },
                                 "required": [
@@ -10105,55 +8333,21 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 4,
                             "maxItems": 4,
-                            "items": [
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              }
-                            ]
+                            "items": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
                           },
                           "background": {
                             "type": "array",
                             "minItems": 4,
                             "maxItems": 4,
-                            "items": [
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              }
-                            ]
+                            "items": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
                           },
                           "font_size": {
                             "type": "integer",
@@ -10220,49 +8414,25 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "r": {
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "s": {
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           }
                         },
                         "required": [
@@ -10397,28 +8567,11 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 4,
                             "maxItems": 4,
-                            "items": [
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              },
-                              {
-                                "type": "number",
-                                "minimum": 0,
-                                "maximum": 1
-                              }
-                            ]
+                            "items": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
                           },
                           "intensity": {
                             "type": "number",
@@ -10428,33 +8581,17 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "target": {
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "angle": {
                             "type": "number",
@@ -10530,49 +8667,25 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "r": {
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "s": {
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           }
                         },
                         "required": [
@@ -10764,28 +8877,11 @@ export const MCP_TOOLS = [
                     "type": "array",
                     "minItems": 4,
                     "maxItems": 4,
-                    "items": [
-                      {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
-                      },
-                      {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
-                      },
-                      {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
-                      },
-                      {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
-                      }
-                    ]
+                    "items": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
                   },
                   "metalness": {
                     "type": "number",
@@ -10801,23 +8897,11 @@ export const MCP_TOOLS = [
                     "type": "array",
                     "minItems": 3,
                     "maxItems": 3,
-                    "items": [
-                      {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
-                      },
-                      {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
-                      },
-                      {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
-                      }
-                    ]
+                    "items": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
                   },
                   "emissive_intensity": {
                     "type": "number",
@@ -10848,29 +8932,18 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 2,
                             "maxItems": 2,
-                            "items": [
-                              {
-                                "type": "number",
-                                "exclusiveMinimum": 0
-                              },
-                              {
-                                "type": "number",
-                                "exclusiveMinimum": 0
-                              }
-                            ]
+                            "items": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            }
                           },
                           "offset": {
                             "type": "array",
                             "minItems": 2,
                             "maxItems": 2,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "rotation": {
                             "type": "number"
@@ -10889,29 +8962,18 @@ export const MCP_TOOLS = [
                                 "type": "array",
                                 "minItems": 2,
                                 "maxItems": 2,
-                                "items": [
-                                  {
-                                    "type": "number"
-                                  },
-                                  {
-                                    "type": "number"
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number"
+                                }
                               },
                               "repeat": {
                                 "type": "array",
                                 "minItems": 2,
                                 "maxItems": 2,
-                                "items": [
-                                  {
-                                    "type": "number",
-                                    "exclusiveMinimum": 0
-                                  },
-                                  {
-                                    "type": "number",
-                                    "exclusiveMinimum": 0
-                                  }
-                                ]
+                                "items": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                }
                               },
                               "rotation": {
                                 "type": "number"
@@ -11063,33 +9125,17 @@ export const MCP_TOOLS = [
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "max": {
                             "type": "array",
                             "minItems": 3,
                             "maxItems": 3,
-                            "items": [
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              },
-                              {
-                                "type": "number"
-                              }
-                            ]
+                            "items": {
+                              "type": "number"
+                            }
                           },
                           "diag": {
                             "type": "number"
@@ -11166,55 +9212,21 @@ export const MCP_TOOLS = [
                   "type": "array",
                   "minItems": 4,
                   "maxItems": 4,
-                  "items": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    }
-                  ]
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
                 },
                 "ambient": {
                   "type": "array",
                   "minItems": 4,
                   "maxItems": 4,
-                  "items": [
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    },
-                    {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    }
-                  ]
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
                 },
                 "ambient_intensity": {
                   "type": "number",
@@ -11231,28 +9243,11 @@ export const MCP_TOOLS = [
                       "type": "array",
                       "minItems": 4,
                       "maxItems": 4,
-                      "items": [
-                        {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 1
-                        },
-                        {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 1
-                        },
-                        {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 1
-                        },
-                        {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 1
-                        }
-                      ]
+                      "items": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
                     },
                     "near": {
                       "type": "number",
@@ -11278,55 +9273,21 @@ export const MCP_TOOLS = [
                           "type": "array",
                           "minItems": 4,
                           "maxItems": 4,
-                          "items": [
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            },
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            },
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            },
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            }
-                          ]
+                          "items": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
                         },
                         "bottom": {
                           "type": "array",
                           "minItems": 4,
                           "maxItems": 4,
-                          "items": [
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            },
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            },
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            },
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            }
-                          ]
+                          "items": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
                         }
                       },
                       "required": [
@@ -11450,28 +9411,11 @@ export const MCP_TOOLS = [
                           "type": "array",
                           "minItems": 4,
                           "maxItems": 4,
-                          "items": [
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            },
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            },
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            },
-                            {
-                              "type": "number",
-                              "minimum": 0,
-                              "maximum": 1
-                            }
-                          ]
+                          "items": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
                         }
                       },
                       "additionalProperties": false
@@ -11512,33 +9456,17 @@ export const MCP_TOOLS = [
                   "type": "array",
                   "minItems": 3,
                   "maxItems": 3,
-                  "items": [
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "number"
-                    }
-                  ]
+                  "items": {
+                    "type": "number"
+                  }
                 },
                 "target": {
                   "type": "array",
                   "minItems": 3,
                   "maxItems": 3,
-                  "items": [
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "number"
-                    },
-                    {
-                      "type": "number"
-                    }
-                  ]
+                  "items": {
+                    "type": "number"
+                  }
                 },
                 "fov": {
                   "type": "number",
@@ -11575,33 +9503,17 @@ export const MCP_TOOLS = [
                     "type": "array",
                     "minItems": 3,
                     "maxItems": 3,
-                    "items": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "number"
-                      }
-                    ]
+                    "items": {
+                      "type": "number"
+                    }
                   },
                   "target": {
                     "type": "array",
                     "minItems": 3,
                     "maxItems": 3,
-                    "items": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "number"
-                      }
-                    ]
+                    "items": {
+                      "type": "number"
+                    }
                   },
                   "fov": {
                     "type": "number",
@@ -11651,33 +9563,17 @@ export const MCP_TOOLS = [
                     "type": "array",
                     "minItems": 3,
                     "maxItems": 3,
-                    "items": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "number"
-                      }
-                    ]
+                    "items": {
+                      "type": "number"
+                    }
                   },
                   "spread": {
                     "type": "array",
                     "minItems": 3,
                     "maxItems": 3,
-                    "items": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "number"
-                      }
-                    ]
+                    "items": {
+                      "type": "number"
+                    }
                   },
                   "rate": {
                     "type": "number",
@@ -11695,44 +9591,19 @@ export const MCP_TOOLS = [
                     "type": "array",
                     "minItems": 4,
                     "maxItems": 4,
-                    "items": [
-                      {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
-                      },
-                      {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
-                      },
-                      {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
-                      },
-                      {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
-                      }
-                    ]
+                    "items": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
                   },
                   "gravity": {
                     "type": "array",
                     "minItems": 3,
                     "maxItems": 3,
-                    "items": [
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "number"
-                      },
-                      {
-                        "type": "number"
-                      }
-                    ]
+                    "items": {
+                      "type": "number"
+                    }
                   },
                   "speed": {
                     "type": "number"
@@ -11795,8 +9666,7 @@ export const MCP_TOOLS = [
       "required": [
         "doc"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -11805,6 +9675,7 @@ export const MCP_TOOLS = [
     capability: "scene.checkpoint",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "name": {
@@ -11813,8 +9684,7 @@ export const MCP_TOOLS = [
           "maxLength": 80
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -11823,10 +9693,10 @@ export const MCP_TOOLS = [
     capability: "scene.checkpoints",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {},
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -11835,6 +9705,7 @@ export const MCP_TOOLS = [
     capability: "scene.restore",
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "checkpoint_id": {
@@ -11862,8 +9733,7 @@ export const MCP_TOOLS = [
       "required": [
         "checkpoint_id"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -11872,6 +9742,7 @@ export const MCP_TOOLS = [
     capability: "decal.create",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "id": {
@@ -11908,17 +9779,9 @@ export const MCP_TOOLS = [
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
-          "items": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ],
+          "items": {
+            "type": "number"
+          },
           "default": [
             0,
             1,
@@ -11929,17 +9792,9 @@ export const MCP_TOOLS = [
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
-          "items": [
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            },
-            {
-              "type": "number"
-            }
-          ]
+          "items": {
+            "type": "number"
+          }
         },
         "color": {
           "type": "string",
@@ -11977,8 +9832,7 @@ export const MCP_TOOLS = [
           ]
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -11987,6 +9841,7 @@ export const MCP_TOOLS = [
     capability: "mesh.boolean",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "target": {
@@ -12014,8 +9869,7 @@ export const MCP_TOOLS = [
         "target",
         "tool"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -12024,6 +9878,7 @@ export const MCP_TOOLS = [
     capability: "mesh.tube",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "name": {
@@ -12037,17 +9892,9 @@ export const MCP_TOOLS = [
             "type": "array",
             "minItems": 3,
             "maxItems": 3,
-            "items": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "number"
-              },
-              {
-                "type": "number"
-              }
-            ]
+            "items": {
+              "type": "number"
+            }
           },
           "minItems": 2,
           "maxItems": 512
@@ -12082,49 +9929,25 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "r": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "s": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             }
           },
           "additionalProperties": false
@@ -12149,8 +9972,7 @@ export const MCP_TOOLS = [
         "points",
         "radius"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -12159,6 +9981,7 @@ export const MCP_TOOLS = [
     capability: "mesh.backdrop",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "name": {
@@ -12198,49 +10021,25 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "r": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "s": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             }
           },
           "additionalProperties": false
@@ -12261,8 +10060,7 @@ export const MCP_TOOLS = [
           ]
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -12271,6 +10069,7 @@ export const MCP_TOOLS = [
     capability: "node.import",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "src": {
@@ -12304,49 +10103,25 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "r": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "s": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             }
           },
           "additionalProperties": false
@@ -12371,8 +10146,7 @@ export const MCP_TOOLS = [
           ]
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -12381,6 +10155,7 @@ export const MCP_TOOLS = [
     capability: "asset.inspect",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "src": {
@@ -12399,8 +10174,7 @@ export const MCP_TOOLS = [
       "required": [
         "src"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -12409,6 +10183,7 @@ export const MCP_TOOLS = [
     capability: "asset.put",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "src": {
@@ -12441,8 +10216,7 @@ export const MCP_TOOLS = [
       "required": [
         "src"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -12451,10 +10225,10 @@ export const MCP_TOOLS = [
     capability: "asset.list",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {},
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -12463,6 +10237,7 @@ export const MCP_TOOLS = [
     capability: "asset.delete",
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "sha": {
@@ -12473,8 +10248,7 @@ export const MCP_TOOLS = [
       "required": [
         "sha"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -12483,6 +10257,7 @@ export const MCP_TOOLS = [
     capability: "camera.set",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "camera": {
@@ -12499,33 +10274,17 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "target": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "fov": {
               "type": "number",
@@ -12564,33 +10323,17 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "max": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             }
           },
           "required": [
@@ -12616,8 +10359,7 @@ export const MCP_TOOLS = [
           ]
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -12626,6 +10368,7 @@ export const MCP_TOOLS = [
     capability: "camera.save",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "name": {
@@ -12646,33 +10389,17 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "target": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "fov": {
               "type": "number",
@@ -12690,8 +10417,7 @@ export const MCP_TOOLS = [
       "required": [
         "name"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -12700,6 +10426,7 @@ export const MCP_TOOLS = [
     capability: "camera.delete",
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "name": {
@@ -12710,8 +10437,7 @@ export const MCP_TOOLS = [
       "required": [
         "name"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -12720,6 +10446,7 @@ export const MCP_TOOLS = [
     capability: "render.snapshot",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "width": {
@@ -12804,8 +10531,7 @@ export const MCP_TOOLS = [
           ]
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -12814,6 +10540,7 @@ export const MCP_TOOLS = [
     capability: "render.views",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "views": {
@@ -12922,8 +10649,7 @@ export const MCP_TOOLS = [
           ]
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -12932,6 +10658,7 @@ export const MCP_TOOLS = [
     capability: "render.node",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "node_id": {
@@ -13039,8 +10766,7 @@ export const MCP_TOOLS = [
       "required": [
         "node_id"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -13049,6 +10775,7 @@ export const MCP_TOOLS = [
     capability: "render.pick",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "points": {
@@ -13180,8 +10907,7 @@ export const MCP_TOOLS = [
           "maxItems": 200
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -13190,6 +10916,7 @@ export const MCP_TOOLS = [
     capability: "render.id-pass",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "width": {
@@ -13216,33 +10943,17 @@ export const MCP_TOOLS = [
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "target": {
               "type": "array",
               "minItems": 3,
               "maxItems": 3,
-              "items": [
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                },
-                {
-                  "type": "number"
-                }
-              ]
+              "items": {
+                "type": "number"
+              }
             },
             "fov": {
               "type": "number",
@@ -13277,8 +10988,7 @@ export const MCP_TOOLS = [
           "type": "boolean"
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -13287,6 +10997,7 @@ export const MCP_TOOLS = [
     capability: "render.sequence",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "from": {
@@ -13356,8 +11067,7 @@ export const MCP_TOOLS = [
         "to",
         "fps"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -13366,6 +11076,7 @@ export const MCP_TOOLS = [
     capability: "export.glb",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "node_ids": {
@@ -13387,8 +11098,7 @@ export const MCP_TOOLS = [
           "maxItems": 2
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -13397,6 +11107,7 @@ export const MCP_TOOLS = [
     capability: "job.get",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "job_id": {
@@ -13407,8 +11118,7 @@ export const MCP_TOOLS = [
       "required": [
         "job_id"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -13417,10 +11127,10 @@ export const MCP_TOOLS = [
     capability: "job.list",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {},
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -13429,6 +11139,7 @@ export const MCP_TOOLS = [
     capability: "job.cancel",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "job_id": {
@@ -13439,8 +11150,7 @@ export const MCP_TOOLS = [
       "required": [
         "job_id"
       ],
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
   {
@@ -13449,6 +11159,7 @@ export const MCP_TOOLS = [
     capability: "editor.open",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "focus": {
@@ -13467,8 +11178,7 @@ export const MCP_TOOLS = [
           "description": "房间 id；省略时用当前会话绑定的房间"
         }
       },
-      "additionalProperties": false,
-      "$schema": "http://json-schema.org/draft-07/schema#"
+      "additionalProperties": false
     },
   },
 ] as const;

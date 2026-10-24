@@ -24,7 +24,7 @@ const EXTRA: Record<string, string> = {
 
 const LOOSE: Record<string, unknown> = {
   vibe3d_apply_ops: {
-    $schema: 'http://json-schema.org/draft-07/schema#',
+    $schema: 'https://json-schema.org/draft/2020-12/schema',
     type: 'object',
     properties: {
       ops: {
@@ -42,7 +42,7 @@ const LOOSE: Record<string, unknown> = {
     additionalProperties: false,
   },
   vibe3d_import_scene: {
-    $schema: 'http://json-schema.org/draft-07/schema#',
+    $schema: 'https://json-schema.org/draft/2020-12/schema',
     type: 'object',
     properties: {
       doc: { type: 'object', description: '整份场景文档；字段以服务端校验返回为准' },
