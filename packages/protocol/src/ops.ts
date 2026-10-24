@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { assetMetaSchema, clipSchema, fxSchema, modelAnimSchema, sceneDocSchema, sceneNodeSchema } from './scene';
+import {
+  assetMetaSchema,
+  clipSchema,
+  fxSchema,
+  modelAnimSchema,
+  sceneDocSchema,
+  sceneNodeSchema,
+} from './scene';
 import {
   cameraStateSchema,
   envSchema,
@@ -7,7 +14,9 @@ import {
   fxIdSchema,
   geometrySchema,
   lightSpecSchema,
+  mapTransformSchema,
   materialIdSchema,
+  materialPresetSchema,
   materialSchema,
   nodeIdSchema,
   shaSchema,
@@ -42,8 +51,18 @@ export const opSchema = z.discriminatedUnion('op', [
   z.object({ op: z.literal('material.set'), id: materialIdSchema, material: materialSchema }),
   z.object({ op: z.literal('material.delete'), id: materialIdSchema }),
   z.object({
+    op: z.literal('material.create'),
+    id: materialIdSchema,
+    preset: materialPresetSchema,
+    params: materialSchema.partial().optional(),
+  }),
+  z.object({ op: z.literal('material.patch'), id: materialIdSchema, patch: materialSchema.partial() }),
+  z.object({ op: z.literal('material.map'), id: materialIdSchema, map: mapTransformSchema.partial() }),
+  z.object({
     op: z.literal('env.set'),
-    env: envSchema.partial().extend({ hdri: shaSchema.nullable().optional(), fog: fogSchema.nullable().optional() }),
+    env: envSchema
+      .partial()
+      .extend({ hdri: shaSchema.nullable().optional(), fog: fogSchema.nullable().optional() }),
   }),
   z.object({ op: z.literal('stage.set'), stage: stageStateSchema.partial() }),
   z.object({

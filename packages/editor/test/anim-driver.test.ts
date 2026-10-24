@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import * as THREE from 'three';
-import { applyProceduralClips, clipsOf } from '../src/three/anim';
 import type { ClipSpec, SceneDoc } from '@vibebyte/vibe3d-protocol';
+import * as THREE from 'three';
+import { describe, expect, it } from 'vitest';
+import { applyProceduralClips, clipsOf } from '../src/three/anim';
 
 function obj(id: string, p: [number, number, number] = [0, 0, 0]) {
   const o = new THREE.Object3D();

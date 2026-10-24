@@ -62,11 +62,7 @@ describe('编辑器特效与程序化动画动作', () => {
 
   it('setFog 调 env.set，null 表示清除', async () => {
     await useDoc.getState().setFog({ near: 4, far: 30, color: [1, 1, 1, 1] });
-    expect(calls[0]).toEqual([
-      'env.set',
-      { fog: { near: 4, far: 30, color: [1, 1, 1, 1] } },
-      'r_00000001',
-    ]);
+    expect(calls[0]).toEqual(['env.set', { fog: { near: 4, far: 30, color: [1, 1, 1, 1] } }, 'r_00000001']);
     calls.length = 0;
     await useDoc.getState().setFog(null);
     expect(calls[0]).toEqual(['env.set', { fog: null }, 'r_00000001']);

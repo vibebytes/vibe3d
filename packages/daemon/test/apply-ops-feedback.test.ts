@@ -12,12 +12,7 @@ describe('ops.apply：让“场景没变化”可被调用方察觉', () => {
   it('空场景只改舞台：nodeCount 为 0，并给出 hint', async () => {
     const h = makeHarness();
     const roomId = await room(h);
-    const { body } = await call(
-      h,
-      'ops.apply',
-      { roomId, ops: [{ op: 'stage.set', stage: STAGE }] },
-      roomId,
-    );
+    const { body } = await call(h, 'ops.apply', { roomId, ops: [{ op: 'stage.set', stage: STAGE }] }, roomId);
     expect(body.result.applied).toBe(1);
     expect(body.result.nodeCount).toBe(0);
     expect(body.result.hint).toContain('vibe3d_create_node');

@@ -1,5 +1,6 @@
 import {
   AppError,
+  type MapTransform,
   type ModelAnim,
   type NodePatch,
   type Op,
@@ -7,6 +8,7 @@ import {
   type SceneNode,
 } from '@vibebyte/vibe3d-protocol';
 import { frameCamera } from './frame';
+import { normalizeMap, presetMaterial } from './material';
 import { DEFAULT_LIMITS, type Limits, validateDoc } from './validate';
 
 export interface ReduceResult {
@@ -17,6 +19,10 @@ export interface ReduceResult {
 
 function fail(message: string, data?: Record<string, unknown>): never {
   throw new AppError('E_INVALID_PARAMS', message, data);
+}
+
+function failWith(code: 'E_MATERIAL_NOT_FOUND', message: string, data?: Record<string, unknown>): never {
+  throw new AppError(code, message, data);
 }
 
 const clone = <T>(v: T): T => structuredClone(v);
@@ -60,7 +66,7 @@ function countRefs(doc: SceneDoc, sha: string): number {
   let total = 0;
   for (const node of Object.values(doc.nodes)) {
     if (node.kind === 'model' && node.sha === sha) total += 1;
-    if (node.kind === 'mesh' && doc.materials[node.material]?.map === sha) total += 1;
+    if (node.kind === 'mesh' && normalizeMap(doc.materials[node.material]?.map)?.sha === sha) total += 1;
   }
   if (doc.env.hdri === sha) total += 1;
   return total;
@@ -195,6 +201,28 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       if (!previous) return;
       delete doc.materials[op.id];
       inverse.push({ op: 'material.set', id: op.id, material: clone(previous) });
+      return;
+    }
+    case 'material.create': {
+      if (doc.materials[op.id]) fail('材质已存在', { id: op.id });
+      doc.materials[op.id] = presetMaterial(op.preset, op.params);
+      inverse.push({ op: 'material.delete', id: op.id });
+      return;
+    }
+    case 'material.patch': {
+      const previous = doc.materials[op.id];
+      if (!previous) failWith('E_MATERIAL_NOT_FOUND', '材质不存在', { material: op.id });
+      doc.materials[op.id] = { ...clone(previous), ...op.patch };
+      inverse.push({ op: 'material.patch', id: op.id, patch: clone(previous) });
+      return;
+    }
+    case 'material.map': {
+      const previous = doc.materials[op.id];
+      if (!previous) failWith('E_MATERIAL_NOT_FOUND', '材质不存在', { material: op.id });
+      const merged = { ...(normalizeMap(previous.map) ?? {}), ...(op.map as object) } as MapTransform;
+      if (!merged.sha) fail('map 需要 sha', { id: op.id });
+      doc.materials[op.id] = { ...clone(previous), map: merged };
+      inverse.push({ op: 'material.patch', id: op.id, patch: { map: previous.map } });
       return;
     }
     case 'env.set': {

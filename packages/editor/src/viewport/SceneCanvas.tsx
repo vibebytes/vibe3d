@@ -150,8 +150,9 @@ function AnimationDriver({ enabled }: { enabled: boolean }) {
 
 function ClipDriver({ doc, enabled }: { doc: SceneDoc; enabled: boolean }) {
   const scene = useThree((s) => s.scene);
-  const clips = useMemo(() => clipsOf(doc), [doc.nodes]);
-  const bases = useMemo(() => clipBasesOf(doc), [doc.nodes]);
+  const nodes = doc.nodes;
+  const clips = useMemo(() => clipsOf({ nodes }), [nodes]);
+  const bases = useMemo(() => clipBasesOf({ nodes }), [nodes]);
   const active = Object.keys(clips).length > 0;
   useFrame((state) => {
     if (!enabled || !active) return;

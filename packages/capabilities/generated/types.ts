@@ -28,6 +28,9 @@ export type CapabilityName =
   | "animation.clear"
   | "fx.create"
   | "fx.delete"
+  | "material.create"
+  | "material.patch"
+  | "material.map"
   | "env.set"
   | "scene.undo"
   | "scene.redo"
@@ -80,6 +83,9 @@ export type InputOf<N extends CapabilityName> = {
   "animation.clear": z.infer<(typeof CAPABILITIES)["animation.clear"]['input']>;
   "fx.create": z.infer<(typeof CAPABILITIES)["fx.create"]['input']>;
   "fx.delete": z.infer<(typeof CAPABILITIES)["fx.delete"]['input']>;
+  "material.create": z.infer<(typeof CAPABILITIES)["material.create"]['input']>;
+  "material.patch": z.infer<(typeof CAPABILITIES)["material.patch"]['input']>;
+  "material.map": z.infer<(typeof CAPABILITIES)["material.map"]['input']>;
   "env.set": z.infer<(typeof CAPABILITIES)["env.set"]['input']>;
   "scene.undo": z.infer<(typeof CAPABILITIES)["scene.undo"]['input']>;
   "scene.redo": z.infer<(typeof CAPABILITIES)["scene.redo"]['input']>;
@@ -133,6 +139,9 @@ export type OutputOf<N extends CapabilityName> = {
   "animation.clear": z.infer<(typeof CAPABILITIES)["animation.clear"]['output']>;
   "fx.create": z.infer<(typeof CAPABILITIES)["fx.create"]['output']>;
   "fx.delete": z.infer<(typeof CAPABILITIES)["fx.delete"]['output']>;
+  "material.create": z.infer<(typeof CAPABILITIES)["material.create"]['output']>;
+  "material.patch": z.infer<(typeof CAPABILITIES)["material.patch"]['output']>;
+  "material.map": z.infer<(typeof CAPABILITIES)["material.map"]['output']>;
   "env.set": z.infer<(typeof CAPABILITIES)["env.set"]['output']>;
   "scene.undo": z.infer<(typeof CAPABILITIES)["scene.undo"]['output']>;
   "scene.redo": z.infer<(typeof CAPABILITIES)["scene.redo"]['output']>;

@@ -1,4 +1,11 @@
-import type { AssetMeta, LightSpec, Material, ModelAnim, SceneDoc, SceneNode } from '@vibebyte/vibe3d-protocol';
+import type {
+  AssetMeta,
+  LightSpec,
+  Material,
+  ModelAnim,
+  SceneDoc,
+  SceneNode,
+} from '@vibebyte/vibe3d-protocol';
 import { nodeBounds } from './frame';
 
 type Vec3 = [number, number, number];

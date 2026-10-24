@@ -32,3 +32,12 @@ export {
   type ValidateOptions,
   type ValidateResult,
 } from './checks';
+export {
+  MATERIAL_PRESETS,
+  applyUv,
+  isMaterialPreset,
+  normalizeMap,
+  presetMaterial,
+  uvMatrix,
+  type MaterialPreset,
+} from './material';

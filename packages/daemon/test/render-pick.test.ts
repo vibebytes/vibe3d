@@ -36,7 +36,15 @@ describe('render.pick', () => {
     const { body } = await call(
       h,
       'render.pick',
-      { roomId, points: [{ x: 10, y: 10 }, { x: 199, y: 99 }], width: 200, height: 100 },
+      {
+        roomId,
+        points: [
+          { x: 10, y: 10 },
+          { x: 199, y: 99 },
+        ],
+        width: 200,
+        height: 100,
+      },
       roomId,
     );
     expect(body.error).toBeUndefined();
@@ -69,7 +77,12 @@ describe('render.pick', () => {
     const roomId = await room(h);
     h.ctx.renderer = fakeRenderer(halfRed().toString('base64')) as unknown as DispatchContext['renderer'];
 
-    const { body } = await call(h, 'render.pick', { roomId, rect: { x: 150, y: 40, w: 200, h: 200 } }, roomId);
+    const { body } = await call(
+      h,
+      'render.pick',
+      { roomId, rect: { x: 150, y: 40, w: 200, h: 200 } },
+      roomId,
+    );
     expect(body.error).toBeUndefined();
     expect(body.result.region.w).toBe(50);
     expect(body.result.region.h).toBe(60);
@@ -87,7 +100,12 @@ describe('render.pick', () => {
     const outside = await call(h, 'render.pick', { roomId, points: [{ x: 400, y: 10 }] }, roomId);
     expect(codeOf(outside.body)).toBe('E_INVALID_PARAMS');
 
-    const offCanvas = await call(h, 'render.pick', { roomId, rect: { x: 300, y: 300, w: 20, h: 20 } }, roomId);
+    const offCanvas = await call(
+      h,
+      'render.pick',
+      { roomId, rect: { x: 300, y: 300, w: 20, h: 20 } },
+      roomId,
+    );
     expect(codeOf(offCanvas.body)).toBe('E_INVALID_PARAMS');
   });
 

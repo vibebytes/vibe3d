@@ -1,4 +1,10 @@
-import { CAPABILITIES, type CapabilityName, describeIssues, MCP_TOOLS, toIssues } from '@vibebyte/vibe3d-capabilities';
+import {
+  CAPABILITIES,
+  type CapabilityName,
+  MCP_TOOLS,
+  describeIssues,
+  toIssues,
+} from '@vibebyte/vibe3d-capabilities';
 import { type RoomHandle, type Studio, Vibe3DError } from '@vibebyte/vibe3d-client';
 import { coerceForSchema, deepCamel } from './coerce';
 import { RoomSession } from './session';

@@ -3,8 +3,9 @@ export interface ParamIssue {
   message: string;
 }
 
-export const toIssues = (issues: ReadonlyArray<{ path: ReadonlyArray<string | number>; message: string }>): ParamIssue[] =>
-  issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message }));
+export const toIssues = (
+  issues: ReadonlyArray<{ path: ReadonlyArray<string | number>; message: string }>,
+): ParamIssue[] => issues.map((issue) => ({ path: issue.path.join('.'), message: issue.message }));
 
 export const describeIssues = (
   issues: ReadonlyArray<{ path: ReadonlyArray<string | number>; message: string }>,

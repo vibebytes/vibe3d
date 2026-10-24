@@ -116,9 +116,7 @@ export function StagePanel({ doc }: { doc: SceneDoc }) {
         <ToggleRow
           label="启用雾"
           checked={Boolean(fog)}
-          onChange={(on) =>
-            void setFog(on ? { near: 6, far: 40, color: env.background } : null)
-          }
+          onChange={(on) => void setFog(on ? { near: 6, far: 40, color: env.background } : null)}
         />
         {fog && (
           <>

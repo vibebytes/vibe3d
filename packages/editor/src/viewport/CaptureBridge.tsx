@@ -3,12 +3,12 @@ import type { CameraState } from '@vibebyte/vibe3d-protocol';
 import { useEffect } from 'react';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
-import { addOverlays, applyShading } from './capture-look';
-import type { OverlayKind, ShadingMode } from './capture-look';
 import { useDoc } from '../stores/doc';
 import { useSelection } from '../stores/selection';
 import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
 import { applyFxAt } from '../three/fx';
+import { addOverlays, applyShading } from './capture-look';
+import type { OverlayKind, ShadingMode } from './capture-look';
 
 export type { OverlayKind, ShadingMode } from './capture-look';
 

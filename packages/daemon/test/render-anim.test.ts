@@ -3,9 +3,7 @@ import type { DispatchContext, SnapshotOptions } from '../src/context';
 import { type Harness, call, makeHarness } from './helpers/harness';
 import { makePng } from './helpers/png';
 
-const solidPng = makePng(24, 18, (_x: number, _y: number) => [40, 90, 160, 255] as const).toString(
-  'base64',
-);
+const solidPng = makePng(24, 18, (_x: number, _y: number) => [40, 90, 160, 255] as const).toString('base64');
 const get = (list: SnapshotOptions[], i: number): SnapshotOptions => list[i] as SnapshotOptions;
 
 function fakeRenderer(seen: SnapshotOptions[]) {

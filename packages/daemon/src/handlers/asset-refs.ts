@@ -6,7 +6,7 @@ export function referencedAssets(doc: SceneDoc): Set<string> {
     if (node.kind === 'model') seen.add(node.sha);
     if (node.kind === 'mesh') {
       const map = doc.materials[node.material]?.map;
-      if (map) seen.add(map);
+      if (map) seen.add(typeof map === 'string' ? map : map.sha);
     }
   }
   if (doc.env.hdri) seen.add(doc.env.hdri);

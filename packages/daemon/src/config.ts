@@ -68,7 +68,10 @@ export function parseConfig(argv: string[], env: NodeJS.ProcessEnv = process.env
     openEditor:
       flags['open-editor'] === true
         ? true
-        : bool(typeof flags['open-editor'] === 'string' ? flags['open-editor'] : env.VIBE3D_OPEN_EDITOR, true),
+        : bool(
+            typeof flags['open-editor'] === 'string' ? flags['open-editor'] : env.VIBE3D_OPEN_EDITOR,
+            true,
+          ),
     logLevel: flags['log-level'] ?? env.VIBE3D_LOG_LEVEL,
   };
 

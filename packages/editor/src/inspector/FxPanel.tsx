@@ -75,9 +75,7 @@ export function FxPanel({ doc, node }: { doc: SceneDoc; node: SceneNode | null }
               label="曲线"
               value={draft.type}
               options={CLIPS}
-              onChange={(type) =>
-                apply({ type, ...DEFAULTS[type] })
-              }
+              onChange={(type) => apply({ type, ...DEFAULTS[type] })}
               renderOption={(type) => CLIP_LABELS[type]}
             />
             <SelectField

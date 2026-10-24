@@ -6,7 +6,14 @@ const base = { p: [1, 2, 3], r: [0, 0, 0], s: [1, 1, 1] } as any;
 
 describe('程序化动画 clip 求值', () => {
   it('keyframes 线性插值：t=0.5 精确命中中值', () => {
-    const c = clip({ type: 'keyframes', channel: 'py', keys: [{ t: 0, v: 0 }, { t: 1, v: 10 }] });
+    const c = clip({
+      type: 'keyframes',
+      channel: 'py',
+      keys: [
+        { t: 0, v: 0 },
+        { t: 1, v: 10 },
+      ],
+    });
     expect(sampleClip(c, 0)).toBeCloseTo(0, 9);
     expect(sampleClip(c, 0.5)).toBeCloseTo(5, 9);
     expect(sampleClip(c, 1)).toBeCloseTo(10, 9);
@@ -17,11 +24,14 @@ describe('程序化动画 clip 求值', () => {
     const c = clip({
       type: 'keyframes',
       channel: 'py',
-      keys: [{ t: 0, v: 0, ease: 'easeIn' }, { t: 1, v: 10 }],
+      keys: [
+        { t: 0, v: 0, ease: 'easeIn' },
+        { t: 1, v: 10 },
+      ],
     });
     expect(sampleClip(c, 0)).toBeCloseTo(0, 9);
     expect(sampleClip(c, 1)).toBeCloseTo(10, 9);
-    let prev = -Infinity;
+    let prev = Number.NEGATIVE_INFINITY;
     for (let i = 0; i <= 10; i += 1) {
       const v = sampleClip(c, i / 10);
       expect(v).toBeGreaterThanOrEqual(prev - 1e-9);
@@ -34,7 +44,10 @@ describe('程序化动画 clip 求值', () => {
     const c = clip({
       type: 'keyframes',
       channel: 'py',
-      keys: [{ t: 0, v: 0 }, { t: 1, v: 4 }],
+      keys: [
+        { t: 0, v: 0 },
+        { t: 1, v: 4 },
+      ],
       loop: true,
       duration: 1,
       speed: 2,
@@ -68,14 +81,28 @@ describe('程序化动画 clip 求值', () => {
   });
 
   it('applyClipTransform：位移相加、旋转相加、缩放相乘，且不改基准', () => {
-    const move = clip({ type: 'keyframes', channel: 'py', keys: [{ t: 0, v: 0 }, { t: 1, v: 2 }] });
+    const move = clip({
+      type: 'keyframes',
+      channel: 'py',
+      keys: [
+        { t: 0, v: 0 },
+        { t: 1, v: 2 },
+      ],
+    });
     const out = applyClipTransform(base, move, 0.5);
     expect(out.p).toEqual([1, 3, 3]);
     expect(out.r).toEqual([0, 0, 0]);
     expect(out.s).toEqual([1, 1, 1]);
     expect(base).toEqual({ p: [1, 2, 3], r: [0, 0, 0], s: [1, 1, 1] });
 
-    const grow = clip({ type: 'keyframes', channel: 'sy', keys: [{ t: 0, v: 0 }, { t: 1, v: 0.5 }] });
+    const grow = clip({
+      type: 'keyframes',
+      channel: 'sy',
+      keys: [
+        { t: 0, v: 0 },
+        { t: 1, v: 0.5 },
+      ],
+    });
     expect(applyClipTransform(base, grow, 1).s).toEqual([1, 1.5, 1]);
   });
 

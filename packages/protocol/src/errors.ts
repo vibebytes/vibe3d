@@ -28,6 +28,7 @@ export const ERROR_CODES = [
   'E_BUSY',
   'E_CHECKPOINT_NOT_FOUND',
   'E_NODE_NOT_FOUND',
+  'E_MATERIAL_NOT_FOUND',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
@@ -65,6 +66,7 @@ export const ERROR_SPECS: Record<ErrorCode, ErrorSpec> = {
   E_BUSY: { rpc: -32018, http: 429, retryable: true, message: '队列已满，请稍后重试' },
   E_CHECKPOINT_NOT_FOUND: { rpc: -32019, http: 404, retryable: false, message: '检查点不存在' },
   E_NODE_NOT_FOUND: { rpc: -32020, http: 404, retryable: false, message: '节点不存在' },
+  E_MATERIAL_NOT_FOUND: { rpc: -32021, http: 404, retryable: false, message: '材质不存在' },
 };
 
 export interface AppErrorData {

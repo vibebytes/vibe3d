@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import * as THREE from 'three';
-import { applyFxAt, buildFxObject, fogSettings, updateFxObject } from '../src/three/fx';
 import type { FxSpec } from '@vibebyte/vibe3d-protocol';
+import * as THREE from 'three';
+import { describe, expect, it } from 'vitest';
+import { applyFxAt, buildFxObject, fogSettings, updateFxObject } from '../src/three/fx';
 
 const particles: FxSpec = {
   id: 'f_aaaaaaaa',

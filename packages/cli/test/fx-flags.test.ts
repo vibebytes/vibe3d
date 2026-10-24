@@ -5,16 +5,15 @@ import { clipFromFlags, fogFromFlags, fxSpecFromFlags } from '../src/fx-args';
 
 const flags = (raw: Record<string, string | boolean>) => raw as ParsedArgs['flags'];
 
-const parseFx = (raw: Record<string, string | boolean>) => fxSchema.omit({ id: true }).parse(fxSpecFromFlags(flags(raw)));
+const parseFx = (raw: Record<string, string | boolean>) =>
+  fxSchema.omit({ id: true }).parse(fxSpecFromFlags(flags(raw)));
 
 describe('CLI 特效参数', () => {
   it('默认粒子，颜色支持 #rrggbb 与 #rrggbbaa', () => {
     const spec = parseFx({ color: '#ff8800' });
     expect(spec.type).toBe('particles');
     expect(spec.color).toEqual([1, 0.5333333333333333, 0, 1]);
-    expect(parseFx({ type: 'shaft', color: '#3366ffcc' }).color).toEqual([
-      0.2, 0.4, 1, 0.8,
-    ]);
+    expect(parseFx({ type: 'shaft', color: '#3366ffcc' }).color).toEqual([0.2, 0.4, 1, 0.8]);
   });
 
   it('数值与向量旗标原样透传', () => {
@@ -59,7 +58,19 @@ describe('CLI 程序化动画参数', () => {
   });
 
   it('轨道细节透传', () => {
-    expect(clipFromFlags(flags({ type: 'ripple', channel: 'pz', amplitude: '0.4', frequency: '0.2', phase: '1.5', speed: '0.5', duration: '4' }))).toEqual({
+    expect(
+      clipFromFlags(
+        flags({
+          type: 'ripple',
+          channel: 'pz',
+          amplitude: '0.4',
+          frequency: '0.2',
+          phase: '1.5',
+          speed: '0.5',
+          duration: '4',
+        }),
+      ),
+    ).toEqual({
       type: 'ripple',
       channel: 'pz',
       amplitude: 0.4,

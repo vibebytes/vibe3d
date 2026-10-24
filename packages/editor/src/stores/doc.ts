@@ -3,7 +3,9 @@ import type {
   ClipSpec,
   Fog,
   FxSpec,
+  MapTransform,
   Material,
+  MaterialPreset,
   SceneDoc,
   StageState,
 } from '@vibebyte/vibe3d-protocol';
@@ -80,6 +82,8 @@ interface DocStore {
   ingestFiles(files: File[]): Promise<{ models: ImportOutcome; images: ImageOutcome; rejected: string[] }>;
   patchNode(id: string, patch: Record<string, unknown>): Promise<void>;
   patchMaterial(id: string, material: Material): Promise<void>;
+  mapMaterial(id: string, map: Partial<MapTransform>): Promise<void>;
+  createMaterial(preset: MaterialPreset): Promise<string | null>;
   removeNode(id: string): Promise<void>;
   setStage(stage: Partial<StageState>): Promise<void>;
   setEnv(env: Partial<SceneDoc['env']>): Promise<void>;
@@ -292,6 +296,21 @@ export const useDoc = create<DocStore>((set, get) => ({
     if (!roomId) return;
     await rpc('ops.apply', { ops: [{ op: 'material.set', id, material }] }, roomId);
     await get().refresh();
+  },
+
+  async mapMaterial(id, map) {
+    const roomId = get().roomId;
+    if (!roomId) return;
+    await rpc('ops.apply', { ops: [{ op: 'material.map', id, map }] }, roomId);
+    await get().refresh();
+  },
+
+  async createMaterial(preset) {
+    const roomId = get().roomId;
+    if (!roomId) return null;
+    const out = await rpc<{ materialId: string }>('material.create', { preset }, roomId);
+    await get().refresh();
+    return out.materialId;
   },
 
   async removeNode(id) {

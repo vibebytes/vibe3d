@@ -75,7 +75,9 @@ function zebraRoad(): SceneDoc {
   const nodes: SceneNode[] = [];
   for (let i = 0; i < 20; i++) {
     const id = `n_zebra${String(i).padStart(3, '0')}` as `n_${string}`;
-    nodes.push(box(id, `斑马线-${String(i + 1).padStart(2, '0')}`, [i * 1.5, 0.11, 0], { size: [1.2, 0.02, 0.6] }));
+    nodes.push(
+      box(id, `斑马线-${String(i + 1).padStart(2, '0')}`, [i * 1.5, 0.11, 0], { size: [1.2, 0.02, 0.6] }),
+    );
   }
   nodes.push(hanging('n_lamp001', '路灯-01', [0, 1, 0]));
   nodes.push(hanging('n_lamp002', '路灯-02', [5, 1, 0]));

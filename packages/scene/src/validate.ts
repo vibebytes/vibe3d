@@ -35,10 +35,11 @@ export function validateDoc(doc: SceneDoc, limits: Limits = DEFAULT_LIMITS): voi
     if (node.kind === 'mesh') {
       const material = doc.materials[node.material];
       if (!material) fail('材质引用不存在', { id: key, material: node.material });
-      if (material.map) {
-        const asset = doc.assets[material.map];
+      const mapSha = typeof material.map === 'string' ? material.map : material.map?.sha;
+      if (mapSha) {
+        const asset = doc.assets[mapSha];
         if (!asset || asset.kind !== 'image' || asset.image?.hdri) {
-          fail('材质贴图必须是普通图片资产', { id: key, sha: material.map }, 'E_ASSET_TYPE');
+          fail('材质贴图必须是普通图片资产', { id: key, sha: mapSha }, 'E_ASSET_TYPE');
         }
       }
     }

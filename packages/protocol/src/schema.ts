@@ -39,6 +39,17 @@ export const geometrySchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('plane'), width: finite.positive(), height: finite.positive() }),
 ]);
 
+export const materialPresetSchema = z.enum(['concrete', 'rust', 'wet_moss', 'toon', 'water', 'glass']);
+
+export const mapTransformSchema = z.object({
+  sha: shaSchema,
+  tiling: z.tuple([finite.positive(), finite.positive()]).optional(),
+  offset: z.tuple([finite, finite]).optional(),
+  rotation: finite.optional(),
+});
+
+export const materialMapSchema = z.union([shaSchema, mapTransformSchema]);
+
 export const materialSchema = z.object({
   baseColor: rgba,
   metalness: unit,
@@ -47,7 +58,7 @@ export const materialSchema = z.object({
   emissiveIntensity: finite.min(0),
   opacity: unit,
   doubleSided: z.boolean(),
-  map: shaSchema.optional(),
+  map: materialMapSchema.optional(),
 });
 
 export const assetImageSchema = z.object({
@@ -102,7 +113,10 @@ export type Rgb = z.infer<typeof rgb>;
 export type Rgba = z.infer<typeof rgba>;
 export type Transform = z.infer<typeof transformSchema>;
 export type Geometry = z.infer<typeof geometrySchema>;
+export type MaterialPreset = z.infer<typeof materialPresetSchema>;
 export type Material = z.infer<typeof materialSchema>;
+export type MapTransform = z.infer<typeof mapTransformSchema>;
+export type MaterialMap = z.infer<typeof materialMapSchema>;
 export type LightSpec = z.infer<typeof lightSpecSchema>;
 export type CameraState = z.infer<typeof cameraStateSchema>;
 export type StageState = z.infer<typeof stageStateSchema>;

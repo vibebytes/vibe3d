@@ -7,6 +7,7 @@ import { Studio, type StudioOptions } from '@vibebyte/vibe3d-client';
 import { type ParsedArgs, bool, jsonArg, num, parseSize, str, vec } from './args';
 import { clipFromFlags, fogFromFlags, fxSpecFromFlags } from './fx-args';
 import { parseLookFlags } from './look';
+import { mapFromFlags, materialPatchFromFlags } from './material-args';
 import { readSceneDocFile } from './scene-io';
 
 function connectOptions(flags: ParsedArgs['flags']): StudioOptions {
@@ -227,6 +228,29 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
         ids: str(flags, 'ids')?.split(','),
         filter: jsonArg(str(flags, 'filter')),
         materialId: need(str(flags, 'material'), 'material assign 需要 --material'),
+      }) as never,
+    );
+  }
+
+  if (group === 'material' && command === 'create') {
+    return room.createMaterial({
+      preset: need(str(flags, 'preset'), 'material create 需要 --preset'),
+      params: jsonArg(str(flags, 'params')),
+    } as never);
+  }
+
+  if (group === 'material' && command === 'patch') {
+    return room.patchMaterial({
+      materialId: need(rest[1], 'material patch 需要 materialId'),
+      patch: materialPatchFromFlags(flags),
+    } as never);
+  }
+
+  if (group === 'material' && command === 'map') {
+    return room.mapMaterial(
+      pick({
+        materialId: need(rest[1], 'material map 需要 materialId'),
+        ...mapFromFlags(flags),
       }) as never,
     );
   }

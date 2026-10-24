@@ -134,6 +134,20 @@ export class RoomHandle {
     return this.invoke('material.assign', params);
   }
 
+  createMaterial(
+    params: Omit<CapParams<'material.create'>, 'roomId'>,
+  ): Promise<CapResult<'material.create'>> {
+    return this.invoke('material.create', params);
+  }
+
+  patchMaterial(params: Omit<CapParams<'material.patch'>, 'roomId'>): Promise<CapResult<'material.patch'>> {
+    return this.invoke('material.patch', params);
+  }
+
+  mapMaterial(params: Omit<CapParams<'material.map'>, 'roomId'>): Promise<CapResult<'material.map'>> {
+    return this.invoke('material.map', params);
+  }
+
   apply(
     ops: CapParams<'ops.apply'>['ops'],
     opts: { dryRun?: boolean } & CallOptions = {},

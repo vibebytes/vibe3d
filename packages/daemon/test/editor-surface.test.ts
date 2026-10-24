@@ -13,12 +13,7 @@ describe('ops.apply：editor 未连接时必须说清楚', () => {
     const h = makeHarness();
     h.ctx.surfaces = () => 0;
     const roomId = await room(h);
-    const { body } = await call(
-      h,
-      'ops.apply',
-      { roomId, ops: [{ op: 'stage.set', stage: STAGE }] },
-      roomId,
-    );
+    const { body } = await call(h, 'ops.apply', { roomId, ops: [{ op: 'stage.set', stage: STAGE }] }, roomId);
     expect(body.result.editors).toBe(0);
     expect(body.result.hint).toContain('vibe3d_open_editor');
     expect(body.result.hint).toContain(`/editor/r/${roomId}`);
@@ -30,12 +25,7 @@ describe('ops.apply：editor 未连接时必须说清楚', () => {
     const roomId = await room(h);
     const created = await call(h, 'node.create', { roomId, kind: 'mesh', shape: 'box' }, roomId);
     expect(created.body.result.nodeId).toBeTruthy();
-    const { body } = await call(
-      h,
-      'ops.apply',
-      { roomId, ops: [{ op: 'stage.set', stage: STAGE }] },
-      roomId,
-    );
+    const { body } = await call(h, 'ops.apply', { roomId, ops: [{ op: 'stage.set', stage: STAGE }] }, roomId);
     expect(body.result.editors).toBe(1);
     expect(body.result.hint).toBeUndefined();
   });

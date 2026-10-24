@@ -21,7 +21,10 @@ function refCounts(ctx: DispatchContext, roomId: string): Record<string, number>
   };
   for (const node of Object.values(doc.nodes)) {
     if (node.kind === 'model') bump(node.sha);
-    if (node.kind === 'mesh') bump(doc.materials[node.material]?.map);
+    if (node.kind === 'mesh') {
+      const map = doc.materials[node.material]?.map;
+      bump(typeof map === 'string' ? map : map?.sha);
+    }
   }
   bump(doc.env.hdri);
   return refs;

@@ -55,12 +55,7 @@ function roomIdOf(params: unknown, result: unknown): string | undefined {
   return typeof fromResult === 'string' ? fromResult : undefined;
 }
 
-function autoOpenEditor(
-  name: CapabilityName,
-  params: unknown,
-  result: unknown,
-  ctx: DispatchContext,
-): void {
+function autoOpenEditor(name: CapabilityName, params: unknown, result: unknown, ctx: DispatchContext): void {
   const open = ctx.openExternal;
   if (!open || !VISUAL_MUTATIONS.has(name)) return;
   const roomId = roomIdOf(params, result);

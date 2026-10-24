@@ -36,7 +36,7 @@ export function sampleParticles(fx: FxSpec, t: number): ParticleSample[] {
   for (let i = 0; i < count; i += 1) {
     const rand = mulberry32((fx.seed ?? 7) + i * 2654435761);
     const offset = (i / count) * life;
-    const age = ((((t + offset) % life) + life) % life);
+    const age = (((t + offset) % life) + life) % life;
     const x0 = base[0] + (rand() - 0.5) * spread[0];
     const y0 = base[1] + (rand() - 0.5) * spread[1];
     const z0 = base[2] + (rand() - 0.5) * spread[2];

@@ -33,6 +33,9 @@ type Keys =
   | 'node.array'
   | 'node.group'
   | 'material.assign'
+  | 'material.create'
+  | 'material.patch'
+  | 'material.map'
   | 'scene.query'
   | 'node.get'
   | 'scene.validate'
@@ -517,10 +520,38 @@ export const sceneHandlers: HandlersFor<Keys> = {
   'env.set': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     const { roomId: _roomId, ...env } = p;
-    const result = await room.run(() =>
-      room.apply([{ op: 'env.set', env } as Op]),
-    );
+    const result = await room.run(() => room.apply([{ op: 'env.set', env } as Op]));
     return { revision: result.revision, env: room.doc.env };
+  },
+
+  'material.create': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const materialId = makeMaterialId();
+    const result = await room.run(() =>
+      room.apply([{ op: 'material.create', id: materialId, preset: p.preset, params: p.params }]),
+    );
+    return { revision: result.revision, materialId };
+  },
+
+  'material.patch': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    if (!room.doc.materials[p.materialId]) {
+      throw new AppError('E_MATERIAL_NOT_FOUND', `材质 ${p.materialId} 不存在`);
+    }
+    const result = await room.run(() =>
+      room.apply([{ op: 'material.patch', id: p.materialId, patch: p.patch }]),
+    );
+    return { revision: result.revision, materialId: p.materialId };
+  },
+
+  'material.map': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    if (!room.doc.materials[p.materialId]) {
+      throw new AppError('E_MATERIAL_NOT_FOUND', `材质 ${p.materialId} 不存在`);
+    }
+    const { roomId: _roomId, materialId, ...map } = p;
+    const result = await room.run(() => room.apply([{ op: 'material.map', id: materialId, map }]));
+    return { revision: result.revision, materialId };
   },
 
   'camera.set': async (p, ctx) => {
