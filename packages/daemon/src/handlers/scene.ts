@@ -581,7 +581,15 @@ export const sceneHandlers: HandlersFor<Keys> = {
 
   'animation.play': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    const op: Op = { op: 'animation.play', target: p.nodeId, clip: p.clip, speed: p.speed };
+    const op: Op = {
+      op: 'animation.play',
+      target: p.nodeId,
+      clip: p.clip,
+      speed: p.speed,
+      loop: p.loop,
+      direction: p.direction,
+      weight: p.weight,
+    };
     const result = await room.run(() => room.apply([op]));
     return { revision: result.revision };
   },

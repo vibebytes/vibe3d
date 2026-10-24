@@ -7,7 +7,7 @@ import { Studio, type StudioOptions } from '@vibebyte/vibe3d-client';
 import { type ParsedArgs, bool, jsonArg, num, parseSize, str, vec } from './args';
 import { cameraFromFlags, saveNameFrom } from './camera-args';
 import { backdropFromFlags, booleanFromFlags, decalFromFlags, tubeFromFlags } from './decal-args';
-import { applyToFromFlags, clipFromFlags, fogFromFlags, fxSpecFromFlags } from './fx-args';
+import { applyToFromFlags, clipFromFlags, fogFromFlags, fxSpecFromFlags, playOptsFromFlags } from './fx-args';
 import { parseLookFlags } from './look';
 import { mapFromFlags, materialPatchFromFlags } from './material-args';
 import { readSceneDocFile } from './scene-io';
@@ -292,8 +292,7 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
   if (group === 'anim' && command === 'play') {
     return room.play({
       nodeId: need(rest[1], 'anim play 需要 nodeId'),
-      clip: str(flags, 'clip'),
-      speed: num(flags, 'speed'),
+      ...playOptsFromFlags(flags),
     } as never);
   }
 

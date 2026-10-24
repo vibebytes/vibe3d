@@ -342,7 +342,14 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       if (!report.animations.some((a) => a.name === clip)) fail('clip 不存在', { clip });
       if (report.skins === 0) fail('资产没有蒙皮，不能播放动画', { sha: node.sha });
       const previous: ModelAnim | null = node.anim ? clone(node.anim) : null;
-      node.anim = { playing: true, clip, speed: op.speed ?? previous?.speed ?? 1 };
+      node.anim = {
+        playing: true,
+        clip,
+        speed: op.speed ?? previous?.speed ?? 1,
+        loop: op.loop ?? previous?.loop ?? true,
+        direction: op.direction ?? previous?.direction ?? 'forward',
+        weight: op.weight ?? previous?.weight ?? 1,
+      };
       inverse.push({ op: 'node.update', id: op.target, patch: { anim: previous } });
       return;
     }

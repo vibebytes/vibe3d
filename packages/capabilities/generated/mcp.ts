@@ -2087,6 +2087,21 @@ export const MCP_TOOLS = [
                               "speed": {
                                 "type": "number",
                                 "exclusiveMinimum": 0
+                              },
+                              "loop": {
+                                "type": "boolean"
+                              },
+                              "direction": {
+                                "type": "string",
+                                "enum": [
+                                  "forward",
+                                  "reverse"
+                                ]
+                              },
+                              "weight": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
                               }
                             },
                             "required": [
@@ -2312,6 +2327,21 @@ export const MCP_TOOLS = [
                               "speed": {
                                 "type": "number",
                                 "exclusiveMinimum": 0
+                              },
+                              "loop": {
+                                "type": "boolean"
+                              },
+                              "direction": {
+                                "type": "string",
+                                "enum": [
+                                  "forward",
+                                  "reverse"
+                                ]
+                              },
+                              "weight": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
                               }
                             },
                             "required": [
@@ -3931,6 +3961,21 @@ export const MCP_TOOLS = [
                   "speed": {
                     "type": "number",
                     "exclusiveMinimum": 0
+                  },
+                  "loop": {
+                    "type": "boolean"
+                  },
+                  "direction": {
+                    "type": "string",
+                    "enum": [
+                      "forward",
+                      "reverse"
+                    ]
+                  },
+                  "weight": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
                   }
                 },
                 "required": [
@@ -5825,6 +5870,21 @@ export const MCP_TOOLS = [
                                     "speed": {
                                       "type": "number",
                                       "exclusiveMinimum": 0
+                                    },
+                                    "loop": {
+                                      "type": "boolean"
+                                    },
+                                    "direction": {
+                                      "type": "string",
+                                      "enum": [
+                                        "forward",
+                                        "reverse"
+                                      ]
+                                    },
+                                    "weight": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 1
                                     }
                                   },
                                   "required": [
@@ -7543,6 +7603,21 @@ export const MCP_TOOLS = [
                     "speed": {
                       "type": "number",
                       "exclusiveMinimum": 0
+                    },
+                    "loop": {
+                      "type": "boolean"
+                    },
+                    "direction": {
+                      "type": "string",
+                      "enum": [
+                        "forward",
+                        "reverse"
+                      ]
+                    },
+                    "weight": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
                     }
                   },
                   "required": [
@@ -7873,6 +7948,21 @@ export const MCP_TOOLS = [
         "speed": {
           "type": "number",
           "exclusiveMinimum": 0
+        },
+        "loop": {
+          "type": "boolean"
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "forward",
+            "reverse"
+          ]
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
         }
       },
       "required": [
@@ -10092,6 +10182,21 @@ export const MCP_TOOLS = [
                           "speed": {
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "loop": {
+                            "type": "boolean"
+                          },
+                          "direction": {
+                            "type": "string",
+                            "enum": [
+                              "forward",
+                              "reverse"
+                            ]
+                          },
+                          "weight": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
                           }
                         },
                         "required": [

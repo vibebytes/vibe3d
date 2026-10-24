@@ -56,6 +56,27 @@ export function applyToFromFlags(flags: Flags): 'node' | 'subtree' | undefined {
   return value;
 }
 
+export function playOptsFromFlags(flags: Flags): {
+  clip?: string;
+  speed?: number;
+  loop?: boolean;
+  direction?: 'forward' | 'reverse';
+  weight?: number;
+} {
+  const raw = str(flags, 'direction');
+  if (raw && raw !== 'forward' && raw !== 'reverse') {
+    throw new Error(`--direction 只支持 forward|reverse：${raw}`);
+  }
+  const direction = raw === 'forward' || raw === 'reverse' ? raw : undefined;
+  return pick({
+    clip: str(flags, 'clip'),
+    speed: num(flags, 'speed'),
+    loop: optionalBool(flags, 'loop'),
+    direction,
+    weight: num(flags, 'weight'),
+  });
+}
+
 export function fxSpecFromFlags(flags: Flags): Omit<FxSpec, 'id'> {
   const type = str(flags, 'type') ?? 'particles';
   if (!FX_TYPES.includes(type as (typeof FX_TYPES)[number])) {

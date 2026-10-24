@@ -1562,6 +1562,21 @@
                             "speed": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "loop": {
+                              "type": "boolean"
+                            },
+                            "direction": {
+                              "type": "string",
+                              "enum": [
+                                "forward",
+                                "reverse"
+                              ]
+                            },
+                            "weight": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             }
                           },
                           "required": [
@@ -3605,6 +3620,21 @@
               "speed": {
                 "type": "number",
                 "exclusiveMinimum": 0
+              },
+              "loop": {
+                "type": "boolean"
+              },
+              "direction": {
+                "type": "string",
+                "enum": [
+                  "forward",
+                  "reverse"
+                ]
+              },
+              "weight": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
               }
             },
             "required": [
@@ -6466,6 +6496,21 @@
                                 "speed": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "loop": {
+                                  "type": "boolean"
+                                },
+                                "direction": {
+                                  "type": "string",
+                                  "enum": [
+                                    "forward",
+                                    "reverse"
+                                  ]
+                                },
+                                "weight": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 }
                               },
                               "required": [
@@ -6691,6 +6736,21 @@
                                 "speed": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "loop": {
+                                  "type": "boolean"
+                                },
+                                "direction": {
+                                  "type": "string",
+                                  "enum": [
+                                    "forward",
+                                    "reverse"
+                                  ]
+                                },
+                                "weight": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 }
                               },
                               "required": [
@@ -8310,6 +8370,21 @@
                     "speed": {
                       "type": "number",
                       "exclusiveMinimum": 0
+                    },
+                    "loop": {
+                      "type": "boolean"
+                    },
+                    "direction": {
+                      "type": "string",
+                      "enum": [
+                        "forward",
+                        "reverse"
+                      ]
+                    },
+                    "weight": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
                     }
                   },
                   "required": [
@@ -10204,6 +10279,21 @@
                                       "speed": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "loop": {
+                                        "type": "boolean"
+                                      },
+                                      "direction": {
+                                        "type": "string",
+                                        "enum": [
+                                          "forward",
+                                          "reverse"
+                                        ]
+                                      },
+                                      "weight": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       }
                                     },
                                     "required": [
@@ -12461,6 +12551,21 @@
                                 "speed": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "loop": {
+                                  "type": "boolean"
+                                },
+                                "direction": {
+                                  "type": "string",
+                                  "enum": [
+                                    "forward",
+                                    "reverse"
+                                  ]
+                                },
+                                "weight": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 }
                               },
                               "required": [
@@ -12686,6 +12791,21 @@
                                 "speed": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "loop": {
+                                  "type": "boolean"
+                                },
+                                "direction": {
+                                  "type": "string",
+                                  "enum": [
+                                    "forward",
+                                    "reverse"
+                                  ]
+                                },
+                                "weight": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 }
                               },
                               "required": [
@@ -14305,6 +14425,21 @@
                     "speed": {
                       "type": "number",
                       "exclusiveMinimum": 0
+                    },
+                    "loop": {
+                      "type": "boolean"
+                    },
+                    "direction": {
+                      "type": "string",
+                      "enum": [
+                        "forward",
+                        "reverse"
+                      ]
+                    },
+                    "weight": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
                     }
                   },
                   "required": [
@@ -16199,6 +16334,21 @@
                                       "speed": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "loop": {
+                                        "type": "boolean"
+                                      },
+                                      "direction": {
+                                        "type": "string",
+                                        "enum": [
+                                          "forward",
+                                          "reverse"
+                                        ]
+                                      },
+                                      "weight": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       }
                                     },
                                     "required": [
@@ -18007,6 +18157,21 @@
                       "speed": {
                         "type": "number",
                         "exclusiveMinimum": 0
+                      },
+                      "loop": {
+                        "type": "boolean"
+                      },
+                      "direction": {
+                        "type": "string",
+                        "enum": [
+                          "forward",
+                          "reverse"
+                        ]
+                      },
+                      "weight": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
                       }
                     },
                     "required": [
@@ -18623,7 +18788,7 @@
       },
       "cli": {
         "command": "anim play",
-        "args": "<roomId> <nodeId> [--clip <name>] [--speed 1]"
+        "args": "<roomId> <nodeId> [--clip <name>] [--speed 1] [--loop false] [--direction reverse] [--weight 0.5]"
       },
       "input": {
         "type": "object",
@@ -18642,6 +18807,21 @@
           "speed": {
             "type": "number",
             "exclusiveMinimum": 0
+          },
+          "loop": {
+            "type": "boolean"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "forward",
+              "reverse"
+            ]
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
           }
         },
         "required": [
@@ -21480,6 +21660,21 @@
                                 "speed": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "loop": {
+                                  "type": "boolean"
+                                },
+                                "direction": {
+                                  "type": "string",
+                                  "enum": [
+                                    "forward",
+                                    "reverse"
+                                  ]
+                                },
+                                "weight": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 }
                               },
                               "required": [
@@ -21705,6 +21900,21 @@
                                 "speed": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "loop": {
+                                  "type": "boolean"
+                                },
+                                "direction": {
+                                  "type": "string",
+                                  "enum": [
+                                    "forward",
+                                    "reverse"
+                                  ]
+                                },
+                                "weight": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 }
                               },
                               "required": [
@@ -23324,6 +23534,21 @@
                     "speed": {
                       "type": "number",
                       "exclusiveMinimum": 0
+                    },
+                    "loop": {
+                      "type": "boolean"
+                    },
+                    "direction": {
+                      "type": "string",
+                      "enum": [
+                        "forward",
+                        "reverse"
+                      ]
+                    },
+                    "weight": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
                     }
                   },
                   "required": [
@@ -25218,6 +25443,21 @@
                                       "speed": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "loop": {
+                                        "type": "boolean"
+                                      },
+                                      "direction": {
+                                        "type": "string",
+                                        "enum": [
+                                          "forward",
+                                          "reverse"
+                                        ]
+                                      },
+                                      "weight": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       }
                                     },
                                     "required": [
@@ -27583,6 +27823,21 @@
                             "speed": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "loop": {
+                              "type": "boolean"
+                            },
+                            "direction": {
+                              "type": "string",
+                              "enum": [
+                                "forward",
+                                "reverse"
+                              ]
+                            },
+                            "weight": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             }
                           },
                           "required": [
@@ -29836,6 +30091,21 @@
                             "speed": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "loop": {
+                              "type": "boolean"
+                            },
+                            "direction": {
+                              "type": "string",
+                              "enum": [
+                                "forward",
+                                "reverse"
+                              ]
+                            },
+                            "weight": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             }
                           },
                           "required": [

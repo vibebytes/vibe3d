@@ -23,6 +23,9 @@ export const modelAnimSchema = z.object({
   playing: z.boolean(),
   clip: z.string().min(1).optional(),
   speed: z.number().finite().positive(),
+  loop: z.boolean().optional(),
+  direction: z.enum(['forward', 'reverse']).optional(),
+  weight: z.number().finite().min(0).max(1).optional(),
 });
 
 export const clipKeySchema = z.object({

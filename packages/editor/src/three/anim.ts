@@ -8,6 +8,13 @@ interface Entry {
   current: string | null;
 }
 
+interface PlayOpts {
+  speed?: number;
+  loop?: boolean;
+  direction?: 'forward' | 'reverse';
+  weight?: number;
+}
+
 export class AnimationController {
   private entries = new Map<string, Entry>();
 
@@ -26,7 +33,18 @@ export class AnimationController {
     }
     const clip = anim.clip ?? this.clipOf(nodeId);
     if (!clip) return;
-    this.play(nodeId, clip, anim.speed);
+    this.play(nodeId, clip, {
+      speed: anim.speed,
+      loop: anim.loop,
+      direction: anim.direction,
+      weight: anim.weight,
+    });
+  }
+
+  actionOf(nodeId: string): THREE.AnimationAction | undefined {
+    const entry = this.entries.get(nodeId);
+    if (!entry?.current) return undefined;
+    return entry.actions.get(entry.current);
   }
 
   clipOf(nodeId: string): string | null {
@@ -39,7 +57,7 @@ export class AnimationController {
     return [...(this.entries.get(nodeId)?.actions.keys() ?? [])];
   }
 
-  play(nodeId: string, clip?: string, speed = 1): void {
+  play(nodeId: string, clip?: string, opts: PlayOpts = {}): void {
     const entry = this.entries.get(nodeId);
     if (!entry) return;
     const name = clip ?? this.clipOf(nodeId);
@@ -47,7 +65,14 @@ export class AnimationController {
     const action = entry.actions.get(name);
     if (!action) return;
     if (entry.current && entry.current !== name) entry.actions.get(entry.current)?.stop();
-    action.reset().setEffectiveTimeScale(speed).play();
+    const speed = opts.speed ?? 1;
+    const once = opts.loop === false;
+    action.reset();
+    action.setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat, once ? 1 : Number.POSITIVE_INFINITY);
+    action.clampWhenFinished = once;
+    action.setEffectiveTimeScale(opts.direction === 'reverse' ? -speed : speed);
+    action.setEffectiveWeight(opts.weight ?? 1);
+    action.play();
     entry.current = name;
   }
 

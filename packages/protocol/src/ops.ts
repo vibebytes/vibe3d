@@ -83,6 +83,9 @@ export const opSchema = z.discriminatedUnion('op', [
     target: nodeIdSchema,
     clip: z.string().min(1).optional(),
     speed: z.number().finite().positive().optional(),
+    loop: z.boolean().optional(),
+    direction: z.enum(['forward', 'reverse']).optional(),
+    weight: z.number().finite().min(0).max(1).optional(),
   }),
   z.object({ op: z.literal('animation.stop'), target: nodeIdSchema }),
   z.object({

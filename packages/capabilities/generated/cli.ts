@@ -25,7 +25,7 @@ export const CLI_COMMANDS = [
   { command: "node rm", args: "<roomId> <nodeId> [--no-cascade]", capability: "node.delete" },
   { command: "node clone", args: "<roomId> <nodeId> [--count 2] [--parent <id>]", capability: "node.clone" },
   { command: "stage set", args: "<roomId> --preset cine", capability: "stage.set" },
-  { command: "anim play", args: "<roomId> <nodeId> [--clip <name>] [--speed 1]", capability: "animation.play" },
+  { command: "anim play", args: "<roomId> <nodeId> [--clip <name>] [--speed 1] [--loop false] [--direction reverse] [--weight 0.5]", capability: "animation.play" },
   { command: "anim define", args: "<roomId> <nodeId> --type sway [--apply-to subtree]", capability: "animation.define" },
   { command: "anim clear", args: "<roomId> <nodeId> [--apply-to subtree]", capability: "animation.clear" },
   { command: "fx create", args: "<roomId> --type particles", capability: "fx.create" },
