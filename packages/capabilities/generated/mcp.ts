@@ -608,7 +608,7 @@ export const MCP_TOOLS = [
   },
   {
     name: "vibe3d_array_nodes",
-    title: "线性阵列：沿 offset 复制 count 份，支持 jitter 与 rotateStep",
+    title: "阵列：linear 沿 offset 复制、radial 绕 center 成环、grid 按 cols 铺网格，均支持 jitter 与 rotateStep",
     capability: "node.array",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
@@ -622,6 +622,14 @@ export const MCP_TOOLS = [
           "type": "integer",
           "minimum": 1,
           "maximum": 200
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "radial",
+            "grid"
+          ]
         },
         "offset": {
           "type": "array",
@@ -670,12 +678,47 @@ export const MCP_TOOLS = [
               "type": "number"
             }
           ]
+        },
+        "cols": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "radius": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "sweep": {
+          "type": "number"
+        },
+        "axis": {
+          "type": "string",
+          "enum": [
+            "x",
+            "y",
+            "z"
+          ]
+        },
+        "center": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ]
         }
       },
       "required": [
         "id",
-        "count",
-        "offset"
+        "count"
       ],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"

@@ -272,14 +272,20 @@ export const sceneOps = {
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'node.array': {
-    title: '线性阵列：沿 offset 复制 count 份，支持 jitter 与 rotateStep',
+    title: '阵列：linear 沿 offset 复制、radial 绕 center 成环、grid 按 cols 铺网格，均支持 jitter 与 rotateStep',
     input: z.object({
       roomId,
       id: nodeIdSchema,
       count: z.number().int().min(1).max(200),
-      offset: vec3,
+      mode: z.enum(['linear', 'radial', 'grid']).optional(),
+      offset: vec3.optional(),
       jitter: vec3.optional(),
       rotateStep: vec3.optional(),
+      cols: z.number().int().min(1).max(200).optional(),
+      radius: z.number().finite().positive().optional(),
+      sweep: z.number().finite().optional(),
+      axis: z.enum(['x', 'y', 'z']).optional(),
+      center: vec3.optional(),
     }),
     output: z.object({
       revision: z.number().int().min(0),

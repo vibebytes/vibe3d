@@ -16,6 +16,7 @@ import {
 import {
   DEFAULT_LIMITS,
   type NodeFilter,
+  arrayPlacements,
   frameTarget,
   nodeBounds,
   nodeView,
@@ -226,25 +227,26 @@ export const sceneHandlers: HandlersFor<Keys> = {
         limit: DEFAULT_LIMITS.maxNodes,
       });
     }
-    const offset = p.offset;
+    const placements = arrayPlacements(source.transform, {
+      mode: p.mode,
+      count: p.count,
+      offset: p.offset,
+      jitter: p.jitter,
+      rotateStep: p.rotateStep,
+      cols: p.cols,
+      radius: p.radius,
+      sweep: p.sweep,
+      axis: p.axis,
+      center: p.center,
+    });
     const taken = new Set<string>();
     const ops: Op[] = [];
     const nodeIds: string[] = [];
-    for (let i = 1; i <= p.count; i += 1) {
+    for (const placement of placements) {
       const node = structuredClone(source);
       node.id = makeNodeId();
       node.name = uniqueName(room.doc, node.parent, source.name, taken);
-      const step: Vec = [offset[0] * i, offset[1] * i, offset[2] * i];
-      const jitter: Vec = p.jitter
-        ? [p.jitter[0] * Math.sin(i), p.jitter[1] * Math.sin(i * 1.7), p.jitter[2] * Math.cos(i * 1.3)]
-        : [0, 0, 0];
-      const rotate: Vec = p.rotateStep
-        ? [p.rotateStep[0] * i, p.rotateStep[1] * i, p.rotateStep[2] * i]
-        : [0, 0, 0];
-      node.transform = applyDelta(source.transform, {
-        translate: [step[0] + jitter[0], step[1] + jitter[1], step[2] + jitter[2]],
-        rotate,
-      });
+      node.transform = applyDelta(source.transform, placement);
       ops.push({ op: 'node.create', node });
       nodeIds.push(node.id);
     }
