@@ -11,7 +11,8 @@ const all = {
   ...renderOps,
 };
 
-export const CAPABILITIES = defineCapabilities(all);
+export const CAPABILITIES: typeof roomCreate & typeof sceneOps & typeof assetOps & typeof renderOps =
+  defineCapabilities(all);
 
 export type CapabilityName = keyof typeof CAPABILITIES;
 export type RoomCapability = {

@@ -544,6 +544,14 @@
                                 "sz"
                               ]
                             },
+                            "axis": {
+                              "type": "string",
+                              "enum": [
+                                "x",
+                                "y",
+                                "z"
+                              ]
+                            },
                             "amplitude": {
                               "type": "number"
                             },
@@ -562,6 +570,11 @@
                             "duration": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "gust": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             },
                             "keys": {
                               "type": "array",
@@ -726,6 +739,14 @@
                                 "sz"
                               ]
                             },
+                            "axis": {
+                              "type": "string",
+                              "enum": [
+                                "x",
+                                "y",
+                                "z"
+                              ]
+                            },
                             "amplitude": {
                               "type": "number"
                             },
@@ -744,6 +765,11 @@
                             "duration": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "gust": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             },
                             "keys": {
                               "type": "array",
@@ -1199,6 +1225,14 @@
                                 "sz"
                               ]
                             },
+                            "axis": {
+                              "type": "string",
+                              "enum": [
+                                "x",
+                                "y",
+                                "z"
+                              ]
+                            },
                             "amplitude": {
                               "type": "number"
                             },
@@ -1217,6 +1251,11 @@
                             "duration": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "gust": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             },
                             "keys": {
                               "type": "array",
@@ -1487,6 +1526,14 @@
                                 "sz"
                               ]
                             },
+                            "axis": {
+                              "type": "string",
+                              "enum": [
+                                "x",
+                                "y",
+                                "z"
+                              ]
+                            },
                             "amplitude": {
                               "type": "number"
                             },
@@ -1505,6 +1552,11 @@
                             "duration": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "gust": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             },
                             "keys": {
                               "type": "array",
@@ -5478,6 +5530,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -5496,6 +5556,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -5660,6 +5725,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -5678,6 +5751,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -6133,6 +6211,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -6151,6 +6237,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -6421,6 +6512,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -6439,6 +6538,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -7002,6 +7106,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -7020,6 +7132,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -8450,6 +8567,14 @@
                             "sz"
                           ]
                         },
+                        "axis": {
+                          "type": "string",
+                          "enum": [
+                            "x",
+                            "y",
+                            "z"
+                          ]
+                        },
                         "amplitude": {
                           "type": "number"
                         },
@@ -8468,6 +8593,11 @@
                         "duration": {
                           "type": "number",
                           "exclusiveMinimum": 0
+                        },
+                        "gust": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
                         },
                         "keys": {
                           "type": "array",
@@ -9261,6 +9391,14 @@
                                           "sz"
                                         ]
                                       },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
                                       "amplitude": {
                                         "type": "number"
                                       },
@@ -9279,6 +9417,11 @@
                                       "duration": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       },
                                       "keys": {
                                         "type": "array",
@@ -9443,6 +9586,14 @@
                                           "sz"
                                         ]
                                       },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
                                       "amplitude": {
                                         "type": "number"
                                       },
@@ -9461,6 +9612,11 @@
                                       "duration": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       },
                                       "keys": {
                                         "type": "array",
@@ -9916,6 +10072,14 @@
                                           "sz"
                                         ]
                                       },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
                                       "amplitude": {
                                         "type": "number"
                                       },
@@ -9934,6 +10098,11 @@
                                       "duration": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       },
                                       "keys": {
                                         "type": "array",
@@ -10204,6 +10373,14 @@
                                           "sz"
                                         ]
                                       },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
                                       "amplitude": {
                                         "type": "number"
                                       },
@@ -10222,6 +10399,11 @@
                                       "duration": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       },
                                       "keys": {
                                         "type": "array",
@@ -11533,6 +11715,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -11551,6 +11741,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -11715,6 +11910,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -11733,6 +11936,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -12188,6 +12396,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -12206,6 +12422,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -12476,6 +12697,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -12494,6 +12723,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -13057,6 +13291,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -13075,6 +13317,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -14505,6 +14752,14 @@
                             "sz"
                           ]
                         },
+                        "axis": {
+                          "type": "string",
+                          "enum": [
+                            "x",
+                            "y",
+                            "z"
+                          ]
+                        },
                         "amplitude": {
                           "type": "number"
                         },
@@ -14523,6 +14778,11 @@
                         "duration": {
                           "type": "number",
                           "exclusiveMinimum": 0
+                        },
+                        "gust": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
                         },
                         "keys": {
                           "type": "array",
@@ -15316,6 +15576,14 @@
                                           "sz"
                                         ]
                                       },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
                                       "amplitude": {
                                         "type": "number"
                                       },
@@ -15334,6 +15602,11 @@
                                       "duration": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       },
                                       "keys": {
                                         "type": "array",
@@ -15498,6 +15771,14 @@
                                           "sz"
                                         ]
                                       },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
                                       "amplitude": {
                                         "type": "number"
                                       },
@@ -15516,6 +15797,11 @@
                                       "duration": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       },
                                       "keys": {
                                         "type": "array",
@@ -15971,6 +16257,14 @@
                                           "sz"
                                         ]
                                       },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
                                       "amplitude": {
                                         "type": "number"
                                       },
@@ -15989,6 +16283,11 @@
                                       "duration": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       },
                                       "keys": {
                                         "type": "array",
@@ -16259,6 +16558,14 @@
                                           "sz"
                                         ]
                                       },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
                                       "amplitude": {
                                         "type": "number"
                                       },
@@ -16277,6 +16584,11 @@
                                       "duration": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       },
                                       "keys": {
                                         "type": "array",
@@ -18865,7 +19177,7 @@
       },
       "cli": {
         "command": "anim define",
-        "args": "<roomId> <nodeId> --type sway [--apply-to subtree]"
+        "args": "<roomId> <nodeId> --type sway [--axis x|y|z] [--gust0..1] [--apply-to subtree]"
       },
       "input": {
         "type": "object",
@@ -18906,6 +19218,14 @@
                   "sz"
                 ]
               },
+              "axis": {
+                "type": "string",
+                "enum": [
+                  "x",
+                  "y",
+                  "z"
+                ]
+              },
               "amplitude": {
                 "type": "number"
               },
@@ -18924,6 +19244,11 @@
               "duration": {
                 "type": "number",
                 "exclusiveMinimum": 0
+              },
+              "gust": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
               },
               "keys": {
                 "type": "array",
@@ -20642,6 +20967,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -20660,6 +20993,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -20824,6 +21162,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -20842,6 +21188,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -21297,6 +21648,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -21315,6 +21674,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -21585,6 +21949,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -21603,6 +21975,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -22166,6 +22543,14 @@
                                     "sz"
                                   ]
                                 },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
                                 "amplitude": {
                                   "type": "number"
                                 },
@@ -22184,6 +22569,11 @@
                                 "duration": {
                                   "type": "number",
                                   "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
                                 },
                                 "keys": {
                                   "type": "array",
@@ -23614,6 +24004,14 @@
                             "sz"
                           ]
                         },
+                        "axis": {
+                          "type": "string",
+                          "enum": [
+                            "x",
+                            "y",
+                            "z"
+                          ]
+                        },
                         "amplitude": {
                           "type": "number"
                         },
@@ -23632,6 +24030,11 @@
                         "duration": {
                           "type": "number",
                           "exclusiveMinimum": 0
+                        },
+                        "gust": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
                         },
                         "keys": {
                           "type": "array",
@@ -24425,6 +24828,14 @@
                                           "sz"
                                         ]
                                       },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
                                       "amplitude": {
                                         "type": "number"
                                       },
@@ -24443,6 +24854,11 @@
                                       "duration": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       },
                                       "keys": {
                                         "type": "array",
@@ -24607,6 +25023,14 @@
                                           "sz"
                                         ]
                                       },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
                                       "amplitude": {
                                         "type": "number"
                                       },
@@ -24625,6 +25049,11 @@
                                       "duration": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       },
                                       "keys": {
                                         "type": "array",
@@ -25080,6 +25509,14 @@
                                           "sz"
                                         ]
                                       },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
                                       "amplitude": {
                                         "type": "number"
                                       },
@@ -25098,6 +25535,11 @@
                                       "duration": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       },
                                       "keys": {
                                         "type": "array",
@@ -25368,6 +25810,14 @@
                                           "sz"
                                         ]
                                       },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
                                       "amplitude": {
                                         "type": "number"
                                       },
@@ -25386,6 +25836,11 @@
                                       "duration": {
                                         "type": "number",
                                         "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
                                       },
                                       "keys": {
                                         "type": "array",
@@ -26805,6 +27260,14 @@
                                 "sz"
                               ]
                             },
+                            "axis": {
+                              "type": "string",
+                              "enum": [
+                                "x",
+                                "y",
+                                "z"
+                              ]
+                            },
                             "amplitude": {
                               "type": "number"
                             },
@@ -26823,6 +27286,11 @@
                             "duration": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "gust": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             },
                             "keys": {
                               "type": "array",
@@ -26987,6 +27455,14 @@
                                 "sz"
                               ]
                             },
+                            "axis": {
+                              "type": "string",
+                              "enum": [
+                                "x",
+                                "y",
+                                "z"
+                              ]
+                            },
                             "amplitude": {
                               "type": "number"
                             },
@@ -27005,6 +27481,11 @@
                             "duration": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "gust": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             },
                             "keys": {
                               "type": "array",
@@ -27460,6 +27941,14 @@
                                 "sz"
                               ]
                             },
+                            "axis": {
+                              "type": "string",
+                              "enum": [
+                                "x",
+                                "y",
+                                "z"
+                              ]
+                            },
                             "amplitude": {
                               "type": "number"
                             },
@@ -27478,6 +27967,11 @@
                             "duration": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "gust": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             },
                             "keys": {
                               "type": "array",
@@ -27748,6 +28242,14 @@
                                 "sz"
                               ]
                             },
+                            "axis": {
+                              "type": "string",
+                              "enum": [
+                                "x",
+                                "y",
+                                "z"
+                              ]
+                            },
                             "amplitude": {
                               "type": "number"
                             },
@@ -27766,6 +28268,11 @@
                             "duration": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "gust": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             },
                             "keys": {
                               "type": "array",
@@ -29073,6 +29580,14 @@
                                 "sz"
                               ]
                             },
+                            "axis": {
+                              "type": "string",
+                              "enum": [
+                                "x",
+                                "y",
+                                "z"
+                              ]
+                            },
                             "amplitude": {
                               "type": "number"
                             },
@@ -29091,6 +29606,11 @@
                             "duration": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "gust": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             },
                             "keys": {
                               "type": "array",
@@ -29255,6 +29775,14 @@
                                 "sz"
                               ]
                             },
+                            "axis": {
+                              "type": "string",
+                              "enum": [
+                                "x",
+                                "y",
+                                "z"
+                              ]
+                            },
                             "amplitude": {
                               "type": "number"
                             },
@@ -29273,6 +29801,11 @@
                             "duration": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "gust": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             },
                             "keys": {
                               "type": "array",
@@ -29728,6 +30261,14 @@
                                 "sz"
                               ]
                             },
+                            "axis": {
+                              "type": "string",
+                              "enum": [
+                                "x",
+                                "y",
+                                "z"
+                              ]
+                            },
                             "amplitude": {
                               "type": "number"
                             },
@@ -29746,6 +30287,11 @@
                             "duration": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "gust": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             },
                             "keys": {
                               "type": "array",
@@ -30016,6 +30562,14 @@
                                 "sz"
                               ]
                             },
+                            "axis": {
+                              "type": "string",
+                              "enum": [
+                                "x",
+                                "y",
+                                "z"
+                              ]
+                            },
                             "amplitude": {
                               "type": "number"
                             },
@@ -30034,6 +30588,11 @@
                             "duration": {
                               "type": "number",
                               "exclusiveMinimum": 0
+                            },
+                            "gust": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             },
                             "keys": {
                               "type": "array",

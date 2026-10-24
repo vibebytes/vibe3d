@@ -1069,6 +1069,14 @@ export const MCP_TOOLS = [
                                   "sz"
                                 ]
                               },
+                              "axis": {
+                                "type": "string",
+                                "enum": [
+                                  "x",
+                                  "y",
+                                  "z"
+                                ]
+                              },
                               "amplitude": {
                                 "type": "number"
                               },
@@ -1087,6 +1095,11 @@ export const MCP_TOOLS = [
                               "duration": {
                                 "type": "number",
                                 "exclusiveMinimum": 0
+                              },
+                              "gust": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
                               },
                               "keys": {
                                 "type": "array",
@@ -1251,6 +1264,14 @@ export const MCP_TOOLS = [
                                   "sz"
                                 ]
                               },
+                              "axis": {
+                                "type": "string",
+                                "enum": [
+                                  "x",
+                                  "y",
+                                  "z"
+                                ]
+                              },
                               "amplitude": {
                                 "type": "number"
                               },
@@ -1269,6 +1290,11 @@ export const MCP_TOOLS = [
                               "duration": {
                                 "type": "number",
                                 "exclusiveMinimum": 0
+                              },
+                              "gust": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
                               },
                               "keys": {
                                 "type": "array",
@@ -1724,6 +1750,14 @@ export const MCP_TOOLS = [
                                   "sz"
                                 ]
                               },
+                              "axis": {
+                                "type": "string",
+                                "enum": [
+                                  "x",
+                                  "y",
+                                  "z"
+                                ]
+                              },
                               "amplitude": {
                                 "type": "number"
                               },
@@ -1742,6 +1776,11 @@ export const MCP_TOOLS = [
                               "duration": {
                                 "type": "number",
                                 "exclusiveMinimum": 0
+                              },
+                              "gust": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
                               },
                               "keys": {
                                 "type": "array",
@@ -2012,6 +2051,14 @@ export const MCP_TOOLS = [
                                   "sz"
                                 ]
                               },
+                              "axis": {
+                                "type": "string",
+                                "enum": [
+                                  "x",
+                                  "y",
+                                  "z"
+                                ]
+                              },
                               "amplitude": {
                                 "type": "number"
                               },
@@ -2030,6 +2077,11 @@ export const MCP_TOOLS = [
                               "duration": {
                                 "type": "number",
                                 "exclusiveMinimum": 0
+                              },
+                              "gust": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
                               },
                               "keys": {
                                 "type": "array",
@@ -2593,6 +2645,14 @@ export const MCP_TOOLS = [
                                   "sz"
                                 ]
                               },
+                              "axis": {
+                                "type": "string",
+                                "enum": [
+                                  "x",
+                                  "y",
+                                  "z"
+                                ]
+                              },
                               "amplitude": {
                                 "type": "number"
                               },
@@ -2611,6 +2671,11 @@ export const MCP_TOOLS = [
                               "duration": {
                                 "type": "number",
                                 "exclusiveMinimum": 0
+                              },
+                              "gust": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
                               },
                               "keys": {
                                 "type": "array",
@@ -4041,6 +4106,14 @@ export const MCP_TOOLS = [
                           "sz"
                         ]
                       },
+                      "axis": {
+                        "type": "string",
+                        "enum": [
+                          "x",
+                          "y",
+                          "z"
+                        ]
+                      },
                       "amplitude": {
                         "type": "number"
                       },
@@ -4059,6 +4132,11 @@ export const MCP_TOOLS = [
                       "duration": {
                         "type": "number",
                         "exclusiveMinimum": 0
+                      },
+                      "gust": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
                       },
                       "keys": {
                         "type": "array",
@@ -4852,6 +4930,14 @@ export const MCP_TOOLS = [
                                         "sz"
                                       ]
                                     },
+                                    "axis": {
+                                      "type": "string",
+                                      "enum": [
+                                        "x",
+                                        "y",
+                                        "z"
+                                      ]
+                                    },
                                     "amplitude": {
                                       "type": "number"
                                     },
@@ -4870,6 +4956,11 @@ export const MCP_TOOLS = [
                                     "duration": {
                                       "type": "number",
                                       "exclusiveMinimum": 0
+                                    },
+                                    "gust": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 1
                                     },
                                     "keys": {
                                       "type": "array",
@@ -5034,6 +5125,14 @@ export const MCP_TOOLS = [
                                         "sz"
                                       ]
                                     },
+                                    "axis": {
+                                      "type": "string",
+                                      "enum": [
+                                        "x",
+                                        "y",
+                                        "z"
+                                      ]
+                                    },
                                     "amplitude": {
                                       "type": "number"
                                     },
@@ -5052,6 +5151,11 @@ export const MCP_TOOLS = [
                                     "duration": {
                                       "type": "number",
                                       "exclusiveMinimum": 0
+                                    },
+                                    "gust": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 1
                                     },
                                     "keys": {
                                       "type": "array",
@@ -5507,6 +5611,14 @@ export const MCP_TOOLS = [
                                         "sz"
                                       ]
                                     },
+                                    "axis": {
+                                      "type": "string",
+                                      "enum": [
+                                        "x",
+                                        "y",
+                                        "z"
+                                      ]
+                                    },
                                     "amplitude": {
                                       "type": "number"
                                     },
@@ -5525,6 +5637,11 @@ export const MCP_TOOLS = [
                                     "duration": {
                                       "type": "number",
                                       "exclusiveMinimum": 0
+                                    },
+                                    "gust": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 1
                                     },
                                     "keys": {
                                       "type": "array",
@@ -5795,6 +5912,14 @@ export const MCP_TOOLS = [
                                         "sz"
                                       ]
                                     },
+                                    "axis": {
+                                      "type": "string",
+                                      "enum": [
+                                        "x",
+                                        "y",
+                                        "z"
+                                      ]
+                                    },
                                     "amplitude": {
                                       "type": "number"
                                     },
@@ -5813,6 +5938,11 @@ export const MCP_TOOLS = [
                                     "duration": {
                                       "type": "number",
                                       "exclusiveMinimum": 0
+                                    },
+                                    "gust": {
+                                      "type": "number",
+                                      "minimum": 0,
+                                      "maximum": 1
                                     },
                                     "keys": {
                                       "type": "array",
@@ -8012,6 +8142,14 @@ export const MCP_TOOLS = [
                 "sz"
               ]
             },
+            "axis": {
+              "type": "string",
+              "enum": [
+                "x",
+                "y",
+                "z"
+              ]
+            },
             "amplitude": {
               "type": "number"
             },
@@ -8030,6 +8168,11 @@ export const MCP_TOOLS = [
             "duration": {
               "type": "number",
               "exclusiveMinimum": 0
+            },
+            "gust": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
             },
             "keys": {
               "type": "array",
@@ -9164,6 +9307,14 @@ export const MCP_TOOLS = [
                               "sz"
                             ]
                           },
+                          "axis": {
+                            "type": "string",
+                            "enum": [
+                              "x",
+                              "y",
+                              "z"
+                            ]
+                          },
                           "amplitude": {
                             "type": "number"
                           },
@@ -9182,6 +9333,11 @@ export const MCP_TOOLS = [
                           "duration": {
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "gust": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
                           },
                           "keys": {
                             "type": "array",
@@ -9346,6 +9502,14 @@ export const MCP_TOOLS = [
                               "sz"
                             ]
                           },
+                          "axis": {
+                            "type": "string",
+                            "enum": [
+                              "x",
+                              "y",
+                              "z"
+                            ]
+                          },
                           "amplitude": {
                             "type": "number"
                           },
@@ -9364,6 +9528,11 @@ export const MCP_TOOLS = [
                           "duration": {
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "gust": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
                           },
                           "keys": {
                             "type": "array",
@@ -9819,6 +9988,14 @@ export const MCP_TOOLS = [
                               "sz"
                             ]
                           },
+                          "axis": {
+                            "type": "string",
+                            "enum": [
+                              "x",
+                              "y",
+                              "z"
+                            ]
+                          },
                           "amplitude": {
                             "type": "number"
                           },
@@ -9837,6 +10014,11 @@ export const MCP_TOOLS = [
                           "duration": {
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "gust": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
                           },
                           "keys": {
                             "type": "array",
@@ -10107,6 +10289,14 @@ export const MCP_TOOLS = [
                               "sz"
                             ]
                           },
+                          "axis": {
+                            "type": "string",
+                            "enum": [
+                              "x",
+                              "y",
+                              "z"
+                            ]
+                          },
                           "amplitude": {
                             "type": "number"
                           },
@@ -10125,6 +10315,11 @@ export const MCP_TOOLS = [
                           "duration": {
                             "type": "number",
                             "exclusiveMinimum": 0
+                          },
+                          "gust": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
                           },
                           "keys": {
                             "type": "array",

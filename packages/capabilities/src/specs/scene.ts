@@ -552,7 +552,10 @@ export const sceneOps = {
     mutating: true,
     wire: 'scene.apply' as const,
     mcp: { tool: 'vibe3d_define_animation' as const },
-    cli: { command: 'anim define', args: '<roomId> <nodeId> --type sway [--apply-to subtree]' },
+    cli: {
+      command: 'anim define',
+      args: '<roomId> <nodeId> --type sway [--axis x|y|z] [--gust0..1] [--apply-to subtree]',
+    },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'animation.clear': {

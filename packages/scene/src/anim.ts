@@ -62,7 +62,12 @@ export function sampleClip(clip: ClipSpec, t: number): number {
   switch (clip.type) {
     case 'keyframes':
       return sampleKeys(clip.keys ?? [], time);
-    case 'sway':
+    case 'sway': {
+      const theta = TAU * (clip.frequency ?? DEFAULT_FREQUENCY) * time + phase;
+      const gust = clip.gust ?? 0;
+      const envelope = gust === 0 ? 1 : 1 + gust * 0.5 * (1 - Math.cos(theta / 3));
+      return amplitude * Math.sin(theta) * envelope;
+    }
     case 'float':
     case 'ripple':
       return amplitude * Math.sin(TAU * (clip.frequency ?? DEFAULT_FREQUENCY) * time + phase);
@@ -76,7 +81,10 @@ export function sampleClip(clip: ClipSpec, t: number): number {
 }
 
 export function applyClipTransform(base: Transform, clip: ClipSpec, t: number): Transform {
-  const channel = clip.channel ?? DEFAULT_CHANNEL[clip.type];
+  const channel =
+    clip.type === 'sway' && clip.axis
+      ? (`r${clip.axis}` as Channel)
+      : (clip.channel ?? DEFAULT_CHANNEL[clip.type]);
   const value = sampleClip(clip, t);
   const p: [number, number, number] = [...base.p];
   const r: [number, number, number] = [...base.r];

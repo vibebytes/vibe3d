@@ -37,12 +37,14 @@ export const clipKeySchema = z.object({
 export const clipSchema = z.object({
   type: z.enum(['sway', 'ripple', 'float', 'flicker', 'spin', 'keyframes']),
   channel: z.enum(['px', 'py', 'pz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz']).optional(),
+  axis: z.enum(['x', 'y', 'z']).optional(),
   amplitude: z.number().finite().optional(),
   frequency: z.number().finite().optional(),
   phase: z.number().finite().optional(),
   speed: z.number().finite().optional(),
   loop: z.boolean().optional(),
   duration: z.number().finite().positive().optional(),
+  gust: z.number().finite().min(0).max(1).optional(),
   keys: z.array(clipKeySchema).optional(),
 });
 

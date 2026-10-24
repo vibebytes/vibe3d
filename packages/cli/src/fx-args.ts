@@ -37,15 +37,22 @@ export function clipFromFlags(flags: Flags): ClipSpec {
   if (channel && !CHANNELS.includes(channel as (typeof CHANNELS)[number])) {
     throw new Error(`未知通道 ${channel}`);
   }
+  const rawAxis = str(flags, 'axis');
+  if (rawAxis && rawAxis !== 'x' && rawAxis !== 'y' && rawAxis !== 'z') {
+    throw new Error(`--axis 只支持 x|y|z：${rawAxis}`);
+  }
+  const axis = rawAxis === 'x' || rawAxis === 'y' || rawAxis === 'z' ? rawAxis : undefined;
   return pick({
     type,
     channel,
+    axis,
     amplitude: num(flags, 'amplitude'),
     frequency: num(flags, 'frequency'),
     phase: num(flags, 'phase'),
     speed: num(flags, 'speed'),
     loop: optionalBool(flags, 'loop'),
     duration: num(flags, 'duration'),
+    gust: num(flags, 'gust'),
   }) as ClipSpec;
 }
 
