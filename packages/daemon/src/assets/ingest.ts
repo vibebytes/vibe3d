@@ -97,7 +97,14 @@ async function download(
   let url = new URL(src);
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
     if (policy === 'local' && !isLoopback(url)) {
-      throw new AppError('E_UNSUPPORTED', `policy=local 只允许本机地址，拒绝 ${url.host}`);
+      throw new AppError('E_UNSUPPORTED', `policy=local 只允许本机地址，拒绝 ${url.host}`, {
+        hint: '远端资产请先 put_asset{policy:"allow"} 预注册，或显式传 policy:"allow"',
+        next: {
+          tool: 'vibe3d_put_asset',
+          params: { src, policy: 'allow' },
+          after: 'vibe3d_import_asset{sha}',
+        },
+      });
     }
     const res = await fetchImpl(url, {
       redirect: 'manual',
@@ -138,7 +145,14 @@ export function createIngest({
   const read = async (src: string, policy: AssetPolicy = 'local', maxBytes = MAX_HDRI_BYTES) => {
     if (/^https?:\/\//i.test(src)) {
       if (policy === 'strict') {
-        throw new AppError('E_UNSUPPORTED', 'policy=strict 不允许网络地址，请先下载到本地');
+        throw new AppError('E_UNSUPPORTED', 'policy=strict 不允许网络地址，请先下载到本地', {
+          hint: 'strict 下外链须先预注册：用 put_asset（policy:"allow"）落成 sha，再 node.import{sha}',
+          next: {
+            tool: 'vibe3d_put_asset',
+            params: { src, policy: 'allow' },
+            after: 'vibe3d_import_asset{sha}',
+          },
+        });
       }
       return download(src, policy, fetchImpl, maxBytes);
     }

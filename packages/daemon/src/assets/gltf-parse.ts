@@ -55,7 +55,10 @@ export function parseGltf(bytes: Buffer, name: string): GltfReport {
 
   const missing = externalRefs(doc);
   if (missing.length) {
-    throw new AppError('E_ASSET_EXTERNAL_REFS', `glTF 非自包含，缺少：${missing.join(', ')}`, { missing });
+    throw new AppError('E_ASSET_EXTERNAL_REFS', `glTF 非自包含，缺少：${missing.join(', ')}`, {
+      missing,
+      hint: '用 gltf-transform copy in.gltf out.glb 把 .bin/贴图内嵌成自包含文件后重试',
+    });
   }
 
   let prims = 0;
