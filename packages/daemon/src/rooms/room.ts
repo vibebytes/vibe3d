@@ -26,6 +26,14 @@ export interface ChangeInfo {
   ops: Op[];
 }
 
+export interface TimelineEntry {
+  revision: number;
+  summary: string;
+  ops: number;
+  opId?: string;
+  author?: string;
+}
+
 export interface RoomMeta {
   roomId: RoomId;
   name: string;
@@ -240,6 +248,31 @@ export class Room {
 
   opsAt(revision: number): Op[] {
     return this.opLog.get(revision) ?? [];
+  }
+
+  timeline(limit = 20): TimelineEntry[] {
+    const actionable = new Map<number, string>();
+    for (const [opId, revision] of this.opIds) {
+      if (!actionable.has(revision)) actionable.set(revision, opId);
+    }
+    const revisions = [...this.opLog.keys()].sort((a, b) => b - a).slice(0, Math.max(1, limit));
+    return revisions.map((revision) => {
+      const batch = this.opLog.get(revision) ?? [];
+      const counts = new Map<string, number>();
+      for (const op of batch) counts.set(op.op, (counts.get(op.op) ?? 0) + 1);
+      const summary = batch.length
+        ? [...counts].map(([kind, n]) => (n > 1 ? `${kind}×${n}` : kind)).join(' + ')
+        : '回退重放';
+      const opId = actionable.get(revision);
+      const author = this.authors.get(revision);
+      return {
+        revision,
+        summary,
+        ops: batch.length,
+        ...(opId ? { opId } : {}),
+        ...(author ? { author } : {}),
+      };
+    });
   }
 
   changedSince(expectRevision: number): ChangedPaths {

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 export type GizmoMode = 'translate' | 'rotate' | 'scale';
-export type SideTab = 'scene' | 'assets' | 'inspector';
+export type SideTab = 'scene' | 'assets' | 'inspector' | 'timeline';
 export type ViewMode = 'perspective' | 'front' | 'right' | 'top';
 
 interface Persistent {

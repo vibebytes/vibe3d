@@ -5,6 +5,7 @@ export const CLI_COMMANDS = [
   { command: "room use", args: "<roomId>", capability: "room.use" },
   { command: "room show", args: "<roomId>", capability: "room.get" },
   { command: "room rm", args: "<roomId> [--purge]", capability: "room.close" },
+  { command: "room timeline", args: "<roomId> [--limit n]", capability: "room.timeline" },
   { command: "scene get", args: "<roomId>", capability: "scene.get" },
   { command: "scene summary", args: "<roomId>", capability: "scene.summary" },
   { command: "scene query", args: "<roomId> [--name <text>] [--kind mesh] [--tags a,b] [--parent <nodeId>|root] [--has-children] [--within-bbox <json>] [--bbox <json>] [--min-y 0.9] [--limit 50] [--cursor 0]", capability: "scene.query" },

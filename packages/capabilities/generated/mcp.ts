@@ -109,6 +109,24 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "vibe3d_room_timeline",
+    title: "查看 op 时间线：每批 apply 的 opId/摘要/作者/步数，倒序；opId 仍可精确回退时才返回，配合 scene.undo{opId} 用",
+    capability: "room.timeline",
+    annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
     name: "vibe3d_get_scene",
     title: "取整份场景文档",
     capability: "scene.get",

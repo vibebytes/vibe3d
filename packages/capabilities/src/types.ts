@@ -9,6 +9,7 @@ export const WIRE_METHODS = [
   'room.use',
   'room.get',
   'room.close',
+  'room.timeline',
   'scene.get',
   'scene.summary',
   'scene.apply',

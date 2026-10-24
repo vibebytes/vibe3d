@@ -85,6 +85,11 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
     if (command === 'rm' || command === 'close') {
       return studio.closeRoom(need(rest[0], 'room rm 需要 roomId'), bool(flags, 'purge'));
     }
+    if (command === 'timeline') {
+      return studio
+        .room(need(rest[0], 'room timeline 需要 roomId'))
+        .invoke('room.timeline', pick({ limit: num(flags, 'limit') }));
+    }
   }
 
   if (group === 'call') {

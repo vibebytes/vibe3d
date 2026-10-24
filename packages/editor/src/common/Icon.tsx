@@ -39,6 +39,7 @@ const PATHS = {
   panel:
     'M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 18.5v-13ZM9.5 3v18',
   arrow: 'M5 12h14M13 6l6 6-6 6',
+  history: 'M3.5 12a8.5 8.5 0 1 1 2.5 6M3.5 12V7m0 5H8M12 7v5l3.5 2',
 } as const;
 
 export type IconName = keyof typeof PATHS;

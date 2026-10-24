@@ -8,6 +8,7 @@ import { ImportOverlay } from '../common/ImportOverlay';
 import { SnapshotDialog } from '../common/SnapshotDialog';
 import { Toaster, useToasts } from '../common/Toaster';
 import { Inspector } from '../inspector/Inspector';
+import { TimelinePanel } from '../layout/TimelinePanel';
 import { AppShell } from '../layout/AppShell';
 import { SidePanel } from '../layout/SidePanel';
 import { StatusBar } from '../layout/StatusBar';
@@ -161,6 +162,7 @@ export function EditorPage() {
               <AssetsPanel doc={doc} onImport={importer.open} onUploadImages={importer.openImages} />
             )}
             {tab === 'inspector' && <Inspector doc={doc} />}
+            {tab === 'timeline' && <TimelinePanel />}
           </SidePanel>
         }
         inspector={<Inspector doc={doc} />}

@@ -8,6 +8,7 @@ export type CapabilityName =
   | "room.use"
   | "room.get"
   | "room.close"
+  | "room.timeline"
   | "scene.get"
   | "scene.summary"
   | "scene.query"
@@ -76,6 +77,7 @@ export type InputOf<N extends CapabilityName> = {
   "room.use": z.infer<(typeof CAPABILITIES)["room.use"]['input']>;
   "room.get": z.infer<(typeof CAPABILITIES)["room.get"]['input']>;
   "room.close": z.infer<(typeof CAPABILITIES)["room.close"]['input']>;
+  "room.timeline": z.infer<(typeof CAPABILITIES)["room.timeline"]['input']>;
   "scene.get": z.infer<(typeof CAPABILITIES)["scene.get"]['input']>;
   "scene.summary": z.infer<(typeof CAPABILITIES)["scene.summary"]['input']>;
   "scene.query": z.infer<(typeof CAPABILITIES)["scene.query"]['input']>;
@@ -145,6 +147,7 @@ export type OutputOf<N extends CapabilityName> = {
   "room.use": z.infer<(typeof CAPABILITIES)["room.use"]['output']>;
   "room.get": z.infer<(typeof CAPABILITIES)["room.get"]['output']>;
   "room.close": z.infer<(typeof CAPABILITIES)["room.close"]['output']>;
+  "room.timeline": z.infer<(typeof CAPABILITIES)["room.timeline"]['output']>;
   "scene.get": z.infer<(typeof CAPABILITIES)["scene.get"]['output']>;
   "scene.summary": z.infer<(typeof CAPABILITIES)["scene.summary"]['output']>;
   "scene.query": z.infer<(typeof CAPABILITIES)["scene.query"]['output']>;

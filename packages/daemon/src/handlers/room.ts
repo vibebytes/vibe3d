@@ -147,6 +147,7 @@ type Keys =
   | 'room.use'
   | 'room.get'
   | 'room.close'
+  | 'room.timeline'
   | 'scene.get'
   | 'scene.export'
   | 'scene.import'
@@ -223,6 +224,11 @@ export const roomHandlers: HandlersFor<Keys> = {
     const revision = room.revision;
     ctx.rooms.close(p.roomId, p.purge ?? false);
     return { revision, closed: true };
+  },
+
+  'room.timeline': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    return { revision: room.revision, entries: room.timeline(p.limit ?? 20) };
   },
 
   'scene.get': async (p, ctx) => {

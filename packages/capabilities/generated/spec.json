@@ -371,6 +371,96 @@
       }
     },
     {
+      "name": "room.timeline",
+      "title": "查看 op 时间线：每批 apply 的 opId/摘要/作者/步数，倒序；opId 仍可精确回退时才返回，配合 scene.undo{opId} 用",
+      "wire": "room.timeline",
+      "scope": "room",
+      "mutating": false,
+      "hostCoupled": false,
+      "errors": [
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_room_timeline",
+        "annotations": {
+          "readOnlyHint": true
+        },
+        "roomArg": false
+      },
+      "cli": {
+        "command": "room timeline",
+        "args": "<roomId> [--limit n]"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "roomId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "summary": {
+                  "type": "string",
+                  "maxLength": 400
+                },
+                "ops": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "opId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "author": {
+                  "type": "string",
+                  "maxLength": 80
+                }
+              },
+              "required": [
+                "revision",
+                "summary",
+                "ops"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "revision",
+          "entries"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
       "name": "scene.get",
       "title": "取整份场景文档",
       "wire": "scene.get",

@@ -15,6 +15,7 @@ const TABS: { id: SideTab; label: string; icon: IconName }[] = [
   { id: 'scene', label: '场景', icon: 'layers' },
   { id: 'assets', label: '素材', icon: 'assets' },
   { id: 'inspector', label: '属性', icon: 'sliders' },
+  { id: 'timeline', label: '时间线', icon: 'history' },
 ];
 
 export function SidePanel({ tab, onTab, counts, children }: SidePanelProps) {

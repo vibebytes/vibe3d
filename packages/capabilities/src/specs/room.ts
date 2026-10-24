@@ -76,4 +76,27 @@ export const roomCreate = {
     cli: { command: 'room rm', args: '<roomId> [--purge]' },
     errors: ['E_ROOM_NOT_FOUND', 'E_LOCKED'] as const,
   },
+  'room.timeline': {
+    title:
+      '查看 op 时间线：每批 apply 的 opId/摘要/作者/步数，倒序；opId 仍可精确回退时才返回，配合 scene.undo{opId} 用',
+    input: z.object({ roomId, limit: intIn(1, 100).optional() }),
+    output: z.object({
+      revision: z.number().int().min(0),
+      entries: z.array(
+        z.object({
+          revision: z.number().int().min(1),
+          summary: z.string().max(400),
+          ops: z.number().int().min(0),
+          opId: z.string().min(1).optional(),
+          author: z.string().max(80).optional(),
+        }),
+      ),
+    }),
+    scope: 'room' as const,
+    mutating: false,
+    wire: 'room.timeline' as const,
+    mcp: { tool: 'vibe3d_room_timeline' as const, annotations: { readOnlyHint: true } },
+    cli: { command: 'room timeline', args: '<roomId> [--limit n]' },
+    errors: ['E_ROOM_NOT_FOUND'] as const,
+  },
 };
