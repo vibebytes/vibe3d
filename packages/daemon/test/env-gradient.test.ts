@@ -40,8 +40,8 @@ describe('env.set gradient', () => {
     const roomId = await newRoom(h);
     await call(h, 'env.set', { roomId, gradient: GRADIENT }, roomId);
     const { body } = await call(h, 'env.set', { roomId, gradient: null }, roomId);
-    expect(body.result.env.gradient).toBeNull();
+    expect(body.result.env.gradient).toBeUndefined();
     const d = await doc(h, roomId);
-    expect(d.env.gradient).toBeNull();
+    expect(d.env.gradient).toBeUndefined();
   });
 });

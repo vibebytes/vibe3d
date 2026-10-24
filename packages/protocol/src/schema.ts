@@ -193,6 +193,7 @@ export const envSchema = z.object({
   ambientIntensity: finite.min(0),
   hdri: shaSchema.optional(),
   fog: fogSchema.optional(),
+  gradient: z.object({ top: rgba, bottom: rgba }).nullable().optional(),
 });
 
 export type Vec3 = z.infer<typeof vec3>;

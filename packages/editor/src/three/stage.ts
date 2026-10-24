@@ -36,11 +36,16 @@ function luminance(rgb: readonly number[]): number {
   return 0.2126 * (r ?? 0) + 0.7152 * (g ?? 0) + 0.0722 * (b ?? 0);
 }
 
+function backgroundLuminance(env: Env): number {
+  if (!env.gradient) return luminance(env.background);
+  return (luminance(env.gradient.top) + luminance(env.gradient.bottom)) / 2;
+}
+
 export function resolveExposure(stage: StageState, env: Env): number {
   const base = stage.exposure ?? BASE_EXPOSURE[stage.preset];
   if (!stage.autoExposure) return base;
   // autoExposure approximates the frame luminance from background + ambient so it stays deterministic per doc.
-  const scene = luminance(env.background) * 0.6 + luminance(env.ambient) * env.ambientIntensity * 0.4;
+  const scene = backgroundLuminance(env) * 0.6 + luminance(env.ambient) * env.ambientIntensity * 0.4;
   const target = 0.18;
   const gain = Math.min(4, Math.max(0.25, target / Math.max(0.02, scene)));
   return Math.min(8, Math.max(0.1, base * gain));
@@ -57,4 +62,29 @@ export function backgroundHex(env: Env): string {
       .toString(16)
       .padStart(2, '0');
   return `#${hex(r)}${hex(g)}${hex(b)}`;
+}
+
+export type BackdropPlan =
+  | { kind: 'solid'; hex: string }
+  | { kind: 'gradient'; hex: string; width: number; height: number; data: Uint8Array };
+
+const byte = (v: number | undefined): number => Math.round(Math.min(1, Math.max(0, v ?? 0)) * 255);
+
+export function backdropPlan(env: Env): BackdropPlan {
+  if (!env.gradient) return { kind: 'solid', hex: backgroundHex(env) };
+  const width = 2;
+  const height = 256;
+  const data = new Uint8Array(width * height * 4);
+  for (let y = 0; y < height; y++) {
+    const t = y / (height - 1);
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      for (let c = 0; c < 4; c++) {
+        const lo = env.gradient.bottom[c];
+        const hi = env.gradient.top[c];
+        data[i + c] = byte((lo ?? 0) + ((hi ?? 0) - (lo ?? 0)) * t);
+      }
+    }
+  }
+  return { kind: 'gradient', hex: backgroundHex(env), width, height, data };
 }

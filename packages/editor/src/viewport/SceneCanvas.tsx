@@ -17,7 +17,7 @@ import {
   useMemo,
   useRef,
 } from 'react';
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import { assetUrl } from '../lib/rpc';
 import { useSelection } from '../stores/selection';
@@ -30,7 +30,7 @@ import { type NprPlan, nprPlan } from '../three/npr';
 import { pickAt } from '../three/picking';
 import { postPlan } from '../three/post';
 import { applyRenderer, canvasGlOptions } from '../three/renderer';
-import { applyStage, backgroundHex, stageLights } from '../three/stage';
+import { applyStage, backdropPlan, stageLights } from '../three/stage';
 import { Gizmo } from './Gizmo';
 import { GridFloor } from './GridFloor';
 import { PostPipeline } from './PostPipeline';
@@ -186,6 +186,27 @@ function Fog({ doc }: { doc: SceneDoc }) {
   return <fog attach="fog" args={[color, near, far]} />;
 }
 
+function Backdrop({ env }: { env: SceneDoc['env'] }) {
+  const scene = useThree((s) => s.scene);
+  useEffect(() => {
+    const plan = backdropPlan(env);
+    let texture: THREE.DataTexture | undefined;
+    if (plan.kind === 'gradient') {
+      texture = new THREE.DataTexture(plan.data, plan.width, plan.height);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.needsUpdate = true;
+      scene.background = texture;
+    } else {
+      scene.background = new THREE.Color(plan.hex);
+    }
+    return () => {
+      if (scene.background === texture) scene.background = null;
+      texture?.dispose();
+    };
+  }, [env, scene]);
+  return null;
+}
+
 function AnimationDriver({ enabled }: { enabled: boolean }) {
   useFrame((_, delta) => {
     if (enabled) animations.update(delta);
@@ -298,7 +319,7 @@ export function SceneCanvas({
         camera={{ position: doc.camera.p, fov: doc.camera.fov, near: 0.05, far: 500 }}
         gl={canvasGlOptions({ headless })}
       >
-        <color attach="background" args={[backgroundHex(doc.env)]} />
+        <Backdrop env={doc.env} />
         <Fog doc={doc} />
         <StageLights doc={doc} />
         <StageEffects doc={doc} headless={headless} />

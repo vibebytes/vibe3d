@@ -3659,6 +3659,77 @@ export const MCP_TOOLS = [
                             "type": "null"
                           }
                         ]
+                      },
+                      "gradient": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "top": {
+                                "type": "array",
+                                "minItems": 4,
+                                "maxItems": 4,
+                                "items": [
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  },
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  },
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  },
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  }
+                                ]
+                              },
+                              "bottom": {
+                                "type": "array",
+                                "minItems": 4,
+                                "maxItems": 4,
+                                "items": [
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  },
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  },
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  },
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "top",
+                              "bottom"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       }
                     },
                     "additionalProperties": false
@@ -6286,6 +6357,77 @@ export const MCP_TOOLS = [
                               "far"
                             ],
                             "additionalProperties": false
+                          },
+                          "gradient": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "top": {
+                                    "type": "array",
+                                    "minItems": 4,
+                                    "maxItems": 4,
+                                    "items": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      },
+                                      {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      },
+                                      {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      },
+                                      {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      }
+                                    ]
+                                  },
+                                  "bottom": {
+                                    "type": "array",
+                                    "minItems": 4,
+                                    "maxItems": 4,
+                                    "items": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      },
+                                      {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      },
+                                      {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      },
+                                      {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      }
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "top",
+                                  "bottom"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -8599,6 +8741,77 @@ export const MCP_TOOLS = [
             }
           ]
         },
+        "gradient": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "top": {
+                  "type": "array",
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "items": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  ]
+                },
+                "bottom": {
+                  "type": "array",
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "items": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "top",
+                "bottom"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "hdri_src": {
           "type": "string",
           "minLength": 1
@@ -10397,6 +10610,77 @@ export const MCP_TOOLS = [
                     "far"
                   ],
                   "additionalProperties": false
+                },
+                "gradient": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "top": {
+                          "type": "array",
+                          "minItems": 4,
+                          "maxItems": 4,
+                          "items": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
+                          ]
+                        },
+                        "bottom": {
+                          "type": "array",
+                          "minItems": 4,
+                          "maxItems": 4,
+                          "items": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "top",
+                        "bottom"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
