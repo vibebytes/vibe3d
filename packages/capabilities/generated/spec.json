@@ -32589,7 +32589,7 @@
       },
       "cli": {
         "command": "model import",
-        "args": "<roomId> <src|--sha sha> [--name n] [--autoplay]"
+        "args": "<roomId> <src|--sha sha> [--name n] [--align ground|center|none] [--autoplay]"
       },
       "input": {
         "type": "object",
@@ -32675,6 +32675,14 @@
               }
             },
             "additionalProperties": false
+          },
+          "align": {
+            "type": "string",
+            "enum": [
+              "ground",
+              "center",
+              "none"
+            ]
           },
           "autoplay": {
             "type": "boolean"

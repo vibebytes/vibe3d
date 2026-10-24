@@ -524,6 +524,7 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
       pick({
         src: need(rest[1], 'model import 需要 <src>'),
         name: str(flags, 'name'),
+        align: str(flags, 'align') as 'ground' | 'center' | 'none' | undefined,
         autoplay: bool(flags, 'autoplay'),
         policy: str(flags, 'policy'),
       }) as never,

@@ -47,7 +47,7 @@ export const CLI_COMMANDS = [
   { command: "mesh boolean", args: "<roomId> <target> <tool> [--op subtract] [--keep-tool]", capability: "mesh.boolean" },
   { command: "mesh tube", args: "<roomId> --points x,y,z;x,y,z;… --radius r [--radius-end r] [--segments 24] [--radial 8] [--closed] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]", capability: "mesh.tube" },
   { command: "mesh backdrop", args: "<roomId> [--width 10] [--depth 4] [--height 6] [--curve 1.2] [--segments 16] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]", capability: "mesh.backdrop" },
-  { command: "model import", args: "<roomId> <src|--sha sha> [--name n] [--autoplay]", capability: "node.import" },
+  { command: "model import", args: "<roomId> <src|--sha sha> [--name n] [--align ground|center|none] [--autoplay]", capability: "node.import" },
   { command: "asset inspect", args: "<roomId> <src>", capability: "asset.inspect" },
   { command: "asset put", args: "<roomId> <src> [--name n]", capability: "asset.put" },
   { command: "asset ls", args: "<roomId>", capability: "asset.list" },

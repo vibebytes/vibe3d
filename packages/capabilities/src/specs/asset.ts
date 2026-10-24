@@ -12,6 +12,7 @@ export const assetOps = {
       name: z.string().min(1).max(200).optional(),
       parent: nodeIdSchema.nullable().optional(),
       transform: transformInput.optional(),
+      align: z.enum(['ground', 'center', 'none']).optional(),
       autoplay: z.boolean().optional(),
       policy: z.enum(['strict', 'local', 'allow']).optional(),
     }),
@@ -25,7 +26,10 @@ export const assetOps = {
     mutating: true,
     wire: 'scene.apply' as const,
     mcp: { tool: 'vibe3d_import_asset' as const },
-    cli: { command: 'model import', args: '<roomId> <src|--sha sha> [--name n] [--autoplay]' },
+    cli: {
+      command: 'model import',
+      args: '<roomId> <src|--sha sha> [--name n] [--align ground|center|none] [--autoplay]',
+    },
     errors: [
       'E_ASSET_FORMAT',
       'E_ASSET_EXTERNAL_REFS',

@@ -12005,6 +12005,14 @@ export const MCP_TOOLS = [
           },
           "additionalProperties": false
         },
+        "align": {
+          "type": "string",
+          "enum": [
+            "ground",
+            "center",
+            "none"
+          ]
+        },
         "autoplay": {
           "type": "boolean"
         },

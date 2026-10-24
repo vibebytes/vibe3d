@@ -29,7 +29,8 @@ export const HELP = `vibe3d — 专家级 3D 场景 CLI（与 MCP / HTTP 同一�
   job get <jobId> | job wait <jobId> [--timeout 600] | job cancel <jobId>
   job ls [roomId]
   open <roomId> [--focus nodeId] [--no-reuse]
-  model import <roomId> <src> [--name n] [--autoplay]
+  model import <roomId> <src> [--name n] [--align ground|center|none] [--autoplay]
+  ↳ --align ground 落地并居中（默认）/ center 包围盒中心置于原点 / none 保留原始坐标与尺寸
   asset inspect <roomId> <src> | asset put <roomId> <src> [--kind auto|image|hdri|model] [--name n]
   env set <roomId> [--hdri <src>] [--policy local|allow|strict] [--fog near,far]
   decal create <roomId> (--text 文字 | --image-sha <sha>) [--at x,y,z] [--width 2] [--height 1] [--rotation rx,ry,rz] [--color #rrggbb] [--background #rrggbbaa] [--font-size 64] [--bold] [--align left|center|right] [--parent <id>]

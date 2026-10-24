@@ -67,17 +67,19 @@ export const assetHandlers: HandlersFor<Keys> = {
 
     const [min, max] = [report.size.min, report.size.max];
     const height = max[1] - min[1];
-    const k = p.transform?.s ? undefined : height > 0 ? TARGET_HEIGHT / height : 1;
+    const align = p.align ?? 'ground';
+    const fit = height > 0 ? TARGET_HEIGHT / height : 1;
+    const s: Transform['s'] = p.transform?.s ?? (align === 'none' ? [1, 1, 1] : [fit, fit, fit]);
+    const cx = (min[0] + max[0]) / 2;
+    const cz = (min[2] + max[2]) / 2;
+    const offset: Transform['p'] =
+      align === 'none'
+        ? [0, 0, 0]
+        : [-cx * s[0], -(align === 'center' ? (min[1] + max[1]) / 2 : min[1]) * s[1], -cz * s[2]];
     const transform: Transform = {
-      p:
-        p.transform?.p ??
-        ((k ? [(-(min[0] + max[0]) / 2) * k, -min[1] * k, (-(min[2] + max[2]) / 2) * k] : [0, 0, 0]) as [
-          number,
-          number,
-          number,
-        ]),
+      p: p.transform?.p ?? offset,
       r: p.transform?.r ?? [0, 0, 0],
-      s: p.transform?.s ?? [k ?? 1, k ?? 1, k ?? 1],
+      s,
     };
 
     const result = await room.run(async () => {

@@ -78,12 +78,7 @@ describe('node.import align', () => {
     const h = makeHarness();
     const roomId = await newRoom(h);
     const src = tmpGlb({ min: [0, -1, 0], max: [1, 1, 1] });
-    const { body } = await call(
-      h,
-      'node.import',
-      { roomId, src, transform: { s: [2, 2, 2] } },
-      roomId,
-    );
+    const { body } = await call(h, 'node.import', { roomId, src, transform: { s: [2, 2, 2] } }, roomId);
     const t = await transformOf(h, roomId, body.result.nodeId);
     expect(t.s).toEqual([2, 2, 2]);
     expect(t.p).toEqual([-1, 2, -1]);
