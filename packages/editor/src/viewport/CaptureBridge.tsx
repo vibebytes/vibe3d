@@ -7,6 +7,7 @@ import { useDoc } from '../stores/doc';
 import { useSelection } from '../stores/selection';
 import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
 import { applyFxAt } from '../three/fx';
+import { applyIdMaterials } from '../three/id-pass-materials';
 import { missingModelIds } from '../three/model-ready';
 import { addOverlays, applyHighlight, applyIsolate, applyShading } from './capture-look';
 import type { OverlayKind, ShadingMode } from './capture-look';
@@ -31,6 +32,20 @@ export interface CaptureResult {
   mime: string;
   width: number;
   height: number;
+}
+
+export interface IdPassOptions {
+  width?: number;
+  height?: number;
+  camera?: CameraState;
+  at?: number;
+  legend: Record<string, string>;
+}
+
+export interface IdPassResult {
+  width: number;
+  height: number;
+  rgba: string;
 }
 
 interface Size {
@@ -193,6 +208,79 @@ function captureFrame(
   };
 }
 
+function captureIdPass(
+  gl: THREE.WebGLRenderer,
+  scene: THREE.Scene,
+  camera: THREE.Camera,
+  viewport: Size,
+  opts: IdPassOptions,
+): IdPassResult {
+  const width = clamp(opts.width ?? 640, 64, 2048);
+  const height = clamp(opts.height ?? 480, 64, 2048);
+  if (width * height > 1_000_000) {
+    throw new Error(`id-pass 分辨率 ${width}x${height} 超过 1MP 上限`);
+  }
+  if (typeof opts.at === 'number') animations.seekAll(opts.at);
+
+  const perspective = camera as THREE.PerspectiveCamera;
+  const prevCamera = {
+    position: camera.position.clone(),
+    quaternion: camera.quaternion.clone(),
+    fov: perspective.fov,
+    aspect: perspective.aspect,
+  };
+  if (opts.camera) {
+    camera.position.set(...opts.camera.p);
+    camera.lookAt(new THREE.Vector3(...opts.camera.target));
+    perspective.fov = opts.camera.fov;
+  }
+  perspective.aspect = width / height;
+  perspective.updateProjectionMatrix();
+
+  const restoreIds = applyIdMaterials(scene, opts.legend);
+  const prevBackground = scene.background;
+  const prevTone = gl.toneMapping;
+  const prevRatio = gl.getPixelRatio();
+  const prevClear = gl.getClearColor(new THREE.Color());
+  const prevAlpha = gl.getClearAlpha();
+  const target = new THREE.WebGLRenderTarget(width, height, {
+    minFilter: THREE.NearestFilter,
+    magFilter: THREE.NearestFilter,
+    depthBuffer: true,
+    stencilBuffer: false,
+  });
+  scene.background = null;
+  try {
+    gl.setPixelRatio(1);
+    gl.toneMapping = THREE.NoToneMapping;
+    gl.setRenderTarget(target);
+    gl.setClearColor(0x000000, 0);
+    gl.clear(true, true, true);
+    gl.render(scene, camera);
+    const raw = new Uint8Array(width * height * 4);
+    gl.readRenderTargetPixels(target, 0, 0, width, height, raw);
+    const rgba = new Uint8Array(raw.length);
+    const stride = width * 4;
+    for (let y = 0; y < height; y += 1) {
+      rgba.set(raw.subarray(y * stride, (y + 1) * stride), (height - 1 - y) * stride);
+    }
+    return { width, height, rgba: toBase64(rgba.buffer) };
+  } finally {
+    gl.setRenderTarget(null);
+    gl.setClearColor(prevClear, prevAlpha);
+    gl.toneMapping = prevTone;
+    gl.setPixelRatio(prevRatio);
+    scene.background = prevBackground;
+    restoreIds();
+    camera.position.copy(prevCamera.position);
+    camera.quaternion.copy(prevCamera.quaternion);
+    perspective.fov = prevCamera.fov;
+    perspective.aspect = prevCamera.aspect;
+    perspective.updateProjectionMatrix();
+    target.dispose();
+  }
+}
+
 export function CaptureBridge({ roomId, headless = false }: { roomId: string; headless?: boolean }) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
@@ -221,12 +309,18 @@ export function CaptureBridge({ roomId, headless = false }: { roomId: string; he
       if (!(out instanceof ArrayBuffer)) throw new Error('GLTFExporter 未返回二进制数据');
       return toBase64(out);
     };
+    const idPass = (opts: IdPassOptions): IdPassResult => {
+      if (headless && opts.at === undefined) animations.seekAll(0);
+      return captureIdPass(gl, scene, camera, size, opts);
+    };
     window.__vibe3dCapture = capture;
     window.__vibe3dExport = exportGlb;
+    window.__vibe3dIdPass = idPass;
     window.vibe3d = { roomId, select: (id) => useSelection.getState().select(id), capture, exportGlb };
     return () => {
       Reflect.deleteProperty(window, '__vibe3dCapture');
       Reflect.deleteProperty(window, '__vibe3dExport');
+      Reflect.deleteProperty(window, '__vibe3dIdPass');
       Reflect.deleteProperty(window, 'vibe3d');
     };
   }, [gl, scene, camera, size, roomId, headless]);

@@ -2,7 +2,14 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { AppError } from '@vibebyte/vibe3d-protocol';
-import type { RenderInput, Renderer, Snapshot, SnapshotOptions } from '../context';
+import type {
+  IdPassOptions,
+  IdPassShot,
+  RenderInput,
+  Renderer,
+  Snapshot,
+  SnapshotOptions,
+} from '../context';
 import { signExportUrl } from '../http/export-url';
 import type { Logger } from '../logger';
 import { Cdp, CdpError } from './cdp';
@@ -104,6 +111,48 @@ export class ChromiumRenderer implements Renderer {
         );
         if (!shot?.data) throw new AppError('E_RENDER_UNAVAILABLE', '页面未返回截图');
         return { mime: `image/${format}`, base64: shot.data, width, height };
+      }),
+    );
+  }
+
+  async idPass(input: RenderInput, opts: IdPassOptions): Promise<IdPassShot> {
+    return this.serial(() =>
+      this.withRecovery(async () => {
+        const page = await this.openPage(input.roomId, opts.width, opts.height);
+        await sleep(opts.settleMs ?? 120);
+        const res = await this.cdp?.send<{
+          result: { value?: { width?: number; height?: number; rgba?: string } | null };
+        }>(
+          'Runtime.evaluate',
+          {
+            expression: `window.__vibe3dIdPass?.(${JSON.stringify({
+              width: opts.width,
+              height: opts.height,
+              camera: opts.camera,
+              at: opts.at,
+              legend: opts.legend,
+            })}) ?? null`,
+            awaitPromise: true,
+            returnByValue: true,
+          },
+          page.sessionId,
+          60_000,
+        );
+        const value = res?.result?.value;
+        if (!value?.rgba) {
+          throw new AppError('E_RENDER_UNAVAILABLE', '页面未返回 id-pass 像素');
+        }
+        const width = value.width ?? opts.width;
+        const height = value.height ?? opts.height;
+        const rgba = new Uint8Array(Buffer.from(value.rgba, 'base64'));
+        if (rgba.length !== width * height * 4) {
+          throw new AppError('E_RENDER_UNAVAILABLE', 'id-pass 像素长度与尺寸不符', {
+            bytes: rgba.length,
+            width,
+            height,
+          });
+        }
+        return { width, height, rgba };
       }),
     );
   }

@@ -1,7 +1,14 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { deflateRawSync } from 'node:zlib';
 import { AppError, type SceneDoc } from '@vibebyte/vibe3d-protocol';
-import { type ViewName, frameTarget } from '@vibebyte/vibe3d-scene';
+import {
+  type ViewName,
+  buildIdLegend,
+  decodeIdMask,
+  fitsIdPass,
+  frameTarget,
+} from '@vibebyte/vibe3d-scene';
 import type { DispatchContext, OverlayKind, Renderer, ShadingMode, SnapshotOptions } from '../context';
 import { signExportUrl } from '../http/export-url';
 import { toView } from '../jobs/store';
@@ -25,6 +32,7 @@ type Keys =
   | 'render.views'
   | 'render.node'
   | 'render.pick'
+  | 'render.id-pass'
   | 'render.sequence'
   | 'export.glb'
   | 'job.get'
@@ -191,6 +199,56 @@ export const renderHandlers: HandlersFor<Keys> = {
       height: img.height,
       samples,
       ...(region ? { region } : {}),
+    };
+  },
+
+  'render.id-pass': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const renderer = requireRenderer(ctx, room.id);
+    const width = p.width ?? 640;
+    const height = p.height ?? 480;
+    if (!fitsIdPass(width, height)) {
+      throw new AppError('E_INVALID_PARAMS', `id-pass 分辨率 ${width}x${height} 超过上限`, {
+        width,
+        height,
+        maxPixels: 1_000_000,
+      });
+    }
+    if (!renderer.idPass) {
+      throw new AppError('E_RENDER_UNAVAILABLE', '当前渲染器不支持 id-pass');
+    }
+    const palette = buildIdLegend(room.doc);
+    const shot = await renderer.idPass(
+      { roomId: room.id, doc: room.doc },
+      {
+        width,
+        height,
+        camera: p.camera,
+        settleMs: p.settleMs,
+        at: p.at,
+        legend: palette.legend,
+      },
+    );
+    const decoded = decodeIdMask(shot.rgba, palette);
+    const total = shot.width * shot.height;
+    return {
+      revision: room.revision,
+      width: shot.width,
+      height: shot.height,
+      legend: palette.legend,
+      coverage: decoded.coverage.map((c) => ({
+        ...c,
+        share: Math.round((c.pixels / total) * 10_000) / 10_000,
+      })),
+      unknown: decoded.unknown,
+      ...(p.includeMask
+        ? {
+            mask: {
+              encoding: 'deflate-index8' as const,
+              base64: deflateRawSync(Buffer.from(decoded.index)).toString('base64'),
+            },
+          }
+        : {}),
     };
   },
 

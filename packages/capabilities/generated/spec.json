@@ -31721,6 +31721,213 @@
       }
     },
     {
+      "name": "render.id-pass",
+      "title": "ID 通道：每个节点刷成唯一色，回传像素覆盖与可选索引掩码",
+      "wire": "render.id-pass",
+      "scope": "room",
+      "mutating": false,
+      "hostCoupled": false,
+      "errors": [
+        "E_RENDER_UNAVAILABLE",
+        "E_ROOM_NOT_FOUND",
+        "E_INVALID_PARAMS"
+      ],
+      "mcp": {
+        "tool": "vibe3d_render_id_pass",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "roomArg": false
+      },
+      "cli": {
+        "command": "render id-pass",
+        "args": "<roomId> [--size 640x480] [--camera px,py,pz,tx,ty,tz] [--mask]"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 64,
+            "maximum": 4096
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 64,
+            "maximum": 4096
+          },
+          "camera": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "persp",
+                  "ortho"
+                ]
+              },
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "target": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "fov": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 179
+              },
+              "zoom": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": [
+              "mode",
+              "p",
+              "target",
+              "fov",
+              "zoom"
+            ],
+            "additionalProperties": false
+          },
+          "settleMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "at": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 3600
+          },
+          "includeMask": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "roomId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "width": {
+            "type": "integer"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "legend": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "pattern": "^n_[a-z0-9]{8}$"
+            }
+          },
+          "coverage": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "nodeId": {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                "hex": {
+                  "type": "string"
+                },
+                "pixels": {
+                  "type": "integer"
+                },
+                "share": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "required": [
+                "nodeId",
+                "hex",
+                "pixels",
+                "share"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "unknown": {
+            "type": "integer"
+          },
+          "mask": {
+            "type": "object",
+            "properties": {
+              "encoding": {
+                "type": "string",
+                "const": "deflate-index8"
+              },
+              "base64": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "encoding",
+              "base64"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "revision",
+          "width",
+          "height",
+          "legend",
+          "coverage",
+          "unknown"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
       "name": "render.sequence",
       "title": "按 from/to/fps 采样动画，输出 PNG 帧序列 + manifest（任务制，用 job.get 取进度）",
       "wire": "render.sequence",

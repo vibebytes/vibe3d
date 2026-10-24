@@ -270,6 +270,48 @@ export const renderOps = {
     },
     errors: ['E_RENDER_UNAVAILABLE', 'E_ROOM_NOT_FOUND', 'E_INVALID_PARAMS'] as const,
   },
+  'render.id-pass': {
+    title: 'ID 通道：每个节点刷成唯一色，回传像素覆盖与可选索引掩码',
+    input: z.object({
+      roomId,
+      width: intIn(64, 4096).optional(),
+      height: intIn(64, 4096).optional(),
+      camera: cameraStateSchema.optional(),
+      settleMs: intIn(0, 10_000).optional(),
+      at: numIn(0, 3600).optional(),
+      includeMask: z.boolean().optional(),
+    }),
+    output: z.object({
+      revision: z.number().int().min(0),
+      width: z.number().int(),
+      height: z.number().int(),
+      legend: z.record(nodeIdSchema, z.string()),
+      coverage: z.array(
+        z.object({
+          nodeId: nodeIdSchema,
+          hex: z.string(),
+          pixels: z.number().int(),
+          share: z.number().min(0).max(1),
+        }),
+      ),
+      unknown: z.number().int(),
+      mask: z
+        .object({ encoding: z.literal('deflate-index8'), base64: z.string() })
+        .optional(),
+    }),
+    scope: 'room' as const,
+    mutating: false,
+    wire: 'render.id-pass' as const,
+    mcp: {
+      tool: 'vibe3d_render_id_pass' as const,
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    cli: {
+      command: 'render id-pass',
+      args: '<roomId> [--size 640x480] [--camera px,py,pz,tx,ty,tz] [--mask]',
+    },
+    errors: ['E_RENDER_UNAVAILABLE', 'E_ROOM_NOT_FOUND', 'E_INVALID_PARAMS'] as const,
+  },
   'render.sequence': {
     title: '按 from/to/fps 采样动画，输出 PNG 帧序列 + manifest（任务制，用 job.get 取进度）',
     input: z.object({

@@ -11224,6 +11224,103 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "vibe3d_render_id_pass",
+    title: "ID 通道：每个节点刷成唯一色，回传像素覆盖与可选索引掩码",
+    capability: "render.id-pass",
+    annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 4096
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 4096
+        },
+        "camera": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": [
+                "persp",
+                "ortho"
+              ]
+            },
+            "p": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "target": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "fov": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 179
+            },
+            "zoom": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          },
+          "required": [
+            "mode",
+            "p",
+            "target",
+            "fov",
+            "zoom"
+          ],
+          "additionalProperties": false
+        },
+        "settle_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "at": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3600
+        },
+        "include_mask": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
     name: "vibe3d_render_sequence",
     title: "按 from/to/fps 采样动画，输出 PNG 帧序列 + manifest（任务制，用 job.get 取进度）",
     capability: "render.sequence",

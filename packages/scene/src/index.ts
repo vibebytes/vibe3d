@@ -35,6 +35,16 @@ export {
   type PickResult,
 } from './pick';
 export {
+  ID_PASS_MAX_NODES,
+  ID_PASS_MAX_PIXELS,
+  fitsIdPass,
+  buildIdLegend,
+  decodeIdMask,
+  type IdCoverage,
+  type IdLegend,
+  type IdMask,
+} from './id-pass';
+export {
   bakeBoxes,
   booleanBoxes,
   boxFromCenter,

@@ -17,7 +17,12 @@ import { fitTransform, importName, isGltfFile, rowOffset } from '../lib/import-m
 import { rpc } from '../lib/rpc';
 import { uploadGltf, uploadImage } from '../lib/upload';
 import { type RoomSocket, connectRoom } from '../lib/ws';
-import type { CaptureOptions, CaptureResult } from '../viewport/CaptureBridge';
+import type {
+  CaptureOptions,
+  CaptureResult,
+  IdPassOptions,
+  IdPassResult,
+} from '../viewport/CaptureBridge';
 import { useConn } from './conn';
 import { useSelection } from './selection';
 import { parseSnapshotCamera } from './snapshot-camera';
@@ -34,6 +39,7 @@ declare global {
     __vibe3dCapture?: (opts?: CaptureOptions) => CaptureResult | null;
     __vibe3dReady?: boolean;
     __vibe3dExport?: (nodeIds?: string[] | null) => Promise<string>;
+    __vibe3dIdPass?: (opts: IdPassOptions) => IdPassResult;
     vibe3d?: {
       roomId: string;
       select(id: string | null): void;

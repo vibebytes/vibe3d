@@ -29,6 +29,21 @@ export interface Snapshot {
   height: number;
 }
 
+export interface IdPassOptions {
+  width: number;
+  height: number;
+  camera?: CameraState;
+  settleMs?: number;
+  at?: number;
+  legend: Record<string, string>;
+}
+
+export interface IdPassShot {
+  width: number;
+  height: number;
+  rgba: Uint8Array;
+}
+
 export interface RenderInput {
   roomId: string;
   doc: SceneDoc;
@@ -39,6 +54,7 @@ export interface Renderer {
   readonly ready: boolean;
   available?(roomId: string): boolean;
   snapshot(input: RenderInput, opts: SnapshotOptions): Promise<Snapshot>;
+  idPass?(input: RenderInput, opts: IdPassOptions): Promise<IdPassShot>;
   exportGlb(
     input: RenderInput,
     nodeIds?: string[],
