@@ -71,10 +71,65 @@ const parseNumber = (text: string): number | undefined => {
   return Number.isFinite(value) ? value : undefined;
 };
 
+const DEFAULTS: Record<string, unknown> = {
+  transform: { p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] },
+  p: [0, 0, 0],
+  r: [0, 0, 0],
+  s: [1, 1, 1],
+  visible: true,
+  parent: null,
+  baseColor: [0.8, 0.8, 0.8, 1],
+  metalness: 0,
+  roughness: 0.5,
+  emissive: [0, 0, 0],
+  emissiveIntensity: 0,
+  opacity: 1,
+  doubleSided: false,
+};
+
+function fillRequired(
+  inner: z.ZodObject<z.ZodRawShape>,
+  out: Record<string, unknown>,
+): Record<string, unknown> {
+  for (const [key, field] of Object.entries(inner.shape)) {
+    if (key in out) continue;
+    if ((field as z.ZodTypeAny).isOptional?.()) continue;
+    if (!(key in DEFAULTS)) continue;
+    out[key] = structuredClone(DEFAULTS[key]);
+  }
+  return out;
+}
+
+const parseHexColour = (text: string): [number, number, number, number] | undefined => {
+  const match = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.exec(text.trim());
+  if (!match) return undefined;
+  const raw = match[1]!;
+  const full =
+    raw.length === 3
+      ? raw
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : raw;
+  const channel = (index: number) =>
+    Math.round((Number.parseInt(full.slice(index * 2, index * 2 + 2), 16) / 255) * 1e6) / 1e6;
+  return [channel(0), channel(1), channel(2), full.length === 8 ? channel(3) : 1];
+};
+
 function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number): unknown {
   if (depth > 8 || schema.safeParse(value).success) return value;
   const inner = unwrap(schema);
   const def = defOf(inner);
+
+  if (
+    typeof value === 'string' &&
+    def.typeName === 'ZodTuple' &&
+    Array.isArray(def.items) &&
+    def.items.length === 4
+  ) {
+    const hex = parseHexColour(value);
+    if (hex && inner.safeParse(hex).success) return hex;
+  }
 
   if (typeof value === 'string') {
     if (def.typeName === 'ZodBoolean') {
@@ -99,7 +154,11 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number): unkno
   if (Array.isArray(value) && def.typeName === 'ZodTuple' && Array.isArray(def.items)) {
     const items = def.items as z.ZodTypeAny[];
     const rest = def.rest as z.ZodTypeAny | null | undefined;
-    return value.map((item, index) => coerceValue(items[index] ?? rest ?? z.any(), item, depth + 1));
+    const out = value.map((item, index) => coerceValue(items[index] ?? rest ?? z.any(), item, depth + 1));
+    if (items.length === 4 && out.length === 3 && out.every((item) => typeof item === 'number')) {
+      return [...out, 1];
+    }
+    return out;
   }
 
   if (Array.isArray(value) && def.typeName === 'ZodArray' && def.type) {
@@ -130,7 +189,7 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number): unkno
       const field = shape[key];
       out[key] = field ? coerceValue(field, sub, depth + 1) : sub;
     }
-    return out;
+    return fillRequired(inner as z.ZodObject<z.ZodRawShape>, out);
   }
 
   return value;

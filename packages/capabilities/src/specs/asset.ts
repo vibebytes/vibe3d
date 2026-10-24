@@ -51,10 +51,11 @@ export const assetOps = {
     errors: ['E_ASSET_FORMAT', 'E_ASSET_EXTERNAL_REFS'] as const,
   },
   'asset.put': {
-    title: '上传贴图 / HDRI 并注册进房间资产表',
+    title: '上传贴图 / HDRI / glb 模型并注册进房间资产表',
     input: z.object({
       roomId,
       src: z.string().min(1),
+      kind: z.enum(['auto', 'image', 'hdri', 'model']).optional(),
       name: z.string().min(1).max(300).optional(),
       policy: z.enum(['strict', 'local', 'allow']).optional(),
     }),
@@ -77,11 +78,12 @@ export const assetOps = {
     ] as const,
   },
   'asset.list': {
-    title: '列出房间资产及引用计数',
+    title: '列出房间资产、引用计数与引用方',
     input: z.object({ roomId }),
     output: z.object({
       assets: z.array(assetMetaSchema),
       refs: z.record(shaSchema, z.number().int().min(0)),
+      usedBy: z.record(shaSchema, z.array(z.union([nodeIdSchema, z.literal('env')]))),
     }),
     scope: 'room' as const,
     mutating: false,
@@ -97,7 +99,7 @@ export const assetOps = {
     scope: 'room' as const,
     mutating: true,
     wire: 'asset.delete' as const,
-    mcp: { tool: 'vibe3d_delete_asset' as const },
+    mcp: { tool: 'vibe3d_delete_asset' as const, annotations: { destructiveHint: true } },
     cli: { command: 'asset rm', args: '<roomId> <sha>' },
     errors: ['E_ASSET_MISSING', 'E_ASSET_IN_USE', 'E_ROOM_NOT_FOUND'] as const,
   },

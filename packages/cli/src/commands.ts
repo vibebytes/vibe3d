@@ -5,6 +5,8 @@ import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { Studio, type StudioOptions } from '@vibebyte/vibe3d-client';
 import { type ParsedArgs, bool, jsonArg, num, parseSize, str, vec } from './args';
+import { cameraFromFlags, saveNameFrom } from './camera-args';
+import { booleanFromFlags, decalFromFlags } from './decal-args';
 import { clipFromFlags, fogFromFlags, fxSpecFromFlags } from './fx-args';
 import { parseLookFlags } from './look';
 import { mapFromFlags, materialPatchFromFlags } from './material-args';
@@ -124,7 +126,7 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
         }) as never,
       );
     }
-    if (command === 'undo') return room.undo();
+    if (command === 'undo') return room.undo(pick({ opId: str(flags, 'op-id') }) as never);
     if (command === 'redo') return room.redo();
     if (command === 'diff') return room.diff(pick({ from: num(flags, 'from'), to: num(flags, 'to') }));
     if (command === 'apply') {
@@ -255,6 +257,18 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
     );
   }
 
+  if (group === 'decal' && command === 'create') {
+    return room.createDecal(decalFromFlags(flags) as never);
+  }
+
+  if (group === 'mesh' && command === 'boolean') {
+    return room.booleanMesh({
+      target: need(rest[1], 'mesh boolean 需要 target'),
+      tool: need(rest[2], 'mesh boolean 需要 tool'),
+      ...booleanFromFlags(flags),
+    } as never);
+  }
+
   if (group === 'stage' && command === 'set') {
     const preset = str(flags, 'preset');
     const stage = jsonArg(str(flags, 'stage'));
@@ -289,14 +303,22 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
   }
 
   if (group === 'env' && command === 'set') {
-    return room.setEnv({ ...fogFromFlags(flags) });
+    return room.setEnv({
+      ...fogFromFlags(flags),
+      ...(str(flags, 'hdri') ? { hdriSrc: str(flags, 'hdri') } : {}),
+      ...(str(flags, 'policy') ? { policy: str(flags, 'policy') as never } : {}),
+    });
   }
 
-  if (group === 'camera' && command === 'set') {
-    return room.setCamera({
-      frame: str(flags, 'frame') as never,
-      camera: pick({ p: vec(flags, 'p'), target: vec(flags, 'target'), fov: num(flags, 'fov') }) as never,
-    } as never);
+  if (
+    group === 'camera' &&
+    (command === 'set' || command === 'save' || command === 'rm' || command === 'delete')
+  ) {
+    const parsed = cameraFromFlags(flags);
+    if (command === 'set') return room.setCamera(parsed);
+    if (command === 'save') return room.saveCamera({ ...parsed, name: saveNameFrom(parsed.name) });
+    const name = saveNameFrom(rest[1] ?? parsed.name);
+    return room.deleteCamera(name);
   }
 
   if (group === 'render' && command === 'snapshot') {
@@ -503,6 +525,7 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
       return room.putAsset(
         pick({
           src: need(rest[1], 'asset put 需要 <src>'),
+          kind: str(flags, 'kind'),
           name: str(flags, 'name'),
           policy: str(flags, 'policy'),
         }) as never,

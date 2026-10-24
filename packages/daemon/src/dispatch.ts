@@ -8,7 +8,9 @@ import {
 import { AppError, DAEMON_VERSION, PROTOCOL_VERSION } from '@vibebyte/vibe3d-protocol';
 import type { AutoOpenState, DispatchContext, HelloResult } from './context';
 import { assetHandlers } from './handlers/asset';
+import { booleanHandlers } from './handlers/boolean';
 import { checkpointHandlers } from './handlers/checkpoints';
+import { decalHandlers } from './handlers/decal';
 import { editorUrl } from './handlers/editor-url';
 import { renderHandlers } from './handlers/render';
 import { roomHandlers } from './handlers/room';
@@ -33,6 +35,8 @@ const VISUAL_MUTATIONS = new Set<CapabilityName>([
   'scene.restore',
   'asset.put',
   'asset.delete',
+  'decal.create',
+  'mesh.boolean',
 ]);
 
 // Routes build a fresh ctx per request (spread), so dedupe must key on a stable instance.
@@ -82,6 +86,8 @@ const HANDLERS = {
   ...sceneHandlers,
   ...checkpointHandlers,
   ...assetHandlers,
+  ...decalHandlers,
+  ...booleanHandlers,
   ...renderHandlers,
 } as unknown as Record<CapabilityName, AnyHandler>;
 

@@ -1,6 +1,9 @@
+import { mkdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { AppError, type SceneDoc } from '@vibebyte/vibe3d-protocol';
 import { type ViewName, frameTarget } from '@vibebyte/vibe3d-scene';
 import type { DispatchContext, OverlayKind, Renderer, ShadingMode, SnapshotOptions } from '../context';
+import { signExportUrl } from '../http/export-url';
 import { toView } from '../jobs/store';
 import { decodeShot, hexOf, pixelAt, regionStats } from '../render/pick';
 import { editorUrl } from './editor-url';
@@ -22,6 +25,7 @@ type Keys =
   | 'render.views'
   | 'render.node'
   | 'render.pick'
+  | 'render.sequence'
   | 'export.glb'
   | 'job.get'
   | 'job.list'
@@ -186,6 +190,69 @@ export const renderHandlers: HandlersFor<Keys> = {
     };
   },
 
+  'render.sequence': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    if (p.to < p.from) {
+      throw new AppError('E_INVALID_PARAMS', `to(${p.to}) 不能小于 from(${p.from})`);
+    }
+    const count = Math.floor((p.to - p.from) * p.fps + 1e-6) + 1;
+    if (count > 600) {
+      throw new AppError('E_INVALID_PARAMS', `帧数 ${count} 超过上限 600，请缩小 from/to 区间或降低 fps`);
+    }
+    const renderer = requireRenderer(ctx, room.id);
+    const jobs = requireJobs(ctx);
+    const dir = ctx.exportsDir;
+    if (!dir) throw new AppError('E_INTERNAL', '导出目录未配置');
+    const snapshot = structuredClone(room.doc);
+    const revision = room.revision;
+    const job = jobs.store.create('render.sequence', room.id);
+    const options = imageOptions({ ...p, format: 'png' }, snapshot);
+    try {
+      jobs.queue.enqueue(job, async (record, report) => {
+        report(0.02, 'prepare');
+        await mkdir(dir, { recursive: true });
+        const frames: { index: number; at: number; file: string; bytes: number }[] = [];
+        for (let i = 0; i < count; i++) {
+          const at = p.from + i / p.fps;
+          const shot = await renderer.snapshot(
+            { roomId: room.id, doc: snapshot },
+            { ...options, at: Math.min(at, p.to) },
+          );
+          const file = `${record.id}-${String(i).padStart(4, '0')}.png`;
+          const bytes = Buffer.from(shot.base64, 'base64');
+          await writeFile(join(dir, file), bytes);
+          frames.push({ index: i, at, file, bytes: bytes.length });
+          report(0.05 + (0.85 * (i + 1)) / count, `frame ${i + 1}/${count}`);
+          if (record.cancelRequested) break;
+        }
+        const manifest = {
+          jobId: record.id,
+          roomId: room.id,
+          revision,
+          fps: p.fps,
+          from: p.from,
+          to: p.to,
+          width: options.width,
+          height: options.height,
+          frames,
+        };
+        const file = `${record.id}.json`;
+        const body = Buffer.from(JSON.stringify(manifest, null, 2), 'utf8');
+        await writeFile(join(dir, file), body);
+        report(0.98, 'manifest');
+        return {
+          url: ctx.signExport?.(file) ?? signExportUrl(ctx.token ?? '', file),
+          bytes: body.length + frames.reduce((sum, f) => sum + f.bytes, 0),
+          revision,
+        };
+      });
+    } catch (err) {
+      jobs.store.cancel(job.id);
+      throw err;
+    }
+    return { jobId: job.id, state: job.state };
+  },
+
   'export.glb': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     const renderer = requireRenderer(ctx, room.id);
@@ -196,7 +263,7 @@ export const renderHandlers: HandlersFor<Keys> = {
     try {
       jobs.queue.enqueue(job, async (_job, report) => {
         report(0.05, 'queue');
-        const out = await renderer.exportGlb({ roomId: room.id, doc: snapshot }, p.nodeIds);
+        const out = await renderer.exportGlb({ roomId: room.id, doc: snapshot }, p.nodeIds, p.include);
         report(0.9, 'pack');
         return { url: out.url, bytes: out.bytes, revision };
       });

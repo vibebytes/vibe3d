@@ -47,7 +47,9 @@ type Keys =
   | 'fx.create'
   | 'fx.delete'
   | 'env.set'
-  | 'camera.set';
+  | 'camera.set'
+  | 'camera.save'
+  | 'camera.delete';
 
 const IDENTITY: Transform = { p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] };
 const MAX_FX = 64;
@@ -519,9 +521,21 @@ export const sceneHandlers: HandlersFor<Keys> = {
 
   'env.set': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    const { roomId: _roomId, ...env } = p;
-    const result = await room.run(() => room.apply([{ op: 'env.set', env } as Op]));
-    return { revision: result.revision, env: room.doc.env };
+    const { roomId: _roomId, hdriSrc, policy, ...env } = p;
+    const ops: Op[] = [];
+    if (hdriSrc) {
+      const { meta } = await ctx.ingest(hdriSrc, policy);
+      if (meta.kind !== 'image' || !meta.image?.hdri) {
+        throw new AppError('E_ASSET_TYPE', `hdriSrc 只接受 .hdr / .exr：${meta.name}`, {
+          sha: meta.sha,
+        });
+      }
+      ops.push({ op: 'asset.register', asset: meta });
+      env.hdri = meta.sha;
+    }
+    ops.push({ op: 'env.set', env } as Op);
+    const result = await room.run(() => room.apply(ops));
+    return { revision: result.revision, env: room.doc.env, ...(env.hdri ? { sha: env.hdri } : {}) };
   },
 
   'material.create': async (p, ctx) => {
@@ -556,8 +570,22 @@ export const sceneHandlers: HandlersFor<Keys> = {
 
   'camera.set': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    const op: Op = { op: 'camera.set', camera: p.camera, frame: p.frame };
+    const op: Op = { op: 'camera.set', camera: p.camera, frame: p.frame, name: p.name, preset: p.preset };
     const result = await room.run(() => room.apply([op]));
     return { revision: result.revision, camera: room.doc.camera };
+  },
+
+  'camera.save': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const op: Op = { op: 'camera.save', name: p.name, camera: p.camera };
+    const result = await room.run(() => room.apply([op]));
+    return { revision: result.revision, camera: room.doc.camera, cameras: room.doc.cameras };
+  },
+
+  'camera.delete': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const op: Op = { op: 'camera.delete', name: p.name };
+    const result = await room.run(() => room.apply([op]));
+    return { revision: result.revision, camera: room.doc.camera, cameras: room.doc.cameras };
   },
 };

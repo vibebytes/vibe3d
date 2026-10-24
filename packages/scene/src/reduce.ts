@@ -7,7 +7,7 @@ import {
   type SceneDoc,
   type SceneNode,
 } from '@vibebyte/vibe3d-protocol';
-import { frameCamera } from './frame';
+import { frameCamera, miniatureCamera } from './frame';
 import { normalizeMap, presetMaterial } from './material';
 import { DEFAULT_LIMITS, type Limits, validateDoc } from './validate';
 
@@ -26,6 +26,21 @@ function failWith(code: 'E_MATERIAL_NOT_FOUND', message: string, data?: Record<s
 }
 
 const clone = <T>(v: T): T => structuredClone(v);
+
+type Dict = Record<string, unknown>;
+
+function isDict(v: unknown): v is Dict {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+function mergeStageBlock(previous: unknown, patch: unknown): unknown {
+  if (!isDict(previous) || !isDict(patch)) return patch;
+  const out: Dict = { ...previous };
+  for (const [key, value] of Object.entries(patch)) {
+    out[key] = isDict(value) && isDict(out[key]) ? { ...(out[key] as Dict), ...value } : value;
+  }
+  return out;
+}
 
 function childrenMap(doc: SceneDoc): Map<string, string[]> {
   const map = new Map<string, string[]>();
@@ -67,6 +82,7 @@ function countRefs(doc: SceneDoc, sha: string): number {
   for (const node of Object.values(doc.nodes)) {
     if (node.kind === 'model' && node.sha === sha) total += 1;
     if (node.kind === 'mesh' && normalizeMap(doc.materials[node.material]?.map)?.sha === sha) total += 1;
+    if (node.kind === 'mesh' && node.decal?.imageSha === sha) total += 1;
   }
   if (doc.env.hdri === sha) total += 1;
   return total;
@@ -76,7 +92,10 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
   switch (op.op) {
     case 'node.create': {
       const node = op.node;
-      if (doc.nodes[node.id]) fail('节点已存在', { id: node.id });
+      if (doc.nodes[node.id])
+        fail('节点已存在；新建节点请用 vibe3d_create_node（服务端生成 id），或换一个 n_ + 8 位 id', {
+          id: node.id,
+        });
       if (node.parent && !doc.nodes[node.parent]) fail('父节点不存在', { id: node.parent });
       doc.nodes[node.id] = clone(node);
       if (!node.parent) doc.roots.push(node.id);
@@ -120,6 +139,12 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
         if (!doc.materials[patch.material]) fail('材质不存在', { id: op.id, material: patch.material });
         old.material = node.material;
         node.material = patch.material;
+      }
+      if (patch.decal !== undefined) {
+        if (node.kind !== 'mesh') fail('只有 mesh 节点有 decal 字段', { id: op.id });
+        old.decal = node.decal ? clone(node.decal) : null;
+        if (patch.decal === null) Reflect.deleteProperty(node, 'decal');
+        else node.decal = clone(patch.decal);
       }
       if (patch.sha !== undefined) {
         if (node.kind !== 'model') fail('只有 model 节点有 sha 字段', { id: op.id });
@@ -204,7 +229,10 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       return;
     }
     case 'material.create': {
-      if (doc.materials[op.id]) fail('材质已存在', { id: op.id });
+      if (doc.materials[op.id])
+        fail('材质已存在；新建材质请用 vibe3d_create_material（服务端生成 id），或换一个 m_ + 8 位 id', {
+          id: op.id,
+        });
       doc.materials[op.id] = presetMaterial(op.preset, op.params);
       inverse.push({ op: 'material.delete', id: op.id });
       return;
@@ -258,9 +286,18 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
     case 'stage.set': {
       const old: Partial<SceneDoc['stage']> = {};
       for (const key of Object.keys(op.stage) as (keyof SceneDoc['stage'])[]) {
-        if (op.stage[key] === undefined) continue;
-        (old as Record<string, unknown>)[key] = doc.stage[key];
-        (doc.stage as Record<string, unknown>)[key] = op.stage[key];
+        const value = op.stage[key];
+        if (value === undefined) continue;
+        (old as Record<string, unknown>)[key] = clone(doc.stage[key]);
+        if (key === 'post' || key === 'npr') {
+          if (value === null) {
+            Reflect.deleteProperty(doc.stage, key);
+          } else {
+            (doc.stage as Record<string, unknown>)[key] = mergeStageBlock(doc.stage[key], value);
+          }
+          continue;
+        }
+        (doc.stage as Record<string, unknown>)[key] = value;
       }
       inverse.push({ op: 'stage.set', stage: old });
       return;
@@ -301,7 +338,10 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       return;
     }
     case 'fx.create': {
-      if (doc.fx.some((f) => f.id === op.fx.id)) fail('特效已存在', { fxId: op.fx.id });
+      if (doc.fx.some((f) => f.id === op.fx.id))
+        fail('特效已存在；新建特效请用 vibe3d_create_fx（服务端生成 id），或换一个 f_ + 8 位 id', {
+          fxId: op.fx.id,
+        });
       if (op.fx.nodeId && !doc.nodes[op.fx.nodeId]) fail('节点不存在', { id: op.fx.nodeId });
       doc.fx.push(clone(op.fx));
       inverse.push({ op: 'fx.delete', id: op.fx.id });
@@ -316,11 +356,39 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       return;
     }
     case 'camera.set': {
-      if (!op.frame && !op.camera) fail('camera 与 frame 必须给出一个');
+      if (!op.frame && !op.camera && !op.name && !op.preset) {
+        fail('camera / frame / name / preset 必须给出一个');
+      }
       const previous = clone(doc.camera);
-      if (op.frame) doc.camera = frameCamera(doc, op.frame);
-      if (op.camera) doc.camera = { ...doc.camera, ...op.camera };
+      let next = doc.camera;
+      if (op.frame) next = frameCamera(doc, op.frame);
+      if (op.preset) next = miniatureCamera(doc);
+      if (op.name) {
+        const saved = doc.cameras[op.name];
+        if (!saved) throw new AppError('E_CAMERA_NOT_FOUND', `机位 ${op.name} 不存在`, { name: op.name });
+        next = clone(saved);
+      }
+      if (op.camera) next = { ...next, ...op.camera };
+      doc.camera = next;
       inverse.push({ op: 'camera.set', camera: previous });
+      return;
+    }
+    case 'camera.save': {
+      const previous = doc.cameras[op.name];
+      const pose = { ...doc.camera, ...op.camera };
+      doc.cameras[op.name] = clone(pose);
+      inverse.push(
+        previous
+          ? { op: 'camera.save', name: op.name, camera: clone(previous) }
+          : { op: 'camera.delete', name: op.name },
+      );
+      return;
+    }
+    case 'camera.delete': {
+      const previous = doc.cameras[op.name];
+      if (!previous) throw new AppError('E_CAMERA_NOT_FOUND', `机位 ${op.name} 不存在`, { name: op.name });
+      Reflect.deleteProperty(doc.cameras, op.name);
+      inverse.push({ op: 'camera.save', name: op.name, camera: clone(previous) });
       return;
     }
     default:

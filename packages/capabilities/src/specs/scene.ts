@@ -12,13 +12,21 @@ import {
   materialSchema,
   modelAnimSchema,
   nodeIdSchema,
+  nprSchema,
   opListSchema,
+  postSchema,
   sceneDocSchema,
+  shaSchema,
   stageStateSchema,
   vec3,
 } from '@vibebyte/vibe3d-protocol';
 import { z } from 'zod';
 import { revisionOut, roomId, transformInput } from './common';
+
+const stagePatch = stageStateSchema.partial().extend({
+  post: postSchema.nullable().optional(),
+  npr: nprSchema.nullable().optional(),
+});
 
 const nodePatch = z.object({
   name: z.string().min(1).max(200).optional(),
@@ -344,7 +352,7 @@ export const sceneOps = {
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.apply' as const,
-    mcp: { tool: 'vibe3d_delete_node' as const },
+    mcp: { tool: 'vibe3d_delete_node' as const, annotations: { destructiveHint: true } },
     cli: { command: 'node rm', args: '<roomId> <nodeId> [--no-cascade]' },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
@@ -369,8 +377,8 @@ export const sceneOps = {
     errors: ['E_INVALID_PARAMS', 'E_LIMIT_EXCEEDED', 'E_ROOM_NOT_FOUND'] as const,
   },
   'stage.set': {
-    title: '换舞台预设：光影、背景、地面',
-    input: z.object({ roomId, stage: stageStateSchema.partial() }),
+    title: '换舞台：预设、曝光、后处理与三渲二',
+    input: z.object({ roomId, stage: stagePatch }),
     output: revisionOut.extend({ stage: stageStateSchema }),
     scope: 'room' as const,
     mutating: true,
@@ -413,7 +421,7 @@ export const sceneOps = {
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.apply' as const,
-    mcp: { tool: 'vibe3d_clear_animation' as const },
+    mcp: { tool: 'vibe3d_clear_animation' as const, annotations: { destructiveHint: true } },
     cli: { command: 'anim clear', args: '<roomId> <nodeId>' },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
@@ -435,7 +443,7 @@ export const sceneOps = {
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.apply' as const,
-    mcp: { tool: 'vibe3d_delete_fx' as const },
+    mcp: { tool: 'vibe3d_delete_fx' as const, annotations: { destructiveHint: true } },
     cli: { command: 'fx rm', args: '<roomId> <fxId>' },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
@@ -484,9 +492,25 @@ export const sceneOps = {
     errors: ['E_INVALID_PARAMS', 'E_MATERIAL_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'env.set': {
-    title: '设置环境：雾、背景与环境光',
-    input: envSchema.partial().extend({ roomId, fog: fogSchema.nullable().optional() }),
-    output: revisionOut.extend({ env: envSchema }),
+    title: '设置环境：雾、背景与环境光；hdriSrc 一步上传并挂上 HDRI',
+    input: envSchema.partial().extend({
+      roomId,
+      hdri: z
+        .string()
+        .regex(/^[0-9a-f]{64}$/)
+        .nullable()
+        .optional(),
+      fog: fogSchema.nullable().optional(),
+      hdriSrc: z.string().min(1).optional(),
+      policy: z.enum(['strict', 'local', 'allow']).optional(),
+    }),
+    output: revisionOut.extend({
+      env: envSchema,
+      sha: z
+        .string()
+        .regex(/^[0-9a-f]{64}$/)
+        .optional(),
+    }),
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.apply' as const,
@@ -495,14 +519,17 @@ export const sceneOps = {
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'scene.undo': {
-    title: '撤销一步',
-    input: z.object({ roomId }),
+    title: '撤销一步；给 opId 则只撤销该步（按步重放后续变更）',
+    input: z.object({
+      roomId,
+      opId: z.string().min(1).optional(),
+    }),
     output: revisionOut,
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.undo' as const,
-    mcp: { tool: 'vibe3d_undo' as const, annotations: { readOnlyHint: false } },
-    cli: { command: 'scene undo', args: '<roomId>' },
+    mcp: { tool: 'vibe3d_undo' as const, annotations: { readOnlyHint: false, destructiveHint: true } },
+    cli: { command: 'scene undo', args: '<roomId> [--op-id id]' },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'scene.redo': {
@@ -512,28 +539,36 @@ export const sceneOps = {
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.redo' as const,
-    mcp: { tool: 'vibe3d_redo' as const, annotations: { readOnlyHint: false } },
+    mcp: { tool: 'vibe3d_redo' as const, annotations: { readOnlyHint: false, destructiveHint: true } },
     cli: { command: 'scene redo', args: '<roomId>' },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'scene.diff': {
-    title: '两点版本之间的 op 差异',
+    title: '两点版本之间的 op 差异；visual 时额外给出节点级增删改',
     input: z.object({
       roomId,
       from: z.number().int().min(0).optional(),
       to: z.number().int().min(0).optional(),
+      visual: z.boolean().optional(),
     }),
     output: z.object({
       from: z.number().int(),
       to: z.number().int(),
       ops: opListSchema,
       reset: z.boolean(),
+      nodes: z
+        .object({
+          added: z.array(nodeIdSchema),
+          updated: z.array(nodeIdSchema),
+          removed: z.array(nodeIdSchema),
+        })
+        .optional(),
     }),
     scope: 'room' as const,
     mutating: false,
     wire: 'scene.diff' as const,
     mcp: { tool: 'vibe3d_scene_diff' as const, annotations: { readOnlyHint: true } },
-    cli: { command: 'scene diff', args: '<roomId> [--from n] [--to n]' },
+    cli: { command: 'scene diff', args: '<roomId> [--from n] [--to n] [--visual]' },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'selection.get': {
@@ -614,8 +649,73 @@ export const sceneOps = {
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.restore' as const,
-    mcp: { tool: 'vibe3d_restore_scene' as const },
+    mcp: { tool: 'vibe3d_restore_scene' as const, annotations: { destructiveHint: true } },
     cli: { command: 'scene restore', args: '<roomId> <checkpointId>' },
     errors: ['E_CHECKPOINT_NOT_FOUND', 'E_INVALID_PARAMS', 'E_ASSET_MISSING', 'E_ROOM_NOT_FOUND'] as const,
+  },
+  'decal.create': {
+    title: '文字 / 图片贴花：真字形（canvas 生成，无需字体文件）或图片贴到平面上',
+    input: z.object({
+      roomId,
+      id: nodeIdSchema.optional(),
+      name: z.string().min(1).max(200).optional(),
+      text: z.string().min(1).max(200).optional(),
+      imageSha: shaSchema.optional(),
+      width: z.number().positive().max(50).default(2),
+      height: z.number().positive().max(50).default(1),
+      position: vec3.default([0, 1, 0]),
+      rotation: vec3.optional(),
+      color: z
+        .string()
+        .regex(/^#[0-9a-fA-F]{6,8}$/)
+        .optional(),
+      background: z
+        .string()
+        .regex(/^#[0-9a-fA-F]{6,8}$/)
+        .optional(),
+      fontSize: z.number().int().min(8).max(512).optional(),
+      bold: z.boolean().optional(),
+      align: z.enum(['left', 'center', 'right']).optional(),
+      parent: nodeIdSchema.nullable().optional(),
+    }),
+    output: z.object({
+      nodeId: nodeIdSchema,
+      materialId: materialIdSchema,
+      revision: z.number().int().min(0),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'decal.create' as const,
+    mcp: { tool: 'vibe3d_create_decal' as const },
+    cli: { command: 'decal create', args: '<roomId> --text 标语 | --image-sha <sha> [--at x,y,z]' },
+    errors: ['E_INVALID_PARAMS', 'E_ASSET_MISSING', 'E_ROOM_NOT_FOUND'] as const,
+  },
+  'mesh.boolean': {
+    title: '布尔：轴对齐 box 的 subtract / union / intersect，结果烘焙成单节点几何',
+    input: z.object({
+      roomId,
+      target: nodeIdSchema,
+      tool: nodeIdSchema,
+      op: z.enum(['subtract', 'union', 'intersect']).default('subtract'),
+      deleteTool: z.boolean().optional(),
+    }),
+    output: z.object({
+      revision: z.number().int().min(0),
+      nodeId: nodeIdSchema,
+      tris: z.number().int().min(0),
+      boxes: z.number().int().min(0),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'mesh.boolean' as const,
+    mcp: { tool: 'vibe3d_boolean_mesh' as const },
+    cli: { command: 'mesh boolean', args: '<roomId> <target> <tool> [--op subtract] [--keep-tool]' },
+    errors: [
+      'E_INVALID_PARAMS',
+      'E_NODE_NOT_FOUND',
+      'E_UNSUPPORTED',
+      'E_PAYLOAD_TOO_LARGE',
+      'E_ROOM_NOT_FOUND',
+    ] as const,
   },
 };

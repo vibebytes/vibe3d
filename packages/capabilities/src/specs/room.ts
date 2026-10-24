@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { revisionOut, roomId, roomSummary } from './common';
+import { intIn, revisionOut, roomId, roomSummary } from './common';
 
 export const roomCreate = {
   'room.create': {
@@ -22,14 +22,33 @@ export const roomCreate = {
     errors: ['E_ROOM_LIMIT', 'E_LOCKED'] as const,
   },
   'room.list': {
-    title: '列出房间',
-    input: z.object({}),
-    output: z.object({ rooms: z.array(roomSummary) }),
+    title: '列出房间（limit/cursor 分页，按 updatedAt 倒序）',
+    input: z.object({
+      limit: intIn(1, 100).optional(),
+      cursor: z.string().min(1).optional(),
+    }),
+    output: z.object({ rooms: z.array(roomSummary), nextCursor: z.string().optional() }),
     scope: 'daemon' as const,
     mutating: false,
     wire: 'room.list' as const,
-    mcp: { tool: 'vibe3d_list_rooms' as const },
-    cli: { command: 'room ls', args: '' },
+    mcp: { tool: 'vibe3d_list_rooms' as const, annotations: { readOnlyHint: true } },
+    cli: { command: 'room ls', args: '[--limit n] [--cursor c]' },
+    errors: ['E_INVALID_PARAMS'] as const,
+  },
+  'room.use': {
+    title: '切换当前会话绑定的房间：只换绑定，不打开窗口（之后 scene/node/render 都作用于它）',
+    input: z.object({ roomId }),
+    output: roomSummary,
+    scope: 'room' as const,
+    mutating: false,
+    wire: 'room.use' as const,
+    mcp: {
+      tool: 'vibe3d_use_room' as const,
+      annotations: { readOnlyHint: true },
+      roomArg: 'required' as const,
+    },
+    cli: { command: 'room use', args: '<roomId>' },
+    errors: ['E_ROOM_NOT_FOUND'] as const,
   },
   'room.get': {
     title: '读取房间摘要（含 editors：0 表示暂无窗口在看，下一次写操作会自动开窗）',

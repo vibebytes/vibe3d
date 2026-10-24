@@ -9,11 +9,19 @@ const snapshot = mkdtempSync(join(tmpdir(), 'vibe3d-gen-'));
 
 try {
   cpSync(gen, snapshot, { recursive: true });
-  execSync('pnpm gen', { cwd: root, stdio: 'inherit' });
+  execSync(`"${join(root, 'node_modules/.bin/tsx')}" packages/capabilities/src/gen/cli.ts`, {
+    cwd: root,
+    stdio: 'inherit',
+  });
 
-  const stale = readdirSync(snapshot).filter(
-    (file) => !readFileSync(join(snapshot, file)).equals(readFileSync(join(gen, file))),
-  );
+  const names = new Set([...readdirSync(snapshot), ...readdirSync(gen)]);
+  const stale = [...names].filter((file) => {
+    try {
+      return !readFileSync(join(snapshot, file)).equals(readFileSync(join(gen, file)));
+    } catch {
+      return true;
+    }
+  });
   if (stale.length > 0) {
     console.error(`gen not idempotent: ${stale.join(', ')}`);
     process.exitCode = 1;

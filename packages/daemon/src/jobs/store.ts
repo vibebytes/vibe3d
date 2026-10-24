@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { readdir, stat, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 
-export type JobKind = 'export.glb';
+export type JobKind = 'export.glb' | 'render.sequence';
 export type JobState = 'queued' | 'running' | 'done' | 'failed' | 'cancelled';
 
 export interface JobResult {
@@ -175,7 +175,7 @@ export async function sweepExports(
   const at = now();
   const removed: string[] = [];
   for (const name of names) {
-    if (!name.endsWith('.glb')) continue;
+    if (!/\.(glb|json|png)$/.test(name)) continue;
     const path = join(dir, name);
     try {
       const info = await stat(path);

@@ -37,7 +37,11 @@ export interface Renderer {
   readonly ready: boolean;
   available?(roomId: string): boolean;
   snapshot(input: RenderInput, opts: SnapshotOptions): Promise<Snapshot>;
-  exportGlb(input: RenderInput, nodeIds?: string[]): Promise<{ jobId: string; url: string; bytes: number }>;
+  exportGlb(
+    input: RenderInput,
+    nodeIds?: string[],
+    include?: Array<'cameras' | 'lights'>,
+  ): Promise<{ jobId: string; url: string; bytes: number }>;
   close?(): Promise<void>;
 }
 
@@ -60,7 +64,9 @@ export interface DispatchContext {
   token?: string;
   renderer?: Renderer;
   jobs?: Jobs;
-  ingest: (src: string, policy?: AssetPolicy) => Promise<IngestResult>;
+  exportsDir?: string;
+  signExport?: (file: string) => string;
+  ingest: (src: string, policy?: AssetPolicy, opts?: { maxBytes?: number }) => Promise<IngestResult>;
   inspect: (
     src: string,
     policy?: AssetPolicy,

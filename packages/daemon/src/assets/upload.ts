@@ -3,6 +3,7 @@ import { AppError } from '@vibebyte/vibe3d-protocol';
 import { type ImageInfo, readImageInfo } from './image-meta';
 
 export const MAX_UPLOAD_BYTES = 64 * 1024 * 1024;
+export const MAX_MODEL_BYTES = 50 * 1024 * 1024;
 export const MAX_IMAGE_BYTES = 32 * 1024 * 1024;
 export const MAX_HDRI_BYTES = 128 * 1024 * 1024;
 export const MAX_IMAGE_DIM = 8192;
@@ -32,6 +33,7 @@ export interface UploadInput {
   filename: string;
   mime?: string;
   bytes: Buffer;
+  maxBytes?: number;
 }
 
 export interface UploadInfo {
@@ -48,7 +50,7 @@ export function limitForExt(ext: UploadExt): number {
   return MAX_IMAGE_BYTES;
 }
 
-export function classifyUpload({ filename, mime = '', bytes }: UploadInput): UploadInfo {
+export function classifyUpload({ filename, mime = '', bytes, maxBytes }: UploadInput): UploadInfo {
   const ext = extname(filename).toLowerCase();
   if (!isAllowedExt(ext)) {
     throw new AppError('E_ASSET_TYPE', `不支持的扩展名「${ext || '无'}」`, {
@@ -57,7 +59,7 @@ export function classifyUpload({ filename, mime = '', bytes }: UploadInput): Upl
       allowed: ALLOWED_EXT,
     });
   }
-  const limit = limitForExt(ext);
+  const limit = maxBytes ?? limitForExt(ext);
   if (bytes.length > limit) {
     throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过 ${Math.round(limit / 1024 / 1024)} MB`, {
       bytes: bytes.length,

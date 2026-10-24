@@ -6,6 +6,7 @@ export const WIRE_METHODS = [
   'hello',
   'room.create',
   'room.list',
+  'room.use',
   'room.get',
   'room.close',
   'scene.get',
@@ -20,10 +21,13 @@ export const WIRE_METHODS = [
   'asset.list',
   'asset.delete',
   'camera.set',
+  'camera.save',
+  'camera.delete',
   'render.snapshot',
   'render.views',
   'render.node',
   'render.pick',
+  'render.sequence',
   'export.glb',
   'job.get',
   'job.list',
@@ -42,6 +46,8 @@ export const WIRE_METHODS = [
   'node.array',
   'node.group',
   'material.assign',
+  'decal.create',
+  'mesh.boolean',
 ] as const;
 
 export type WireMethod = (typeof WIRE_METHODS)[number];
@@ -53,6 +59,23 @@ export interface ToolAnnotations {
   openWorldHint?: boolean;
 }
 
+export type ResolvedAnnotations = Required<ToolAnnotations>;
+
+/** MCP 的 hint 一旦省略就回落协议默认值（openWorldHint 默认 true），所以这里统一显式补齐 */
+export function resolveAnnotations(spec: {
+  mutating: boolean;
+  mcp?: { annotations?: ToolAnnotations };
+}): ResolvedAnnotations {
+  const a = spec.mcp?.annotations ?? {};
+  const readOnlyHint = a.readOnlyHint ?? !spec.mutating;
+  return {
+    readOnlyHint,
+    destructiveHint: a.destructiveHint ?? false,
+    idempotentHint: a.idempotentHint ?? readOnlyHint,
+    openWorldHint: a.openWorldHint ?? false,
+  };
+}
+
 export interface CliSpec {
   command: string;
   args: string;
@@ -62,7 +85,7 @@ export interface McpSpec {
   tool: `vibe3d_${string}`;
   annotations?: ToolAnnotations;
   /** 房间是操作对象（读/关/打开）而非路由：room_id 以可选参数暴露，省略时取会话绑定 */
-  roomArg?: boolean;
+  roomArg?: boolean | 'required';
 }
 
 export interface CapabilitySpec<I = unknown, O = unknown> {

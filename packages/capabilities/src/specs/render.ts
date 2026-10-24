@@ -1,4 +1,4 @@
-import { cameraStateSchema, nodeIdSchema } from '@vibebyte/vibe3d-protocol';
+import { cameraNameSchema, cameraStateSchema, nodeIdSchema } from '@vibebyte/vibe3d-protocol';
 import { z } from 'zod';
 import { intIn, numIn, revisionOut, roomId } from './common';
 
@@ -33,9 +33,11 @@ const pickImageOpts = {
 
 export const jobStateSchema = z.enum(['queued', 'running', 'done', 'failed', 'cancelled']);
 
+export const jobKindSchema = z.enum(['export.glb', 'render.sequence']);
+
 export const jobViewSchema = z.object({
   jobId: z.string().min(1),
-  kind: z.literal('export.glb'),
+  kind: jobKindSchema,
   roomId: z.string().min(1),
   state: jobStateSchema,
   pct: z.number().min(0).max(1),
@@ -50,19 +52,56 @@ export const jobViewSchema = z.object({
 
 export const renderOps = {
   'camera.set': {
-    title: '设相机：显式参数或自动取景',
+    title: '设相机：显式参数、自动取景、已存机位或预设',
     input: z.object({
       roomId,
       camera: cameraStateSchema.partial().optional(),
       frame: frameMode.optional(),
+      name: cameraNameSchema.optional(),
+      preset: z.enum(['miniature_45']).optional(),
     }),
     output: revisionOut.extend({ camera: cameraStateSchema }),
     scope: 'room' as const,
     mutating: true,
     wire: 'camera.set' as const,
     mcp: { tool: 'vibe3d_set_camera' as const },
-    cli: { command: 'camera set', args: '<roomId> [--frame fit] [--p x,y,z] [--target x,y,z]' },
+    cli: {
+      command: 'camera set',
+      args: '<roomId> [--frame fit] [--name hero] [--preset miniature_45] [--p x,y,z] [--target x,y,z]',
+    },
+    errors: ['E_INVALID_PARAMS', 'E_CAMERA_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
+  },
+  'camera.save': {
+    title: '保存当前机位，供之后按名字恢复',
+    input: z.object({
+      roomId,
+      name: cameraNameSchema,
+      camera: cameraStateSchema.partial().optional(),
+    }),
+    output: revisionOut.extend({
+      camera: cameraStateSchema,
+      cameras: z.record(cameraNameSchema, cameraStateSchema),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'camera.save' as const,
+    mcp: { tool: 'vibe3d_save_camera' as const },
+    cli: { command: 'camera save', args: '<roomId> --name hero' },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
+  },
+  'camera.delete': {
+    title: '删除已存机位',
+    input: z.object({ roomId, name: cameraNameSchema }),
+    output: revisionOut.extend({
+      camera: cameraStateSchema,
+      cameras: z.record(cameraNameSchema, cameraStateSchema),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'camera.delete' as const,
+    mcp: { tool: 'vibe3d_delete_camera' as const, annotations: { destructiveHint: true } },
+    cli: { command: 'camera rm', args: '<roomId> <name>' },
+    errors: ['E_CAMERA_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'render.snapshot': {
     title: '离屏渲染一张图，可选等待动画稳定',
@@ -213,9 +252,50 @@ export const renderOps = {
     },
     errors: ['E_RENDER_UNAVAILABLE', 'E_ROOM_NOT_FOUND', 'E_INVALID_PARAMS'] as const,
   },
+  'render.sequence': {
+    title: '按 from/to/fps 采样动画，输出 PNG 帧序列 + manifest（任务制，用 job.get 取进度）',
+    input: z.object({
+      roomId,
+      from: numIn(0, 3600),
+      to: numIn(0, 3600),
+      fps: intIn(1, 60),
+      width: imageOpts.width,
+      height: imageOpts.height,
+      shading: imageOpts.shading,
+      overlay: imageOpts.overlay,
+      settleMs: imageOpts.settleMs,
+      format: z.literal('png').optional(),
+    }),
+    output: z.object({
+      jobId: z.string().min(1),
+      state: jobStateSchema,
+    }),
+    scope: 'room' as const,
+    mutating: false,
+    wire: 'render.sequence' as const,
+    mcp: { tool: 'vibe3d_render_sequence' as const, annotations: { readOnlyHint: true } },
+    cli: {
+      command: 'render sequence',
+      args: '<roomId> --from s --to s [--fps 24] [--size 1280x720] [--shading flat] [--wait]',
+    },
+    errors: [
+      'E_RENDER_UNAVAILABLE',
+      'E_ROOM_NOT_FOUND',
+      'E_INVALID_PARAMS',
+      'E_BUSY',
+      'E_JOB_NOT_FOUND',
+    ] as const,
+  },
   'export.glb': {
     title: '把场景导出为 GLB，返回任务 ID',
-    input: z.object({ roomId, nodeIds: z.array(nodeIdSchema).optional() }),
+    input: z.object({
+      roomId,
+      nodeIds: z.array(nodeIdSchema).optional(),
+      include: z
+        .array(z.enum(['cameras', 'lights']))
+        .max(2)
+        .optional(),
+    }),
     output: z.object({
       jobId: z.string().min(1),
       state: jobStateSchema,

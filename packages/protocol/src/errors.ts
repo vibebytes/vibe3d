@@ -29,6 +29,8 @@ export const ERROR_CODES = [
   'E_CHECKPOINT_NOT_FOUND',
   'E_NODE_NOT_FOUND',
   'E_MATERIAL_NOT_FOUND',
+  'E_CAMERA_NOT_FOUND',
+  'E_DAEMON_OUTDATED',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
@@ -67,6 +69,13 @@ export const ERROR_SPECS: Record<ErrorCode, ErrorSpec> = {
   E_CHECKPOINT_NOT_FOUND: { rpc: -32019, http: 404, retryable: false, message: '检查点不存在' },
   E_NODE_NOT_FOUND: { rpc: -32020, http: 404, retryable: false, message: '节点不存在' },
   E_MATERIAL_NOT_FOUND: { rpc: -32021, http: 404, retryable: false, message: '材质不存在' },
+  E_CAMERA_NOT_FOUND: { rpc: -32022, http: 404, retryable: false, message: '机位不存在' },
+  E_DAEMON_OUTDATED: {
+    rpc: -32023,
+    http: 409,
+    retryable: true,
+    message: 'daemon 版本过旧，不认识该方法',
+  },
 };
 
 export interface AppErrorData {

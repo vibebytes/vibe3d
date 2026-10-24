@@ -49,7 +49,10 @@ export function createServer(deps: ServerDeps) {
         capabilities: { tools: { listChanged: false } },
         serverInfo: SERVER_INFO,
         instructions:
-          '房间由会话绑定：先 vibe3d_create_room 建房（自动绑定当前会话），或用 vibe3d_get_room / vibe3d_open_editor 传 room_id 切换房间。此后 scene / node / asset / render 类工具都不要传 room_id，一律作用于当前绑定的房间。',
+          '房间由会话绑定：先 vibe3d_create_room 建房（自动绑定当前会话），或用 vibe3d_get_room / vibe3d_open_editor 传 room_id 切换；此后 scene / node / asset / render 类工具都不要传 room_id。\n' +
+          '参数约定：长度单位米，Y 轴向上；颜色一律 [r,g,b,a] 四位、0..1（缺 alpha 自动补 1，也接受 "#RRGGBB"）。\n' +
+          'id 由服务端生成：node=n_、material=m_、fx=f_、room=r_ + 8 位小写字母数字；专用工具会返回 id，不要自己编。\n' +
+          '逐条操作用专用工具（create_node / update_node / create_material / set_environment / create_fx）；vibe3d_apply_ops 只用于原子批量或需要引用新建 id 的依赖场景。',
       });
       return;
     }

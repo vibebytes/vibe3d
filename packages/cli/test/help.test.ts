@@ -18,6 +18,10 @@ describe('cli help', () => {
       'render views <roomId>',
       'render node <roomId>',
       'render pick <roomId>',
+      'asset put <roomId> <src> [--kind auto|image|hdri|model]',
+      'env set <roomId> [--hdri <src>]',
+      'decal create <roomId>',
+      'mesh boolean <roomId>',
     ]) {
       expect(HELP).toContain(line);
     }

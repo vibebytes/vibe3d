@@ -1,8 +1,9 @@
-import { createHmac, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { AppError } from '@vibebyte/vibe3d-protocol';
 import type { RenderInput, Renderer, Snapshot, SnapshotOptions } from '../context';
+import { signExportUrl } from '../http/export-url';
 import type { Logger } from '../logger';
 import { Cdp, CdpError } from './cdp';
 import { type ChromeHandle, findChrome, launchChrome } from './chrome';
@@ -107,11 +108,12 @@ export class ChromiumRenderer implements Renderer {
   async exportGlb(
     input: RenderInput,
     nodeIds?: string[],
+    include?: Array<'cameras' | 'lights'>,
   ): Promise<{ jobId: string; url: string; bytes: number }> {
     return this.serial(() =>
       this.withRecovery(async () => {
         const page = await this.openPage(input.roomId, 1280, 720);
-        const expr = `window.__vibe3dExport?.(${JSON.stringify(nodeIds ?? null)})`;
+        const expr = `window.__vibe3dExport?.(${JSON.stringify(nodeIds ?? null)}, ${JSON.stringify(include ?? null)})`;
         const res = await this.cdp?.send<{ result: { value?: string | null } }>(
           'Runtime.evaluate',
           { expression: expr, awaitPromise: true, returnByValue: true },
@@ -124,9 +126,10 @@ export class ChromiumRenderer implements Renderer {
         }
         const bytes = Buffer.from(base64, 'base64');
         const jobId = randomUUID().replace(/-/g, '');
+        const file = `${jobId}.glb`;
         await mkdir(this.opts.exportsDir, { recursive: true });
-        await writeFile(join(this.opts.exportsDir, `${jobId}.glb`), bytes);
-        return { jobId, url: this.sign(jobId), bytes: bytes.length };
+        await writeFile(join(this.opts.exportsDir, file), bytes);
+        return { jobId, url: signExportUrl(this.opts.token, file), bytes: bytes.length };
       }),
     );
   }
@@ -152,12 +155,6 @@ export class ChromiumRenderer implements Renderer {
     this.cdp = undefined;
     this.chrome = undefined;
     this.page = undefined;
-  }
-
-  private sign(jobId: string): string {
-    const exp = Date.now() + 10 * 60_000;
-    const sig = createHmac('sha256', this.opts.token).update(`${jobId}:${exp}`).digest('hex').slice(0, 32);
-    return `/exports/${jobId}.glb?exp=${exp}&sig=${sig}`;
   }
 
   private serial<T>(task: () => Promise<T>): Promise<T> {

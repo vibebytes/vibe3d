@@ -23,6 +23,13 @@ export const transformSchema = z.object({
 
 const segments = z.number().int().min(3).max(128);
 
+export const bakedGeometrySchema = z.object({
+  type: z.literal('baked'),
+  positions: z.array(finite).min(9).max(300_000),
+  indices: z.array(z.number().int().min(0)).min(3).max(300_000),
+  bbox: z.object({ min: vec3, max: vec3 }),
+});
+
 export const geometrySchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('box'),
@@ -37,6 +44,7 @@ export const geometrySchema = z.discriminatedUnion('type', [
     segments,
   }),
   z.object({ type: z.literal('plane'), width: finite.positive(), height: finite.positive() }),
+  bakedGeometrySchema,
 ]);
 
 export const materialPresetSchema = z.enum(['concrete', 'rust', 'wet_moss', 'toon', 'water', 'glass']);
@@ -49,6 +57,20 @@ export const mapTransformSchema = z.object({
 });
 
 export const materialMapSchema = z.union([shaSchema, mapTransformSchema]);
+
+export const decalSchema = z
+  .object({
+    text: z.string().min(1).max(200).optional(),
+    imageSha: shaSchema.optional(),
+    color: rgba.optional(),
+    background: rgba.optional(),
+    fontSize: z.number().int().min(8).max(512).optional(),
+    bold: z.boolean().optional(),
+    align: z.enum(['left', 'center', 'right']).optional(),
+  })
+  .refine((v) => Boolean(v.text) !== Boolean(v.imageSha), {
+    message: 'decal 需要且只能给出 text 或 imageSha',
+  });
 
 export const materialSchema = z.object({
   baseColor: rgba,
@@ -78,6 +100,8 @@ export const lightSpecSchema = z.object({
   castShadow: z.boolean().optional(),
 });
 
+export const cameraNameSchema = z.string().regex(/^[A-Za-z0-9_-]{1,40}$/, 'invalid camera name');
+
 export const cameraStateSchema = z.object({
   mode: z.enum(['persp', 'ortho']),
   p: vec3,
@@ -86,12 +110,47 @@ export const cameraStateSchema = z.object({
   zoom: finite.positive(),
 });
 
+export const nprSchema = z.object({
+  outline: z
+    .object({
+      width: finite.min(0).max(10).optional(),
+      color: rgba.optional(),
+    })
+    .optional(),
+  rampSteps: z.number().int().min(2).max(8).optional(),
+  rim: unit.optional(),
+});
+
+export const postSchema = z.object({
+  dof: z
+    .object({
+      aperture: finite.min(0).max(1).optional(),
+      focusDistance: finite.min(0).max(100).optional(),
+    })
+    .optional(),
+  bloom: z
+    .object({
+      intensity: finite.min(0).max(5).optional(),
+      threshold: finite.min(0).max(2).optional(),
+    })
+    .optional(),
+  ssao: z
+    .object({
+      radius: finite.min(0).max(5).optional(),
+      intensity: finite.min(0).max(5).optional(),
+    })
+    .optional(),
+  tonemap: z.enum(['aces', 'linear', 'reinhard']).optional(),
+});
+
 export const stageStateSchema = z.object({
   preset: z.enum(['cine', 'clean', 'flat']),
   exposure: finite.min(0.1).max(8).optional(),
   autoExposure: z.boolean(),
   ground: z.boolean(),
   keepModelLights: z.boolean(),
+  post: postSchema.optional(),
+  npr: nprSchema.optional(),
 });
 
 export const fogSchema = z.object({
@@ -119,6 +178,8 @@ export type MapTransform = z.infer<typeof mapTransformSchema>;
 export type MaterialMap = z.infer<typeof materialMapSchema>;
 export type LightSpec = z.infer<typeof lightSpecSchema>;
 export type CameraState = z.infer<typeof cameraStateSchema>;
+export type Npr = z.infer<typeof nprSchema>;
+export type Post = z.infer<typeof postSchema>;
 export type StageState = z.infer<typeof stageStateSchema>;
 export type Fog = z.infer<typeof fogSchema>;
 export type Env = z.infer<typeof envSchema>;

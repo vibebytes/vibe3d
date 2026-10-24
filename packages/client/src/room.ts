@@ -201,8 +201,8 @@ export class RoomHandle {
     return this.invoke('env.set', params);
   }
 
-  undo(): Promise<CapResult<'scene.undo'>> {
-    return this.invoke('scene.undo');
+  undo(params: Omit<CapParams<'scene.undo'>, 'roomId'> = {}): Promise<CapResult<'scene.undo'>> {
+    return this.invoke('scene.undo', params);
   }
 
   redo(): Promise<CapResult<'scene.redo'>> {
@@ -233,12 +233,28 @@ export class RoomHandle {
     return this.invoke('asset.list');
   }
 
+  createDecal(params: Omit<CapParams<'decal.create'>, 'roomId'>): Promise<CapResult<'decal.create'>> {
+    return this.invoke('decal.create', params);
+  }
+
+  booleanMesh(params: Omit<CapParams<'mesh.boolean'>, 'roomId'>): Promise<CapResult<'mesh.boolean'>> {
+    return this.invoke('mesh.boolean', params);
+  }
+
   deleteAsset(sha: string): Promise<CapResult<'asset.delete'>> {
     return this.invoke('asset.delete', { sha });
   }
 
   setCamera(params: Omit<CapParams<'camera.set'>, 'roomId'> = {}): Promise<CapResult<'camera.set'>> {
     return this.invoke('camera.set', params);
+  }
+
+  saveCamera(params: Omit<CapParams<'camera.save'>, 'roomId'>): Promise<CapResult<'camera.save'>> {
+    return this.invoke('camera.save', params);
+  }
+
+  deleteCamera(name: string): Promise<CapResult<'camera.delete'>> {
+    return this.invoke('camera.delete', { name });
   }
 
   async snapshot(

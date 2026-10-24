@@ -2,7 +2,9 @@ import { z } from 'zod';
 import { DOC_SCHEMA_VERSION } from './errors';
 import {
   assetImageSchema,
+  cameraNameSchema,
   cameraStateSchema,
+  decalSchema,
   envSchema,
   fxIdSchema,
   geometrySchema,
@@ -76,6 +78,7 @@ export const meshNodeSchema = z.object({
   kind: z.literal('mesh'),
   geometry: geometrySchema,
   material: materialIdSchema,
+  decal: decalSchema.optional(),
 });
 export const lightNodeSchema = z.object({ ...nodeBase, kind: z.literal('light'), light: lightSpecSchema });
 export const modelNodeSchema = z.object({
@@ -140,11 +143,13 @@ export const sceneDocSchema = z.object({
   env: envSchema,
   stage: stageStateSchema,
   camera: cameraStateSchema,
+  cameras: z.record(cameraNameSchema, cameraStateSchema).default({}),
   fx: z.array(fxSchema).default([]),
   updatedAt: z.string().min(1),
 });
 
 export type ModelAnim = z.infer<typeof modelAnimSchema>;
+export type DecalSpec = z.infer<typeof decalSchema>;
 export type GroupNode = z.infer<typeof groupNodeSchema>;
 export type MeshNode = z.infer<typeof meshNodeSchema>;
 export type LightNode = z.infer<typeof lightNodeSchema>;
@@ -191,6 +196,7 @@ export function emptyDoc(name = '未命名场景'): SceneDoc {
     env: DEFAULT_ENV,
     stage: { ...DEFAULT_STAGE },
     camera: { ...DEFAULT_CAMERA },
+    cameras: {},
     fx: [],
     updatedAt: new Date(0).toISOString(),
   };

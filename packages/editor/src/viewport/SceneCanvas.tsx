@@ -17,15 +17,22 @@ import { buildMesh, disposeMesh } from '../three/build';
 import { applyFxAt, buildFxObject, disposeFxObject, fogSettings } from '../three/fx';
 import { animationClips, cloneGltfScene, gltfLoader } from '../three/gltf';
 import { rgbaHex } from '../three/materials';
+import { type NprPlan, nprPlan } from '../three/npr';
 import { pickAt } from '../three/picking';
+import { postPlan } from '../three/post';
 import { applyRenderer, canvasGlOptions } from '../three/renderer';
 import { applyStage, backgroundHex, stageLights } from '../three/stage';
 import { Gizmo } from './Gizmo';
 import { GridFloor } from './GridFloor';
+import { PostPipeline } from './PostPipeline';
 import { SelectionOutline } from './SelectionOutline';
 
-function MeshView({ node, material }: { node: MeshNode; material: Material | undefined }) {
-  const mesh = useMemo(() => buildMesh(node, material), [node, material]);
+function MeshView({
+  node,
+  material,
+  npr,
+}: { node: MeshNode; material: Material | undefined; npr?: NprPlan }) {
+  const mesh = useMemo(() => buildMesh(node, material, npr), [node, material, npr]);
   useEffect(() => () => disposeMesh(mesh), [mesh]);
   return <primitive object={mesh} />;
 }
@@ -75,7 +82,7 @@ function LightView({ node }: { node: LightNode }) {
   return <pointLight color={color} intensity={spec.intensity} position={pos} castShadow={spec.castShadow} />;
 }
 
-function NodeView({ node, doc }: { node: SceneNode; doc: SceneDoc }) {
+function NodeView({ node, doc, npr }: { node: SceneNode; doc: SceneDoc; npr?: NprPlan }) {
   const [px, py, pz] = node.transform.p;
   const [rx, ry, rz] = node.transform.r;
   const [sx, sy, sz] = node.transform.s;
@@ -88,7 +95,7 @@ function NodeView({ node, doc }: { node: SceneNode; doc: SceneDoc }) {
       name={node.name}
       userData={{ nodeId: node.id }}
     >
-      {node.kind === 'mesh' && <MeshView node={node} material={doc.materials[node.material]} />}
+      {node.kind === 'mesh' && <MeshView node={node} material={doc.materials[node.material]} npr={npr} />}
       {node.kind === 'light' && <LightView node={node} />}
       {node.kind === 'model' && (
         <Suspense fallback={null}>
@@ -98,7 +105,7 @@ function NodeView({ node, doc }: { node: SceneNode; doc: SceneDoc }) {
       {node.kind === 'group' &&
         Object.values(doc.nodes)
           .filter((n) => n.parent === node.id)
-          .map((n) => <NodeView key={n.id} node={n} doc={doc} />)}
+          .map((n) => <NodeView key={n.id} node={n} doc={doc} npr={npr} />)}
     </group>
   );
 }
@@ -241,6 +248,8 @@ export function SceneCanvas({
 }: { doc: SceneDoc; headless?: boolean; children?: ReactNode }) {
   const ids = useMemo(() => new Set(Object.keys(doc.nodes)), [doc.nodes]);
   const roots = doc.roots.filter((id) => ids.has(id));
+  const npr = useMemo(() => nprPlan(doc.stage) ?? undefined, [doc.stage]);
+  const post = useMemo(() => postPlan(doc.stage), [doc.stage]);
 
   return (
     <div className="viewport h-full w-full">
@@ -262,12 +271,13 @@ export function SceneCanvas({
         <group name="vibe3d-export">
           {roots.map((id) => {
             const node = doc.nodes[id];
-            return node ? <NodeView key={id} node={node} doc={doc} /> : null;
+            return node ? <NodeView key={id} node={node} doc={doc} npr={npr} /> : null;
           })}
         </group>
         <GridFloor visible={doc.stage.ground} />
         <SelectionOutline enabled={!headless} />
         <Gizmo enabled={!headless} />
+        <PostPipeline plan={post} />
         <CameraRig doc={doc} />
         {children}
       </Canvas>

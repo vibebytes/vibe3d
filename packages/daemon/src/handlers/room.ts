@@ -7,6 +7,53 @@ import type { HandlersFor } from './types';
 const EMPTY_SCENE_HINT =
   '场景仍没有任何节点，UI 不会出现新物体：基础体请直接用 vibe3d_create_node；若走 ops.apply，op 必须是 node.create 且 node 带 geometry 与已存在的 material。';
 
+type ListCursor = { updatedAt: string; roomId: string };
+
+const compareRoom = (a: ListCursor, b: ListCursor): number =>
+  a.updatedAt === b.updatedAt ? a.roomId.localeCompare(b.roomId) : a.updatedAt > b.updatedAt ? -1 : 1;
+
+const encodeCursor = (c: ListCursor): string =>
+  Buffer.from(`${c.updatedAt}|${c.roomId}`).toString('base64url');
+
+const decodeCursor = (raw: string): ListCursor => {
+  if (/^[A-Za-z0-9_-]+$/.test(raw)) {
+    const text = Buffer.from(raw, 'base64url').toString('utf8');
+    const sep = text.lastIndexOf('|');
+    const updatedAt = text.slice(0, sep);
+    const roomId = text.slice(sep + 1);
+    if (sep > 0 && /^\d{4}-\d{2}-\d{2}T/.test(updatedAt) && /^r_[a-z0-9]{8}$/.test(roomId)) {
+      return { updatedAt, roomId };
+    }
+  }
+  throw new AppError('E_INVALID_PARAMS', `cursor 非法：${raw}（请使用上一次 room.list 返回的 nextCursor）`);
+};
+
+type NodeSets = { added: string[]; updated: string[]; removed: string[] };
+
+const nodeIdOf = (op: Op): string | undefined => {
+  if (!op.op.startsWith('node.')) return undefined;
+  const loose = op as unknown as { node?: { id?: string }; id?: string };
+  return loose.node?.id ?? loose.id;
+};
+
+const nodeSets = (ops: readonly Op[]): NodeSets => {
+  const added = new Set<string>();
+  const updated = new Set<string>();
+  const removed = new Set<string>();
+  for (const op of ops) {
+    const id = nodeIdOf(op);
+    if (!id) continue;
+    if (op.op === 'node.create') added.add(id);
+    else if (op.op === 'node.delete') removed.add(id);
+    else updated.add(id);
+  }
+  return {
+    added: [...added],
+    updated: [...updated].filter((id) => !removed.has(id)),
+    removed: [...removed].filter((id) => !added.has(id)),
+  };
+};
+
 const sceneFeedback = (
   doc: SceneDoc,
   ctx?: { baseUrl: string; token?: string; surfaces?: (roomId: string) => number },
@@ -28,6 +75,7 @@ const sceneFeedback = (
 type Keys =
   | 'room.create'
   | 'room.list'
+  | 'room.use'
   | 'room.get'
   | 'room.close'
   | 'scene.get'
@@ -51,19 +99,41 @@ export const roomHandlers: HandlersFor<Keys> = {
     };
   },
 
-  'room.list': async (_p, ctx) => ({
-    rooms: ctx.rooms.list().map((room) => {
-      const meta = room.meta();
-      return {
+  'room.list': async (p, ctx) => {
+    const limit = p.limit ?? 50;
+    const all = ctx.rooms
+      .list()
+      .map((room) => room.meta())
+      .sort(compareRoom);
+    const start = p.cursor ? decodeCursor(p.cursor) : undefined;
+    const rest = start ? all.filter((m) => compareRoom(m, start) > 0) : all;
+    const page = rest.slice(0, limit);
+    const last = page.at(-1);
+    const nextCursor = last && rest.length > page.length ? encodeCursor(last) : undefined;
+    return {
+      rooms: page.map((meta) => ({
         roomId: meta.roomId,
         name: meta.name,
         revision: meta.revision,
         nodeCount: meta.nodes,
         createdAt: meta.createdAt,
         updatedAt: meta.updatedAt,
-      };
-    }),
-  }),
+      })),
+      ...(nextCursor ? { nextCursor } : {}),
+    };
+  },
+
+  'room.use': async (p, ctx) => {
+    const meta = ctx.rooms.get(p.roomId).meta();
+    return {
+      roomId: meta.roomId,
+      name: meta.name,
+      revision: meta.revision,
+      nodeCount: meta.nodes,
+      createdAt: meta.createdAt,
+      updatedAt: meta.updatedAt,
+    };
+  },
 
   'room.get': async (p, ctx) => {
     const meta = ctx.rooms.get(p.roomId).meta();
@@ -143,7 +213,7 @@ export const roomHandlers: HandlersFor<Keys> = {
   'scene.undo': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     return room.run(async () => {
-      const { revision } = await room.undo();
+      const { revision } = p.opId ? await room.undoOp(p.opId) : await room.undo();
       return { revision };
     });
   },
@@ -159,7 +229,13 @@ export const roomHandlers: HandlersFor<Keys> = {
   'scene.diff': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     const diff = room.diff(p.from ?? 0, p.to);
-    return { from: diff.fromRevision, to: diff.toRevision, ops: diff.ops, reset: diff.reset };
+    return {
+      from: diff.fromRevision,
+      to: diff.toRevision,
+      ops: diff.ops,
+      reset: diff.reset,
+      ...(p.visual ? { nodes: nodeSets(diff.ops) } : {}),
+    };
   },
 
   'selection.get': async (p, ctx) => ({ nodeIds: ctx.selection(p.roomId) }),

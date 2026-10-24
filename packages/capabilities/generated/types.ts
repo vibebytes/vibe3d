@@ -5,6 +5,7 @@ import { CAPABILITIES } from '../src/registry';
 export type CapabilityName =
   | "room.create"
   | "room.list"
+  | "room.use"
   | "room.get"
   | "room.close"
   | "scene.get"
@@ -41,16 +42,21 @@ export type CapabilityName =
   | "scene.checkpoint"
   | "scene.checkpoints"
   | "scene.restore"
+  | "decal.create"
+  | "mesh.boolean"
   | "node.import"
   | "asset.inspect"
   | "asset.put"
   | "asset.list"
   | "asset.delete"
   | "camera.set"
+  | "camera.save"
+  | "camera.delete"
   | "render.snapshot"
   | "render.views"
   | "render.node"
   | "render.pick"
+  | "render.sequence"
   | "export.glb"
   | "job.get"
   | "job.list"
@@ -60,6 +66,7 @@ export type CapabilityName =
 export type InputOf<N extends CapabilityName> = {
   "room.create": z.infer<(typeof CAPABILITIES)["room.create"]['input']>;
   "room.list": z.infer<(typeof CAPABILITIES)["room.list"]['input']>;
+  "room.use": z.infer<(typeof CAPABILITIES)["room.use"]['input']>;
   "room.get": z.infer<(typeof CAPABILITIES)["room.get"]['input']>;
   "room.close": z.infer<(typeof CAPABILITIES)["room.close"]['input']>;
   "scene.get": z.infer<(typeof CAPABILITIES)["scene.get"]['input']>;
@@ -96,16 +103,21 @@ export type InputOf<N extends CapabilityName> = {
   "scene.checkpoint": z.infer<(typeof CAPABILITIES)["scene.checkpoint"]['input']>;
   "scene.checkpoints": z.infer<(typeof CAPABILITIES)["scene.checkpoints"]['input']>;
   "scene.restore": z.infer<(typeof CAPABILITIES)["scene.restore"]['input']>;
+  "decal.create": z.infer<(typeof CAPABILITIES)["decal.create"]['input']>;
+  "mesh.boolean": z.infer<(typeof CAPABILITIES)["mesh.boolean"]['input']>;
   "node.import": z.infer<(typeof CAPABILITIES)["node.import"]['input']>;
   "asset.inspect": z.infer<(typeof CAPABILITIES)["asset.inspect"]['input']>;
   "asset.put": z.infer<(typeof CAPABILITIES)["asset.put"]['input']>;
   "asset.list": z.infer<(typeof CAPABILITIES)["asset.list"]['input']>;
   "asset.delete": z.infer<(typeof CAPABILITIES)["asset.delete"]['input']>;
   "camera.set": z.infer<(typeof CAPABILITIES)["camera.set"]['input']>;
+  "camera.save": z.infer<(typeof CAPABILITIES)["camera.save"]['input']>;
+  "camera.delete": z.infer<(typeof CAPABILITIES)["camera.delete"]['input']>;
   "render.snapshot": z.infer<(typeof CAPABILITIES)["render.snapshot"]['input']>;
   "render.views": z.infer<(typeof CAPABILITIES)["render.views"]['input']>;
   "render.node": z.infer<(typeof CAPABILITIES)["render.node"]['input']>;
   "render.pick": z.infer<(typeof CAPABILITIES)["render.pick"]['input']>;
+  "render.sequence": z.infer<(typeof CAPABILITIES)["render.sequence"]['input']>;
   "export.glb": z.infer<(typeof CAPABILITIES)["export.glb"]['input']>;
   "job.get": z.infer<(typeof CAPABILITIES)["job.get"]['input']>;
   "job.list": z.infer<(typeof CAPABILITIES)["job.list"]['input']>;
@@ -116,6 +128,7 @@ export type InputOf<N extends CapabilityName> = {
 export type OutputOf<N extends CapabilityName> = {
   "room.create": z.infer<(typeof CAPABILITIES)["room.create"]['output']>;
   "room.list": z.infer<(typeof CAPABILITIES)["room.list"]['output']>;
+  "room.use": z.infer<(typeof CAPABILITIES)["room.use"]['output']>;
   "room.get": z.infer<(typeof CAPABILITIES)["room.get"]['output']>;
   "room.close": z.infer<(typeof CAPABILITIES)["room.close"]['output']>;
   "scene.get": z.infer<(typeof CAPABILITIES)["scene.get"]['output']>;
@@ -152,16 +165,21 @@ export type OutputOf<N extends CapabilityName> = {
   "scene.checkpoint": z.infer<(typeof CAPABILITIES)["scene.checkpoint"]['output']>;
   "scene.checkpoints": z.infer<(typeof CAPABILITIES)["scene.checkpoints"]['output']>;
   "scene.restore": z.infer<(typeof CAPABILITIES)["scene.restore"]['output']>;
+  "decal.create": z.infer<(typeof CAPABILITIES)["decal.create"]['output']>;
+  "mesh.boolean": z.infer<(typeof CAPABILITIES)["mesh.boolean"]['output']>;
   "node.import": z.infer<(typeof CAPABILITIES)["node.import"]['output']>;
   "asset.inspect": z.infer<(typeof CAPABILITIES)["asset.inspect"]['output']>;
   "asset.put": z.infer<(typeof CAPABILITIES)["asset.put"]['output']>;
   "asset.list": z.infer<(typeof CAPABILITIES)["asset.list"]['output']>;
   "asset.delete": z.infer<(typeof CAPABILITIES)["asset.delete"]['output']>;
   "camera.set": z.infer<(typeof CAPABILITIES)["camera.set"]['output']>;
+  "camera.save": z.infer<(typeof CAPABILITIES)["camera.save"]['output']>;
+  "camera.delete": z.infer<(typeof CAPABILITIES)["camera.delete"]['output']>;
   "render.snapshot": z.infer<(typeof CAPABILITIES)["render.snapshot"]['output']>;
   "render.views": z.infer<(typeof CAPABILITIES)["render.views"]['output']>;
   "render.node": z.infer<(typeof CAPABILITIES)["render.node"]['output']>;
   "render.pick": z.infer<(typeof CAPABILITIES)["render.pick"]['output']>;
+  "render.sequence": z.infer<(typeof CAPABILITIES)["render.sequence"]['output']>;
   "export.glb": z.infer<(typeof CAPABILITIES)["export.glb"]['output']>;
   "job.get": z.infer<(typeof CAPABILITIES)["job.get"]['output']>;
   "job.list": z.infer<(typeof CAPABILITIES)["job.list"]['output']>;

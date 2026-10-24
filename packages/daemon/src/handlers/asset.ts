@@ -6,6 +6,7 @@ import {
   type Transform,
   makeNodeId,
 } from '@vibebyte/vibe3d-protocol';
+import { MAX_MODEL_BYTES } from '../assets/upload';
 import type { DispatchContext } from '../context';
 import type { HandlersFor } from './types';
 
@@ -13,21 +14,30 @@ type Keys = 'node.import' | 'asset.inspect' | 'asset.put' | 'asset.list' | 'asse
 
 const TARGET_HEIGHT = 1.5;
 
-function refCounts(ctx: DispatchContext, roomId: string): Record<string, number> {
+function usedByMap(ctx: DispatchContext, roomId: string): Record<string, string[]> {
   const doc = ctx.rooms.get(roomId).doc;
-  const refs: Record<string, number> = {};
-  const bump = (sha: string | undefined) => {
-    if (sha) refs[sha] = (refs[sha] ?? 0) + 1;
+  const refs: Record<string, string[]> = {};
+  const bump = (sha: string | undefined, ref: string) => {
+    if (!sha) return;
+    const list = refs[sha] ?? [];
+    list.push(ref);
+    refs[sha] = list;
   };
   for (const node of Object.values(doc.nodes)) {
-    if (node.kind === 'model') bump(node.sha);
+    if (node.kind === 'model') bump(node.sha, node.id);
     if (node.kind === 'mesh') {
       const map = doc.materials[node.material]?.map;
-      bump(typeof map === 'string' ? map : map?.sha);
+      bump(typeof map === 'string' ? map : map?.sha, node.id);
     }
   }
-  bump(doc.env.hdri);
+  bump(doc.env.hdri, 'env');
   return refs;
+}
+
+function refCounts(ctx: DispatchContext, roomId: string): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const [sha, refs] of Object.entries(usedByMap(ctx, roomId))) counts[sha] = refs.length;
+  return counts;
 }
 
 export const assetHandlers: HandlersFor<Keys> = {
@@ -108,7 +118,25 @@ export const assetHandlers: HandlersFor<Keys> = {
 
   'asset.put': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    const { meta } = await ctx.ingest(p.src, p.policy);
+    const kind = p.kind ?? 'auto';
+    const { meta } = await ctx.ingest(
+      p.src,
+      p.policy,
+      kind === 'model' ? { maxBytes: MAX_MODEL_BYTES } : undefined,
+    );
+    if (kind === 'model' && meta.kind !== 'gltf') {
+      throw new AppError('E_ASSET_TYPE', `kind=model 只接受 glTF/GLB：${meta.name}`, { sha: meta.sha });
+    }
+    if (kind === 'hdri' && !(meta.kind === 'image' && meta.image?.hdri)) {
+      throw new AppError('E_ASSET_TYPE', `kind=hdri 只接受 .hdr / .exr：${meta.name}`, {
+        sha: meta.sha,
+      });
+    }
+    if (kind === 'image' && (meta.kind !== 'image' || meta.image?.hdri)) {
+      throw new AppError('E_ASSET_TYPE', 'kind=image 只接受普通贴图，HDRI 请用 kind=hdri', {
+        sha: meta.sha,
+      });
+    }
     const asset = p.name ? { ...meta, name: p.name } : meta;
     const result = await room.run(() => room.apply([{ op: 'asset.register', asset }]));
     return { sha: asset.sha, meta: asset, revision: result.revision };
@@ -119,6 +147,7 @@ export const assetHandlers: HandlersFor<Keys> = {
     return {
       assets: Object.values(room.doc.assets),
       refs: refCounts(ctx, room.id),
+      usedBy: usedByMap(ctx, room.id),
     };
   },
 

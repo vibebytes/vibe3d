@@ -1,4 +1,3 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
 import { createReadStream, statSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -12,6 +11,7 @@ import type { DispatchContext } from '../context';
 import { dispatch, hello } from '../dispatch';
 import type { Logger } from '../logger';
 import { toRpcFailure } from './errors';
+import { EXPORT_FILE_RE, exportMime, verifyExportSig } from './export-url';
 import { TOKEN_COOKIE, bodyLimit, requireBearer, requireSurfaceToken, tokenMatches } from './middleware';
 import { rateLimiter } from './ratelimit';
 
@@ -159,15 +159,10 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
 
   app.get('/exports/:file', async (c) => {
     const file = c.req.param('file');
-    if (!/^[a-f0-9]{32}\.glb$/.test(file)) throw new AppError('E_JOB_NOT_FOUND', '非法导出文件名');
-    const jobId = file.slice(0, -4);
+    if (!EXPORT_FILE_RE.test(file)) throw new AppError('E_JOB_NOT_FOUND', '非法导出文件名');
     const exp = Number(c.req.query('exp') ?? 0);
     const sig = c.req.query('sig') ?? '';
-    const expected = createHmac('sha256', token).update(`${jobId}:${exp}`).digest('hex').slice(0, 32);
-    const given = Buffer.from(sig);
-    const want = Buffer.from(expected);
-    const valid = given.length === want.length && timingSafeEqual(given, want);
-    if (!valid || !Number.isFinite(exp) || exp < Date.now()) {
+    if (!verifyExportSig(token, file, exp, sig) || exp < Date.now()) {
       throw new AppError('E_UNAUTHORIZED', '导出链接无效或已过期');
     }
     const path = join(deps.exportsDir, file);
@@ -178,8 +173,8 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
     }
     return new Response(createReadStream(path) as unknown as ReadableStream, {
       headers: {
-        'content-type': 'model/gltf-binary',
-        'content-disposition': `attachment; filename="${jobId}.glb"`,
+        'content-type': exportMime(file),
+        'content-disposition': `attachment; filename="${file}"`,
         'cache-control': 'private, max-age=600',
       },
     });

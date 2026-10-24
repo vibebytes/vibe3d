@@ -3,6 +3,7 @@ import type { BlobStore } from './assets/blobstore';
 import type { Config } from './config';
 import type { DispatchContext } from './context';
 import { toRpcFailure } from './http/errors';
+import { signExportUrl } from './http/export-url';
 import { hostGuard, requestId } from './http/middleware';
 import { type RouteDeps, mountRoutes, serveEditorAsset, serveVendorAsset } from './http/routes';
 import type { Logger } from './logger';
@@ -27,6 +28,9 @@ export function createApp(deps: AppDeps): Hono {
   const app = new Hono();
   app.use('*', requestId());
   app.use('*', hostGuard());
+
+  deps.ctx.exportsDir ??= deps.exportsDir;
+  deps.ctx.signExport ??= (file: string) => signExportUrl(deps.config.token, file);
 
   const routes: RouteDeps = {
     ctx: deps.ctx,

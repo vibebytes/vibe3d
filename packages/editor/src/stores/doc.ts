@@ -6,6 +6,8 @@ import type {
   MapTransform,
   Material,
   MaterialPreset,
+  Npr,
+  Post,
   SceneDoc,
   StageState,
 } from '@vibebyte/vibe3d-protocol';
@@ -19,6 +21,13 @@ import type { CaptureOptions, CaptureResult } from '../viewport/CaptureBridge';
 import { useConn } from './conn';
 import { useSelection } from './selection';
 import { parseSnapshotCamera } from './snapshot-camera';
+
+export type CameraPreset = 'miniature_45';
+
+export type StagePatch = Partial<Omit<StageState, 'npr' | 'post'>> & {
+  npr?: Npr | null;
+  post?: Post | null;
+};
 
 declare global {
   interface Window {
@@ -85,10 +94,14 @@ interface DocStore {
   mapMaterial(id: string, map: Partial<MapTransform>): Promise<void>;
   createMaterial(preset: MaterialPreset): Promise<string | null>;
   removeNode(id: string): Promise<void>;
-  setStage(stage: Partial<StageState>): Promise<void>;
+  setStage(stage: StagePatch): Promise<void>;
   setEnv(env: Partial<SceneDoc['env']>): Promise<void>;
   setCamera(camera: CameraState): Promise<void>;
   frameCamera(mode: 'fit' | 'close' | 'wide'): Promise<void>;
+  saveCamera(name: string): Promise<void>;
+  deleteCamera(name: string): Promise<void>;
+  useCamera(name: string): Promise<void>;
+  applyCameraPreset(preset: CameraPreset): Promise<void>;
   playAnimation(id: string, opts?: { clip?: string; speed?: number }): Promise<void>;
   stopAnimation(id: string): Promise<void>;
   defineAnimation(id: string, clip: ClipSpec): Promise<void>;
@@ -349,6 +362,35 @@ export const useDoc = create<DocStore>((set, get) => ({
     const roomId = get().roomId;
     if (!roomId) return;
     await rpc('camera.set', { frame: mode }, roomId);
+    await get().refresh();
+  },
+
+  async saveCamera(name) {
+    const roomId = get().roomId;
+    const doc = get().doc;
+    if (!roomId || !doc) return;
+    await rpc('camera.save', { name, camera: doc.camera }, roomId);
+    await get().refresh();
+  },
+
+  async deleteCamera(name) {
+    const roomId = get().roomId;
+    if (!roomId) return;
+    await rpc('camera.delete', { name }, roomId);
+    await get().refresh();
+  },
+
+  async useCamera(name) {
+    const roomId = get().roomId;
+    if (!roomId) return;
+    await rpc('camera.set', { name }, roomId);
+    await get().refresh();
+  },
+
+  async applyCameraPreset(preset) {
+    const roomId = get().roomId;
+    if (!roomId) return;
+    await rpc('camera.set', { preset }, roomId);
     await get().refresh();
   },
 

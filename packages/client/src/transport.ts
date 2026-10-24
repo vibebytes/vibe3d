@@ -1,5 +1,8 @@
 import { setTimeout as delay } from 'node:timers/promises';
+import { CAPABILITY_NAMES } from '@vibebyte/vibe3d-capabilities';
 import { Vibe3DError, isVibe3DError, toVibe3DError } from './errors';
+
+const KNOWN_CAPABILITIES = new Set<string>(CAPABILITY_NAMES);
 
 export interface RpcEndpoint {
   url: string;
@@ -45,6 +48,7 @@ export class RpcClient implements Transport {
   readonly url: string;
   readonly token: string;
   private seq = 0;
+  private caps: Promise<{ version: string; capabilities: string[] }> | undefined;
 
   constructor(ep: RpcEndpoint) {
     this.url = ep.url.replace(/\/$/, '');
@@ -61,6 +65,7 @@ export class RpcClient implements Transport {
     opts: CallOptions = {},
   ): Promise<T> {
     const target = opts.roomId ? this.endpoint(opts.roomId) : `${this.url}/rpc`;
+    await this.ensureCapable(method);
     const retries = opts.retries ?? 0;
     let attempt = 0;
     for (;;) {
@@ -73,6 +78,32 @@ export class RpcClient implements Transport {
         attempt += 1;
       }
     }
+  }
+
+  private async ensureCapable(method: string): Promise<void> {
+    if (method === 'hello' || !KNOWN_CAPABILITIES.has(method)) return;
+    const caps = await this.serverCaps();
+    if (caps.capabilities.includes(method)) return;
+    throw new Vibe3DError(
+      'E_DAEMON_OUTDATED',
+      `daemon ${caps.version} 不认识方法 ${method}：正在跑的是旧版本进程（客户端有 ${KNOWN_CAPABILITIES.size} 项能力）。重启 daemon 后再试；重启会丢失未持久化的房间，先用 scene export 备份。`,
+    );
+  }
+
+  private serverCaps(): Promise<{ version: string; capabilities: string[] }> {
+    if (!this.caps) {
+      this.caps = this.once<{ daemonVersion?: string; capabilities?: string[] }>(
+        `${this.url}/rpc`,
+        { jsonrpc: '2.0', id: ++this.seq, method: 'hello', params: {} },
+        { timeoutMs: 10_000 },
+      )
+        .then((hello) => ({ version: hello.daemonVersion ?? 'unknown', capabilities: hello.capabilities ?? [] }))
+        .catch((err: unknown) => {
+          this.caps = undefined;
+          throw err;
+        });
+    }
+    return this.caps;
   }
 
   private async once<T>(target: string, body: Envelope, opts: CallOptions): Promise<T> {

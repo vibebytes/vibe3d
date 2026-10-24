@@ -20,6 +20,8 @@ export function geometryTris(geometry: Geometry): number {
       return geometry.segments * geometry.segments * 2;
     case 'cylinder':
       return geometry.segments * 4;
+    case 'baked':
+      return geometry.indices.length / 3;
   }
 }
 

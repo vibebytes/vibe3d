@@ -26,6 +26,17 @@ export {
 } from './query';
 export { geometryTris, sceneStats, type SceneStats } from './stats';
 export {
+  bakeBoxes,
+  booleanBoxes,
+  boxFromCenter,
+  boxIntersect,
+  boxUnion,
+  boxesTris,
+  subtractBox,
+  type BooleanOp,
+  type Box,
+} from './csg';
+export {
   validateScene,
   type CheckCode,
   type SceneIssue,

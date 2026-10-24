@@ -16,6 +16,10 @@ export interface IngestDeps {
   roots?: string[];
 }
 
+export interface IngestOptions {
+  maxBytes?: number;
+}
+
 interface Loaded {
   bytes: Buffer;
   name: string;
@@ -27,8 +31,8 @@ interface Loaded {
 const MAX_REDIRECTS = 3;
 const FETCH_TIMEOUT_MS = 15_000;
 
-function settle(bytes: Buffer, name: string, mime?: string | null): Loaded {
-  const info = classifyUpload({ filename: name, mime: mime ?? undefined, bytes });
+function settle(bytes: Buffer, name: string, mime?: string | null, maxBytes?: number): Loaded {
+  const info = classifyUpload({ filename: name, mime: mime ?? undefined, bytes, maxBytes });
   return { bytes, name, mime: info.mime, kind: info.kind, image: info.image };
 }
 
@@ -60,11 +64,11 @@ async function localPath(src: string, roots: string[]): Promise<string> {
   throw new AppError('E_UNSUPPORTED', `本地路径不在允许的资产根目录内：${src}`, { roots });
 }
 
-async function readCapped(res: Response, src: string): Promise<Buffer> {
+async function readCapped(res: Response, src: string, maxBytes: number): Promise<Buffer> {
   if (!res.body) {
     const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.length > MAX_HDRI_BYTES) {
-      throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过 128 MB：${src}`, { bytes: buf.length });
+    if (buf.length > maxBytes) {
+      throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过上限：${src}`, { bytes: buf.length });
     }
     return buf;
   }
@@ -75,9 +79,9 @@ async function readCapped(res: Response, src: string): Promise<Buffer> {
     const { done, value } = await reader.read();
     if (done) break;
     total += value.byteLength;
-    if (total > MAX_HDRI_BYTES) {
+    if (total > maxBytes) {
       await reader.cancel();
-      throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过 128 MB：${src}`, { bytes: total });
+      throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过上限：${src}`, { bytes: total });
     }
     chunks.push(Buffer.from(value));
   }
@@ -88,6 +92,7 @@ async function download(
   src: string,
   policy: AssetPolicy,
   fetchImpl: typeof fetch,
+  maxBytes: number,
 ): Promise<{ bytes: Buffer; name: string; mime: string | null }> {
   let url = new URL(src);
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
@@ -109,10 +114,10 @@ async function download(
     }
     if (!res.ok) throw new AppError('E_ASSET_MISSING', `下载失败 ${res.status}：${src}`);
     const length = Number(res.headers.get('content-length') ?? 0);
-    if (Number.isFinite(length) && length > MAX_HDRI_BYTES) {
-      throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过 128 MB：${src}`, { bytes: length });
+    if (Number.isFinite(length) && length > maxBytes) {
+      throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过上限：${src}`, { bytes: length });
     }
-    const bytes = await readCapped(res, src);
+    const bytes = await readCapped(res, src, maxBytes);
     const raw = basename(url.pathname);
     let name = raw || 'remote.glb';
     try {
@@ -130,21 +135,31 @@ export function createIngest({
   fetchImpl = fetch,
   roots = [process.cwd(), tmpdir()],
 }: IngestDeps): Pick<DispatchContext, 'ingest' | 'inspect'> {
-  const read = async (src: string, policy: AssetPolicy = 'local') => {
+  const read = async (src: string, policy: AssetPolicy = 'local', maxBytes = MAX_HDRI_BYTES) => {
     if (/^https?:\/\//i.test(src)) {
       if (policy === 'strict') {
         throw new AppError('E_UNSUPPORTED', 'policy=strict 不允许网络地址，请先下载到本地');
       }
-      return download(src, policy, fetchImpl);
+      return download(src, policy, fetchImpl, maxBytes);
     }
     const path = await localPath(src, roots);
     const bytes = await readFile(path);
+    if (bytes.length > maxBytes) {
+      throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过上限：${src}`, {
+        bytes: bytes.length,
+        limit: maxBytes,
+      });
+    }
     return { bytes, name: basename(path), mime: null as string | null };
   };
 
-  const load = async (src: string, policy: AssetPolicy = 'local'): Promise<Loaded> => {
-    const loaded = await read(src, policy);
-    return settle(loaded.bytes, loaded.name, loaded.mime);
+  const load = async (
+    src: string,
+    policy: AssetPolicy = 'local',
+    opts: IngestOptions = {},
+  ): Promise<Loaded> => {
+    const loaded = await read(src, policy, opts.maxBytes ?? MAX_HDRI_BYTES);
+    return settle(loaded.bytes, loaded.name, loaded.mime, opts.maxBytes);
   };
 
   const inspect = async (src: string, policy: AssetPolicy = 'local') => {
@@ -167,8 +182,12 @@ export function createIngest({
     ...(loaded.image ? { image: loaded.image } : {}),
   });
 
-  const ingest = async (src: string, policy: AssetPolicy = 'local'): Promise<IngestResult> => {
-    const loaded = await load(src, policy);
+  const ingest = async (
+    src: string,
+    policy: AssetPolicy = 'local',
+    opts: IngestOptions = {},
+  ): Promise<IngestResult> => {
+    const loaded = await load(src, policy, opts);
     const report = loaded.kind === 'gltf' ? parseGltf(loaded.bytes, loaded.name) : undefined;
     const sha = createHash('sha256').update(loaded.bytes).digest('hex');
     const cached = existsSync(blobs.path(sha));

@@ -11,8 +11,8 @@ const generatedDir = join(dirname(fileURLToPath(import.meta.url)), '../generated
 const read = (name: string): string => readFileSync(join(generatedDir, name), 'utf8');
 
 describe('capability registry', () => {
-  it('暴露 53 个能力，名字与 wire/scope 自洽', () => {
-    expect(CAPABILITY_NAMES).toHaveLength(53);
+  it('暴露 59 个能力，名字与 wire/scope 自洽', () => {
+    expect(CAPABILITY_NAMES).toHaveLength(59);
     for (const name of CAPABILITY_NAMES) {
       const spec = CAPABILITIES[name];
       expect(spec.title.length).toBeGreaterThan(0);
@@ -58,7 +58,7 @@ describe('generated artifacts', () => {
     const doc = buildSpecDoc() as {
       capabilities: { name: string; input: { type?: string }; output: { type?: string } }[];
     };
-    expect(doc.capabilities).toHaveLength(53);
+    expect(doc.capabilities).toHaveLength(CAPABILITY_NAMES.length);
     for (const cap of doc.capabilities) {
       expect(cap.input.type, cap.name).toBe('object');
       expect(cap.output.type, cap.name).toBe('object');

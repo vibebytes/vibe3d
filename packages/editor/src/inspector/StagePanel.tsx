@@ -3,8 +3,10 @@ import { useRef, useState } from 'react';
 import { hdriAssets } from '../lib/asset-files';
 import { useDoc } from '../stores/doc';
 import { ColorField, NumberField, Section, SelectField, ToggleRow } from './fields';
+import { patchNpr, patchPost } from './stage-patch';
 
 const PRESETS = ['cine', 'clean', 'flat'] as const;
+const TONEMAPS = ['aces', 'linear', 'reinhard'] as const;
 
 export function StagePanel({ doc }: { doc: SceneDoc }) {
   const setStage = useDoc((s) => s.setStage);
@@ -139,6 +141,185 @@ export function StagePanel({ doc }: { doc: SceneDoc }) {
             </p>
           </>
         )}
+      </Section>
+
+      <Section title="三渲二">
+        <ToggleRow
+          label="描边"
+          checked={Boolean(stage.npr?.outline)}
+          onChange={(on) =>
+            void setStage({
+              npr: patchNpr(stage.npr, {
+                outline: on
+                  ? {
+                      width: stage.npr?.outline?.width ?? 1.5,
+                      ...(stage.npr?.outline?.color ? { color: stage.npr.outline.color } : {}),
+                    }
+                  : null,
+              }),
+            })
+          }
+        />
+        {stage.npr?.outline && (
+          <>
+            <NumberField
+              label="线宽"
+              step={0.1}
+              min={0}
+              max={10}
+              value={stage.npr.outline.width ?? 1.5}
+              onCommit={(width) =>
+                void setStage({ npr: patchNpr(stage.npr, { outline: { ...stage.npr?.outline, width } }) })
+              }
+            />
+            <ColorField
+              label="描边色"
+              value={stage.npr.outline.color ?? [0.04, 0.06, 0.08, 1]}
+              onCommit={(color) =>
+                void setStage({ npr: patchNpr(stage.npr, { outline: { ...stage.npr?.outline, color } }) })
+              }
+            />
+          </>
+        )}
+        <ToggleRow
+          label="色阶"
+          checked={Boolean(stage.npr?.rampSteps)}
+          onChange={(on) => void setStage({ npr: patchNpr(stage.npr, { rampSteps: on ? 3 : null }) })}
+        />
+        {stage.npr?.rampSteps && (
+          <NumberField
+            label="色阶数"
+            step={1}
+            min={2}
+            max={8}
+            value={stage.npr.rampSteps}
+            onCommit={(steps) =>
+              void setStage({ npr: patchNpr(stage.npr, { rampSteps: Math.round(steps) }) })
+            }
+          />
+        )}
+        <NumberField
+          label="边缘光"
+          step={0.05}
+          min={0}
+          max={1}
+          value={stage.npr?.rim ?? 0}
+          onCommit={(rim) => void setStage({ npr: patchNpr(stage.npr, { rim: rim > 0 ? rim : null }) })}
+        />
+        <p className="text-[10px] leading-relaxed text-base-content/30">
+          描边为反壳子网格，色阶走逐面着色；三渲二只作用于网格材质，不改模型。
+        </p>
+      </Section>
+
+      <Section title="后处理">
+        <SelectField
+          label="色调映射"
+          value={stage.post?.tonemap ?? 'aces'}
+          options={TONEMAPS}
+          onChange={(tonemap) =>
+            void setStage({ post: patchPost(stage.post, { tonemap: tonemap === 'aces' ? null : tonemap }) })
+          }
+        />
+        <ToggleRow
+          label="Bloom"
+          checked={Boolean(stage.post?.bloom)}
+          onChange={(on) =>
+            void setStage({ post: patchPost(stage.post, { bloom: on ? { intensity: 1 } : null }) })
+          }
+        />
+        {stage.post?.bloom && (
+          <>
+            <NumberField
+              label="强度"
+              step={0.1}
+              min={0}
+              max={5}
+              value={stage.post.bloom.intensity ?? 1}
+              onCommit={(intensity) =>
+                void setStage({ post: patchPost(stage.post, { bloom: { ...stage.post?.bloom, intensity } }) })
+              }
+            />
+            <NumberField
+              label="阈值"
+              step={0.05}
+              min={0}
+              max={2}
+              value={stage.post.bloom.threshold ?? 0.2}
+              onCommit={(threshold) =>
+                void setStage({ post: patchPost(stage.post, { bloom: { ...stage.post?.bloom, threshold } }) })
+              }
+            />
+          </>
+        )}
+        <ToggleRow
+          label="景深"
+          checked={Boolean(stage.post?.dof)}
+          onChange={(on) =>
+            void setStage({
+              post: patchPost(stage.post, { dof: on ? { aperture: 0.02, focusDistance: 6 } : null }),
+            })
+          }
+        />
+        {stage.post?.dof && (
+          <>
+            <NumberField
+              label="光圈"
+              step={0.005}
+              min={0}
+              max={1}
+              value={stage.post.dof.aperture ?? 0.02}
+              onCommit={(aperture) =>
+                void setStage({ post: patchPost(stage.post, { dof: { ...stage.post?.dof, aperture } }) })
+              }
+            />
+            <NumberField
+              label="焦距"
+              step={0.5}
+              min={0}
+              max={100}
+              value={stage.post.dof.focusDistance ?? 6}
+              onCommit={(focusDistance) =>
+                void setStage({ post: patchPost(stage.post, { dof: { ...stage.post?.dof, focusDistance } }) })
+              }
+            />
+          </>
+        )}
+        <ToggleRow
+          label="SSAO"
+          checked={Boolean(stage.post?.ssao)}
+          onChange={(on) =>
+            void setStage({
+              post: patchPost(stage.post, { ssao: on ? { radius: 0.6, intensity: 1 } : null }),
+            })
+          }
+        />
+        {stage.post?.ssao && (
+          <>
+            <NumberField
+              label="半径"
+              step={0.1}
+              min={0}
+              max={5}
+              value={stage.post.ssao.radius ?? 0.6}
+              onCommit={(radius) =>
+                void setStage({ post: patchPost(stage.post, { ssao: { ...stage.post?.ssao, radius } }) })
+              }
+            />
+            <NumberField
+              label="强度"
+              step={0.1}
+              min={0}
+              max={5}
+              value={stage.post.ssao.intensity ?? 1}
+              onCommit={(intensity) =>
+                void setStage({ post: patchPost(stage.post, { ssao: { ...stage.post?.ssao, intensity } }) })
+              }
+            />
+          </>
+        )}
+        <p className="text-[10px] leading-relaxed text-base-content/30">
+          后处理只在开了 Bloom / 景深 / SSAO 或非 ACES 色调映射时启用，顺序为 SSAO → 景深 → Bloom。
+        </p>
       </Section>
 
       <p className="text-[10px] leading-relaxed text-base-content/30">

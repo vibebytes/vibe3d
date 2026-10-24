@@ -8,7 +8,9 @@ import {
   sceneNodeSchema,
 } from './scene';
 import {
+  cameraNameSchema,
   cameraStateSchema,
+  decalSchema,
   envSchema,
   fogSchema,
   fxIdSchema,
@@ -19,12 +21,21 @@ import {
   materialPresetSchema,
   materialSchema,
   nodeIdSchema,
+  nprSchema,
+  postSchema,
   shaSchema,
   stageStateSchema,
   transformSchema,
 } from './schema';
 
 export const MAX_OPS_PER_APPLY = 500;
+
+const stagePatchSchema = stageStateSchema.partial().extend({
+  post: postSchema.nullable().optional(),
+  npr: nprSchema.nullable().optional(),
+});
+
+const cameraPatchSchema = cameraStateSchema.partial();
 
 const nodePatchSchema = z.object({
   name: z.string().min(1).max(200).optional(),
@@ -36,6 +47,7 @@ const nodePatchSchema = z.object({
   material: materialIdSchema.optional(),
   sha: shaSchema.optional(),
   clip: clipSchema.nullable().optional(),
+  decal: decalSchema.nullable().optional(),
 });
 
 export const opSchema = z.discriminatedUnion('op', [
@@ -64,7 +76,7 @@ export const opSchema = z.discriminatedUnion('op', [
       .partial()
       .extend({ hdri: shaSchema.nullable().optional(), fog: fogSchema.nullable().optional() }),
   }),
-  z.object({ op: z.literal('stage.set'), stage: stageStateSchema.partial() }),
+  z.object({ op: z.literal('stage.set'), stage: stagePatchSchema }),
   z.object({
     op: z.literal('animation.play'),
     target: nodeIdSchema,
@@ -78,9 +90,17 @@ export const opSchema = z.discriminatedUnion('op', [
   z.object({ op: z.literal('fx.delete'), id: fxIdSchema }),
   z.object({
     op: z.literal('camera.set'),
-    camera: cameraStateSchema.partial().optional(),
+    camera: cameraPatchSchema.optional(),
     frame: z.enum(['fit', 'close', 'wide']).optional(),
+    name: cameraNameSchema.optional(),
+    preset: z.enum(['miniature_45']).optional(),
   }),
+  z.object({
+    op: z.literal('camera.save'),
+    name: cameraNameSchema,
+    camera: cameraPatchSchema.optional(),
+  }),
+  z.object({ op: z.literal('camera.delete'), name: cameraNameSchema }),
   z.object({ op: z.literal('asset.register'), asset: assetMetaSchema }),
   z.object({ op: z.literal('asset.unregister'), sha: shaSchema }),
   z.object({ op: z.literal('scene.replace'), doc: sceneDocSchema }),

@@ -1,5 +1,11 @@
 import { spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { createInterface } from 'node:readline';
+
+const spec = JSON.parse(
+  readFileSync(new URL('../packages/capabilities/generated/spec.json', import.meta.url), 'utf8'),
+);
+const declared = spec.capabilities.filter((c) => c.mcp?.tool);
 
 const url = process.env.VIBE3D_URL ?? 'http://127.0.0.1:18790';
 const token = process.env.VIBE3D_TOKEN ?? 'testtoken123456';
@@ -71,16 +77,32 @@ try {
   const list = await call('tools/list', {});
   const tools = list.result.tools;
   const names = tools.map((t) => t.name);
-  assert(names.length === 37, 'tools/list == 37', `got ${names.length}`);
+  assert(names.length === declared.length, `tools/list == ${declared.length}`, `got ${names.length}`);
+  const expectedRoomArg = declared
+    .filter((c) => c.mcp.roomArg)
+    .map((c) => c.mcp.tool)
+    .sort();
   const roomArgTools = tools
     .filter((t) => t.inputSchema?.properties?.room_id)
     .map((t) => t.name)
     .sort();
   assert(
-    JSON.stringify(roomArgTools) ===
-      JSON.stringify(['vibe3d_close_room', 'vibe3d_get_room', 'vibe3d_open_editor']),
-    'room_id only on 3 roomArg tools',
+    JSON.stringify(roomArgTools) === JSON.stringify(expectedRoomArg),
+    `room_id only on ${expectedRoomArg.length} roomArg tools`,
     roomArgTools.join(','),
+  );
+  const expectedRequired = declared
+    .filter((c) => c.mcp.roomArg === 'required')
+    .map((c) => c.mcp.tool)
+    .sort();
+  const requiredServed = tools
+    .filter((t) => (t.inputSchema?.required ?? []).includes('room_id'))
+    .map((t) => t.name)
+    .sort();
+  assert(
+    JSON.stringify(requiredServed) === JSON.stringify(expectedRequired),
+    'room_id required only on room.use',
+    requiredServed.join(','),
   );
 
   const room = await call('tools/call', { name: 'vibe3d_create_room', arguments: { name: 'mcp-smoke' } });
@@ -127,15 +149,18 @@ try {
   });
   assert(stale.result?.isError === true, 'stale room_id rejected', text(stale).slice(0, 160));
 
+  const missing = await call('tools/call', { name: 'vibe3d_use_room', arguments: {} });
+  assert(missing.result?.isError === true, 'use_room without room_id rejected', text(missing).slice(0, 120));
+
   const back = await call('tools/call', {
-    name: 'vibe3d_get_room',
+    name: 'vibe3d_use_room',
     arguments: { room_id: roomId },
   });
   const backScene = await call('tools/call', { name: 'vibe3d_get_scene', arguments: {} });
   const backNodes = Object.keys(json(backScene).doc?.nodes ?? {}).length;
   assert(
     json(back).roomId === roomId && backNodes === 1,
-    'get_room switches binding back',
+    'use_room switches binding back',
     `${json(back).roomId} nodes=${backNodes}`,
   );
 

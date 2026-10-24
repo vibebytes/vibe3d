@@ -34,6 +34,29 @@ export function toStandardMaterial(spec: Material): THREE.MeshStandardMaterial {
   return mat;
 }
 
+const toonCache = new Map<string, THREE.MeshToonMaterial>();
+
+export function toToonMaterial(
+  spec: Material,
+  steps: number,
+  ramp: THREE.DataTexture,
+): THREE.MeshToonMaterial {
+  const key = `${steps}:${JSON.stringify(spec)}`;
+  const hit = toonCache.get(key);
+  if (hit) return hit;
+  const mat = new THREE.MeshToonMaterial({
+    color: rgbColor(spec.baseColor),
+    gradientMap: ramp,
+    emissive: rgbColor(spec.emissive),
+    emissiveIntensity: spec.emissiveIntensity,
+    transparent: spec.opacity < 1,
+    opacity: spec.opacity,
+    side: spec.doubleSided ? THREE.DoubleSide : THREE.FrontSide,
+  });
+  toonCache.set(key, mat);
+  return mat;
+}
+
 let fallback: THREE.MeshStandardMaterial | null = null;
 
 export function fallbackMaterial(): THREE.MeshStandardMaterial {
@@ -44,4 +67,6 @@ export function fallbackMaterial(): THREE.MeshStandardMaterial {
 export function disposeMaterialCache(): void {
   for (const mat of cache.values()) mat.dispose();
   cache.clear();
+  for (const mat of toonCache.values()) mat.dispose();
+  toonCache.clear();
 }

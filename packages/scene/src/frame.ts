@@ -107,6 +107,8 @@ function localBox(doc: SceneDoc, node: SceneNode): Aabb | null {
     } else if (g.type === 'cylinder') {
       hx = hz = Math.max(g.radiusTop, g.radiusBottom);
       hy = g.height / 2;
+    } else if (g.type === 'baked') {
+      return { min: [...g.bbox.min], max: [...g.bbox.max] };
     } else {
       hx = g.width / 2;
       hy = g.height / 2;
@@ -250,4 +252,29 @@ export function frameNode(doc: SceneDoc, id: string, mode: FrameMode = 'close'):
 
 export function frameCamera(doc: SceneDoc, mode: FrameMode = 'fit'): CameraState {
   return frameTarget(doc, { mode, view: 'three_quarter' })?.camera ?? { ...doc.camera };
+}
+
+export function miniatureCamera(doc: SceneDoc): CameraState {
+  const box = sceneBounds(doc);
+  if (!box) return { ...doc.camera };
+  const center: [number, number, number] = [
+    (box.min[0] + box.max[0]) / 2,
+    (box.min[1] + box.max[1]) / 2,
+    (box.min[2] + box.max[2]) / 2,
+  ];
+  const diag = Math.hypot(box.max[0] - box.min[0], box.max[1] - box.min[1], box.max[2] - box.min[2]);
+  const fov = doc.camera.fov || 45;
+  const distance = (Math.max(diag, 0.4) / 2 / Math.tan((fov * Math.PI) / 360)) * 1.15;
+  const horizontal = Math.SQRT1_2;
+  const dir: [number, number, number] = [horizontal, 1, horizontal];
+  const norm = Math.hypot(...dir);
+  return {
+    ...doc.camera,
+    target: center,
+    p: [
+      center[0] + (dir[0] / norm) * distance,
+      center[1] + (dir[1] / norm) * distance,
+      center[2] + (dir[2] / norm) * distance,
+    ],
+  };
 }

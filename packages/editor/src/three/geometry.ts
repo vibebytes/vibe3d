@@ -11,6 +11,14 @@ export function createGeometry(g: Geometry): THREE.BufferGeometry {
       return new THREE.CylinderGeometry(g.radiusTop, g.radiusBottom, g.height, g.segments);
     case 'plane':
       return new THREE.PlaneGeometry(g.width, g.height);
+    case 'baked': {
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(g.positions, 3));
+      geometry.setIndex(g.indices);
+      geometry.computeVertexNormals();
+      geometry.computeBoundingBox();
+      return geometry;
+    }
   }
 }
 

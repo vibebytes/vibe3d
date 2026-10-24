@@ -41,6 +41,8 @@ export class Room {
   private undoStack: SceneDoc[] = [];
   private redoStack: SceneDoc[] = [];
   private opLog = new Map<number, Op[]>();
+  private history = new Map<number, SceneDoc>();
+  private opIds = new Map<string, number>();
   private applied = new Map<string, ApplyResult>();
 
   constructor(doc: SceneDoc, roomId: RoomId, opts: RoomOptions = {}) {
@@ -99,13 +101,16 @@ export class Room {
     };
     validateDoc(next);
 
-    this.undoStack.push(structuredClone(before));
+    const snapshot = structuredClone(before);
+    this.undoStack.push(snapshot);
     if (this.undoStack.length > MAX_HISTORY) this.undoStack.shift();
+    this.remember(before.revision, snapshot);
     this.redoStack = [];
     this.commit(next, ops);
 
     const result: ApplyResult = { revision: next.revision, applied: ops.length, warnings, inverse };
     if (opts.opId) {
+      this.opIds.set(opts.opId, next.revision);
       this.applied.set(opts.opId, result);
       if (this.applied.size > 500) {
         const oldest = this.applied.keys().next().value;
@@ -132,6 +137,45 @@ export class Room {
     this.applied.clear();
     this.onChange?.(this, { kind: 'undo', ops: [] });
     return { revision: this.doc.revision, undone };
+  }
+
+  async undoOp(opId: string): Promise<{ revision: number; undone: number; warnings: string[] }> {
+    const target = this.opIds.get(opId);
+    if (target === undefined) {
+      throw new AppError('E_INVALID_PARAMS', `未知 opId：${opId}（该步不在可回放窗口内）`);
+    }
+    const base = this.history.get(target - 1);
+    if (!base) {
+      throw new AppError('E_INVALID_PARAMS', `opId 对应版本已不可回放：${opId}`);
+    }
+    const head = this.revision;
+    const warnings: string[] = [];
+    let doc = structuredClone(base);
+    for (let rev = target + 1; rev <= head; rev++) {
+      const batch = this.opLog.get(rev);
+      if (!batch) {
+        warnings.push(`revision ${rev} 缺少 op 记录，已跳过`);
+        continue;
+      }
+      try {
+        doc = applyOps(doc, batch).doc;
+      } catch (err) {
+        warnings.push(
+          `revision ${rev} 重放失败，已跳过：${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+    }
+    const next: SceneDoc = { ...doc, revision: head + 1, updatedAt: new Date().toISOString() };
+    validateDoc(next);
+    this.undoStack.push(structuredClone(this.doc));
+    if (this.undoStack.length > MAX_HISTORY) this.undoStack.shift();
+    this.redoStack = [];
+    this.history.clear();
+    this.remember(head, structuredClone(this.doc));
+    this.opIds.clear();
+    this.applied.clear();
+    this.commit(next, []);
+    return { revision: next.revision, undone: 1, warnings };
   }
 
   async redo(steps = 1): Promise<{ revision: number; redone: number }> {
@@ -183,6 +227,15 @@ export class Room {
     this.updatedAt = updatedAt;
     this.onChange?.(this, { kind: 'assets', ops: [] });
     return meta;
+  }
+
+  private remember(revision: number, doc: SceneDoc): void {
+    this.history.set(revision, doc);
+    while (this.history.size > MAX_REVISIONS) {
+      const oldest = this.history.keys().next().value;
+      if (oldest === undefined) break;
+      this.history.delete(oldest);
+    }
   }
 
   private commit(next: SceneDoc, ops: readonly Op[]): void {

@@ -7,6 +7,8 @@ import {
 } from '@vibebyte/vibe3d-capabilities';
 import { type RoomHandle, type Studio, Vibe3DError } from '@vibebyte/vibe3d-client';
 import { coerceForSchema, deepCamel } from './coerce';
+import { paramHint } from './hints';
+import { describeTool, presentSchema } from './presentation';
 import { RoomSession } from './session';
 
 export type ToolDef = (typeof MCP_TOOLS)[number];
@@ -45,8 +47,8 @@ export function listTools(): Array<{
 }> {
   return MCP_TOOLS.map((tool) => ({
     name: tool.name,
-    description: tool.title,
-    inputSchema: tool.inputSchema,
+    description: describeTool(tool),
+    inputSchema: presentSchema(tool),
     annotations: tool.annotations,
   }));
 }
@@ -107,7 +109,7 @@ export class ToolRuntime {
       if (!params.success) {
         throw new Vibe3DError(
           'E_INVALID_PARAMS',
-          `${capability} 参数校验失败：${describeIssues(params.error.issues)}${jsonHint(input, params.error.issues)}`,
+          `${capability} 参数校验失败：${describeIssues(params.error.issues)}${paramHint(params.error.issues)}${jsonHint(input, params.error.issues)}`,
           { issues: toIssues(params.error.issues) },
         );
       }
@@ -155,11 +157,17 @@ export class ToolRuntime {
       if (explicit && explicit !== this.session.current) {
         throw new Vibe3DError(
           'E_INVALID_PARAMS',
-          `${capability} 不接受 room_id：房间由会话绑定（当前 ${this.session.current ?? '未绑定'}）。换房间请用 vibe3d_get_room 或 vibe3d_open_editor 传 room_id。`,
+          `${capability} 不接受 room_id：房间由会话绑定（当前 ${this.session.current ?? '未绑定'}）。换房间请用 vibe3d_use_room（纯绑定不弹窗），或用 vibe3d_get_room / vibe3d_open_editor 传 room_id。`,
         );
       }
       input.roomId = this.session.require();
       return;
+    }
+    if (capability === 'room.use' && !explicit) {
+      throw new Vibe3DError(
+        'E_INVALID_PARAMS',
+        'vibe3d_use_room 需要 room_id：它把当前会话切到指定房间（只换绑定，不弹窗）。房间列表用 vibe3d_list_rooms。',
+      );
     }
     if (explicit) {
       input.roomId = explicit;
@@ -183,7 +191,7 @@ export class ToolRuntime {
       this.session.release(String(params.roomId));
       return;
     }
-    if (capability === 'room.get' || capability === 'editor.open') {
+    if (capability === 'room.use' || capability === 'room.get' || capability === 'editor.open') {
       const roomId = params.roomId;
       if (typeof roomId === 'string') this.session.bind(roomId);
     }
