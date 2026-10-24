@@ -30805,10 +30805,14 @@
               "enum": [
                 "grid",
                 "axes",
-                "bbox"
+                "bbox",
+                "ground",
+                "centerline",
+                "scale",
+                "normal"
               ]
             },
-            "maxItems": 3
+            "maxItems": 7
           },
           "highlight": {
             "type": "array",
@@ -31009,10 +31013,14 @@
               "enum": [
                 "grid",
                 "axes",
-                "bbox"
+                "bbox",
+                "ground",
+                "centerline",
+                "scale",
+                "normal"
               ]
             },
-            "maxItems": 3
+            "maxItems": 7
           },
           "highlight": {
             "type": "array",
@@ -31397,10 +31405,14 @@
               "enum": [
                 "grid",
                 "axes",
-                "bbox"
+                "bbox",
+                "ground",
+                "centerline",
+                "scale",
+                "normal"
               ]
             },
-            "maxItems": 3
+            "maxItems": 7
           },
           "highlight": {
             "type": "array",
@@ -31743,10 +31755,14 @@
               "enum": [
                 "grid",
                 "axes",
-                "bbox"
+                "bbox",
+                "ground",
+                "centerline",
+                "scale",
+                "normal"
               ]
             },
-            "maxItems": 3
+            "maxItems": 7
           },
           "highlight": {
             "type": "array",
@@ -32189,10 +32205,14 @@
               "enum": [
                 "grid",
                 "axes",
-                "bbox"
+                "bbox",
+                "ground",
+                "centerline",
+                "scale",
+                "normal"
               ]
             },
-            "maxItems": 3
+            "maxItems": 7
           },
           "settleMs": {
             "type": "integer",

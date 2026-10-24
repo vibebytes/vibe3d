@@ -9,7 +9,7 @@ const targetBox = z.object({
   max: z.tuple([z.number(), z.number(), z.number()]),
 });
 export const shadingMode = z.enum(['flat', 'wireframe', 'normals']);
-export const overlayKind = z.enum(['grid', 'axes', 'bbox']);
+export const overlayKind = z.enum(['grid', 'axes', 'bbox', 'ground', 'centerline', 'scale', 'normal']);
 
 export const qualityLevel = z.enum(['draft', 'standard', 'high']);
 
@@ -29,7 +29,7 @@ const imageOpts = {
   at: numIn(0, 3600).optional(),
   transparent: z.boolean().optional(),
   shading: shadingMode.optional(),
-  overlay: z.array(overlayKind).max(3).optional(),
+  overlay: z.array(overlayKind).max(7).optional(),
   highlight: z.array(nodeIdSchema).max(200).optional(),
   isolate: z.array(nodeIdSchema).max(200).optional(),
   quality: qualityLevel.optional(),

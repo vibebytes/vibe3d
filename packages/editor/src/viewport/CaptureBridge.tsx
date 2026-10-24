@@ -148,7 +148,8 @@ function captureFrame(
   };
 
   const restoreShading = applyShading(scene, opts.shading);
-  const clearOverlays = addOverlays(scene, opts.overlay);
+  const scope = opts.isolate?.length ? opts.isolate : opts.highlight;
+  const clearOverlays = addOverlays(scene, opts.overlay, scope);
   const restoreHighlight = applyHighlight(scene, opts.highlight);
   const restoreIsolate = applyIsolate(scene, opts.isolate);
   const preset = qualityOf(opts.quality);

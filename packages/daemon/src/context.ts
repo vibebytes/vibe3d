@@ -7,7 +7,7 @@ import type { RoomManager } from './rooms/manager';
 export type AssetPolicy = 'strict' | 'local' | 'allow';
 
 export type ShadingMode = 'flat' | 'wireframe' | 'normals';
-export type OverlayKind = 'grid' | 'axes' | 'bbox';
+export type OverlayKind = 'grid' | 'axes' | 'bbox' | 'ground' | 'centerline' | 'scale' | 'normal';
 
 export interface SnapshotOptions {
   width?: number;

@@ -10858,10 +10858,14 @@ export const MCP_TOOLS = [
             "enum": [
               "grid",
               "axes",
-              "bbox"
+              "bbox",
+              "ground",
+              "centerline",
+              "scale",
+              "normal"
             ]
           },
-          "maxItems": 3
+          "maxItems": 7
         },
         "highlight": {
           "type": "array",
@@ -10969,10 +10973,14 @@ export const MCP_TOOLS = [
             "enum": [
               "grid",
               "axes",
-              "bbox"
+              "bbox",
+              "ground",
+              "centerline",
+              "scale",
+              "normal"
             ]
           },
-          "maxItems": 3
+          "maxItems": 7
         },
         "highlight": {
           "type": "array",
@@ -11076,10 +11084,14 @@ export const MCP_TOOLS = [
             "enum": [
               "grid",
               "axes",
-              "bbox"
+              "bbox",
+              "ground",
+              "centerline",
+              "scale",
+              "normal"
             ]
           },
-          "maxItems": 3
+          "maxItems": 7
         },
         "highlight": {
           "type": "array",
@@ -11221,10 +11233,14 @@ export const MCP_TOOLS = [
             "enum": [
               "grid",
               "axes",
-              "bbox"
+              "bbox",
+              "ground",
+              "centerline",
+              "scale",
+              "normal"
             ]
           },
-          "maxItems": 3
+          "maxItems": 7
         },
         "highlight": {
           "type": "array",
@@ -11392,10 +11408,14 @@ export const MCP_TOOLS = [
             "enum": [
               "grid",
               "axes",
-              "bbox"
+              "bbox",
+              "ground",
+              "centerline",
+              "scale",
+              "normal"
             ]
           },
-          "maxItems": 3
+          "maxItems": 7
         },
         "settle_ms": {
           "type": "integer",

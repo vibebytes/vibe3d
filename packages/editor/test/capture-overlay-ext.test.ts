@@ -77,8 +77,9 @@ describe('B3 overlay 扩充', () => {
     const { scene } = makeScene();
     const clear = addOverlays(scene, ['bbox'], ['n_bbbbbbbb']);
     const helper = overlay(scene, 'bbox') as THREE.Box3Helper;
-    const size = new THREE.Box3().setFromObject(helper).getSize(new THREE.Vector3());
-    expect(size.x).toBeLessThan(2);
+    const box = (helper as unknown as { box: THREE.Box3 }).box;
+    expect(box.max.x - box.min.x).toBeCloseTo(1, 3);
+    expect(box.min.x).toBeCloseTo(5.5, 3);
     clear();
   });
 
