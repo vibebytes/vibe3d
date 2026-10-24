@@ -611,6 +611,15 @@
                           ],
                           "additionalProperties": false
                         },
+                        "tags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 32
+                          },
+                          "maxItems": 16
+                        },
                         "kind": {
                           "type": "string",
                           "const": "group"
@@ -805,6 +814,15 @@
                             "type"
                           ],
                           "additionalProperties": false
+                        },
+                        "tags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 32
+                          },
+                          "maxItems": 16
                         },
                         "kind": {
                           "type": "string",
@@ -1292,6 +1310,15 @@
                           ],
                           "additionalProperties": false
                         },
+                        "tags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 32
+                          },
+                          "maxItems": 16
+                        },
                         "kind": {
                           "type": "string",
                           "const": "light"
@@ -1592,6 +1619,15 @@
                             "type"
                           ],
                           "additionalProperties": false
+                        },
+                        "tags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 32
+                          },
+                          "maxItems": 16
                         },
                         "kind": {
                           "type": "string",
@@ -2980,7 +3016,7 @@
     },
     {
       "name": "scene.query",
-      "title": "按名称 / 类型 / 材质 / 区域查询节点，返回世界包围盒，支持 limit+cursor 分页",
+      "title": "按名称 / 类型 / 材质 / 标签 / 区域查询节点，返回世界包围盒，支持 limit+cursor 分页",
       "wire": "scene.query",
       "scope": "room",
       "mutating": false,
@@ -2998,7 +3034,7 @@
       },
       "cli": {
         "command": "scene query",
-        "args": "<roomId> [--name <text>] [--kind mesh] [--min-y 0.9] [--limit 50] [--cursor 0]"
+        "args": "<roomId> [--name <text>] [--kind mesh] [--tags a,b] [--min-y 0.9] [--limit 50] [--cursor 0]"
       },
       "input": {
         "type": "object",
@@ -3024,6 +3060,15 @@
           "materialId": {
             "type": "string",
             "pattern": "^m_[a-z0-9]{8}$"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32
+            },
+            "maxItems": 16
           },
           "bbox": {
             "type": "object",
@@ -3192,6 +3237,15 @@
                 },
                 "hasAnim": {
                   "type": "boolean"
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 32
+                  },
+                  "maxItems": 16
                 }
               },
               "required": [
@@ -3357,6 +3411,15 @@
           },
           "hasAnim": {
             "type": "boolean"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32
+            },
+            "maxItems": 16
           },
           "children": {
             "type": "array",
@@ -5597,6 +5660,15 @@
                               ],
                               "additionalProperties": false
                             },
+                            "tags": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
+                            },
                             "kind": {
                               "type": "string",
                               "const": "group"
@@ -5791,6 +5863,15 @@
                                 "type"
                               ],
                               "additionalProperties": false
+                            },
+                            "tags": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
                             },
                             "kind": {
                               "type": "string",
@@ -6278,6 +6359,15 @@
                               ],
                               "additionalProperties": false
                             },
+                            "tags": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
+                            },
                             "kind": {
                               "type": "string",
                               "const": "light"
@@ -6578,6 +6668,15 @@
                                 "type"
                               ],
                               "additionalProperties": false
+                            },
+                            "tags": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
                             },
                             "kind": {
                               "type": "string",
@@ -7172,6 +7271,22 @@
                                 "type"
                               ],
                               "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "tags": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
                             },
                             {
                               "type": "null"
@@ -9458,6 +9573,15 @@
                                     ],
                                     "additionalProperties": false
                                   },
+                                  "tags": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 32
+                                    },
+                                    "maxItems": 16
+                                  },
                                   "kind": {
                                     "type": "string",
                                     "const": "group"
@@ -9652,6 +9776,15 @@
                                       "type"
                                     ],
                                     "additionalProperties": false
+                                  },
+                                  "tags": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 32
+                                    },
+                                    "maxItems": 16
                                   },
                                   "kind": {
                                     "type": "string",
@@ -10139,6 +10272,15 @@
                                     ],
                                     "additionalProperties": false
                                   },
+                                  "tags": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 32
+                                    },
+                                    "maxItems": 16
+                                  },
                                   "kind": {
                                     "type": "string",
                                     "const": "light"
@@ -10439,6 +10581,15 @@
                                       "type"
                                     ],
                                     "additionalProperties": false
+                                  },
+                                  "tags": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 32
+                                    },
+                                    "maxItems": 16
                                   },
                                   "kind": {
                                     "type": "string",
@@ -11782,6 +11933,15 @@
                               ],
                               "additionalProperties": false
                             },
+                            "tags": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
+                            },
                             "kind": {
                               "type": "string",
                               "const": "group"
@@ -11976,6 +12136,15 @@
                                 "type"
                               ],
                               "additionalProperties": false
+                            },
+                            "tags": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
                             },
                             "kind": {
                               "type": "string",
@@ -12463,6 +12632,15 @@
                               ],
                               "additionalProperties": false
                             },
+                            "tags": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
+                            },
                             "kind": {
                               "type": "string",
                               "const": "light"
@@ -12763,6 +12941,15 @@
                                 "type"
                               ],
                               "additionalProperties": false
+                            },
+                            "tags": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
                             },
                             "kind": {
                               "type": "string",
@@ -13357,6 +13544,22 @@
                                 "type"
                               ],
                               "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "tags": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
                             },
                             {
                               "type": "null"
@@ -15643,6 +15846,15 @@
                                     ],
                                     "additionalProperties": false
                                   },
+                                  "tags": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 32
+                                    },
+                                    "maxItems": 16
+                                  },
                                   "kind": {
                                     "type": "string",
                                     "const": "group"
@@ -15837,6 +16049,15 @@
                                       "type"
                                     ],
                                     "additionalProperties": false
+                                  },
+                                  "tags": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 32
+                                    },
+                                    "maxItems": 16
                                   },
                                   "kind": {
                                     "type": "string",
@@ -16324,6 +16545,15 @@
                                     ],
                                     "additionalProperties": false
                                   },
+                                  "tags": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 32
+                                    },
+                                    "maxItems": 16
+                                  },
                                   "kind": {
                                     "type": "string",
                                     "const": "light"
@@ -16624,6 +16854,15 @@
                                       "type"
                                     ],
                                     "additionalProperties": false
+                                  },
+                                  "tags": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 32
+                                    },
+                                    "maxItems": 16
                                   },
                                   "kind": {
                                     "type": "string",
@@ -17807,7 +18046,7 @@
       },
       "cli": {
         "command": "node create",
-        "args": "<roomId> --kind mesh --shape box"
+        "args": "<roomId> --kind mesh --shape box [--tags a,b]"
       },
       "input": {
         "type": "object",
@@ -18224,6 +18463,15 @@
               }
             },
             "additionalProperties": false
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32
+            },
+            "maxItems": 16
           }
         },
         "required": [
@@ -18243,6 +18491,15 @@
           "revision": {
             "type": "integer",
             "minimum": 0
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32
+            },
+            "maxItems": 16
           }
         },
         "required": [
@@ -18255,7 +18512,7 @@
     },
     {
       "name": "node.update",
-      "title": "改节点：名称、可见、变换、灯光、动画参数",
+      "title": "改节点：名称、可见、变换、灯光、动画参数、标签",
       "wire": "scene.apply",
       "scope": "room",
       "mutating": true,
@@ -18491,6 +18748,22 @@
                       "speed"
                     ],
                     "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "tags": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 32
+                    },
+                    "maxItems": 16
                   },
                   {
                     "type": "null"
@@ -21034,6 +21307,15 @@
                               ],
                               "additionalProperties": false
                             },
+                            "tags": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
+                            },
                             "kind": {
                               "type": "string",
                               "const": "group"
@@ -21228,6 +21510,15 @@
                                 "type"
                               ],
                               "additionalProperties": false
+                            },
+                            "tags": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
                             },
                             "kind": {
                               "type": "string",
@@ -21715,6 +22006,15 @@
                               ],
                               "additionalProperties": false
                             },
+                            "tags": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
+                            },
                             "kind": {
                               "type": "string",
                               "const": "light"
@@ -22015,6 +22315,15 @@
                                 "type"
                               ],
                               "additionalProperties": false
+                            },
+                            "tags": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
                             },
                             "kind": {
                               "type": "string",
@@ -22609,6 +22918,22 @@
                                 "type"
                               ],
                               "additionalProperties": false
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "tags": {
+                          "anyOf": [
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 32
+                              },
+                              "maxItems": 16
                             },
                             {
                               "type": "null"
@@ -24895,6 +25220,15 @@
                                     ],
                                     "additionalProperties": false
                                   },
+                                  "tags": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 32
+                                    },
+                                    "maxItems": 16
+                                  },
                                   "kind": {
                                     "type": "string",
                                     "const": "group"
@@ -25089,6 +25423,15 @@
                                       "type"
                                     ],
                                     "additionalProperties": false
+                                  },
+                                  "tags": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 32
+                                    },
+                                    "maxItems": 16
                                   },
                                   "kind": {
                                     "type": "string",
@@ -25576,6 +25919,15 @@
                                     ],
                                     "additionalProperties": false
                                   },
+                                  "tags": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 32
+                                    },
+                                    "maxItems": 16
+                                  },
                                   "kind": {
                                     "type": "string",
                                     "const": "light"
@@ -25876,6 +26228,15 @@
                                       "type"
                                     ],
                                     "additionalProperties": false
+                                  },
+                                  "tags": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 32
+                                    },
+                                    "maxItems": 16
                                   },
                                   "kind": {
                                     "type": "string",
@@ -27327,6 +27688,15 @@
                           ],
                           "additionalProperties": false
                         },
+                        "tags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 32
+                          },
+                          "maxItems": 16
+                        },
                         "kind": {
                           "type": "string",
                           "const": "group"
@@ -27521,6 +27891,15 @@
                             "type"
                           ],
                           "additionalProperties": false
+                        },
+                        "tags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 32
+                          },
+                          "maxItems": 16
                         },
                         "kind": {
                           "type": "string",
@@ -28008,6 +28387,15 @@
                           ],
                           "additionalProperties": false
                         },
+                        "tags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 32
+                          },
+                          "maxItems": 16
+                        },
                         "kind": {
                           "type": "string",
                           "const": "light"
@@ -28308,6 +28696,15 @@
                             "type"
                           ],
                           "additionalProperties": false
+                        },
+                        "tags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 32
+                          },
+                          "maxItems": 16
                         },
                         "kind": {
                           "type": "string",
@@ -29647,6 +30044,15 @@
                           ],
                           "additionalProperties": false
                         },
+                        "tags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 32
+                          },
+                          "maxItems": 16
+                        },
                         "kind": {
                           "type": "string",
                           "const": "group"
@@ -29841,6 +30247,15 @@
                             "type"
                           ],
                           "additionalProperties": false
+                        },
+                        "tags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 32
+                          },
+                          "maxItems": 16
                         },
                         "kind": {
                           "type": "string",
@@ -30328,6 +30743,15 @@
                           ],
                           "additionalProperties": false
                         },
+                        "tags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 32
+                          },
+                          "maxItems": 16
+                        },
                         "kind": {
                           "type": "string",
                           "const": "light"
@@ -30628,6 +31052,15 @@
                             "type"
                           ],
                           "additionalProperties": false
+                        },
+                        "tags": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 32
+                          },
+                          "maxItems": 16
                         },
                         "kind": {
                           "type": "string",

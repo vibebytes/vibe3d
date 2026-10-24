@@ -25,6 +25,7 @@ import {
   postSchema,
   shaSchema,
   stageStateSchema,
+  tagsSchema,
   transformPatchSchema,
   transformSchema,
 } from './schema';
@@ -48,6 +49,7 @@ const nodePatchSchema = z.object({
   material: materialIdSchema.optional(),
   sha: shaSchema.optional(),
   clip: clipSchema.nullable().optional(),
+  tags: tagsSchema.nullable().optional(),
   decal: decalSchema.nullable().optional(),
 });
 

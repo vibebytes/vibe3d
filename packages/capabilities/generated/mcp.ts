@@ -134,7 +134,7 @@ export const MCP_TOOLS = [
   },
   {
     name: "vibe3d_query_nodes",
-    title: "按名称 / 类型 / 材质 / 区域查询节点，返回世界包围盒，支持 limit+cursor 分页",
+    title: "按名称 / 类型 / 材质 / 标签 / 区域查询节点，返回世界包围盒，支持 limit+cursor 分页",
     capability: "scene.query",
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
@@ -157,6 +157,15 @@ export const MCP_TOOLS = [
         "material_id": {
           "type": "string",
           "pattern": "^m_[a-z0-9]{8}$"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32
+          },
+          "maxItems": 16
         },
         "bbox": {
           "type": "object",
@@ -1136,6 +1145,15 @@ export const MCP_TOOLS = [
                             ],
                             "additionalProperties": false
                           },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 32
+                            },
+                            "maxItems": 16
+                          },
                           "kind": {
                             "type": "string",
                             "const": "group"
@@ -1330,6 +1348,15 @@ export const MCP_TOOLS = [
                               "type"
                             ],
                             "additionalProperties": false
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 32
+                            },
+                            "maxItems": 16
                           },
                           "kind": {
                             "type": "string",
@@ -1817,6 +1844,15 @@ export const MCP_TOOLS = [
                             ],
                             "additionalProperties": false
                           },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 32
+                            },
+                            "maxItems": 16
+                          },
                           "kind": {
                             "type": "string",
                             "const": "light"
@@ -2117,6 +2153,15 @@ export const MCP_TOOLS = [
                               "type"
                             ],
                             "additionalProperties": false
+                          },
+                          "tags": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 32
+                            },
+                            "maxItems": 16
                           },
                           "kind": {
                             "type": "string",
@@ -2711,6 +2756,22 @@ export const MCP_TOOLS = [
                               "type"
                             ],
                             "additionalProperties": false
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "tags": {
+                        "anyOf": [
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 32
+                            },
+                            "maxItems": 16
                           },
                           {
                             "type": "null"
@@ -4997,6 +5058,15 @@ export const MCP_TOOLS = [
                                   ],
                                   "additionalProperties": false
                                 },
+                                "tags": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 32
+                                  },
+                                  "maxItems": 16
+                                },
                                 "kind": {
                                   "type": "string",
                                   "const": "group"
@@ -5191,6 +5261,15 @@ export const MCP_TOOLS = [
                                     "type"
                                   ],
                                   "additionalProperties": false
+                                },
+                                "tags": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 32
+                                  },
+                                  "maxItems": 16
                                 },
                                 "kind": {
                                   "type": "string",
@@ -5678,6 +5757,15 @@ export const MCP_TOOLS = [
                                   ],
                                   "additionalProperties": false
                                 },
+                                "tags": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 32
+                                  },
+                                  "maxItems": 16
+                                },
                                 "kind": {
                                   "type": "string",
                                   "const": "light"
@@ -5978,6 +6066,15 @@ export const MCP_TOOLS = [
                                     "type"
                                   ],
                                   "additionalProperties": false
+                                },
+                                "tags": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 32
+                                  },
+                                  "maxItems": 16
                                 },
                                 "kind": {
                                   "type": "string",
@@ -7527,6 +7624,15 @@ export const MCP_TOOLS = [
             }
           },
           "additionalProperties": false
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32
+          },
+          "maxItems": 16
         }
       },
       "required": [
@@ -7538,7 +7644,7 @@ export const MCP_TOOLS = [
   },
   {
     name: "vibe3d_update_node",
-    title: "改节点：名称、可见、变换、灯光、动画参数",
+    title: "改节点：名称、可见、变换、灯光、动画参数、标签",
     capability: "node.update",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
@@ -7755,6 +7861,22 @@ export const MCP_TOOLS = [
                     "speed"
                   ],
                   "additionalProperties": false
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "tags": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 32
+                  },
+                  "maxItems": 16
                 },
                 {
                   "type": "null"
@@ -9374,6 +9496,15 @@ export const MCP_TOOLS = [
                         ],
                         "additionalProperties": false
                       },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 32
+                        },
+                        "maxItems": 16
+                      },
                       "kind": {
                         "type": "string",
                         "const": "group"
@@ -9568,6 +9699,15 @@ export const MCP_TOOLS = [
                           "type"
                         ],
                         "additionalProperties": false
+                      },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 32
+                        },
+                        "maxItems": 16
                       },
                       "kind": {
                         "type": "string",
@@ -10055,6 +10195,15 @@ export const MCP_TOOLS = [
                         ],
                         "additionalProperties": false
                       },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 32
+                        },
+                        "maxItems": 16
+                      },
                       "kind": {
                         "type": "string",
                         "const": "light"
@@ -10355,6 +10504,15 @@ export const MCP_TOOLS = [
                           "type"
                         ],
                         "additionalProperties": false
+                      },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 32
+                        },
+                        "maxItems": 16
                       },
                       "kind": {
                         "type": "string",

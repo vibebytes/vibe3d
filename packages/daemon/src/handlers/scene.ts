@@ -426,6 +426,7 @@ export const sceneHandlers: HandlersFor<Keys> = {
       parent: p.parent ?? null,
       visible: true,
       transform: mergeTransform(p.transform),
+      ...(p.tags === undefined ? {} : { tags: [...p.tags] }),
     };
 
     const ops: Op[] = [];
@@ -450,7 +451,7 @@ export const sceneHandlers: HandlersFor<Keys> = {
     ops.push({ op: 'node.create', node });
 
     const result = await room.run(() => room.apply(ops));
-    return { nodeId: id, revision: result.revision };
+    return { nodeId: id, revision: result.revision, ...(p.tags === undefined ? {} : { tags: [...p.tags] }) };
   },
 
   'node.update': async (p, ctx) => {
@@ -460,6 +461,7 @@ export const sceneHandlers: HandlersFor<Keys> = {
     if (p.patch.visible !== undefined) patch.visible = p.patch.visible;
     if (p.patch.light !== undefined) patch.light = p.patch.light;
     if (p.patch.anim !== undefined) patch.anim = p.patch.anim;
+    if (p.patch.tags !== undefined) patch.tags = p.patch.tags;
     if (p.patch.transform) {
       const current = room.doc.nodes[p.nodeId]?.transform ?? IDENTITY;
       patch.transform = {

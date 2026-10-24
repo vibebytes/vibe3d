@@ -15,6 +15,7 @@ import {
   rgba,
   shaSchema,
   stageStateSchema,
+  tagsSchema,
   transformSchema,
   vec3,
 } from './schema';
@@ -75,6 +76,7 @@ const nodeBase = {
   visible: z.boolean(),
   transform: transformSchema,
   clip: clipSchema.optional(),
+  tags: tagsSchema.optional(),
 };
 
 export const groupNodeSchema = z.object({ ...nodeBase, kind: z.literal('group') });

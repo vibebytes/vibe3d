@@ -19,6 +19,7 @@ import {
   sceneDocSchema,
   shaSchema,
   stageStateSchema,
+  tagsSchema,
   vec3,
 } from '@vibebyte/vibe3d-protocol';
 import { z } from 'zod';
@@ -35,6 +36,7 @@ const nodePatch = z.object({
   transform: transformInput.optional(),
   light: lightSpecSchema.optional(),
   anim: modelAnimSchema.nullable().optional(),
+  tags: tagsSchema.nullable().optional(),
 });
 
 const boundsOut = z.object({
@@ -52,6 +54,7 @@ const nodeBriefOut = z.object({
   worldBbox: boundsOut.nullable(),
   materialId: materialIdSchema.optional(),
   hasAnim: z.boolean(),
+  tags: tagsSchema.optional(),
 });
 
 export const sceneOps = {
@@ -86,12 +89,13 @@ export const sceneOps = {
     errors: ['E_ROOM_NOT_FOUND'] as const,
   },
   'scene.query': {
-    title: '按名称 / 类型 / 材质 / 区域查询节点，返回世界包围盒，支持 limit+cursor 分页',
+    title: '按名称 / 类型 / 材质 / 标签 / 区域查询节点，返回世界包围盒，支持 limit+cursor 分页',
     input: z.object({
       roomId,
       name: z.string().min(1).max(200).optional(),
       kind: z.enum(['mesh', 'group', 'light', 'model']).optional(),
       materialId: materialIdSchema.optional(),
+      tags: tagsSchema.optional(),
       bbox: z.object({ min: vec3, max: vec3 }).optional(),
       minY: z.number().finite().optional(),
       maxY: z.number().finite().optional(),
@@ -111,7 +115,7 @@ export const sceneOps = {
     mcp: { tool: 'vibe3d_query_nodes' as const, annotations: { readOnlyHint: true } },
     cli: {
       command: 'scene query',
-      args: '<roomId> [--name <text>] [--kind mesh] [--min-y 0.9] [--limit 50] [--cursor 0]',
+      args: '<roomId> [--name <text>] [--kind mesh] [--tags a,b] [--min-y 0.9] [--limit 50] [--cursor 0]',
     },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
@@ -455,17 +459,22 @@ export const sceneOps = {
       material: materialSchema.optional(),
       light: lightSpecSchema.optional(),
       transform: transformInput.optional(),
+      tags: tagsSchema.optional(),
     }),
-    output: z.object({ nodeId: nodeIdSchema, revision: z.number().int().min(0) }),
+    output: z.object({
+      nodeId: nodeIdSchema,
+      revision: z.number().int().min(0),
+      tags: tagsSchema.optional(),
+    }),
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.apply' as const,
     mcp: { tool: 'vibe3d_create_node' as const },
-    cli: { command: 'node create', args: '<roomId> --kind mesh --shape box' },
+    cli: { command: 'node create', args: '<roomId> --kind mesh --shape box [--tags a,b]' },
     errors: ['E_INVALID_PARAMS', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
   },
   'node.update': {
-    title: '改节点：名称、可见、变换、灯光、动画参数',
+    title: '改节点：名称、可见、变换、灯光、动画参数、标签',
     input: z.object({ roomId, nodeId: nodeIdSchema, patch: nodePatch }),
     output: revisionOut,
     scope: 'room' as const,

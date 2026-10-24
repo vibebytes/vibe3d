@@ -13,6 +13,9 @@ export const fxIdSchema = z.string().regex(FX_ID_RE, 'invalid fx id');
 export const materialIdSchema = z.string().regex(MATERIAL_ID_RE, 'invalid material id');
 export const shaSchema = z.string().regex(SHA_RE, 'invalid sha256');
 
+export const tagSchema = z.string().min(1).max(32);
+export const tagsSchema = z.array(tagSchema).max(16);
+
 const nonZeroScale = finite.refine((v) => v !== 0, 'scale axis must be non-zero');
 
 export const transformSchema = z.object({

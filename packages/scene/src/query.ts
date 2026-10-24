@@ -21,6 +21,7 @@ export interface NodeFilter {
   name?: string;
   kind?: NodeKind;
   materialId?: string;
+  tags?: string[];
   bbox?: { min: Vec3; max: Vec3 };
   minY?: number;
   maxY?: number;
@@ -40,6 +41,7 @@ export interface NodeBrief {
   worldBbox: Bounds | null;
   materialId?: string;
   hasAnim: boolean;
+  tags?: string[];
 }
 
 export interface NodeView extends NodeBrief {
@@ -90,6 +92,8 @@ function matches(node: SceneNode, filter: NodeFilter, box: Bounds | null): boole
   if (filter.name && !node.name.toLowerCase().includes(filter.name.toLowerCase())) return false;
   if (filter.kind && node.kind !== filter.kind) return false;
   if (filter.materialId && materialIdOf(node) !== filter.materialId) return false;
+  if (filter.tags && filter.tags.length > 0 && !filter.tags.every((tag) => node.tags?.includes(tag)))
+    return false;
   if (filter.visible !== undefined && node.visible !== filter.visible) return false;
   if (filter.hasAnim !== undefined && hasAnim(node) !== filter.hasAnim) return false;
   if (filter.bbox || filter.minY !== undefined || filter.maxY !== undefined) {
@@ -124,6 +128,7 @@ export function queryNodes(doc: SceneDoc, filter: NodeFilter = {}): QueryResult 
       worldBbox: box ? { min: [...box.min], max: [...box.max] } : null,
       ...(materialIdOf(node) === undefined ? {} : { materialId: materialIdOf(node) }),
       hasAnim: hasAnim(node),
+      ...(node.tags === undefined ? {} : { tags: [...node.tags] }),
     });
   }
 
@@ -151,6 +156,7 @@ export function nodeView(doc: SceneDoc, id: string): NodeView | null {
     children,
     hasAnim: hasAnim(node),
   };
+  if (node.tags !== undefined) view.tags = [...node.tags];
   if (node.kind === 'mesh') {
     view.materialId = node.material;
     view.material = doc.materials[node.material];

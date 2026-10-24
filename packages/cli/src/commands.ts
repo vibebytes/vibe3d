@@ -105,6 +105,7 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
           name: str(flags, 'name'),
           kind: str(flags, 'kind'),
           materialId: str(flags, 'material'),
+          tags: str(flags, 'tags')?.split(','),
           minY: num(flags, 'min-y'),
           maxY: num(flags, 'max-y'),
           hasAnim: flags['has-anim'] === undefined ? undefined : bool(flags, 'has-anim'),
@@ -168,6 +169,7 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
           radius: num(flags, 'radius'),
           height: num(flags, 'height'),
           color: str(flags, 'color'),
+          tags: str(flags, 'tags')?.split(','),
           transform: jsonArg(str(flags, 'transform')),
         }) as never,
       );

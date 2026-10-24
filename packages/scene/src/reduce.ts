@@ -173,6 +173,11 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
         if (patch.clip === null) Reflect.deleteProperty(node, 'clip');
         else node.clip = clone(patch.clip);
       }
+      if (patch.tags !== undefined) {
+        old.tags = node.tags ? [...node.tags] : null;
+        if (patch.tags === null || patch.tags.length === 0) Reflect.deleteProperty(node, 'tags');
+        else node.tags = [...patch.tags];
+      }
       inverse.push({ op: 'node.update', id: op.id, patch: old });
       return;
     }
