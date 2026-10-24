@@ -693,6 +693,88 @@ export const MCP_TOOLS = [
                             ],
                             "additionalProperties": false
                           },
+                          "clip": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "sway",
+                                  "ripple",
+                                  "float",
+                                  "flicker",
+                                  "spin",
+                                  "keyframes"
+                                ]
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "px",
+                                  "py",
+                                  "pz",
+                                  "rx",
+                                  "ry",
+                                  "rz",
+                                  "sx",
+                                  "sy",
+                                  "sz"
+                                ]
+                              },
+                              "amplitude": {
+                                "type": "number"
+                              },
+                              "frequency": {
+                                "type": "number"
+                              },
+                              "phase": {
+                                "type": "number"
+                              },
+                              "speed": {
+                                "type": "number"
+                              },
+                              "loop": {
+                                "type": "boolean"
+                              },
+                              "duration": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "keys": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "t": {
+                                      "type": "number",
+                                      "minimum": 0
+                                    },
+                                    "v": {
+                                      "type": "number"
+                                    },
+                                    "ease": {
+                                      "type": "string",
+                                      "enum": [
+                                        "linear",
+                                        "easeIn",
+                                        "easeOut",
+                                        "easeInOut"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "t",
+                                    "v"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "type"
+                            ],
+                            "additionalProperties": false
+                          },
                           "kind": {
                             "type": "string",
                             "const": "group"
@@ -790,6 +872,88 @@ export const MCP_TOOLS = [
                               "p",
                               "r",
                               "s"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "clip": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "sway",
+                                  "ripple",
+                                  "float",
+                                  "flicker",
+                                  "spin",
+                                  "keyframes"
+                                ]
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "px",
+                                  "py",
+                                  "pz",
+                                  "rx",
+                                  "ry",
+                                  "rz",
+                                  "sx",
+                                  "sy",
+                                  "sz"
+                                ]
+                              },
+                              "amplitude": {
+                                "type": "number"
+                              },
+                              "frequency": {
+                                "type": "number"
+                              },
+                              "phase": {
+                                "type": "number"
+                              },
+                              "speed": {
+                                "type": "number"
+                              },
+                              "loop": {
+                                "type": "boolean"
+                              },
+                              "duration": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "keys": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "t": {
+                                      "type": "number",
+                                      "minimum": 0
+                                    },
+                                    "v": {
+                                      "type": "number"
+                                    },
+                                    "ease": {
+                                      "type": "string",
+                                      "enum": [
+                                        "linear",
+                                        "easeIn",
+                                        "easeOut",
+                                        "easeInOut"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "t",
+                                    "v"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "type"
                             ],
                             "additionalProperties": false
                           },
@@ -1017,6 +1181,88 @@ export const MCP_TOOLS = [
                             ],
                             "additionalProperties": false
                           },
+                          "clip": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "sway",
+                                  "ripple",
+                                  "float",
+                                  "flicker",
+                                  "spin",
+                                  "keyframes"
+                                ]
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "px",
+                                  "py",
+                                  "pz",
+                                  "rx",
+                                  "ry",
+                                  "rz",
+                                  "sx",
+                                  "sy",
+                                  "sz"
+                                ]
+                              },
+                              "amplitude": {
+                                "type": "number"
+                              },
+                              "frequency": {
+                                "type": "number"
+                              },
+                              "phase": {
+                                "type": "number"
+                              },
+                              "speed": {
+                                "type": "number"
+                              },
+                              "loop": {
+                                "type": "boolean"
+                              },
+                              "duration": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "keys": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "t": {
+                                      "type": "number",
+                                      "minimum": 0
+                                    },
+                                    "v": {
+                                      "type": "number"
+                                    },
+                                    "ease": {
+                                      "type": "string",
+                                      "enum": [
+                                        "linear",
+                                        "easeIn",
+                                        "easeOut",
+                                        "easeInOut"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "t",
+                                    "v"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "type"
+                            ],
+                            "additionalProperties": false
+                          },
                           "kind": {
                             "type": "string",
                             "const": "light"
@@ -1211,6 +1457,88 @@ export const MCP_TOOLS = [
                               "p",
                               "r",
                               "s"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "clip": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "sway",
+                                  "ripple",
+                                  "float",
+                                  "flicker",
+                                  "spin",
+                                  "keyframes"
+                                ]
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "px",
+                                  "py",
+                                  "pz",
+                                  "rx",
+                                  "ry",
+                                  "rz",
+                                  "sx",
+                                  "sy",
+                                  "sz"
+                                ]
+                              },
+                              "amplitude": {
+                                "type": "number"
+                              },
+                              "frequency": {
+                                "type": "number"
+                              },
+                              "phase": {
+                                "type": "number"
+                              },
+                              "speed": {
+                                "type": "number"
+                              },
+                              "loop": {
+                                "type": "boolean"
+                              },
+                              "duration": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "keys": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "t": {
+                                      "type": "number",
+                                      "minimum": 0
+                                    },
+                                    "v": {
+                                      "type": "number"
+                                    },
+                                    "ease": {
+                                      "type": "string",
+                                      "enum": [
+                                        "linear",
+                                        "easeIn",
+                                        "easeOut",
+                                        "easeInOut"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "t",
+                                    "v"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "type"
                             ],
                             "additionalProperties": false
                           },
@@ -1594,6 +1922,95 @@ export const MCP_TOOLS = [
                       "sha": {
                         "type": "string",
                         "pattern": "^[0-9a-f]{64}$"
+                      },
+                      "clip": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "sway",
+                                  "ripple",
+                                  "float",
+                                  "flicker",
+                                  "spin",
+                                  "keyframes"
+                                ]
+                              },
+                              "channel": {
+                                "type": "string",
+                                "enum": [
+                                  "px",
+                                  "py",
+                                  "pz",
+                                  "rx",
+                                  "ry",
+                                  "rz",
+                                  "sx",
+                                  "sy",
+                                  "sz"
+                                ]
+                              },
+                              "amplitude": {
+                                "type": "number"
+                              },
+                              "frequency": {
+                                "type": "number"
+                              },
+                              "phase": {
+                                "type": "number"
+                              },
+                              "speed": {
+                                "type": "number"
+                              },
+                              "loop": {
+                                "type": "boolean"
+                              },
+                              "duration": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "keys": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "t": {
+                                      "type": "number",
+                                      "minimum": 0
+                                    },
+                                    "v": {
+                                      "type": "number"
+                                    },
+                                    "ease": {
+                                      "type": "string",
+                                      "enum": [
+                                        "linear",
+                                        "easeIn",
+                                        "easeOut",
+                                        "easeInOut"
+                                      ]
+                                    }
+                                  },
+                                  "required": [
+                                    "t",
+                                    "v"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "type"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       }
                     },
                     "additionalProperties": false
@@ -1866,6 +2283,58 @@ export const MCP_TOOLS = [
                             "type": "null"
                           }
                         ]
+                      },
+                      "fog": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "type": "array",
+                                "minItems": 4,
+                                "maxItems": 4,
+                                "items": [
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  },
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  },
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  },
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  }
+                                ]
+                              },
+                              "near": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "far": {
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "required": [
+                              "near",
+                              "far"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       }
                     },
                     "additionalProperties": false
@@ -1960,6 +2429,293 @@ export const MCP_TOOLS = [
                 "required": [
                   "op",
                   "target"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "type": "string",
+                    "const": "animation.define"
+                  },
+                  "target": {
+                    "type": "string",
+                    "pattern": "^n_[a-z0-9]{8}$"
+                  },
+                  "clip": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "sway",
+                          "ripple",
+                          "float",
+                          "flicker",
+                          "spin",
+                          "keyframes"
+                        ]
+                      },
+                      "channel": {
+                        "type": "string",
+                        "enum": [
+                          "px",
+                          "py",
+                          "pz",
+                          "rx",
+                          "ry",
+                          "rz",
+                          "sx",
+                          "sy",
+                          "sz"
+                        ]
+                      },
+                      "amplitude": {
+                        "type": "number"
+                      },
+                      "frequency": {
+                        "type": "number"
+                      },
+                      "phase": {
+                        "type": "number"
+                      },
+                      "speed": {
+                        "type": "number"
+                      },
+                      "loop": {
+                        "type": "boolean"
+                      },
+                      "duration": {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      "keys": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "t": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "v": {
+                              "type": "number"
+                            },
+                            "ease": {
+                              "type": "string",
+                              "enum": [
+                                "linear",
+                                "easeIn",
+                                "easeOut",
+                                "easeInOut"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "t",
+                            "v"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "type"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "op",
+                  "target",
+                  "clip"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "type": "string",
+                    "const": "animation.clear"
+                  },
+                  "target": {
+                    "type": "string",
+                    "pattern": "^n_[a-z0-9]{8}$"
+                  }
+                },
+                "required": [
+                  "op",
+                  "target"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "type": "string",
+                    "const": "fx.create"
+                  },
+                  "fx": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^f_[a-z0-9]{8}$"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "particles",
+                          "shaft"
+                        ]
+                      },
+                      "node_id": {
+                        "type": "string",
+                        "pattern": "^n_[a-z0-9]{8}$"
+                      },
+                      "position": {
+                        "type": "array",
+                        "minItems": 3,
+                        "maxItems": 3,
+                        "items": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "spread": {
+                        "type": "array",
+                        "minItems": 3,
+                        "maxItems": 3,
+                        "items": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "rate": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "life": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "size": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "color": {
+                        "type": "array",
+                        "minItems": 4,
+                        "maxItems": 4,
+                        "items": [
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        ]
+                      },
+                      "gravity": {
+                        "type": "array",
+                        "minItems": 3,
+                        "maxItems": 3,
+                        "items": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "speed": {
+                        "type": "number"
+                      },
+                      "billboard": {
+                        "type": "boolean"
+                      },
+                      "length": {
+                        "type": "number"
+                      },
+                      "radius_top": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "radius_bottom": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "intensity": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "seed": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "type"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "op",
+                  "fx"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "type": "string",
+                    "const": "fx.delete"
+                  },
+                  "id": {
+                    "type": "string",
+                    "pattern": "^f_[a-z0-9]{8}$"
+                  }
+                },
+                "required": [
+                  "op",
+                  "id"
                 ],
                 "additionalProperties": false
               },
@@ -2384,6 +3140,88 @@ export const MCP_TOOLS = [
                                   ],
                                   "additionalProperties": false
                                 },
+                                "clip": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "sway",
+                                        "ripple",
+                                        "float",
+                                        "flicker",
+                                        "spin",
+                                        "keyframes"
+                                      ]
+                                    },
+                                    "channel": {
+                                      "type": "string",
+                                      "enum": [
+                                        "px",
+                                        "py",
+                                        "pz",
+                                        "rx",
+                                        "ry",
+                                        "rz",
+                                        "sx",
+                                        "sy",
+                                        "sz"
+                                      ]
+                                    },
+                                    "amplitude": {
+                                      "type": "number"
+                                    },
+                                    "frequency": {
+                                      "type": "number"
+                                    },
+                                    "phase": {
+                                      "type": "number"
+                                    },
+                                    "speed": {
+                                      "type": "number"
+                                    },
+                                    "loop": {
+                                      "type": "boolean"
+                                    },
+                                    "duration": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
+                                    },
+                                    "keys": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "t": {
+                                            "type": "number",
+                                            "minimum": 0
+                                          },
+                                          "v": {
+                                            "type": "number"
+                                          },
+                                          "ease": {
+                                            "type": "string",
+                                            "enum": [
+                                              "linear",
+                                              "easeIn",
+                                              "easeOut",
+                                              "easeInOut"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "t",
+                                          "v"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ],
+                                  "additionalProperties": false
+                                },
                                 "kind": {
                                   "type": "string",
                                   "const": "group"
@@ -2481,6 +3319,88 @@ export const MCP_TOOLS = [
                                     "p",
                                     "r",
                                     "s"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "clip": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "sway",
+                                        "ripple",
+                                        "float",
+                                        "flicker",
+                                        "spin",
+                                        "keyframes"
+                                      ]
+                                    },
+                                    "channel": {
+                                      "type": "string",
+                                      "enum": [
+                                        "px",
+                                        "py",
+                                        "pz",
+                                        "rx",
+                                        "ry",
+                                        "rz",
+                                        "sx",
+                                        "sy",
+                                        "sz"
+                                      ]
+                                    },
+                                    "amplitude": {
+                                      "type": "number"
+                                    },
+                                    "frequency": {
+                                      "type": "number"
+                                    },
+                                    "phase": {
+                                      "type": "number"
+                                    },
+                                    "speed": {
+                                      "type": "number"
+                                    },
+                                    "loop": {
+                                      "type": "boolean"
+                                    },
+                                    "duration": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
+                                    },
+                                    "keys": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "t": {
+                                            "type": "number",
+                                            "minimum": 0
+                                          },
+                                          "v": {
+                                            "type": "number"
+                                          },
+                                          "ease": {
+                                            "type": "string",
+                                            "enum": [
+                                              "linear",
+                                              "easeIn",
+                                              "easeOut",
+                                              "easeInOut"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "t",
+                                          "v"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
                                   ],
                                   "additionalProperties": false
                                 },
@@ -2708,6 +3628,88 @@ export const MCP_TOOLS = [
                                   ],
                                   "additionalProperties": false
                                 },
+                                "clip": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "sway",
+                                        "ripple",
+                                        "float",
+                                        "flicker",
+                                        "spin",
+                                        "keyframes"
+                                      ]
+                                    },
+                                    "channel": {
+                                      "type": "string",
+                                      "enum": [
+                                        "px",
+                                        "py",
+                                        "pz",
+                                        "rx",
+                                        "ry",
+                                        "rz",
+                                        "sx",
+                                        "sy",
+                                        "sz"
+                                      ]
+                                    },
+                                    "amplitude": {
+                                      "type": "number"
+                                    },
+                                    "frequency": {
+                                      "type": "number"
+                                    },
+                                    "phase": {
+                                      "type": "number"
+                                    },
+                                    "speed": {
+                                      "type": "number"
+                                    },
+                                    "loop": {
+                                      "type": "boolean"
+                                    },
+                                    "duration": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
+                                    },
+                                    "keys": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "t": {
+                                            "type": "number",
+                                            "minimum": 0
+                                          },
+                                          "v": {
+                                            "type": "number"
+                                          },
+                                          "ease": {
+                                            "type": "string",
+                                            "enum": [
+                                              "linear",
+                                              "easeIn",
+                                              "easeOut",
+                                              "easeInOut"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "t",
+                                          "v"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
+                                  ],
+                                  "additionalProperties": false
+                                },
                                 "kind": {
                                   "type": "string",
                                   "const": "light"
@@ -2902,6 +3904,88 @@ export const MCP_TOOLS = [
                                     "p",
                                     "r",
                                     "s"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "clip": {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "enum": [
+                                        "sway",
+                                        "ripple",
+                                        "float",
+                                        "flicker",
+                                        "spin",
+                                        "keyframes"
+                                      ]
+                                    },
+                                    "channel": {
+                                      "type": "string",
+                                      "enum": [
+                                        "px",
+                                        "py",
+                                        "pz",
+                                        "rx",
+                                        "ry",
+                                        "rz",
+                                        "sx",
+                                        "sy",
+                                        "sz"
+                                      ]
+                                    },
+                                    "amplitude": {
+                                      "type": "number"
+                                    },
+                                    "frequency": {
+                                      "type": "number"
+                                    },
+                                    "phase": {
+                                      "type": "number"
+                                    },
+                                    "speed": {
+                                      "type": "number"
+                                    },
+                                    "loop": {
+                                      "type": "boolean"
+                                    },
+                                    "duration": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
+                                    },
+                                    "keys": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "t": {
+                                            "type": "number",
+                                            "minimum": 0
+                                          },
+                                          "v": {
+                                            "type": "number"
+                                          },
+                                          "ease": {
+                                            "type": "string",
+                                            "enum": [
+                                              "linear",
+                                              "easeIn",
+                                              "easeOut",
+                                              "easeInOut"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "t",
+                                          "v"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "type"
                                   ],
                                   "additionalProperties": false
                                 },
@@ -3328,6 +4412,51 @@ export const MCP_TOOLS = [
                           "hdri": {
                             "type": "string",
                             "pattern": "^[0-9a-f]{64}$"
+                          },
+                          "fog": {
+                            "type": "object",
+                            "properties": {
+                              "color": {
+                                "type": "array",
+                                "minItems": 4,
+                                "maxItems": 4,
+                                "items": [
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  },
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  },
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  },
+                                  {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  }
+                                ]
+                              },
+                              "near": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "far": {
+                                "type": "number",
+                                "minimum": 0
+                              }
+                            },
+                            "required": [
+                              "near",
+                              "far"
+                            ],
+                            "additionalProperties": false
                           }
                         },
                         "required": [
@@ -3431,6 +4560,146 @@ export const MCP_TOOLS = [
                           "zoom"
                         ],
                         "additionalProperties": false
+                      },
+                      "fx": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^f_[a-z0-9]{8}$"
+                            },
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "particles",
+                                "shaft"
+                              ]
+                            },
+                            "node_id": {
+                              "type": "string",
+                              "pattern": "^n_[a-z0-9]{8}$"
+                            },
+                            "position": {
+                              "type": "array",
+                              "minItems": 3,
+                              "maxItems": 3,
+                              "items": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            "spread": {
+                              "type": "array",
+                              "minItems": 3,
+                              "maxItems": 3,
+                              "items": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            "rate": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "life": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "size": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "color": {
+                              "type": "array",
+                              "minItems": 4,
+                              "maxItems": 4,
+                              "items": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                },
+                                {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                },
+                                {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                },
+                                {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
+                              ]
+                            },
+                            "gravity": {
+                              "type": "array",
+                              "minItems": 3,
+                              "maxItems": 3,
+                              "items": [
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            "speed": {
+                              "type": "number"
+                            },
+                            "billboard": {
+                              "type": "boolean"
+                            },
+                            "length": {
+                              "type": "number"
+                            },
+                            "radius_top": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "radius_bottom": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "intensity": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "seed": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "type"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "default": []
                       },
                       "updated_at": {
                         "type": "string",
@@ -4198,6 +5467,414 @@ export const MCP_TOOLS = [
     },
   },
   {
+    name: "vibe3d_define_animation",
+    title: "定义程序化动画：位移 / 旋转 / 缩放轨道",
+    capability: "animation.define",
+    annotations: {},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "pattern": "^n_[a-z0-9]{8}$"
+        },
+        "clip": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "sway",
+                "ripple",
+                "float",
+                "flicker",
+                "spin",
+                "keyframes"
+              ]
+            },
+            "channel": {
+              "type": "string",
+              "enum": [
+                "px",
+                "py",
+                "pz",
+                "rx",
+                "ry",
+                "rz",
+                "sx",
+                "sy",
+                "sz"
+              ]
+            },
+            "amplitude": {
+              "type": "number"
+            },
+            "frequency": {
+              "type": "number"
+            },
+            "phase": {
+              "type": "number"
+            },
+            "speed": {
+              "type": "number"
+            },
+            "loop": {
+              "type": "boolean"
+            },
+            "duration": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "keys": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "t": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "v": {
+                    "type": "number"
+                  },
+                  "ease": {
+                    "type": "string",
+                    "enum": [
+                      "linear",
+                      "easeIn",
+                      "easeOut",
+                      "easeInOut"
+                    ]
+                  }
+                },
+                "required": [
+                  "t",
+                  "v"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "node_id",
+        "clip"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_clear_animation",
+    title: "清除节点上的程序化动画",
+    capability: "animation.clear",
+    annotations: {},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "pattern": "^n_[a-z0-9]{8}$"
+        }
+      },
+      "required": [
+        "node_id"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_create_fx",
+    title: "添加粒子或光柱特效",
+    capability: "fx.create",
+    annotations: {},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "particles",
+            "shaft"
+          ]
+        },
+        "node_id": {
+          "type": "string",
+          "pattern": "^n_[a-z0-9]{8}$"
+        },
+        "position": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "spread": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "rate": {
+          "type": "number",
+          "minimum": 0
+        },
+        "life": {
+          "type": "number",
+          "minimum": 0
+        },
+        "size": {
+          "type": "number",
+          "minimum": 0
+        },
+        "color": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ]
+        },
+        "gravity": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "speed": {
+          "type": "number"
+        },
+        "billboard": {
+          "type": "boolean"
+        },
+        "length": {
+          "type": "number"
+        },
+        "radius_top": {
+          "type": "number",
+          "minimum": 0
+        },
+        "radius_bottom": {
+          "type": "number",
+          "minimum": 0
+        },
+        "intensity": {
+          "type": "number",
+          "minimum": 0
+        },
+        "seed": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_delete_fx",
+    title: "删除特效",
+    capability: "fx.delete",
+    annotations: {},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "fx_id": {
+          "type": "string",
+          "pattern": "^f_[a-z0-9]{8}$"
+        }
+      },
+      "required": [
+        "fx_id"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_set_environment",
+    title: "设置环境：雾、背景与环境光",
+    capability: "env.set",
+    annotations: {},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "background": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ]
+        },
+        "ambient": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          ]
+        },
+        "ambient_intensity": {
+          "type": "number",
+          "minimum": 0
+        },
+        "hdri": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "fog": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "color": {
+                  "type": "array",
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "items": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  ]
+                },
+                "near": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "far": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "near",
+                "far"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
     name: "vibe3d_undo",
     title: "撤销一步",
     capability: "scene.undo",
@@ -4378,6 +6055,88 @@ export const MCP_TOOLS = [
                         ],
                         "additionalProperties": false
                       },
+                      "clip": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "sway",
+                              "ripple",
+                              "float",
+                              "flicker",
+                              "spin",
+                              "keyframes"
+                            ]
+                          },
+                          "channel": {
+                            "type": "string",
+                            "enum": [
+                              "px",
+                              "py",
+                              "pz",
+                              "rx",
+                              "ry",
+                              "rz",
+                              "sx",
+                              "sy",
+                              "sz"
+                            ]
+                          },
+                          "amplitude": {
+                            "type": "number"
+                          },
+                          "frequency": {
+                            "type": "number"
+                          },
+                          "phase": {
+                            "type": "number"
+                          },
+                          "speed": {
+                            "type": "number"
+                          },
+                          "loop": {
+                            "type": "boolean"
+                          },
+                          "duration": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "keys": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "t": {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                "v": {
+                                  "type": "number"
+                                },
+                                "ease": {
+                                  "type": "string",
+                                  "enum": [
+                                    "linear",
+                                    "easeIn",
+                                    "easeOut",
+                                    "easeInOut"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "t",
+                                "v"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "type"
+                        ],
+                        "additionalProperties": false
+                      },
                       "kind": {
                         "type": "string",
                         "const": "group"
@@ -4475,6 +6234,88 @@ export const MCP_TOOLS = [
                           "p",
                           "r",
                           "s"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "clip": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "sway",
+                              "ripple",
+                              "float",
+                              "flicker",
+                              "spin",
+                              "keyframes"
+                            ]
+                          },
+                          "channel": {
+                            "type": "string",
+                            "enum": [
+                              "px",
+                              "py",
+                              "pz",
+                              "rx",
+                              "ry",
+                              "rz",
+                              "sx",
+                              "sy",
+                              "sz"
+                            ]
+                          },
+                          "amplitude": {
+                            "type": "number"
+                          },
+                          "frequency": {
+                            "type": "number"
+                          },
+                          "phase": {
+                            "type": "number"
+                          },
+                          "speed": {
+                            "type": "number"
+                          },
+                          "loop": {
+                            "type": "boolean"
+                          },
+                          "duration": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "keys": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "t": {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                "v": {
+                                  "type": "number"
+                                },
+                                "ease": {
+                                  "type": "string",
+                                  "enum": [
+                                    "linear",
+                                    "easeIn",
+                                    "easeOut",
+                                    "easeInOut"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "t",
+                                "v"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "type"
                         ],
                         "additionalProperties": false
                       },
@@ -4702,6 +6543,88 @@ export const MCP_TOOLS = [
                         ],
                         "additionalProperties": false
                       },
+                      "clip": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "sway",
+                              "ripple",
+                              "float",
+                              "flicker",
+                              "spin",
+                              "keyframes"
+                            ]
+                          },
+                          "channel": {
+                            "type": "string",
+                            "enum": [
+                              "px",
+                              "py",
+                              "pz",
+                              "rx",
+                              "ry",
+                              "rz",
+                              "sx",
+                              "sy",
+                              "sz"
+                            ]
+                          },
+                          "amplitude": {
+                            "type": "number"
+                          },
+                          "frequency": {
+                            "type": "number"
+                          },
+                          "phase": {
+                            "type": "number"
+                          },
+                          "speed": {
+                            "type": "number"
+                          },
+                          "loop": {
+                            "type": "boolean"
+                          },
+                          "duration": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "keys": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "t": {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                "v": {
+                                  "type": "number"
+                                },
+                                "ease": {
+                                  "type": "string",
+                                  "enum": [
+                                    "linear",
+                                    "easeIn",
+                                    "easeOut",
+                                    "easeInOut"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "t",
+                                "v"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "type"
+                        ],
+                        "additionalProperties": false
+                      },
                       "kind": {
                         "type": "string",
                         "const": "light"
@@ -4896,6 +6819,88 @@ export const MCP_TOOLS = [
                           "p",
                           "r",
                           "s"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "clip": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "sway",
+                              "ripple",
+                              "float",
+                              "flicker",
+                              "spin",
+                              "keyframes"
+                            ]
+                          },
+                          "channel": {
+                            "type": "string",
+                            "enum": [
+                              "px",
+                              "py",
+                              "pz",
+                              "rx",
+                              "ry",
+                              "rz",
+                              "sx",
+                              "sy",
+                              "sz"
+                            ]
+                          },
+                          "amplitude": {
+                            "type": "number"
+                          },
+                          "frequency": {
+                            "type": "number"
+                          },
+                          "phase": {
+                            "type": "number"
+                          },
+                          "speed": {
+                            "type": "number"
+                          },
+                          "loop": {
+                            "type": "boolean"
+                          },
+                          "duration": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          "keys": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "t": {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                "v": {
+                                  "type": "number"
+                                },
+                                "ease": {
+                                  "type": "string",
+                                  "enum": [
+                                    "linear",
+                                    "easeIn",
+                                    "easeOut",
+                                    "easeInOut"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "t",
+                                "v"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "type"
                         ],
                         "additionalProperties": false
                       },
@@ -5322,6 +7327,51 @@ export const MCP_TOOLS = [
                 "hdri": {
                   "type": "string",
                   "pattern": "^[0-9a-f]{64}$"
+                },
+                "fog": {
+                  "type": "object",
+                  "properties": {
+                    "color": {
+                      "type": "array",
+                      "minItems": 4,
+                      "maxItems": 4,
+                      "items": [
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      ]
+                    },
+                    "near": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "far": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "near",
+                    "far"
+                  ],
+                  "additionalProperties": false
                 }
               },
               "required": [
@@ -5425,6 +7475,146 @@ export const MCP_TOOLS = [
                 "zoom"
               ],
               "additionalProperties": false
+            },
+            "fx": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^f_[a-z0-9]{8}$"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "particles",
+                      "shaft"
+                    ]
+                  },
+                  "node_id": {
+                    "type": "string",
+                    "pattern": "^n_[a-z0-9]{8}$"
+                  },
+                  "position": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "spread": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "rate": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "life": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "size": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "color": {
+                    "type": "array",
+                    "minItems": 4,
+                    "maxItems": 4,
+                    "items": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    ]
+                  },
+                  "gravity": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "speed": {
+                    "type": "number"
+                  },
+                  "billboard": {
+                    "type": "boolean"
+                  },
+                  "length": {
+                    "type": "number"
+                  },
+                  "radius_top": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "radius_bottom": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "intensity": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "seed": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "id",
+                  "type"
+                ],
+                "additionalProperties": false
+              },
+              "default": []
             },
             "updated_at": {
               "type": "string",

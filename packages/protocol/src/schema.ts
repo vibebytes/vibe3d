@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { MATERIAL_ID_RE, NODE_ID_RE, SHA_RE } from './ids';
+import { FX_ID_RE, MATERIAL_ID_RE, NODE_ID_RE, SHA_RE } from './ids';
 
 const finite = z.number().finite();
 const unit = z.number().min(0).max(1);
@@ -9,6 +9,7 @@ export const rgb = z.tuple([unit, unit, unit]);
 export const rgba = z.tuple([unit, unit, unit, unit]);
 
 export const nodeIdSchema = z.string().regex(NODE_ID_RE, 'invalid node id');
+export const fxIdSchema = z.string().regex(FX_ID_RE, 'invalid fx id');
 export const materialIdSchema = z.string().regex(MATERIAL_ID_RE, 'invalid material id');
 export const shaSchema = z.string().regex(SHA_RE, 'invalid sha256');
 
@@ -82,11 +83,18 @@ export const stageStateSchema = z.object({
   keepModelLights: z.boolean(),
 });
 
+export const fogSchema = z.object({
+  color: rgba.optional(),
+  near: finite.min(0),
+  far: finite.min(0),
+});
+
 export const envSchema = z.object({
   background: rgba,
   ambient: rgba,
   ambientIntensity: finite.min(0),
   hdri: shaSchema.optional(),
+  fog: fogSchema.optional(),
 });
 
 export type Vec3 = z.infer<typeof vec3>;
@@ -98,4 +106,5 @@ export type Material = z.infer<typeof materialSchema>;
 export type LightSpec = z.infer<typeof lightSpecSchema>;
 export type CameraState = z.infer<typeof cameraStateSchema>;
 export type StageState = z.infer<typeof stageStateSchema>;
+export type Fog = z.infer<typeof fogSchema>;
 export type Env = z.infer<typeof envSchema>;

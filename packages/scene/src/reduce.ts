@@ -126,6 +126,11 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
         }
         node.sha = patch.sha;
       }
+      if (patch.clip !== undefined) {
+        old.clip = node.clip ? clone(node.clip) : null;
+        if (patch.clip === null) Reflect.deleteProperty(node, 'clip');
+        else node.clip = clone(patch.clip);
+      }
       inverse.push({ op: 'node.update', id: op.id, patch: old });
       return;
     }
@@ -137,6 +142,11 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
         fail('存在子节点，需显式 cascade', { id: op.id, children: ids.length - 1 });
       const index = doc.roots.indexOf(op.id);
       const snapshot = ids.map((id) => clone(doc.nodes[id]!));
+      const linkedFx = doc.fx.filter((f) => f.nodeId !== undefined && ids.includes(f.nodeId));
+      if (linkedFx.length > 0) {
+        doc.fx = doc.fx.filter((f) => !linkedFx.includes(f));
+        for (const fx of linkedFx) inverse.push({ op: 'fx.create', fx: clone(fx) });
+      }
       for (const id of ids) delete doc.nodes[id];
       doc.roots = doc.roots.filter((id) => id !== op.id);
       for (const n of snapshot) inverse.push({ op: 'node.create', node: n });
@@ -246,6 +256,35 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       const previous: ModelAnim | null = node.anim ? clone(node.anim) : null;
       node.anim = { ...(previous ?? { speed: 1 }), playing: false };
       inverse.push({ op: 'node.update', id: op.target, patch: { anim: previous } });
+      return;
+    }
+    case 'animation.define': {
+      const node = doc.nodes[op.target] ?? fail('节点不存在', { id: op.target });
+      const previous = node.clip ? clone(node.clip) : null;
+      node.clip = clone(op.clip);
+      inverse.push({ op: 'node.update', id: op.target, patch: { clip: previous } });
+      return;
+    }
+    case 'animation.clear': {
+      const node = doc.nodes[op.target] ?? fail('节点不存在', { id: op.target });
+      const previous = node.clip ? clone(node.clip) : null;
+      Reflect.deleteProperty(node, 'clip');
+      if (previous) inverse.push({ op: 'animation.define', target: op.target, clip: previous });
+      return;
+    }
+    case 'fx.create': {
+      if (doc.fx.some((f) => f.id === op.fx.id)) fail('特效已存在', { fxId: op.fx.id });
+      if (op.fx.nodeId && !doc.nodes[op.fx.nodeId]) fail('节点不存在', { id: op.fx.nodeId });
+      doc.fx.push(clone(op.fx));
+      inverse.push({ op: 'fx.delete', id: op.fx.id });
+      return;
+    }
+    case 'fx.delete': {
+      const index = doc.fx.findIndex((f) => f.id === op.id);
+      if (index < 0) return;
+      const previous = clone(doc.fx[index]!);
+      doc.fx.splice(index, 1);
+      inverse.push({ op: 'fx.create', fx: previous });
       return;
     }
     case 'camera.set': {

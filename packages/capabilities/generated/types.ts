@@ -24,6 +24,11 @@ export type CapabilityName =
   | "node.clone"
   | "stage.set"
   | "animation.play"
+  | "animation.define"
+  | "animation.clear"
+  | "fx.create"
+  | "fx.delete"
+  | "env.set"
   | "scene.undo"
   | "scene.redo"
   | "scene.diff"
@@ -71,6 +76,11 @@ export type InputOf<N extends CapabilityName> = {
   "node.clone": z.infer<(typeof CAPABILITIES)["node.clone"]['input']>;
   "stage.set": z.infer<(typeof CAPABILITIES)["stage.set"]['input']>;
   "animation.play": z.infer<(typeof CAPABILITIES)["animation.play"]['input']>;
+  "animation.define": z.infer<(typeof CAPABILITIES)["animation.define"]['input']>;
+  "animation.clear": z.infer<(typeof CAPABILITIES)["animation.clear"]['input']>;
+  "fx.create": z.infer<(typeof CAPABILITIES)["fx.create"]['input']>;
+  "fx.delete": z.infer<(typeof CAPABILITIES)["fx.delete"]['input']>;
+  "env.set": z.infer<(typeof CAPABILITIES)["env.set"]['input']>;
   "scene.undo": z.infer<(typeof CAPABILITIES)["scene.undo"]['input']>;
   "scene.redo": z.infer<(typeof CAPABILITIES)["scene.redo"]['input']>;
   "scene.diff": z.infer<(typeof CAPABILITIES)["scene.diff"]['input']>;
@@ -119,6 +129,11 @@ export type OutputOf<N extends CapabilityName> = {
   "node.clone": z.infer<(typeof CAPABILITIES)["node.clone"]['output']>;
   "stage.set": z.infer<(typeof CAPABILITIES)["stage.set"]['output']>;
   "animation.play": z.infer<(typeof CAPABILITIES)["animation.play"]['output']>;
+  "animation.define": z.infer<(typeof CAPABILITIES)["animation.define"]['output']>;
+  "animation.clear": z.infer<(typeof CAPABILITIES)["animation.clear"]['output']>;
+  "fx.create": z.infer<(typeof CAPABILITIES)["fx.create"]['output']>;
+  "fx.delete": z.infer<(typeof CAPABILITIES)["fx.delete"]['output']>;
+  "env.set": z.infer<(typeof CAPABILITIES)["env.set"]['output']>;
   "scene.undo": z.infer<(typeof CAPABILITIES)["scene.undo"]['output']>;
   "scene.redo": z.infer<(typeof CAPABILITIES)["scene.redo"]['output']>;
   "scene.diff": z.infer<(typeof CAPABILITIES)["scene.diff"]['output']>;

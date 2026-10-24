@@ -9,8 +9,10 @@ const PRESETS = ['cine', 'clean', 'flat'] as const;
 export function StagePanel({ doc }: { doc: SceneDoc }) {
   const setStage = useDoc((s) => s.setStage);
   const setEnv = useDoc((s) => s.setEnv);
+  const setFog = useDoc((s) => s.setFog);
   const stage = doc.stage;
   const env = doc.env;
+  const fog = env.fog;
   const hdris = hdriAssets(doc);
   const input = useRef<HTMLInputElement>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -108,6 +110,37 @@ export function StagePanel({ doc }: { doc: SceneDoc }) {
           {env.hdri ? 'HDRI 同时驱动背景与环境光照' : '未选 HDRI 时使用背景色 + 程序化天光'}
         </p>
         {uploadError && <p className="text-[10px] text-error">{uploadError}</p>}
+      </Section>
+
+      <Section title="雾">
+        <ToggleRow
+          label="启用雾"
+          checked={Boolean(fog)}
+          onChange={(on) =>
+            void setFog(on ? { near: 6, far: 40, color: env.background } : null)
+          }
+        />
+        {fog && (
+          <>
+            <NumberField
+              label="近平面"
+              step={0.5}
+              min={0}
+              value={fog.near}
+              onCommit={(near) => void setFog({ ...fog, near })}
+            />
+            <NumberField
+              label="远平面"
+              step={1}
+              min={0}
+              value={fog.far}
+              onCommit={(far) => void setFog({ ...fog, far })}
+            />
+            <p className="text-[10px] leading-relaxed text-base-content/30">
+              雾按世界距离插值到雾色；仅影响视图与截图，不改节点材质。
+            </p>
+          </>
+        )}
       </Section>
 
       <p className="text-[10px] leading-relaxed text-base-content/30">

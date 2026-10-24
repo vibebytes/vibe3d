@@ -165,6 +165,28 @@ export class RoomHandle {
     return this.invoke('animation.play', params);
   }
 
+  defineAnimation(
+    params: Omit<CapParams<'animation.define'>, 'roomId'>,
+  ): Promise<CapResult<'animation.define'>> {
+    return this.invoke('animation.define', params);
+  }
+
+  clearAnimation(nodeId: string): Promise<CapResult<'animation.clear'>> {
+    return this.invoke('animation.clear', { nodeId });
+  }
+
+  createFx(params: Omit<CapParams<'fx.create'>, 'roomId'>): Promise<CapResult<'fx.create'>> {
+    return this.invoke('fx.create', params);
+  }
+
+  deleteFx(fxId: string): Promise<CapResult<'fx.delete'>> {
+    return this.invoke('fx.delete', { fxId });
+  }
+
+  setEnv(params: Omit<CapParams<'env.set'>, 'roomId'>): Promise<CapResult<'env.set'>> {
+    return this.invoke('env.set', params);
+  }
+
   undo(): Promise<CapResult<'scene.undo'>> {
     return this.invoke('scene.undo');
   }

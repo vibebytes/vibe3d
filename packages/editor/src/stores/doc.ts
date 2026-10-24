@@ -1,4 +1,12 @@
-import type { CameraState, Material, SceneDoc, StageState } from '@vibebyte/vibe3d-protocol';
+import type {
+  CameraState,
+  ClipSpec,
+  Fog,
+  FxSpec,
+  Material,
+  SceneDoc,
+  StageState,
+} from '@vibebyte/vibe3d-protocol';
 import { create } from 'zustand';
 import { splitFiles } from '../lib/asset-files';
 import { fitTransform, importName, isGltfFile, rowOffset } from '../lib/import-model';
@@ -79,6 +87,11 @@ interface DocStore {
   frameCamera(mode: 'fit' | 'close' | 'wide'): Promise<void>;
   playAnimation(id: string, opts?: { clip?: string; speed?: number }): Promise<void>;
   stopAnimation(id: string): Promise<void>;
+  defineAnimation(id: string, clip: ClipSpec): Promise<void>;
+  clearAnimation(id: string): Promise<void>;
+  createFx(spec: Omit<FxSpec, 'id'>): Promise<string | null>;
+  deleteFx(fxId: string): Promise<void>;
+  setFog(fog: Fog | null): Promise<void>;
   undo(): Promise<void>;
   redo(): Promise<void>;
   dispose(): void;
@@ -330,7 +343,43 @@ export const useDoc = create<DocStore>((set, get) => ({
   async stopAnimation(id) {
     const roomId = get().roomId;
     if (!roomId) return;
-    await rpc('animation.stop', { nodeId: id }, roomId);
+    await rpc('ops.apply', { ops: [{ op: 'animation.stop', target: id }] }, roomId);
+    await get().refresh();
+  },
+
+  async defineAnimation(id, clip) {
+    const roomId = get().roomId;
+    if (!roomId) return;
+    await rpc('animation.define', { nodeId: id, clip }, roomId);
+    await get().refresh();
+  },
+
+  async clearAnimation(id) {
+    const roomId = get().roomId;
+    if (!roomId) return;
+    await rpc('animation.clear', { nodeId: id }, roomId);
+    await get().refresh();
+  },
+
+  async createFx(spec) {
+    const roomId = get().roomId;
+    if (!roomId) return null;
+    const out = await rpc<{ fxId: string }>('fx.create', spec, roomId);
+    await get().refresh();
+    return out.fxId;
+  },
+
+  async deleteFx(fxId) {
+    const roomId = get().roomId;
+    if (!roomId) return;
+    await rpc('fx.delete', { fxId }, roomId);
+    await get().refresh();
+  },
+
+  async setFog(fog) {
+    const roomId = get().roomId;
+    if (!roomId) return;
+    await rpc('env.set', { fog }, roomId);
     await get().refresh();
   },
 

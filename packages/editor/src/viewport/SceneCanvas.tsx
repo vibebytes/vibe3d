@@ -12,8 +12,9 @@ import { type ComponentRef, type ReactNode, Suspense, useEffect, useMemo, useRef
 import type * as THREE from 'three';
 import { assetUrl } from '../lib/rpc';
 import { useSelection } from '../stores/selection';
-import { animations } from '../three/anim';
+import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
 import { buildMesh, disposeMesh } from '../three/build';
+import { applyFxAt, buildFxObject, disposeFxObject, fogSettings } from '../three/fx';
 import { animationClips, cloneGltfScene, gltfLoader } from '../three/gltf';
 import { rgbaHex } from '../three/materials';
 import { pickAt } from '../three/picking';
@@ -135,11 +136,50 @@ function StageEffects({ doc, headless }: { doc: SceneDoc; headless: boolean }) {
   return null;
 }
 
+function Fog({ doc }: { doc: SceneDoc }) {
+  const { color, near, far } = fogSettings(doc.env.fog);
+  return <fog attach="fog" args={[color, near, far]} />;
+}
+
 function AnimationDriver({ enabled }: { enabled: boolean }) {
   useFrame((_, delta) => {
     if (enabled) animations.update(delta);
   });
   return null;
+}
+
+function ClipDriver({ doc, enabled }: { doc: SceneDoc; enabled: boolean }) {
+  const scene = useThree((s) => s.scene);
+  const clips = useMemo(() => clipsOf(doc), [doc.nodes]);
+  const bases = useMemo(() => clipBasesOf(doc), [doc.nodes]);
+  const active = Object.keys(clips).length > 0;
+  useFrame((state) => {
+    if (!enabled || !active) return;
+    applyProceduralClips(scene, clips, state.clock.elapsedTime, bases);
+  });
+  return null;
+}
+
+function FxLayer({ doc, enabled }: { doc: SceneDoc; enabled: boolean }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const fx = doc.fx ?? [];
+  const key = useMemo(() => fx.map((spec) => JSON.stringify(spec)).join('|'), [fx]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: rebuild only when the fx specs change
+  useEffect(() => {
+    const group = groupRef.current;
+    if (!group) return;
+    for (const child of [...group.children]) {
+      group.remove(child);
+      disposeFxObject(child);
+    }
+    for (const spec of fx) group.add(buildFxObject(spec));
+  }, [key]);
+  useFrame((state) => {
+    if (!enabled) return;
+    const group = groupRef.current;
+    if (group && fx.length > 0) applyFxAt(group, fx, state.clock.elapsedTime);
+  });
+  return <group ref={groupRef} name="vibe3d-fx" />;
 }
 
 function Picking({ enabled }: { enabled: boolean }) {
@@ -211,10 +251,12 @@ export function SceneCanvas({
         gl={canvasGlOptions({ headless })}
       >
         <color attach="background" args={[backgroundHex(doc.env)]} />
-        <fog attach="fog" args={[backgroundHex(doc.env), 18, 42]} />
+        <Fog doc={doc} />
         <StageLights doc={doc} />
         <StageEffects doc={doc} headless={headless} />
         <AnimationDriver enabled={!headless} />
+        <ClipDriver doc={doc} enabled={!headless} />
+        <FxLayer doc={doc} enabled={!headless} />
         <Picking enabled={!headless} />
         <group name="vibe3d-export">
           {roots.map((id) => {

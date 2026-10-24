@@ -1,8 +1,10 @@
 import { z } from 'zod';
-import { assetMetaSchema, modelAnimSchema, sceneDocSchema, sceneNodeSchema } from './scene';
+import { assetMetaSchema, clipSchema, fxSchema, modelAnimSchema, sceneDocSchema, sceneNodeSchema } from './scene';
 import {
   cameraStateSchema,
   envSchema,
+  fogSchema,
+  fxIdSchema,
   geometrySchema,
   lightSpecSchema,
   materialIdSchema,
@@ -24,6 +26,7 @@ const nodePatchSchema = z.object({
   geometry: geometrySchema.optional(),
   material: materialIdSchema.optional(),
   sha: shaSchema.optional(),
+  clip: clipSchema.nullable().optional(),
 });
 
 export const opSchema = z.discriminatedUnion('op', [
@@ -40,7 +43,7 @@ export const opSchema = z.discriminatedUnion('op', [
   z.object({ op: z.literal('material.delete'), id: materialIdSchema }),
   z.object({
     op: z.literal('env.set'),
-    env: envSchema.partial().extend({ hdri: shaSchema.nullable().optional() }),
+    env: envSchema.partial().extend({ hdri: shaSchema.nullable().optional(), fog: fogSchema.nullable().optional() }),
   }),
   z.object({ op: z.literal('stage.set'), stage: stageStateSchema.partial() }),
   z.object({
@@ -50,6 +53,10 @@ export const opSchema = z.discriminatedUnion('op', [
     speed: z.number().finite().positive().optional(),
   }),
   z.object({ op: z.literal('animation.stop'), target: nodeIdSchema }),
+  z.object({ op: z.literal('animation.define'), target: nodeIdSchema, clip: clipSchema }),
+  z.object({ op: z.literal('animation.clear'), target: nodeIdSchema }),
+  z.object({ op: z.literal('fx.create'), fx: fxSchema }),
+  z.object({ op: z.literal('fx.delete'), id: fxIdSchema }),
   z.object({
     op: z.literal('camera.set'),
     camera: cameraStateSchema.partial().optional(),

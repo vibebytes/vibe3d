@@ -1,5 +1,6 @@
 import {
   AppError,
+  type FxSpec,
   type Geometry,
   type LightSpec,
   type Material,
@@ -8,6 +9,7 @@ import {
   type SceneDoc,
   type SceneNode,
   type Transform,
+  makeFxId,
   makeMaterialId,
   makeNodeId,
 } from '@vibebyte/vibe3d-protocol';
@@ -37,9 +39,15 @@ type Keys =
   | 'scene.stats'
   | 'stage.set'
   | 'animation.play'
+  | 'animation.define'
+  | 'animation.clear'
+  | 'fx.create'
+  | 'fx.delete'
+  | 'env.set'
   | 'camera.set';
 
 const IDENTITY: Transform = { p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] };
+const MAX_FX = 64;
 
 function mergeTransform(input?: {
   p?: [number, number, number];
@@ -461,6 +469,58 @@ export const sceneHandlers: HandlersFor<Keys> = {
     const op: Op = { op: 'animation.play', target: p.nodeId, clip: p.clip, speed: p.speed };
     const result = await room.run(() => room.apply([op]));
     return { revision: result.revision };
+  },
+
+  'animation.define': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    if (!room.doc.nodes[p.nodeId]) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.nodeId} 不存在`);
+    const result = await room.run(() =>
+      room.apply([{ op: 'animation.define', target: p.nodeId, clip: p.clip }]),
+    );
+    return { revision: result.revision, nodeId: p.nodeId };
+  },
+
+  'animation.clear': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const node = room.doc.nodes[p.nodeId];
+    if (!node) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.nodeId} 不存在`);
+    const existed = node.clip !== undefined;
+    const result = await room.run(() => room.apply([{ op: 'animation.clear', target: p.nodeId }]));
+    return { revision: result.revision, cleared: existed };
+  },
+
+  'fx.create': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    if (room.doc.fx.length >= MAX_FX) {
+      throw new AppError('E_LIMIT_EXCEEDED', `特效数量上限 ${MAX_FX}`, { limit: MAX_FX });
+    }
+    if (p.nodeId && !room.doc.nodes[p.nodeId]) {
+      throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.nodeId} 不存在`);
+    }
+    const { roomId: _roomId, ...spec } = p;
+    const fx: FxSpec = { id: makeFxId(), ...spec };
+    const result = await room.run(() => room.apply([{ op: 'fx.create', fx }]));
+    return {
+      revision: result.revision,
+      fxId: fx.id,
+      ...(fx.type === 'shaft' ? { approximate: true } : {}),
+    };
+  },
+
+  'fx.delete': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const existed = room.doc.fx.some((f) => f.id === p.fxId);
+    const result = await room.run(() => room.apply([{ op: 'fx.delete', id: p.fxId }]));
+    return { revision: result.revision, removed: existed };
+  },
+
+  'env.set': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const { roomId: _roomId, ...env } = p;
+    const result = await room.run(() =>
+      room.apply([{ op: 'env.set', env } as Op]),
+    );
+    return { revision: result.revision, env: room.doc.env };
   },
 
   'camera.set': async (p, ctx) => {

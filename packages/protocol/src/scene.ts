@@ -4,14 +4,17 @@ import {
   assetImageSchema,
   cameraStateSchema,
   envSchema,
+  fxIdSchema,
   geometrySchema,
   lightSpecSchema,
   materialIdSchema,
   materialSchema,
   nodeIdSchema,
+  rgba,
   shaSchema,
   stageStateSchema,
   transformSchema,
+  vec3,
 } from './schema';
 
 export const modelAnimSchema = z.object({
@@ -20,12 +23,51 @@ export const modelAnimSchema = z.object({
   speed: z.number().finite().positive(),
 });
 
+export const clipKeySchema = z.object({
+  t: z.number().finite().min(0),
+  v: z.number().finite(),
+  ease: z.enum(['linear', 'easeIn', 'easeOut', 'easeInOut']).optional(),
+});
+
+export const clipSchema = z.object({
+  type: z.enum(['sway', 'ripple', 'float', 'flicker', 'spin', 'keyframes']),
+  channel: z.enum(['px', 'py', 'pz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz']).optional(),
+  amplitude: z.number().finite().optional(),
+  frequency: z.number().finite().optional(),
+  phase: z.number().finite().optional(),
+  speed: z.number().finite().optional(),
+  loop: z.boolean().optional(),
+  duration: z.number().finite().positive().optional(),
+  keys: z.array(clipKeySchema).optional(),
+});
+
+export const fxSchema = z.object({
+  id: fxIdSchema,
+  type: z.enum(['particles', 'shaft']),
+  nodeId: nodeIdSchema.optional(),
+  position: vec3.optional(),
+  spread: vec3.optional(),
+  rate: z.number().finite().min(0).optional(),
+  life: z.number().finite().min(0).optional(),
+  size: z.number().finite().min(0).optional(),
+  color: rgba.optional(),
+  gravity: vec3.optional(),
+  speed: z.number().finite().optional(),
+  billboard: z.boolean().optional(),
+  length: z.number().finite().optional(),
+  radiusTop: z.number().finite().min(0).optional(),
+  radiusBottom: z.number().finite().min(0).optional(),
+  intensity: z.number().finite().min(0).optional(),
+  seed: z.number().finite().optional(),
+});
+
 const nodeBase = {
   id: nodeIdSchema,
   name: z.string().min(1).max(200),
   parent: nodeIdSchema.nullable(),
   visible: z.boolean(),
   transform: transformSchema,
+  clip: clipSchema.optional(),
 };
 
 export const groupNodeSchema = z.object({ ...nodeBase, kind: z.literal('group') });
@@ -98,6 +140,7 @@ export const sceneDocSchema = z.object({
   env: envSchema,
   stage: stageStateSchema,
   camera: cameraStateSchema,
+  fx: z.array(fxSchema).default([]),
   updatedAt: z.string().min(1),
 });
 
@@ -111,6 +154,9 @@ export type GltfAnimation = z.infer<typeof gltfAnimationSchema>;
 export type GltfReport = z.infer<typeof gltfReportSchema>;
 export type AssetMeta = z.infer<typeof assetMetaSchema>;
 export type SceneDoc = z.infer<typeof sceneDocSchema>;
+export type ClipSpec = z.infer<typeof clipSchema>;
+export type ClipKey = z.infer<typeof clipKeySchema>;
+export type FxSpec = z.infer<typeof fxSchema>;
 
 export const DEFAULT_STAGE: z.infer<typeof stageStateSchema> = {
   preset: 'clean',
@@ -145,6 +191,7 @@ export function emptyDoc(name = '未命名场景'): SceneDoc {
     env: DEFAULT_ENV,
     stage: { ...DEFAULT_STAGE },
     camera: { ...DEFAULT_CAMERA },
+    fx: [],
     updatedAt: new Date(0).toISOString(),
   };
 }

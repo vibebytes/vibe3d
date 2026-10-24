@@ -1,4 +1,6 @@
 export { applyOps, inverseOps, type ReduceResult } from './reduce';
+export { applyClipTransform, sampleClip } from './anim';
+export { MAX_PARTICLES, particleCount, sampleParticles, type ParticleSample } from './fx';
 export {
   sceneBounds,
   nodeBounds,

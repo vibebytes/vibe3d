@@ -145,7 +145,14 @@ export function SelectField<T extends string>({
   value,
   options,
   onChange,
-}: { label: string; value: T; options: readonly T[]; onChange: (v: T) => void }) {
+  renderOption,
+}: {
+  label: string;
+  value: T;
+  options: readonly T[];
+  onChange: (v: T) => void;
+  renderOption?: (v: T) => string;
+}) {
   return (
     <label className="field">
       <span>{label}</span>
@@ -156,7 +163,7 @@ export function SelectField<T extends string>({
       >
         {options.map((o) => (
           <option key={o} value={o}>
-            {o}
+            {renderOption ? renderOption(o) : o}
           </option>
         ))}
       </select>

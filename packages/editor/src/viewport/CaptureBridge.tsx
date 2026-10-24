@@ -7,7 +7,8 @@ import { addOverlays, applyShading } from './capture-look';
 import type { OverlayKind, ShadingMode } from './capture-look';
 import { useDoc } from '../stores/doc';
 import { useSelection } from '../stores/selection';
-import { animations } from '../three/anim';
+import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
+import { applyFxAt } from '../three/fx';
 
 export type { OverlayKind, ShadingMode } from './capture-look';
 
@@ -73,6 +74,13 @@ function captureFrame(
   const mime = `image/${format}`;
   const quality = format === 'jpeg' ? 0.9 : undefined;
   if (typeof opts.at === 'number') animations.seekAll(opts.at);
+
+  const doc = useDoc.getState().doc;
+  if (doc && typeof opts.at === 'number') {
+    applyProceduralClips(scene, clipsOf(doc), opts.at, clipBasesOf(doc));
+    const fx = doc.fx ?? [];
+    if (fx.length > 0) applyFxAt(scene, fx, opts.at);
+  }
 
   const perspective = camera as THREE.PerspectiveCamera;
   const prevCamera = {

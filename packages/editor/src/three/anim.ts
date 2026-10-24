@@ -1,4 +1,5 @@
-import type { ModelAnim } from '@vibebyte/vibe3d-protocol';
+import type { ClipSpec, ModelAnim, SceneDoc } from '@vibebyte/vibe3d-protocol';
+import { applyClipTransform } from '@vibebyte/vibe3d-scene';
 import * as THREE from 'three';
 
 interface Entry {
@@ -93,3 +94,67 @@ export class AnimationController {
 }
 
 export const animations = new AnimationController();
+
+interface BaseTransform {
+  p: [number, number, number];
+  r: [number, number, number];
+  s: [number, number, number];
+}
+
+export function clipsOf(doc: Pick<SceneDoc, 'nodes'>): Record<string, ClipSpec> {
+  const out: Record<string, ClipSpec> = {};
+  for (const [id, node] of Object.entries(doc.nodes ?? {})) {
+    if (node?.clip) out[id] = node.clip;
+  }
+  return out;
+}
+
+const BASES = new WeakMap<THREE.Object3D, BaseTransform>();
+
+function baseOf(obj: THREE.Object3D): BaseTransform {
+  const cached = BASES.get(obj);
+  if (cached) return cached;
+  const base: BaseTransform = {
+    p: [obj.position.x, obj.position.y, obj.position.z],
+    r: [obj.rotation.x, obj.rotation.y, obj.rotation.z],
+    s: [obj.scale.x, obj.scale.y, obj.scale.z],
+  };
+  BASES.set(obj, base);
+  return base;
+}
+
+export function clipBasesOf(doc: Pick<SceneDoc, 'nodes'>): Record<string, BaseTransform> {
+  const out: Record<string, BaseTransform> = {};
+  for (const [id, node] of Object.entries(doc.nodes ?? {})) {
+    if (node?.transform) out[id] = node.transform;
+  }
+  return out;
+}
+
+export function applyProceduralClips(
+  root: THREE.Object3D,
+  clips: Record<string, ClipSpec>,
+  time: number,
+  bases?: Record<string, BaseTransform>,
+): void {
+  root.traverse((obj) => {
+    const nodeId = obj.userData.nodeId as string | undefined;
+    if (!nodeId) return;
+    const clip = clips[nodeId];
+    const declared = bases?.[nodeId];
+    if (!clip) {
+      const base = declared ?? (BASES.has(obj) ? baseOf(obj) : undefined);
+      if (!base) return;
+      obj.position.set(...base.p);
+      obj.rotation.set(...base.r);
+      obj.scale.set(...base.s);
+      BASES.delete(obj);
+      return;
+    }
+    const base = declared ?? baseOf(obj);
+    const out = applyClipTransform({ p: base.p, r: base.r, s: base.s }, clip, time);
+    obj.position.set(out.p[0], out.p[1], out.p[2]);
+    obj.rotation.set(out.r[0], out.r[1], out.r[2]);
+    obj.scale.set(out.s[0], out.s[1], out.s[2]);
+  });
+}

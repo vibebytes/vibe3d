@@ -1,4 +1,4 @@
-import { AppError } from '@vibebyte/vibe3d-protocol';
+import { AppError, type SceneDoc } from '@vibebyte/vibe3d-protocol';
 import { type ViewName, frameTarget } from '@vibebyte/vibe3d-scene';
 import type { DispatchContext, OverlayKind, Renderer, ShadingMode, SnapshotOptions } from '../context';
 import { toView } from '../jobs/store';
@@ -54,13 +54,21 @@ interface ImageParams {
   overlay?: OverlayKind[];
 }
 
-function imageOptions(p: ImageParams): SnapshotOptions {
+function hasDocAnimation(doc: SceneDoc): boolean {
+  for (const id of Object.keys(doc.nodes)) {
+    if (doc.nodes[id]?.clip) return true;
+  }
+  return false;
+}
+
+function imageOptions(p: ImageParams, doc?: SceneDoc): SnapshotOptions {
+  const at = p.at ?? (doc && hasDocAnimation(doc) ? 0 : undefined);
   return {
     width: p.width,
     height: p.height,
     format: p.format,
     settleMs: p.settleMs,
-    at: p.at,
+    at,
     transparent: p.transparent,
     shading: p.shading,
     overlay: p.overlay?.length ? [...new Set(p.overlay)] : undefined,
@@ -71,7 +79,7 @@ export const renderHandlers: HandlersFor<Keys> = {
   'render.snapshot': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     const renderer = requireRenderer(ctx, room.id);
-    const shot = await renderer.snapshot({ roomId: room.id, doc: room.doc }, imageOptions(p));
+    const shot = await renderer.snapshot({ roomId: room.id, doc: room.doc }, imageOptions(p, room.doc));
     return {
       revision: room.revision,
       mime: shot.mime,
@@ -100,7 +108,7 @@ export const renderHandlers: HandlersFor<Keys> = {
       const shot = await renderer.snapshot(
         { roomId: room.id, doc: room.doc },
         {
-          ...imageOptions(p),
+          ...imageOptions(p, room.doc),
           camera: framed.camera,
         },
       );
@@ -135,7 +143,7 @@ export const renderHandlers: HandlersFor<Keys> = {
     const shot = await renderer.snapshot(
       { roomId: room.id, doc: room.doc },
       {
-        ...imageOptions(p),
+        ...imageOptions(p, room.doc),
         camera: framed.camera,
       },
     );
@@ -160,7 +168,7 @@ export const renderHandlers: HandlersFor<Keys> = {
     const shot = await renderer.snapshot(
       { roomId: room.id, doc: room.doc },
       {
-        ...imageOptions(p),
+        ...imageOptions(p, room.doc),
       },
     );
     const img = decodeShot(shot.base64);

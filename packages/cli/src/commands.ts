@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { Studio, type StudioOptions } from '@vibebyte/vibe3d-client';
 import { type ParsedArgs, bool, jsonArg, num, parseSize, str, vec } from './args';
+import { clipFromFlags, fogFromFlags, fxSpecFromFlags } from './fx-args';
 import { parseLookFlags } from './look';
 import { readSceneDocFile } from './scene-io';
 
@@ -242,6 +243,29 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
       clip: str(flags, 'clip'),
       speed: num(flags, 'speed'),
     } as never);
+  }
+
+  if (group === 'anim' && command === 'define') {
+    return room.defineAnimation({
+      nodeId: need(rest[1], 'anim define 需要 nodeId'),
+      clip: clipFromFlags(flags),
+    });
+  }
+
+  if (group === 'anim' && command === 'clear') {
+    return room.clearAnimation(need(rest[1], 'anim clear 需要 nodeId'));
+  }
+
+  if (group === 'fx' && command === 'create') {
+    return room.createFx(fxSpecFromFlags(flags));
+  }
+
+  if (group === 'fx' && (command === 'rm' || command === 'delete')) {
+    return room.deleteFx(need(rest[1], 'fx rm 需要 fxId'));
+  }
+
+  if (group === 'env' && command === 'set') {
+    return room.setEnv({ ...fogFromFlags(flags) });
   }
 
   if (group === 'camera' && command === 'set') {
