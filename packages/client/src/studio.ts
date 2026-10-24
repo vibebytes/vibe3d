@@ -6,6 +6,7 @@ import {
   findRunning,
   startDaemon,
 } from './discovery';
+import { JobHandle } from './jobs';
 import type { CapParams, CapResult } from './room';
 import { RoomHandle } from './room';
 import { RpcClient } from './transport';
@@ -83,6 +84,10 @@ export class Studio {
 
   room(roomId: string): RoomHandle {
     return new RoomHandle(this.client, roomId);
+  }
+
+  job(jobId: string): JobHandle {
+    return new JobHandle(this.client, jobId);
   }
 
   async closeRoom(roomId: string, purge = false): Promise<CapResult<'room.close'>> {

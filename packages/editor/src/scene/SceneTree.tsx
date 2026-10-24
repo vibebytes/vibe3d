@@ -1,8 +1,14 @@
 import type { SceneDoc, SceneNode } from '@vibebyte/vibe3d-protocol';
 import { useMemo } from 'react';
+import { Icon, type IconName } from '../common/Icon';
 import { useSelection } from '../stores/selection';
 
-const ICON: Record<SceneNode['kind'], string> = { group: '▣', mesh: '◆', light: '☀', model: '◈' };
+const ICON: Record<SceneNode['kind'], IconName> = {
+  group: 'layers',
+  mesh: 'box',
+  light: 'sun',
+  model: 'model',
+};
 
 export function SceneTree({ doc }: { doc: SceneDoc }) {
   const ids = useSelection((s) => s.ids);
@@ -29,26 +35,49 @@ export function SceneTree({ doc }: { doc: SceneDoc }) {
   };
   walk(null, 0);
 
-  if (rows.length === 0) return <p className="px-3 py-4 text-xs text-base-content/40">空场景</p>;
-
   return (
-    <ul className="menu menu-sm w-full gap-0.5 p-1">
-      {rows.map(({ node, depth }) => (
-        <li key={node.id}>
-          <button
-            type="button"
-            className={`flex items-center gap-2 ${ids.includes(node.id) ? 'active' : ''} ${hoverId === node.id ? 'bg-base-content/5' : ''} ${node.visible ? '' : 'opacity-40'}`}
-            style={{ paddingLeft: `${0.5 + depth * 0.75}rem` }}
-            onClick={(e) => select(node.id, { additive: e.shiftKey || e.metaKey || e.ctrlKey })}
-            onMouseEnter={() => hover(node.id)}
-            onMouseLeave={() => hover(null)}
-          >
-            <span className="w-3 text-center text-[10px] text-base-content/50">{ICON[node.kind]}</span>
-            <span className="truncate text-xs">{node.name}</span>
-            <span className="ml-auto text-[10px] text-base-content/25">{node.kind}</span>
-          </button>
-        </li>
-      ))}
-    </ul>
+    <div className="flex h-full flex-col">
+      <div className="flex items-center justify-between px-3 pt-3 pb-1.5">
+        <span className="section-title">场景树</span>
+        <span className="num text-[10px] text-base-content/45">{rows.length} 项</span>
+      </div>
+      {rows.length === 0 ? (
+        <div className="mx-3 mt-2 rounded-lg border border-dashed border-base-300 px-3 py-5 text-center">
+          <p className="text-[11.5px] text-base-content/55">还没有节点</p>
+          <p className="mt-1 text-[10px] text-base-content/40">用顶栏添加几何体，或拖入模型</p>
+        </div>
+      ) : (
+        <ul className="scroll-thin min-h-0 flex-1 space-y-0.5 overflow-auto px-2 pb-3">
+          {rows.map(({ node, depth }) => (
+            <li key={node.id}>
+              <button
+                type="button"
+                className="scene-row"
+                data-selected={ids.includes(node.id) ? 'true' : 'false'}
+                data-hover={hoverId === node.id ? 'true' : 'false'}
+                style={{ paddingLeft: `${0.4 + depth * 0.7}rem` }}
+                onClick={(e) => select(node.id, { additive: e.shiftKey || e.metaKey || e.ctrlKey })}
+                onMouseEnter={() => hover(node.id)}
+                onMouseLeave={() => hover(null)}
+              >
+                <span className={node.visible ? 'text-base-content/55' : 'text-base-content/25'}>
+                  <Icon name={ICON[node.kind]} size={13} />
+                </span>
+                <span
+                  className={`flex-1 truncate ${node.visible ? '' : 'text-base-content/35 line-through'}`}
+                >
+                  {node.name}
+                </span>
+                {node.kind === 'group' && (
+                  <span className="num shrink-0 text-[9px] text-base-content/35">
+                    {children.get(node.id)?.length ?? 0}
+                  </span>
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

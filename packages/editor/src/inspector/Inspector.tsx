@@ -29,7 +29,11 @@ export function Inspector({ doc }: { doc: SceneDoc }) {
 
   return (
     <div className="flex h-full flex-col">
-      <div role="tablist" className="tabs tabs-border tabs-xs shrink-0 px-2 pt-1">
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-base-300/70 px-3 py-2">
+        <span className="section-title">属性</span>
+        <span className="truncate text-[11px] text-base-content/65">{node?.name ?? '场景'}</span>
+      </div>
+      <div role="tablist" className="tabs tabs-border tabs-xs shrink-0 px-2 pt-1 text-[11px]">
         {tabs.map((t) => (
           <button
             key={t.id}

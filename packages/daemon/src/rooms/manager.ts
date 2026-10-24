@@ -34,6 +34,10 @@ export class RoomManager {
     return this.rooms.size;
   }
 
+  get persistDir(): string | undefined {
+    return this.opts.persistDir;
+  }
+
   create(input: { name?: string; template?: Template } = {}): Room {
     if (this.rooms.size >= this.opts.maxRooms && !this.evictIfNeeded()) {
       throw new AppError('E_ROOM_LIMIT', `房间数已达上限 ${this.opts.maxRooms}`);

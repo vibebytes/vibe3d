@@ -1,7 +1,12 @@
-import type { AssetMeta, GltfReport, SceneDoc } from '@vibebyte/vibe3d-protocol';
+import type { AssetMeta, CameraState, GltfReport, SceneDoc } from '@vibebyte/vibe3d-protocol';
+import type { JobQueue } from './jobs/queue';
+import type { JobStore } from './jobs/store';
 import type { RoomManager } from './rooms/manager';
 
 export type AssetPolicy = 'strict' | 'local' | 'allow';
+
+export type ShadingMode = 'flat' | 'wireframe' | 'normals';
+export type OverlayKind = 'grid' | 'axes' | 'bbox';
 
 export interface SnapshotOptions {
   width?: number;
@@ -10,6 +15,9 @@ export interface SnapshotOptions {
   settleMs?: number;
   at?: number;
   transparent?: boolean;
+  camera?: CameraState;
+  shading?: ShadingMode;
+  overlay?: OverlayKind[];
 }
 
 export interface Snapshot {
@@ -35,15 +43,23 @@ export interface Renderer {
 
 export interface IngestResult {
   meta: AssetMeta;
-  report: GltfReport;
+  report?: GltfReport;
   cached: boolean;
 }
+
+export interface Jobs {
+  store: JobStore;
+  queue: JobQueue;
+}
+
+export type AutoOpenState = 'pending' | 'opened' | 'failed';
 
 export interface DispatchContext {
   rooms: RoomManager;
   baseUrl: string;
   token?: string;
   renderer?: Renderer;
+  jobs?: Jobs;
   ingest: (src: string, policy?: AssetPolicy) => Promise<IngestResult>;
   inspect: (
     src: string,
@@ -51,6 +67,8 @@ export interface DispatchContext {
   ) => Promise<{ sha: string; cached: boolean; report: GltfReport }>;
   selection: (roomId: string) => string[];
   surfaces?: (roomId: string) => number;
+  openExternal?: (url: string) => boolean | Promise<boolean>;
+  autoOpen?: Map<string, AutoOpenState>;
 }
 
 export interface HelloResult {

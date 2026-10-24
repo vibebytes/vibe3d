@@ -1,12 +1,14 @@
 import { z } from 'zod';
-import { modelAnimSchema, sceneDocSchema, sceneNodeSchema } from './scene';
+import { assetMetaSchema, modelAnimSchema, sceneDocSchema, sceneNodeSchema } from './scene';
 import {
   cameraStateSchema,
   envSchema,
+  geometrySchema,
   lightSpecSchema,
   materialIdSchema,
   materialSchema,
   nodeIdSchema,
+  shaSchema,
   stageStateSchema,
   transformSchema,
 } from './schema';
@@ -19,6 +21,9 @@ const nodePatchSchema = z.object({
   transform: transformSchema.optional(),
   light: lightSpecSchema.optional(),
   anim: modelAnimSchema.nullable().optional(),
+  geometry: geometrySchema.optional(),
+  material: materialIdSchema.optional(),
+  sha: shaSchema.optional(),
 });
 
 export const opSchema = z.discriminatedUnion('op', [
@@ -33,7 +38,10 @@ export const opSchema = z.discriminatedUnion('op', [
   }),
   z.object({ op: z.literal('material.set'), id: materialIdSchema, material: materialSchema }),
   z.object({ op: z.literal('material.delete'), id: materialIdSchema }),
-  z.object({ op: z.literal('env.set'), env: envSchema.partial() }),
+  z.object({
+    op: z.literal('env.set'),
+    env: envSchema.partial().extend({ hdri: shaSchema.nullable().optional() }),
+  }),
   z.object({ op: z.literal('stage.set'), stage: stageStateSchema.partial() }),
   z.object({
     op: z.literal('animation.play'),
@@ -47,6 +55,8 @@ export const opSchema = z.discriminatedUnion('op', [
     camera: cameraStateSchema.partial().optional(),
     frame: z.enum(['fit', 'close', 'wide']).optional(),
   }),
+  z.object({ op: z.literal('asset.register'), asset: assetMetaSchema }),
+  z.object({ op: z.literal('asset.unregister'), sha: shaSchema }),
   z.object({ op: z.literal('scene.replace'), doc: sceneDocSchema }),
 ]);
 

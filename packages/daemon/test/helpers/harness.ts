@@ -63,6 +63,7 @@ export function makeHarness(opts: { maxRooms?: number; persist?: boolean } = {})
     ingest,
     inspect,
     selection: () => [],
+    autoOpen: new Map(),
   };
   const app = createApp({
     config,

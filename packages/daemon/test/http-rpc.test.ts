@@ -179,7 +179,17 @@ describe('http: 资产与导出', () => {
     expect(txt.status).toBe(415);
     const txtBody = (await txt.json()) as { error: { data: { code: string; allowed: string[] } } };
     expect(codeOf(txtBody)).toBe('E_ASSET_TYPE');
-    expect(txtBody.error.data.allowed).toEqual(['.glb', '.gltf']);
+    expect(txtBody.error.data.allowed).toEqual([
+      '.glb',
+      '.gltf',
+      '.png',
+      '.jpg',
+      '.jpeg',
+      '.webp',
+      '.ktx2',
+      '.hdr',
+      '.exr',
+    ]);
 
     const mime = await up('cube.glb', 'text/plain', glb());
     expect(mime.status).toBe(415);

@@ -13,12 +13,18 @@ interface ExportDialogProps {
 
 type Scope = 'scene' | 'selection';
 
-interface ExportResult {
+interface JobView {
   jobId: string;
-  url: string;
-  bytes: number;
-  revision: number;
+  state: 'queued' | 'running' | 'done' | 'failed' | 'cancelled';
+  pct: number;
+  phase?: string;
+  url?: string;
+  bytes?: number;
+  revision?: number;
+  error?: { code: string; message: string };
 }
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export function ExportDialog({
   open,
@@ -31,12 +37,12 @@ export function ExportDialog({
 }: ExportDialogProps) {
   const [scope, setScope] = useState<Scope>('scene');
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<ExportResult | null>(null);
+  const [job, setJob] = useState<JobView | null>(null);
 
   useEffect(() => {
     if (open) {
       setBusy(false);
-      setResult(null);
+      setJob(null);
       setScope('scene');
     }
   }, [open]);
@@ -45,14 +51,25 @@ export function ExportDialog({
 
   const run = async () => {
     setBusy(true);
+    setJob(null);
     try {
-      const res = await rpc<ExportResult>(
+      const started = await rpc<{ jobId: string }>(
         'export.glb',
         scope === 'selection' ? { nodeIds: selectedIds } : {},
         roomId,
       );
-      setResult(res);
-      onDone(`导出完成 ${(res.bytes / 1024).toFixed(1)} KB`);
+      for (let i = 0; i < 600; i++) {
+        const view = await rpc<JobView>('job.get', { jobId: started.jobId });
+        setJob(view);
+        if (view.state === 'done') {
+          onDone(`导出完成 ${((view.bytes ?? 0) / 1024).toFixed(1)} KB`);
+          return;
+        }
+        if (view.state === 'failed') throw new Error(view.error?.message ?? '导出失败');
+        if (view.state === 'cancelled') throw new Error('导出已取消');
+        await sleep(500);
+      }
+      throw new Error('导出超时');
     } catch (err) {
       onError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -60,12 +77,14 @@ export function ExportDialog({
     }
   };
 
+  const pct = Math.round((job?.pct ?? 0) * 100);
+
   return (
     <dialog open aria-modal="true" className="modal modal-open">
       <div className="modal-box max-w-sm">
         <h3 className="text-sm font-medium">导出 GLB</h3>
         <p className="mt-1 text-[11px] leading-relaxed text-base-content/40">
-          服务端导出并签名下载地址，10 分钟内有效。
+          后台任务导出，完成后生成签名下载地址，10 分钟内有效。
         </p>
 
         <div className="mt-3 flex flex-col gap-1.5">
@@ -92,28 +111,32 @@ export function ExportDialog({
           </label>
         </div>
 
-        {result && (
+        {job && (
           <div className="mt-3 rounded-box border border-base-300 bg-base-200/60 p-2.5 text-[11px]">
             <div className="flex items-center justify-between">
-              <span className="text-base-content/50">job {result.jobId}</span>
+              <span className="text-base-content/50">job {job.jobId}</span>
               <span className="num text-base-content/60">
-                {(result.bytes / 1024).toFixed(1)} KB · r{result.revision}
+                {job.state === 'done'
+                  ? `${((job.bytes ?? 0) / 1024).toFixed(1)} KB · r${job.revision ?? revision}`
+                  : `${job.phase ?? job.state} ${pct}%`}
               </span>
             </div>
-            <a
-              className="btn btn-primary btn-xs mt-2 w-full"
-              href={daemonUrl(result.url)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              下载 GLB
-            </a>
+            {job.state === 'done' && job.url && (
+              <a
+                className="btn btn-primary btn-xs mt-2 w-full"
+                href={daemonUrl(job.url)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                下载 GLB
+              </a>
+            )}
           </div>
         )}
 
         <div className="modal-action">
           <button type="button" className="btn btn-ghost btn-xs" onClick={onClose} disabled={busy}>
-            {result ? '关闭' : '取消'}
+            {job?.state === 'done' ? '关闭' : '取消'}
           </button>
           <button type="button" className="btn btn-primary btn-xs" onClick={() => void run()} disabled={busy}>
             {busy && <span className="loading loading-spinner loading-xs" />}

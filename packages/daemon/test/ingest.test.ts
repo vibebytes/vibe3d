@@ -83,7 +83,7 @@ describe('ingest: 远程地址与策略', () => {
     const { ingest } = setup(fetchImpl);
     const result = await ingest('https://cdn.example.com/', 'allow');
     expect(result.meta.name).toBe('remote.glb');
-    expect(result.report.tris).toBe(1);
+    expect(result.report?.tris).toBe(1);
   });
 
   it('下载失败与超过 64 MB 分别报错', async () => {

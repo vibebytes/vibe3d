@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Icon, type IconName } from '../common/Icon';
 
 type Preset = 'cine' | 'clean' | 'flat';
 type AddKind = 'box' | 'sphere' | 'cylinder' | 'light';
@@ -15,79 +16,132 @@ interface TopBarProps {
   onRedo(): void;
   onSnapshot(): void;
   onExport(): void;
+  onImport(): void;
   onCommand(): void;
   onTogglePanel(): void;
 }
 
-const SHAPES: AddKind[] = ['box', 'sphere', 'cylinder', 'light'];
+const SHAPES: { kind: AddKind; icon: IconName }[] = [
+  { kind: 'box', icon: 'box' },
+  { kind: 'sphere', icon: 'sphere' },
+  { kind: 'cylinder', icon: 'cylinder' },
+  { kind: 'light', icon: 'sun' },
+];
 
 export function TopBar(p: TopBarProps) {
   return (
-    <header className="navbar min-h-0 gap-3 border-b border-base-300 bg-base-200 px-3 py-2">
-      <button
-        type="button"
-        className="btn btn-ghost btn-xs lg:hidden"
-        aria-label="场景面板"
-        onClick={p.onTogglePanel}
-      >
-        ☰
+    <header className="topbar">
+      <button type="button" className="icon-btn lg:hidden" aria-label="场景面板" onClick={p.onTogglePanel}>
+        <Icon name="panel" size={15} />
       </button>
-      <Link to="/" className="btn btn-ghost btn-xs text-base-content/50">
-        ← 房间
-      </Link>
-      <div className="flex min-w-0 flex-col">
-        <span className="truncate text-sm font-medium">{p.name}</span>
-        <span className="num text-[10px] text-base-content/35">
-          {p.roomId} · r{p.revision}
-        </span>
-      </div>
-      <span
-        className={`badge badge-xs ${p.online ? 'badge-success' : 'badge-ghost'}`}
-        title={p.online ? 'WebSocket 已连接' : 'WebSocket 未连接'}
-      >
-        {p.online ? 'live' : 'offline'}
-      </span>
 
-      <div className="join ml-2">
-        {SHAPES.map((shape) => (
-          <button
-            key={shape}
-            type="button"
-            className="btn join-item btn-ghost btn-xs"
-            onClick={() => p.onAdd(shape)}
-          >
-            + {shape}
+      <Link to="/" className="brand-mark" aria-label="返回房间列表">
+        V3
+      </Link>
+
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="max-w-52 truncate text-[13px] font-semibold tracking-tight">{p.name}</span>
+          <span className={`chip ${p.online ? 'chip--live' : ''}`}>
+            <i className={`dot ${p.online ? 'dot--pulse' : ''}`} />
+            {p.online ? 'LIVE' : 'OFFLINE'}
+          </span>
+        </div>
+        <div className="num mt-0.5 flex items-center gap-1.5 text-[10.5px] text-base-content/55">
+          <span className="max-w-36 truncate">{p.roomId}</span>
+          <span className="text-base-content/25">·</span>
+          <span className="text-base-content/45">rev</span>
+          <span>{p.revision}</span>
+        </div>
+      </div>
+
+      <div className="divider-v mx-2 hidden lg:block" />
+
+      <div className="seg hidden lg:flex" aria-label="添加几何体">
+        {SHAPES.map((s) => (
+          <button key={s.kind} type="button" onClick={() => p.onAdd(s.kind)} aria-label={s.kind}>
+            <Icon name={s.icon} size={13} />
+            <span className="hidden xl:inline">{s.kind}</span>
           </button>
         ))}
       </div>
 
       <div className="ml-auto flex items-center gap-1.5">
-        <select
-          className="select select-xs w-24"
-          value={p.preset}
-          onChange={(e) => p.onPreset(e.target.value as Preset)}
-          aria-label="呈现配方"
-        >
-          <option value="clean">clean</option>
-          <option value="cine">cine</option>
-          <option value="flat">flat</option>
-        </select>
+        <div className="seg hidden md:flex" aria-label="呈现配方">
+          {(['clean', 'cine', 'flat'] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              data-active={p.preset === v ? 'true' : 'false'}
+              onClick={() => p.onPreset(v)}
+              title={`呈现配方 ${v}`}
+            >
+              <span className="text-[11px] tracking-wide">{v}</span>
+            </button>
+          ))}
+        </div>
+
+        <span className="divider-v hidden md:block" />
+
         <div className="join">
-          <button type="button" className="btn join-item btn-ghost btn-xs" onClick={p.onUndo} title="⌘Z">
-            撤销
+          <button
+            type="button"
+            className="icon-btn join-item"
+            onClick={p.onUndo}
+            title="撤销 ⌘Z"
+            aria-label="撤销"
+          >
+            <Icon name="undo" size={14} />
           </button>
-          <button type="button" className="btn join-item btn-ghost btn-xs" onClick={p.onRedo} title="⇧⌘Z">
-            重做
+          <button
+            type="button"
+            className="icon-btn join-item"
+            onClick={p.onRedo}
+            title="重做 ⇧⌘Z"
+            aria-label="重做"
+          >
+            <Icon name="redo" size={14} />
           </button>
         </div>
-        <button type="button" className="btn btn-ghost btn-xs" onClick={p.onCommand} title="⌘K">
-          命令
+
+        <button
+          type="button"
+          className="icon-btn hidden sm:inline-flex"
+          onClick={p.onCommand}
+          title="命令面板 ⌘K"
+          aria-label="命令"
+        >
+          <Icon name="command" size={14} />
         </button>
-        <button type="button" className="btn btn-ghost btn-xs" onClick={p.onSnapshot}>
-          快照
+        <button
+          type="button"
+          className="icon-btn hidden sm:inline-flex"
+          onClick={p.onSnapshot}
+          title="生成快照"
+          aria-label="快照"
+        >
+          <Icon name="camera" size={14} />
         </button>
-        <button type="button" className="btn btn-primary btn-xs" onClick={p.onExport}>
-          导出 GLB
+        <button
+          type="button"
+          className="icon-btn hidden md:inline-flex"
+          onClick={p.onExport}
+          title="导出 GLB"
+          aria-label="导出 GLB"
+        >
+          <Icon name="export" size={14} />
+          <span className="text-[11px]">GLB</span>
+        </button>
+
+        <div className="divider-v mx-1" />
+
+        <button
+          type="button"
+          className="ml-1 inline-flex h-[30px] items-center gap-1.5 rounded-md bg-primary px-2.5 text-[12px] font-medium text-primary-content transition hover:brightness-110"
+          onClick={p.onImport}
+        >
+          <Icon name="import" size={14} />
+          <span>导入</span>
         </button>
       </div>
     </header>

@@ -7,7 +7,8 @@ import { AppError, type AssetMeta, type GltfReport } from '@vibebyte/vibe3d-prot
 import type { AssetPolicy, DispatchContext, IngestResult } from '../context';
 import type { BlobStore } from './blobstore';
 import { parseGltf } from './gltf-parse';
-import { MAX_UPLOAD_BYTES, classifyUpload } from './upload';
+import type { ImageInfo } from './image-meta';
+import { MAX_HDRI_BYTES, classifyUpload } from './upload';
 
 export interface IngestDeps {
   blobs: BlobStore;
@@ -19,6 +20,8 @@ interface Loaded {
   bytes: Buffer;
   name: string;
   mime: string;
+  kind: 'gltf' | 'image';
+  image?: ImageInfo;
 }
 
 const MAX_REDIRECTS = 3;
@@ -26,7 +29,7 @@ const FETCH_TIMEOUT_MS = 15_000;
 
 function settle(bytes: Buffer, name: string, mime?: string | null): Loaded {
   const info = classifyUpload({ filename: name, mime: mime ?? undefined, bytes });
-  return { bytes, name, mime: info.mime };
+  return { bytes, name, mime: info.mime, kind: info.kind, image: info.image };
 }
 
 function isLoopback(url: URL): boolean {
@@ -60,8 +63,8 @@ async function localPath(src: string, roots: string[]): Promise<string> {
 async function readCapped(res: Response, src: string): Promise<Buffer> {
   if (!res.body) {
     const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.length > MAX_UPLOAD_BYTES) {
-      throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过 64 MB：${src}`, { bytes: buf.length });
+    if (buf.length > MAX_HDRI_BYTES) {
+      throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过 128 MB：${src}`, { bytes: buf.length });
     }
     return buf;
   }
@@ -72,9 +75,9 @@ async function readCapped(res: Response, src: string): Promise<Buffer> {
     const { done, value } = await reader.read();
     if (done) break;
     total += value.byteLength;
-    if (total > MAX_UPLOAD_BYTES) {
+    if (total > MAX_HDRI_BYTES) {
       await reader.cancel();
-      throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过 64 MB：${src}`, { bytes: total });
+      throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过 128 MB：${src}`, { bytes: total });
     }
     chunks.push(Buffer.from(value));
   }
@@ -106,8 +109,8 @@ async function download(
     }
     if (!res.ok) throw new AppError('E_ASSET_MISSING', `下载失败 ${res.status}：${src}`);
     const length = Number(res.headers.get('content-length') ?? 0);
-    if (Number.isFinite(length) && length > MAX_UPLOAD_BYTES) {
-      throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过 64 MB：${src}`, { bytes: length });
+    if (Number.isFinite(length) && length > MAX_HDRI_BYTES) {
+      throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过 128 MB：${src}`, { bytes: length });
     }
     const bytes = await readCapped(res, src);
     const raw = basename(url.pathname);
@@ -145,24 +148,28 @@ export function createIngest({
   };
 
   const inspect = async (src: string, policy: AssetPolicy = 'local') => {
-    const { bytes, name } = await load(src, policy);
-    const report = parseGltf(bytes, name);
-    const sha = createHash('sha256').update(bytes).digest('hex');
+    const loaded = await load(src, policy);
+    if (loaded.kind !== 'gltf') {
+      throw new AppError('E_ASSET_TYPE', `asset.inspect 只支持 glTF：${loaded.name}`);
+    }
+    const report = parseGltf(loaded.bytes, loaded.name);
+    const sha = createHash('sha256').update(loaded.bytes).digest('hex');
     return { sha, cached: existsSync(blobs.path(sha)), report };
   };
 
-  const makeMeta = (sha: string, loaded: Loaded, report: GltfReport): AssetMeta => ({
+  const makeMeta = (sha: string, loaded: Loaded, report?: GltfReport): AssetMeta => ({
     sha,
     bytes: loaded.bytes.length,
     name: loaded.name.slice(0, 300),
     mime: loaded.mime,
-    kind: 'gltf',
-    gltf: report,
+    kind: loaded.kind,
+    ...(report ? { gltf: report } : {}),
+    ...(loaded.image ? { image: loaded.image } : {}),
   });
 
   const ingest = async (src: string, policy: AssetPolicy = 'local'): Promise<IngestResult> => {
     const loaded = await load(src, policy);
-    const report = parseGltf(loaded.bytes, loaded.name);
+    const report = loaded.kind === 'gltf' ? parseGltf(loaded.bytes, loaded.name) : undefined;
     const sha = createHash('sha256').update(loaded.bytes).digest('hex');
     const cached = existsSync(blobs.path(sha));
     if (!cached) await blobs.put(loaded.bytes);

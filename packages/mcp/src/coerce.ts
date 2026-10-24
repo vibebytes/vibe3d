@@ -1,0 +1,141 @@
+import { z } from 'zod';
+
+type Def = { typeName?: string; [key: string]: unknown };
+const defOf = (schema: z.ZodTypeAny): Def => (schema as unknown as { _def: Def })._def;
+
+const toCamel = (key: string): string => key.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
+
+export function deepCamel(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(deepCamel);
+  if (!value || typeof value !== 'object') return value;
+  const out: Record<string, unknown> = {};
+  for (const [key, sub] of Object.entries(value as Record<string, unknown>))
+    out[toCamel(key)] = deepCamel(sub);
+  return out;
+}
+
+function unwrap(schema: z.ZodTypeAny): z.ZodTypeAny {
+  let current = schema;
+  for (let i = 0; i < 8; i += 1) {
+    const def = defOf(current);
+    const inner =
+      def.typeName === 'ZodEffects'
+        ? (def.schema as z.ZodTypeAny | undefined)
+        : (def.innerType as z.ZodTypeAny | undefined);
+    if (!inner) return current;
+    current = inner;
+  }
+  return current;
+}
+
+const parseJsonish = (text: string): unknown => {
+  const trimmed = text.trim();
+  if (!/^[\[{]/.test(trimmed)) return undefined;
+  try {
+    return deepCamel(JSON.parse(trimmed));
+  } catch {
+    return undefined;
+  }
+};
+
+function arrayFromText(def: Def, text: string, depth: number): unknown[] | undefined {
+  const trimmed = text.trim();
+  if (!/^[\[{]/.test(trimmed)) return undefined;
+  let parsed: unknown;
+  try {
+    parsed = deepCamel(JSON.parse(trimmed));
+  } catch {
+    return undefined;
+  }
+  let list: unknown[];
+  if (Array.isArray(parsed)) list = parsed;
+  else if (parsed && typeof parsed === 'object') {
+    const nested = (parsed as Record<string, unknown>).ops;
+    list = Array.isArray(nested) ? nested : [parsed];
+  } else return undefined;
+  const item = def.type as z.ZodTypeAny | undefined;
+  return item ? list.map((entry) => coerceValue(item, entry, depth + 1)) : list;
+}
+
+const parseBoolean = (text: string): boolean | undefined => {
+  const lower = text.trim().toLowerCase();
+  if (lower === 'true' || lower === 'yes') return true;
+  if (lower === 'false' || lower === 'no') return false;
+  return undefined;
+};
+
+const parseNumber = (text: string): number | undefined => {
+  const trimmed = text.trim();
+  if (trimmed === '' || !/^-?\d+(\.\d+)?$/.test(trimmed)) return undefined;
+  const value = Number(trimmed);
+  return Number.isFinite(value) ? value : undefined;
+};
+
+function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number): unknown {
+  if (depth > 8 || schema.safeParse(value).success) return value;
+  const inner = unwrap(schema);
+  const def = defOf(inner);
+
+  if (typeof value === 'string') {
+    if (def.typeName === 'ZodBoolean') {
+      const bool = parseBoolean(value);
+      if (bool !== undefined && inner.safeParse(bool).success) return bool;
+    }
+    if (def.typeName === 'ZodNumber') {
+      const num = parseNumber(value);
+      if (num !== undefined && inner.safeParse(num).success) return num;
+    }
+    if (def.typeName === 'ZodArray') {
+      const fromText = arrayFromText(def, value, depth);
+      if (fromText !== undefined) return fromText;
+    }
+    const parsed = parseJsonish(value);
+    if (parsed !== undefined) {
+      const next = coerceValue(inner, parsed, depth + 1);
+      if (inner.safeParse(next).success) return next;
+    }
+  }
+
+  if (Array.isArray(value) && def.typeName === 'ZodTuple' && Array.isArray(def.items)) {
+    const items = def.items as z.ZodTypeAny[];
+    const rest = def.rest as z.ZodTypeAny | null | undefined;
+    return value.map((item, index) => coerceValue(items[index] ?? rest ?? z.any(), item, depth + 1));
+  }
+
+  if (Array.isArray(value) && def.typeName === 'ZodArray' && def.type) {
+    const items = value.map((item) => coerceValue(def.type as z.ZodTypeAny, item, depth + 1));
+    return items;
+  }
+
+  if (def.typeName === 'ZodUnion' || def.typeName === 'ZodDiscriminatedUnion') {
+    const raw = def.options as unknown;
+    const options = raw instanceof Map ? [...raw.values()] : Array.isArray(raw) ? raw : [];
+    for (const option of options as z.ZodTypeAny[]) {
+      const next = coerceValue(option, value, depth + 1);
+      if (option.safeParse(next).success) return next;
+    }
+  }
+
+  if (def.typeName === 'ZodRecord' && def.valueType && value && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [key, sub] of Object.entries(value as Record<string, unknown>))
+      out[key] = coerceValue(def.valueType as z.ZodTypeAny, sub, depth + 1);
+    return out;
+  }
+
+  if (def.typeName === 'ZodObject' && value && typeof value === 'object' && !Array.isArray(value)) {
+    const shape = (inner as z.ZodObject<z.ZodRawShape>).shape;
+    const out: Record<string, unknown> = {};
+    for (const [key, sub] of Object.entries(value as Record<string, unknown>)) {
+      const field = shape[key];
+      out[key] = field ? coerceValue(field, sub, depth + 1) : sub;
+    }
+    return out;
+  }
+
+  return value;
+}
+
+export function coerceForSchema<T extends z.ZodTypeAny>(schema: T, value: unknown): unknown {
+  return coerceValue(schema, value, 0);
+}

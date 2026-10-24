@@ -36,6 +36,31 @@ export function snakeKeys(schema: unknown): unknown {
 const specOf = (name: string): CapabilitySpec<unknown, unknown> =>
   CAPABILITIES[name as keyof typeof CAPABILITIES] as CapabilitySpec<unknown, unknown>;
 
+/**
+ * 房间是连接层状态：room 级能力的 room_id 不进工具 schema，
+ * 只有声明 mcp.roomArg 的能力（房间本身是操作对象）保留一个可选 room_id。
+ */
+function mcpInputSchema(spec: CapabilitySpec<unknown, unknown>): Record<string, unknown> {
+  const schema = snakeKeys(toJsonSchema(spec.input)) as {
+    properties?: Record<string, unknown>;
+    required?: string[];
+  };
+  if (spec.scope !== 'room') return schema as Record<string, unknown>;
+  const keep = (key: string): boolean => key !== 'room_id';
+  const properties = Object.fromEntries(Object.entries(schema.properties ?? {}).filter(([key]) => keep(key)));
+  const required = (schema.required ?? []).filter(keep);
+  if (spec.mcp?.roomArg) {
+    properties.room_id = {
+      type: 'string',
+      pattern: '^r_[a-z0-9]{8}$',
+      description: '房间 id；省略时用当前会话绑定的房间',
+    };
+  }
+  const out: Record<string, unknown> = { ...schema, properties };
+  out.required = required.length > 0 ? required : undefined;
+  return out;
+}
+
 export function buildSpecDoc(): Record<string, unknown> {
   return {
     protocolVersion: PROTOCOL_VERSION,
@@ -50,7 +75,13 @@ export function buildSpecDoc(): Record<string, unknown> {
         mutating: spec.mutating,
         hostCoupled: spec.hostCoupled ?? false,
         errors: [...(spec.errors ?? [])],
-        mcp: spec.mcp ? { tool: spec.mcp.tool, annotations: spec.mcp.annotations ?? {} } : null,
+        mcp: spec.mcp
+          ? {
+              tool: spec.mcp.tool,
+              annotations: spec.mcp.annotations ?? {},
+              roomArg: spec.mcp.roomArg ?? false,
+            }
+          : null,
         cli: spec.cli ?? null,
         input: toJsonSchema(spec.input),
         output: toJsonSchema(spec.output),
@@ -101,7 +132,7 @@ export function buildMcp(): string {
   const rows = CAPABILITY_NAMES.map((name) => {
     const spec = specOf(name);
     if (!spec.mcp) return null;
-    const schema = snakeKeys(toJsonSchema(spec.input));
+    const schema = mcpInputSchema(spec);
     return [
       '  {',
       `    name: ${JSON.stringify(spec.mcp.tool)},`,

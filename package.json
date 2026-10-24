@@ -14,7 +14,7 @@
     "test:watch": "vitest",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "biome check .",
-    "check": "pnpm typecheck && pnpm lint && pnpm gen && git diff --exit-code -- packages/capabilities/generated",
+    "check": "pnpm typecheck && pnpm lint && node scripts/check-gen.mjs",
     "check:full": "pnpm check && pnpm contract && pnpm test:e2e && pnpm test:coverage",
     "dev": "pnpm --filter @vibebyte/vibe3d-daemon dev",
     "smoke": "zsh scripts/smoke-all.sh",

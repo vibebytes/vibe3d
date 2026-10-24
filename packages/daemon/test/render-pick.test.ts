@@ -1,0 +1,110 @@
+import { describe, expect, it } from 'vitest';
+import type { DispatchContext, SnapshotOptions } from '../src/context';
+import { type Harness, call, makeHarness } from './helpers/harness';
+import { makePng } from './helpers/png';
+
+const codeOf = (body: any): string => body?.error?.data?.code ?? body?.error?.code;
+
+function fakeRenderer(base64: string) {
+  return {
+    name: 'fake',
+    ready: true,
+    available: () => true,
+    snapshot: async (_input: unknown, opts: SnapshotOptions = {}) => ({
+      mime: 'image/png',
+      base64,
+      width: opts.width ?? 1280,
+      height: opts.height ?? 720,
+    }),
+    exportGlb: async () => ({ jobId: 'j', url: '/exports/j.glb', bytes: 1 }),
+  };
+}
+
+async function room(h: Harness): Promise<string> {
+  const { body } = await call(h, 'room.create', { name: '取色' });
+  return body.result.roomId;
+}
+
+const halfRed = () => makePng(200, 100, (_x, y) => (y < 50 ? [255, 0, 0, 255] : [0, 0, 255, 255]));
+
+describe('render.pick', () => {
+  it('samples the exact pixel colour of a rendered PNG', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    h.ctx.renderer = fakeRenderer(halfRed().toString('base64')) as unknown as DispatchContext['renderer'];
+
+    const { body } = await call(
+      h,
+      'render.pick',
+      { roomId, points: [{ x: 10, y: 10 }, { x: 199, y: 99 }], width: 200, height: 100 },
+      roomId,
+    );
+    expect(body.error).toBeUndefined();
+    expect(body.result.width).toBe(200);
+    expect(body.result.height).toBe(100);
+    expect(body.result.samples).toEqual([
+      { x: 10, y: 10, rgb: [255, 0, 0], hex: '#ff0000', alpha: 255 },
+      { x: 199, y: 99, rgb: [0, 0, 255], hex: '#0000ff', alpha: 255 },
+    ]);
+  });
+
+  it('summarises a region with a colour histogram and mean', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    h.ctx.renderer = fakeRenderer(halfRed().toString('base64')) as unknown as DispatchContext['renderer'];
+
+    const { body } = await call(h, 'render.pick', { roomId, rect: { x: 0, y: 0, w: 200, h: 100 } }, roomId);
+    expect(body.error).toBeUndefined();
+    const region = body.result.region;
+    expect(region.pixels).toBe(20000);
+    expect(region.topColors).toHaveLength(2);
+    expect(region.topColors[0]).toMatchObject({ hex: '#ff0000', count: 10000, share: 0.5 });
+    expect(region.topColors[1]).toMatchObject({ hex: '#0000ff', count: 10000, share: 0.5 });
+    expect(region.mean[0]).toBeCloseTo(127.5, 3);
+    expect(region.mean[2]).toBeCloseTo(127.5, 3);
+  });
+
+  it('clamps a region that runs past the edge instead of failing', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    h.ctx.renderer = fakeRenderer(halfRed().toString('base64')) as unknown as DispatchContext['renderer'];
+
+    const { body } = await call(h, 'render.pick', { roomId, rect: { x: 150, y: 40, w: 200, h: 200 } }, roomId);
+    expect(body.error).toBeUndefined();
+    expect(body.result.region.w).toBe(50);
+    expect(body.result.region.h).toBe(60);
+    expect(body.result.region.pixels).toBe(3000);
+  });
+
+  it('rejects an empty request, an out-of-bounds point and a bad rect', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    h.ctx.renderer = fakeRenderer(halfRed().toString('base64')) as unknown as DispatchContext['renderer'];
+
+    const empty = await call(h, 'render.pick', { roomId }, roomId);
+    expect(codeOf(empty.body)).toBe('E_INVALID_PARAMS');
+
+    const outside = await call(h, 'render.pick', { roomId, points: [{ x: 400, y: 10 }] }, roomId);
+    expect(codeOf(outside.body)).toBe('E_INVALID_PARAMS');
+
+    const offCanvas = await call(h, 'render.pick', { roomId, rect: { x: 300, y: 300, w: 20, h: 20 } }, roomId);
+    expect(codeOf(offCanvas.body)).toBe('E_INVALID_PARAMS');
+  });
+
+  it('reports E_INVALID_PARAMS when the renderer hands back something that is not a PNG', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    h.ctx.renderer = fakeRenderer('AAAA') as unknown as DispatchContext['renderer'];
+
+    const { body } = await call(h, 'render.pick', { roomId, points: [{ x: 1, y: 1 }] }, roomId);
+    expect(codeOf(body)).toBe('E_INVALID_PARAMS');
+    expect(body.error.message).toContain('PNG');
+  });
+
+  it('reports E_RENDER_UNAVAILABLE when no renderer is attached', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    const { body } = await call(h, 'render.pick', { roomId, points: [{ x: 1, y: 1 }] }, roomId);
+    expect(codeOf(body)).toBe('E_RENDER_UNAVAILABLE');
+  });
+});

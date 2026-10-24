@@ -1,10 +1,15 @@
 import { useThree } from '@react-three/fiber';
+import type { CameraState } from '@vibebyte/vibe3d-protocol';
 import { useEffect } from 'react';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
+import { addOverlays, applyShading } from './capture-look';
+import type { OverlayKind, ShadingMode } from './capture-look';
 import { useDoc } from '../stores/doc';
 import { useSelection } from '../stores/selection';
 import { animations } from '../three/anim';
+
+export type { OverlayKind, ShadingMode } from './capture-look';
 
 export interface CaptureOptions {
   width?: number;
@@ -12,6 +17,9 @@ export interface CaptureOptions {
   format?: 'png' | 'jpeg';
   at?: number;
   transparent?: boolean;
+  camera?: CameraState;
+  shading?: ShadingMode;
+  overlay?: OverlayKind[];
 }
 
 export interface CaptureResult {
@@ -67,6 +75,28 @@ function captureFrame(
   if (typeof opts.at === 'number') animations.seekAll(opts.at);
 
   const perspective = camera as THREE.PerspectiveCamera;
+  const prevCamera = {
+    position: camera.position.clone(),
+    quaternion: camera.quaternion.clone(),
+    fov: typeof perspective.fov === 'number' ? perspective.fov : undefined,
+  };
+  if (opts.camera) {
+    camera.position.set(...opts.camera.p);
+    camera.lookAt(new THREE.Vector3(...opts.camera.target));
+    if (prevCamera.fov !== undefined) {
+      perspective.fov = opts.camera.fov;
+      perspective.updateProjectionMatrix();
+    }
+  }
+  const restoreCamera = (): void => {
+    if (!opts.camera) return;
+    camera.position.copy(prevCamera.position);
+    camera.quaternion.copy(prevCamera.quaternion);
+    if (prevCamera.fov !== undefined) {
+      perspective.fov = prevCamera.fov;
+      perspective.updateProjectionMatrix();
+    }
+  };
   const prevAspect = perspective.aspect;
   const setAspect = (): void => {
     if (typeof perspective.aspect !== 'number') return;
@@ -77,6 +107,13 @@ function captureFrame(
     if (typeof perspective.aspect !== 'number') return;
     perspective.aspect = prevAspect;
     perspective.updateProjectionMatrix();
+  };
+
+  const restoreShading = applyShading(scene, opts.shading);
+  const clearOverlays = addOverlays(scene, opts.overlay);
+  const restoreLook = (): void => {
+    clearOverlays();
+    restoreShading();
   };
 
   let dataUrl: string;
@@ -102,7 +139,9 @@ function captureFrame(
       dataUrl = alphaRenderer.domElement.toDataURL(mime, quality);
     } finally {
       scene.background = background;
+      restoreLook();
       restoreAspect();
+      restoreCamera();
       alphaRenderer.dispose();
       alphaRenderer.forceContextLoss();
     }
@@ -115,7 +154,9 @@ function captureFrame(
       gl.render(scene, camera);
       dataUrl = gl.domElement.toDataURL(mime, quality);
     } finally {
+      restoreLook();
       restoreAspect();
+      restoreCamera();
       gl.setPixelRatio(prevRatio);
       gl.setSize(viewport.width, viewport.height);
     }

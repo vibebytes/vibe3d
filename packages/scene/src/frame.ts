@@ -18,11 +18,22 @@ type Mat4 = [
   number,
   number,
 ];
-type Aabb = { min: [number, number, number]; max: [number, number, number] };
+export type Bounds = { min: [number, number, number]; max: [number, number, number] };
+type Aabb = Bounds;
 export type FrameMode = 'fit' | 'close' | 'wide';
+export type ViewName = 'front' | 'back' | 'left' | 'right' | 'top' | 'three_quarter';
 
 const FRAME_FACTOR: Record<FrameMode, number> = { fit: 1.35, close: 1.0, wide: 2.4 };
 const VIEW_DIR: [number, number, number] = [1, 0.55, 1];
+const VIEW_DIRS: Record<ViewName, [number, number, number]> = {
+  front: [0, 0, 1],
+  back: [0, 0, -1],
+  left: [-1, 0, 0],
+  right: [1, 0, 0],
+  top: [0, 1, 0.0001],
+  three_quarter: VIEW_DIR,
+};
+export const VIEW_NAMES = Object.keys(VIEW_DIRS) as ViewName[];
 
 function composeLocal(node: SceneNode): Mat4 {
   const [rx, ry, rz] = node.transform.r;
@@ -125,53 +136,118 @@ function worldMatrices(doc: SceneDoc): Map<string, Mat4> {
   return out;
 }
 
-export function sceneBounds(doc: SceneDoc): Aabb | null {
-  const matrices = worldMatrices(doc);
-  let box: Aabb | null = null;
-  for (const [id, node] of Object.entries(doc.nodes)) {
-    if (!node.visible) continue;
-    const local = localBox(doc, node);
-    if (!local) continue;
-    const m = matrices.get(id)!;
-    for (let i = 0; i < 8; i++) {
-      const corner: [number, number, number] = [
-        i & 1 ? local.max[0] : local.min[0],
-        i & 2 ? local.max[1] : local.min[1],
-        i & 4 ? local.max[2] : local.min[2],
-      ];
-      const p = applyPoint(m, corner);
-      if (!box) box = { min: [...p], max: [...p] };
-      else {
-        for (let k = 0; k < 3; k++) {
-          box.min[k] = Math.min(box.min[k]!, p[k]!);
-          box.max[k] = Math.max(box.max[k]!, p[k]!);
-        }
+function expand(box: Aabb | null, m: Mat4, local: Aabb): Aabb {
+  let out = box;
+  for (let i = 0; i < 8; i++) {
+    const corner: [number, number, number] = [
+      i & 1 ? local.max[0] : local.min[0],
+      i & 2 ? local.max[1] : local.min[1],
+      i & 4 ? local.max[2] : local.min[2],
+    ];
+    const p = applyPoint(m, corner);
+    if (!out) out = { min: [...p], max: [...p] };
+    else {
+      for (let k = 0; k < 3; k++) {
+        out.min[k] = Math.min(out.min[k]!, p[k]!);
+        out.max[k] = Math.max(out.max[k]!, p[k]!);
       }
     }
+  }
+  return out as Aabb;
+}
+
+function boundsOf(doc: SceneDoc, ids: Iterable<string>): Aabb | null {
+  const matrices = worldMatrices(doc);
+  let box: Aabb | null = null;
+  for (const id of ids) {
+    const node = doc.nodes[id];
+    if (!node?.visible) continue;
+    const local = localBox(doc, node);
+    if (!local) continue;
+    box = expand(box, matrices.get(id)!, local);
   }
   return box;
 }
 
-export function frameCamera(doc: SceneDoc, mode: FrameMode = 'fit'): CameraState {
-  const box = sceneBounds(doc);
-  if (!box) return { ...doc.camera };
+export function sceneBounds(doc: SceneDoc): Aabb | null {
+  return boundsOf(doc, Object.keys(doc.nodes));
+}
+
+function subtreeIds(doc: SceneDoc, id: string): string[] {
+  const children = new Map<string, string[]>();
+  for (const node of Object.values(doc.nodes)) {
+    if (!node.parent) continue;
+    const list = children.get(node.parent);
+    if (list) list.push(node.id);
+    else children.set(node.parent, [node.id]);
+  }
+  const out: string[] = [];
+  const stack = [id];
+  while (stack.length > 0) {
+    const current = stack.pop()!;
+    out.push(current);
+    stack.push(...(children.get(current) ?? []));
+  }
+  return out;
+}
+
+export function nodeBounds(doc: SceneDoc, id: string): Aabb | null {
+  if (!doc.nodes[id]) return null;
+  return boundsOf(doc, subtreeIds(doc, id));
+}
+
+export interface FrameTargetOptions {
+  ids?: readonly string[];
+  mode?: FrameMode;
+  view?: ViewName;
+  padding?: number;
+}
+
+function frameBox(camera: CameraState, box: Aabb, mode: FrameMode, view: ViewName, padding = 1): CameraState {
   const center: [number, number, number] = [
     (box.min[0] + box.max[0]) / 2,
     (box.min[1] + box.max[1]) / 2,
     (box.min[2] + box.max[2]) / 2,
   ];
   const diag = Math.hypot(box.max[0] - box.min[0], box.max[1] - box.min[1], box.max[2] - box.min[2]);
-  const fov = doc.camera.fov || 45;
-  const distance = (Math.max(diag, 0.4) / 2 / Math.tan((fov * Math.PI) / 360)) * FRAME_FACTOR[mode];
-  const norm = Math.hypot(...VIEW_DIR);
-  const dir: [number, number, number] = [
-    (VIEW_DIR[0] / norm) * distance,
-    (VIEW_DIR[1] / norm) * distance,
-    (VIEW_DIR[2] / norm) * distance,
-  ];
+  const fov = camera.fov || 45;
+  const distance = (Math.max(diag, 0.4) / 2 / Math.tan((fov * Math.PI) / 360)) * FRAME_FACTOR[mode] * padding;
+  const dir = VIEW_DIRS[view];
+  const norm = Math.hypot(...dir);
   return {
-    ...doc.camera,
+    ...camera,
     target: center,
-    p: [center[0] + dir[0], center[1] + dir[1], center[2] + dir[2]],
+    p: [
+      center[0] + (dir[0] / norm) * distance,
+      center[1] + (dir[1] / norm) * distance,
+      center[2] + (dir[2] / norm) * distance,
+    ],
   };
+}
+
+export function frameTarget(
+  doc: SceneDoc,
+  opts: FrameTargetOptions = {},
+): { camera: CameraState; bounds: Aabb } | null {
+  const ids = opts.ids && opts.ids.length > 0 ? opts.ids : null;
+  const box = ids
+    ? boundsOf(
+        doc,
+        ids.flatMap((id) => subtreeIds(doc, id)),
+      )
+    : sceneBounds(doc);
+  if (!box) return null;
+  const mode = opts.mode ?? (ids ? 'close' : 'fit');
+  return {
+    camera: frameBox(doc.camera, box, mode, opts.view ?? 'three_quarter', opts.padding ?? 1),
+    bounds: box,
+  };
+}
+
+export function frameNode(doc: SceneDoc, id: string, mode: FrameMode = 'close'): CameraState | null {
+  return frameTarget(doc, { ids: [id], mode })?.camera ?? null;
+}
+
+export function frameCamera(doc: SceneDoc, mode: FrameMode = 'fit'): CameraState {
+  return frameTarget(doc, { mode, view: 'three_quarter' })?.camera ?? { ...doc.camera };
 }

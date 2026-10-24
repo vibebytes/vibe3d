@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { DOC_SCHEMA_VERSION } from './errors';
 import {
+  assetImageSchema,
   cameraStateSchema,
   envSchema,
   geometrySchema,
@@ -83,6 +84,7 @@ export const assetMetaSchema = z.object({
   mime: z.string().max(120),
   kind: z.enum(['gltf', 'image', 'bin']),
   gltf: gltfReportSchema.optional(),
+  image: assetImageSchema.optional(),
 });
 
 export const sceneDocSchema = z.object({

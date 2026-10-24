@@ -6,6 +6,7 @@ cd "$(dirname "$0")/.." || exit 1
 run() { volta run --node 22.23.2 -- "$@"; }
 PORTS=(18788 18790)
 PIDS=()
+FAILED=0
 
 port_pid() { lsof -nP -iTCP:$1 -sTCP:LISTEN -t 2>/dev/null | head -1; }
 
@@ -14,6 +15,7 @@ free_ports() {
     local pid=$(port_pid $p)
     [[ -n "$pid" ]] && kill -9 $pid 2>/dev/null
   done
+  pkill -f 'vibe3d-chrome-' 2>/dev/null
   for i in {1..40}; do
     local busy=0
     for p in $PORTS; do [[ -n "$(port_pid $p)" ]] && busy=1; done
@@ -65,21 +67,30 @@ echo "== smoke-render"
 VIBE3D_BASE=http://127.0.0.1:18788 VIBE3D_TOKEN=smoke-token-123 run node scripts/smoke-render.mjs 2>&1 | tail -4
 st=($pipestatus)
 echo "render_exit=$st[1]"
+[[ $st[1] -eq 0 ]] || FAILED=1
 echo "== smoke-daemon"
 VIBE3D_BASE=http://127.0.0.1:18788 VIBE3D_TOKEN=smoke-token-123 run node scripts/smoke-daemon.mjs 2>&1 | tail -3
 st=($pipestatus)
 echo "daemon_exit=$st[1]"
+[[ $st[1] -eq 0 ]] || FAILED=1
 
 kill -TERM $PIDS[1] 2>/dev/null; sleep 2; PIDS=(${PIDS[2,-1]})
 echo "== chrome left after shutdown: $(chrome_left)"
 
 start_daemon /tmp/vibe3d-smoke2 18790 /tmp/v3d-mcp.log testtoken123456 || exit 1
 echo "== smoke-mcp"
-VIBE3D_URL=http://127.0.0.1:18790 VIBE3D_TOKEN=testtoken123456 run node scripts/smoke-mcp.mjs 2>&1 | tail -10
+VIBE3D_URL=http://127.0.0.1:18790 VIBE3D_TOKEN=testtoken123456 run node scripts/smoke-mcp.mjs 2>&1 | grep -E '^(ok|FAIL|smoke-mcp)'
 st=($pipestatus)
 echo "mcp_exit=$st[1]"
+[[ $st[1] -eq 0 ]] || FAILED=1
 
 for pid in $PIDS; do kill -TERM $pid 2>/dev/null; done
 PIDS=()
 for i in {1..20}; do [[ "$(chrome_left)" == "0" ]] && break; sleep 0.25; done
 echo "== chrome left final: $(chrome_left)"
+
+if [[ $FAILED -ne 0 ]]; then
+  echo "!! smoke 存在失败项" >&2
+  exit 1
+fi
+echo "== smoke all ok"

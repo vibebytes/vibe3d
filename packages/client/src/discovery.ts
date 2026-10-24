@@ -1,9 +1,10 @@
 import { spawn } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, unlinkSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { fileURLToPath } from 'node:url';
 import { Vibe3DError } from './errors';
 import { RpcClient } from './transport';
 
@@ -40,7 +41,17 @@ export function listRuns(home = defaultHome()): RunRecord[] {
     const file = join(dir, entry);
     try {
       const raw = JSON.parse(readFileSync(file, 'utf8')) as Omit<RunRecord, 'file'>;
-      if (typeof raw.port === 'number' && typeof raw.token === 'string') runs.push({ ...raw, file });
+      if (typeof raw.port === 'number' && typeof raw.token === 'string') {
+        if (!alive(raw.pid)) {
+          try {
+            unlinkSync(file);
+          } catch {
+            /* 清理失败不影响发现 */
+          }
+          continue;
+        }
+        runs.push({ ...raw, file });
+      }
     } catch {
       /* 跳过损坏的 run 文件 */
     }
@@ -75,23 +86,31 @@ export async function findRunning(home = defaultHome()): Promise<RunRecord | und
   return undefined;
 }
 
-function daemonEntry(): { file: string; loader: string[] } {
+export function resolveDaemonEntry(): { file: string; loader: string[] } {
   const require = createRequire(import.meta.url);
-  let base: string;
+  let base: string | undefined;
   try {
     base = require.resolve('@vibebyte/vibe3d-daemon');
   } catch {
-    throw new Vibe3DError('E_NO_DAEMON', '找不到 @vibebyte/vibe3d-daemon，无法自动拉起 daemon');
+    base = undefined;
   }
-  const dir = base.replace(/[\\/](src|dist)[\\/][^\\/]+$/, '');
-  const dist = join(dir, 'dist', 'index.js');
-  if (existsSync(dist)) return { file: dist, loader: [] };
-  return { file: base, loader: ['--import', 'tsx'] };
+  if (base) {
+    const dir = base.replace(/[\\/](src|dist)[\\/][^\\/]+$/, '');
+    const dist = join(dir, 'dist', 'index.js');
+    if (existsSync(dist)) return { file: dist, loader: [] };
+    return { file: base, loader: ['--import', 'tsx'] };
+  }
+  const sibling = fileURLToPath(new URL('../../daemon/dist/index.js', import.meta.url));
+  if (existsSync(sibling)) return { file: sibling, loader: [] };
+  throw new Vibe3DError(
+    'E_NO_DAEMON',
+    `找不到 @vibebyte/vibe3d-daemon，也没有同仓构建产物（${sibling}）。先在仓库根跑 pnpm -r build，或直接用 --url 连接已运行的 daemon。`,
+  );
 }
 
 export async function startDaemon(opts: ConnectOptions = {}): Promise<RunRecord> {
   const home = opts.home ?? defaultHome();
-  const { file, loader } = daemonEntry();
+  const { file, loader } = resolveDaemonEntry();
   const args = [...loader, file, '--home', home, ...(opts.spawnArgs ?? [])];
   const child = spawn(process.execPath, args, { detached: true, stdio: 'ignore' });
   child.unref();

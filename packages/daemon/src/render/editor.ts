@@ -38,6 +38,9 @@ export class EditorRenderer implements Renderer {
           format,
           at: opts.at,
           transparent: opts.transparent,
+          camera: opts.camera,
+          shading: opts.shading,
+          overlay: opts.overlay,
         },
         this.timeoutMs + settleMs,
       );

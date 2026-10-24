@@ -151,6 +151,24 @@ describe('applyOps', () => {
     expect(applyOps(res.doc, res.inverse).doc).toEqual(doc);
   });
 
+  it('env.set 支持 null 清除 HDRI，逆操作可恢复', () => {
+    const doc = cubeDoc();
+    doc.assets[SHA_A] = {
+      sha: SHA_A,
+      bytes: 2048,
+      name: 'sky.hdr',
+      mime: 'image/vnd.radiance',
+      kind: 'image',
+      image: { width: 1024, height: 512, hdri: true },
+    };
+    const set = applyOps(doc, [{ op: 'env.set', env: { hdri: SHA_A } }]);
+    expect(set.doc.env.hdri).toBe(SHA_A);
+    const cleared = applyOps(set.doc, [{ op: 'env.set', env: { hdri: null } }]);
+    expect(cleared.doc.env.hdri).toBeUndefined();
+    expect(applyOps(cleared.doc, cleared.inverse).doc.env.hdri).toBe(SHA_A);
+    expect(applyOps(set.doc, set.inverse).doc.env.hdri).toBeUndefined();
+  });
+
   it('原子性：任一 op 失败则整批不生效', () => {
     const doc = cubeDoc();
     const snapshot = structuredClone(doc);

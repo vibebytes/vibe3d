@@ -9,21 +9,44 @@ export type CapabilityName =
   | "room.close"
   | "scene.get"
   | "scene.summary"
+  | "scene.query"
+  | "node.get"
+  | "scene.stats"
+  | "scene.validate"
+  | "node.transform_many"
+  | "node.array"
+  | "node.group"
+  | "material.assign"
   | "ops.apply"
   | "node.create"
   | "node.update"
   | "node.delete"
+  | "node.clone"
   | "stage.set"
   | "animation.play"
   | "scene.undo"
   | "scene.redo"
   | "scene.diff"
   | "selection.get"
+  | "scene.export"
+  | "scene.import"
+  | "scene.checkpoint"
+  | "scene.checkpoints"
+  | "scene.restore"
   | "node.import"
   | "asset.inspect"
+  | "asset.put"
+  | "asset.list"
+  | "asset.delete"
   | "camera.set"
   | "render.snapshot"
+  | "render.views"
+  | "render.node"
+  | "render.pick"
   | "export.glb"
+  | "job.get"
+  | "job.list"
+  | "job.cancel"
   | "editor.open";
 
 export type InputOf<N extends CapabilityName> = {
@@ -33,21 +56,44 @@ export type InputOf<N extends CapabilityName> = {
   "room.close": z.infer<(typeof CAPABILITIES)["room.close"]['input']>;
   "scene.get": z.infer<(typeof CAPABILITIES)["scene.get"]['input']>;
   "scene.summary": z.infer<(typeof CAPABILITIES)["scene.summary"]['input']>;
+  "scene.query": z.infer<(typeof CAPABILITIES)["scene.query"]['input']>;
+  "node.get": z.infer<(typeof CAPABILITIES)["node.get"]['input']>;
+  "scene.stats": z.infer<(typeof CAPABILITIES)["scene.stats"]['input']>;
+  "scene.validate": z.infer<(typeof CAPABILITIES)["scene.validate"]['input']>;
+  "node.transform_many": z.infer<(typeof CAPABILITIES)["node.transform_many"]['input']>;
+  "node.array": z.infer<(typeof CAPABILITIES)["node.array"]['input']>;
+  "node.group": z.infer<(typeof CAPABILITIES)["node.group"]['input']>;
+  "material.assign": z.infer<(typeof CAPABILITIES)["material.assign"]['input']>;
   "ops.apply": z.infer<(typeof CAPABILITIES)["ops.apply"]['input']>;
   "node.create": z.infer<(typeof CAPABILITIES)["node.create"]['input']>;
   "node.update": z.infer<(typeof CAPABILITIES)["node.update"]['input']>;
   "node.delete": z.infer<(typeof CAPABILITIES)["node.delete"]['input']>;
+  "node.clone": z.infer<(typeof CAPABILITIES)["node.clone"]['input']>;
   "stage.set": z.infer<(typeof CAPABILITIES)["stage.set"]['input']>;
   "animation.play": z.infer<(typeof CAPABILITIES)["animation.play"]['input']>;
   "scene.undo": z.infer<(typeof CAPABILITIES)["scene.undo"]['input']>;
   "scene.redo": z.infer<(typeof CAPABILITIES)["scene.redo"]['input']>;
   "scene.diff": z.infer<(typeof CAPABILITIES)["scene.diff"]['input']>;
   "selection.get": z.infer<(typeof CAPABILITIES)["selection.get"]['input']>;
+  "scene.export": z.infer<(typeof CAPABILITIES)["scene.export"]['input']>;
+  "scene.import": z.infer<(typeof CAPABILITIES)["scene.import"]['input']>;
+  "scene.checkpoint": z.infer<(typeof CAPABILITIES)["scene.checkpoint"]['input']>;
+  "scene.checkpoints": z.infer<(typeof CAPABILITIES)["scene.checkpoints"]['input']>;
+  "scene.restore": z.infer<(typeof CAPABILITIES)["scene.restore"]['input']>;
   "node.import": z.infer<(typeof CAPABILITIES)["node.import"]['input']>;
   "asset.inspect": z.infer<(typeof CAPABILITIES)["asset.inspect"]['input']>;
+  "asset.put": z.infer<(typeof CAPABILITIES)["asset.put"]['input']>;
+  "asset.list": z.infer<(typeof CAPABILITIES)["asset.list"]['input']>;
+  "asset.delete": z.infer<(typeof CAPABILITIES)["asset.delete"]['input']>;
   "camera.set": z.infer<(typeof CAPABILITIES)["camera.set"]['input']>;
   "render.snapshot": z.infer<(typeof CAPABILITIES)["render.snapshot"]['input']>;
+  "render.views": z.infer<(typeof CAPABILITIES)["render.views"]['input']>;
+  "render.node": z.infer<(typeof CAPABILITIES)["render.node"]['input']>;
+  "render.pick": z.infer<(typeof CAPABILITIES)["render.pick"]['input']>;
   "export.glb": z.infer<(typeof CAPABILITIES)["export.glb"]['input']>;
+  "job.get": z.infer<(typeof CAPABILITIES)["job.get"]['input']>;
+  "job.list": z.infer<(typeof CAPABILITIES)["job.list"]['input']>;
+  "job.cancel": z.infer<(typeof CAPABILITIES)["job.cancel"]['input']>;
   "editor.open": z.infer<(typeof CAPABILITIES)["editor.open"]['input']>;
 }[N];
 
@@ -58,20 +104,43 @@ export type OutputOf<N extends CapabilityName> = {
   "room.close": z.infer<(typeof CAPABILITIES)["room.close"]['output']>;
   "scene.get": z.infer<(typeof CAPABILITIES)["scene.get"]['output']>;
   "scene.summary": z.infer<(typeof CAPABILITIES)["scene.summary"]['output']>;
+  "scene.query": z.infer<(typeof CAPABILITIES)["scene.query"]['output']>;
+  "node.get": z.infer<(typeof CAPABILITIES)["node.get"]['output']>;
+  "scene.stats": z.infer<(typeof CAPABILITIES)["scene.stats"]['output']>;
+  "scene.validate": z.infer<(typeof CAPABILITIES)["scene.validate"]['output']>;
+  "node.transform_many": z.infer<(typeof CAPABILITIES)["node.transform_many"]['output']>;
+  "node.array": z.infer<(typeof CAPABILITIES)["node.array"]['output']>;
+  "node.group": z.infer<(typeof CAPABILITIES)["node.group"]['output']>;
+  "material.assign": z.infer<(typeof CAPABILITIES)["material.assign"]['output']>;
   "ops.apply": z.infer<(typeof CAPABILITIES)["ops.apply"]['output']>;
   "node.create": z.infer<(typeof CAPABILITIES)["node.create"]['output']>;
   "node.update": z.infer<(typeof CAPABILITIES)["node.update"]['output']>;
   "node.delete": z.infer<(typeof CAPABILITIES)["node.delete"]['output']>;
+  "node.clone": z.infer<(typeof CAPABILITIES)["node.clone"]['output']>;
   "stage.set": z.infer<(typeof CAPABILITIES)["stage.set"]['output']>;
   "animation.play": z.infer<(typeof CAPABILITIES)["animation.play"]['output']>;
   "scene.undo": z.infer<(typeof CAPABILITIES)["scene.undo"]['output']>;
   "scene.redo": z.infer<(typeof CAPABILITIES)["scene.redo"]['output']>;
   "scene.diff": z.infer<(typeof CAPABILITIES)["scene.diff"]['output']>;
   "selection.get": z.infer<(typeof CAPABILITIES)["selection.get"]['output']>;
+  "scene.export": z.infer<(typeof CAPABILITIES)["scene.export"]['output']>;
+  "scene.import": z.infer<(typeof CAPABILITIES)["scene.import"]['output']>;
+  "scene.checkpoint": z.infer<(typeof CAPABILITIES)["scene.checkpoint"]['output']>;
+  "scene.checkpoints": z.infer<(typeof CAPABILITIES)["scene.checkpoints"]['output']>;
+  "scene.restore": z.infer<(typeof CAPABILITIES)["scene.restore"]['output']>;
   "node.import": z.infer<(typeof CAPABILITIES)["node.import"]['output']>;
   "asset.inspect": z.infer<(typeof CAPABILITIES)["asset.inspect"]['output']>;
+  "asset.put": z.infer<(typeof CAPABILITIES)["asset.put"]['output']>;
+  "asset.list": z.infer<(typeof CAPABILITIES)["asset.list"]['output']>;
+  "asset.delete": z.infer<(typeof CAPABILITIES)["asset.delete"]['output']>;
   "camera.set": z.infer<(typeof CAPABILITIES)["camera.set"]['output']>;
   "render.snapshot": z.infer<(typeof CAPABILITIES)["render.snapshot"]['output']>;
+  "render.views": z.infer<(typeof CAPABILITIES)["render.views"]['output']>;
+  "render.node": z.infer<(typeof CAPABILITIES)["render.node"]['output']>;
+  "render.pick": z.infer<(typeof CAPABILITIES)["render.pick"]['output']>;
   "export.glb": z.infer<(typeof CAPABILITIES)["export.glb"]['output']>;
+  "job.get": z.infer<(typeof CAPABILITIES)["job.get"]['output']>;
+  "job.list": z.infer<(typeof CAPABILITIES)["job.list"]['output']>;
+  "job.cancel": z.infer<(typeof CAPABILITIES)["job.cancel"]['output']>;
   "editor.open": z.infer<(typeof CAPABILITIES)["editor.open"]['output']>;
 }[N];

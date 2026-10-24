@@ -10,10 +10,13 @@ import { createIngest } from './assets/ingest';
 import { parseConfig } from './config';
 import type { DispatchContext } from './context';
 import { flushAll } from './doc/persist';
+import { JobQueue } from './jobs/queue';
+import { JobStore, sweepExports } from './jobs/store';
 import { acquireLock } from './lock';
 import { createLogger } from './logger';
 import { createRenderer } from './render';
 import { RoomManager } from './rooms/manager';
+import { openInBrowser } from './browser';
 import { createApp } from './server';
 import { attachWebSocket } from './ws/attach';
 import { WsHub } from './ws/hub';
@@ -68,14 +71,36 @@ async function main(): Promise<void> {
   }
 
   const { ingest, inspect } = createIngest({ blobs, roots: config.assetRoots });
+  const jobStore = new JobStore();
+  const jobs = new JobQueue(jobStore, {
+    progress: (job) =>
+      hub.event(job.roomId, 'job.progress', {
+        jobId: job.id,
+        pct: job.progress,
+        ...(job.phase ? { phase: job.phase } : {}),
+      }),
+    done: (job) =>
+      hub.event(job.roomId, 'job.done', {
+        jobId: job.id,
+        state: 'done',
+        url: job.result?.url,
+        bytes: job.result?.bytes,
+        revision: job.result?.revision,
+      }),
+    failed: (job) => hub.event(job.roomId, 'job.done', { jobId: job.id, state: 'failed', error: job.error }),
+    cancelled: (job) => hub.event(job.roomId, 'job.done', { jobId: job.id, state: 'cancelled' }),
+  });
   const ctx: DispatchContext = {
     rooms,
     baseUrl: '',
     token: config.token,
+    jobs: { store: jobStore, queue: jobs },
     ingest,
     inspect,
     selection: () => [],
     surfaces: (roomId) => hub.count(roomId),
+    autoOpen: new Map(),
+    ...(config.openEditor ? { openExternal: openInBrowser } : {}),
   };
   ctx.renderer = createRenderer({
     config,
@@ -86,6 +111,15 @@ async function main(): Promise<void> {
   });
 
   const app = createApp({ config, ctx, blobs, logger, editorDir: EDITOR_DIST, exportsDir: dirs.exports });
+  const jobSweep = setInterval(() => {
+    jobStore.sweep();
+    void sweepExports(dirs.exports)
+      .then((removed) => {
+        if (removed.length) logger.info({ event: 'exports.gc', removed: removed.length });
+      })
+      .catch((err: unknown) => logger.warn({ event: 'exports.gc.failed', err: String(err) }));
+  }, 60_000);
+  jobSweep.unref();
   const server = serve({ fetch: app.fetch, hostname: config.host, port: config.port }) as Server;
   server.once('error', (err: Error) => {
     logger.error(
@@ -140,6 +174,7 @@ async function main(): Promise<void> {
     if (closing) return;
     closing = true;
     logger.info({ event: 'shutdown', signal });
+    clearInterval(jobSweep);
     wss?.close();
     await Promise.race([
       ctx.renderer?.close?.() ?? Promise.resolve(),

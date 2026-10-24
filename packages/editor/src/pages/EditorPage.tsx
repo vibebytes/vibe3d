@@ -4,6 +4,7 @@ import { CommandPalette } from '../common/CommandPalette';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 import { ExportDialog } from '../common/ExportDialog';
+import { ImportOverlay } from '../common/ImportOverlay';
 import { SnapshotDialog } from '../common/SnapshotDialog';
 import { Toaster, useToasts } from '../common/Toaster';
 import { Inspector } from '../inspector/Inspector';
@@ -11,14 +12,18 @@ import { AppShell } from '../layout/AppShell';
 import { SidePanel } from '../layout/SidePanel';
 import { StatusBar } from '../layout/StatusBar';
 import { TopBar } from '../layout/TopBar';
+import { AssetsPanel } from '../scene/AssetsPanel';
 import { SceneTree } from '../scene/SceneTree';
 import { useDoc } from '../stores/doc';
 import { useSelection } from '../stores/selection';
 import { useUi } from '../stores/ui';
 import { CaptureBridge } from '../viewport/CaptureBridge';
+import { EmptyViewport } from '../viewport/EmptyViewport';
 import { SceneCanvas } from '../viewport/SceneCanvas';
+import { ViewportHud } from '../viewport/ViewportHud';
 import { HeadlessPage } from './HeadlessPage';
 import { editorCommands } from './useEditorCommands';
+import { useModelImport } from './useModelImport';
 import { useShortcuts } from './useShortcuts';
 
 export function EditorPage() {
@@ -49,6 +54,7 @@ export function EditorPage() {
   const setExportOpen = useUi((s) => s.setExport);
 
   const { items, push, dismiss } = useToasts();
+  const importer = useModelImport(push);
   const [confirm, setConfirm] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
@@ -61,6 +67,10 @@ export function EditorPage() {
 
   const nodes = useMemo(
     () => (doc ? Object.values(doc.nodes).map((n) => ({ id: n.id, name: n.name })) : []),
+    [doc],
+  );
+  const modelCount = useMemo(
+    () => (doc ? Object.values(doc.nodes).filter((n) => n.kind === 'model').length : 0),
     [doc],
   );
 
@@ -86,9 +96,20 @@ export function EditorPage() {
   if (headless) return <HeadlessPage />;
   if (status === 'loading' && !doc)
     return (
-      <div className="flex h-full items-center justify-center text-sm text-base-content/50">载入房间…</div>
+      <div className="flex h-full items-center justify-center gap-3 text-sm text-base-content/45">
+        <span className="dot dot--pulse text-primary" />
+        载入房间…
+      </div>
     );
-  if (error && !doc) return <div className="alert alert-error m-6 text-sm">{error}</div>;
+  if (error && !doc)
+    return (
+      <div className="grid h-full place-items-center p-6">
+        <div className="empty-card text-left">
+          <h1 className="text-sm font-medium">无法载入房间</h1>
+          <p className="mt-2 text-xs leading-relaxed text-base-content/45">{error}</p>
+        </div>
+      </div>
+    );
   if (!doc) return null;
 
   const commands = editorCommands({
@@ -99,6 +120,7 @@ export function EditorPage() {
     onRedo: () => void run(() => useDoc.getState().redo()),
     onSnapshot: () => setSnapshotOpen(true),
     onExport: () => setExportOpen(true),
+    onImport: importer.open,
     onDelete: deleteSelected,
     onFrame: () => void run(() => useDoc.getState().frameCamera('fit')),
     onPreset: (preset) => void run(() => useDoc.getState().setStage({ preset })),
@@ -123,28 +145,50 @@ export function EditorPage() {
             onRedo={() => void run(() => useDoc.getState().redo())}
             onSnapshot={() => setSnapshotOpen(true)}
             onExport={() => setExportOpen(true)}
+            onImport={importer.open}
             onCommand={() => setPaletteOpen(true)}
             onTogglePanel={togglePanel}
           />
         }
         sidePanel={
-          <SidePanel tab={tab} onTab={setTab}>
-            {tab === 'scene' ? <SceneTree doc={doc} /> : <Inspector doc={doc} />}
+          <SidePanel
+            tab={tab}
+            onTab={setTab}
+            counts={{ scene: nodes.length, assets: modelCount, inspector: selectedIds.length }}
+          >
+            {tab === 'scene' && <SceneTree doc={doc} />}
+            {tab === 'assets' && (
+              <AssetsPanel doc={doc} onImport={importer.open} onUploadImages={importer.openImages} />
+            )}
+            {tab === 'inspector' && <Inspector doc={doc} />}
           </SidePanel>
         }
         inspector={<Inspector doc={doc} />}
         statusBar={<StatusBar revision={doc.revision} nodes={nodes.length} />}
         banner={
           !online && status === 'ready' ? (
-            <div className="border-b border-warning/20 bg-warning/10 px-3 py-1 text-[11px] text-warning">
+            <div className="flex items-center gap-2 border-b border-warning/20 bg-warning/10 px-3 py-1 text-[11px] text-warning">
+              <span className="dot dot--pulse" />
               连接已断开，正在按 0.5→8s 退避重连；重连后以服务端场景为准。
             </div>
           ) : undefined
         }
       >
-        <SceneCanvas doc={doc}>
-          <CaptureBridge roomId={roomId} />
-        </SceneCanvas>
+        <div className="relative h-full">
+          <SceneCanvas doc={doc}>
+            <CaptureBridge roomId={roomId} />
+          </SceneCanvas>
+          <ViewportHud
+            nodeCount={nodes.length}
+            onFit={() => void run(() => useDoc.getState().frameCamera('fit'))}
+          />
+          {nodes.length === 0 && (
+            <EmptyViewport
+              onImport={importer.open}
+              onAddBox={() => void run(() => useDoc.getState().createNode('box'))}
+            />
+          )}
+        </div>
       </AppShell>
 
       <CommandPalette
@@ -185,6 +229,8 @@ export function EditorPage() {
         }}
       />
       <Toaster items={items} onDismiss={dismiss} />
+      <ImportOverlay dragging={importer.dragging} importing={importer.importing} />
+      {importer.input}
     </ErrorBoundary>
   );
 }

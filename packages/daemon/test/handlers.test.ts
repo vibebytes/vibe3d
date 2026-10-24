@@ -188,6 +188,8 @@ describe('handlers: scene', () => {
     expect(list.body.result.rooms[0].roomId).toBe(roomId);
     const one = await call(h, 'room.get', { roomId }, roomId);
     expect(one.body.result.name).toBe('测试场景');
+    expect(one.body.result.editors).toBe(0);
+    expect(one.body.result.url).toContain(`/editor/r/${roomId}`);
 
     const editor = await call(h, 'editor.open', { roomId, focus: 'n_abcdefg1', reuse: true }, roomId);
     expect(editor.body.result.url).toContain(`/r/${roomId}?focus=n_abcdefg1`);
@@ -233,5 +235,28 @@ describe('handlers: asset', () => {
 
     const missing = await call(h, 'node.import', { roomId, src: join(dir, 'nope.glb') }, roomId);
     expect(codeOf(missing.body)).toBe('E_ASSET_MISSING');
+  });
+
+  it('node.import 可直接引用已注册资产的 sha', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    const dir = mkdtempSync(join(tmpdir(), 'v3d-sha-'));
+    const file = join(dir, 'box.glb');
+    writeFileSync(file, glb({ animations: [] }));
+
+    const put = await call(h, 'asset.put', { roomId, src: file }, roomId);
+    const sha = put.body.result.sha;
+    const imported = await call(h, 'node.import', { roomId, sha, name: '盒子' }, roomId);
+    expect(imported.body.result.sha).toBe(sha);
+    expect(imported.body.result.report.tris).toBe(1);
+
+    const state = await call(h, 'scene.get', { roomId }, roomId);
+    expect(state.body.result.doc.nodes[imported.body.result.nodeId].name).toBe('盒子');
+
+    const missing = await call(h, 'node.import', { roomId, sha: 'a'.repeat(64) }, roomId);
+    expect(codeOf(missing.body)).toBe('E_ASSET_MISSING');
+
+    const empty = await call(h, 'node.import', { roomId }, roomId);
+    expect(codeOf(empty.body)).toBe('E_INVALID_PARAMS');
   });
 });

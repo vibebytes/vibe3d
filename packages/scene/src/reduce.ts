@@ -56,6 +56,16 @@ const isAncestor = (doc: SceneDoc, ancestor: string, id: string): boolean => {
   return false;
 };
 
+function countRefs(doc: SceneDoc, sha: string): number {
+  let total = 0;
+  for (const node of Object.values(doc.nodes)) {
+    if (node.kind === 'model' && node.sha === sha) total += 1;
+    if (node.kind === 'mesh' && doc.materials[node.material]?.map === sha) total += 1;
+  }
+  if (doc.env.hdri === sha) total += 1;
+  return total;
+}
+
 function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): void {
   switch (op.op) {
     case 'node.create': {
@@ -93,6 +103,28 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
         old.anim = node.anim ? clone(node.anim) : null;
         if (patch.anim === null) Reflect.deleteProperty(node, 'anim');
         else node.anim = clone(patch.anim);
+      }
+      if (patch.geometry !== undefined) {
+        if (node.kind !== 'mesh') fail('只有 mesh 节点有 geometry 字段', { id: op.id });
+        old.geometry = clone(node.geometry);
+        node.geometry = clone(patch.geometry);
+      }
+      if (patch.material !== undefined) {
+        if (node.kind !== 'mesh') fail('只有 mesh 节点有 material 字段', { id: op.id });
+        if (!doc.materials[patch.material]) fail('材质不存在', { id: op.id, material: patch.material });
+        old.material = node.material;
+        node.material = patch.material;
+      }
+      if (patch.sha !== undefined) {
+        if (node.kind !== 'model') fail('只有 model 节点有 sha 字段', { id: op.id });
+        const asset = doc.assets[patch.sha];
+        if (!asset || asset.kind !== 'gltf') fail('模型资产不存在或不是 gltf', { sha: patch.sha });
+        old.sha = node.sha;
+        if (node.anim) {
+          old.anim = clone(node.anim);
+          Reflect.deleteProperty(node, 'anim');
+        }
+        node.sha = patch.sha;
       }
       inverse.push({ op: 'node.update', id: op.id, patch: old });
       return;
@@ -158,11 +190,31 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
     case 'env.set': {
       const old: Partial<SceneDoc['env']> = {};
       for (const key of Object.keys(op.env) as (keyof SceneDoc['env'])[]) {
-        if (op.env[key] === undefined) continue;
-        (old as Record<string, unknown>)[key] = clone(doc.env[key]);
-        (doc.env as Record<string, unknown>)[key] = clone(op.env[key]);
+        const value = op.env[key];
+        if (value === undefined) continue;
+        (old as Record<string, unknown>)[key] = doc.env[key] === undefined ? null : clone(doc.env[key]);
+        if (value === null) delete (doc.env as Record<string, unknown>)[key];
+        else (doc.env as Record<string, unknown>)[key] = clone(value);
       }
       inverse.push({ op: 'env.set', env: old });
+      return;
+    }
+    case 'asset.register': {
+      const previous = doc.assets[op.asset.sha];
+      doc.assets[op.asset.sha] = clone(op.asset);
+      inverse.push(
+        previous
+          ? { op: 'asset.register', asset: clone(previous) }
+          : { op: 'asset.unregister', sha: op.asset.sha },
+      );
+      return;
+    }
+    case 'asset.unregister': {
+      const previous = doc.assets[op.sha];
+      if (!previous) return;
+      if (countRefs(doc, op.sha) > 0) fail('资产仍被引用，不能移除', { sha: op.sha });
+      delete doc.assets[op.sha];
+      inverse.push({ op: 'asset.register', asset: clone(previous) });
       return;
     }
     case 'stage.set': {

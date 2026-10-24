@@ -49,7 +49,7 @@ export function createServer(deps: ServerDeps) {
         capabilities: { tools: { listChanged: false } },
         serverInfo: SERVER_INFO,
         instructions:
-          '用 vibe3d_create_room 开房，再以 room_id 调 scene/node/render 等工具；省略 room_id 时使用最近创建的房间。',
+          '房间由会话绑定：先 vibe3d_create_room 建房（自动绑定当前会话），或用 vibe3d_get_room / vibe3d_open_editor 传 room_id 切换房间。此后 scene / node / asset / render 类工具都不要传 room_id，一律作用于当前绑定的房间。',
       });
       return;
     }
@@ -95,7 +95,6 @@ export function createServer(deps: ServerDeps) {
   function start(): void {
     const rl = createInterface({ input: process.stdin, crlfDelay: Number.POSITIVE_INFINITY });
     const inflight = new Set<Promise<void>>();
-    let queue: Promise<void> = Promise.resolve();
     rl.on('line', (line) => {
       const text = line.trim();
       if (!text) return;
@@ -106,12 +105,9 @@ export function createServer(deps: ServerDeps) {
         fail(null, { code: -32700, message: 'Parse error' });
         return;
       }
-      const task = queue
-        .then(() => handle(req))
-        .catch((err: unknown) => {
-          fail(req.id ?? null, { code: -32603, message: err instanceof Error ? err.message : String(err) });
-        });
-      queue = task;
+      const task = handle(req).catch((err: unknown) => {
+        fail(req.id ?? null, { code: -32603, message: err instanceof Error ? err.message : String(err) });
+      });
       inflight.add(task);
       void task.finally(() => inflight.delete(task));
     });

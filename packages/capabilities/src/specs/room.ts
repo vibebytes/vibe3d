@@ -3,7 +3,7 @@ import { revisionOut, roomId, roomSummary } from './common';
 
 export const roomCreate = {
   'room.create': {
-    title: '创建房间：分配 roomId 与文档，可选模板',
+    title: '创建房间：分配 roomId 与文档；下次写操作会自动开窗，无需预先调用 vibe3d_open_editor',
     input: z.object({
       name: z.string().min(1).max(120).optional(),
       template: z.enum(['empty', 'showroom', 'product']).optional(),
@@ -32,13 +32,13 @@ export const roomCreate = {
     cli: { command: 'room ls', args: '' },
   },
   'room.get': {
-    title: '读取房间摘要',
+    title: '读取房间摘要（含 editors：0 表示暂无窗口在看，下一次写操作会自动开窗）',
     input: z.object({ roomId }),
-    output: roomSummary,
+    output: roomSummary.extend({ editors: z.number().int().min(0), url: z.string() }),
     scope: 'room' as const,
     mutating: false,
     wire: 'room.get' as const,
-    mcp: { tool: 'vibe3d_get_room' as const, annotations: { readOnlyHint: true } },
+    mcp: { tool: 'vibe3d_get_room' as const, annotations: { readOnlyHint: true }, roomArg: true },
     cli: { command: 'room show', args: '<roomId>' },
     errors: ['E_ROOM_NOT_FOUND'] as const,
   },
@@ -49,7 +49,11 @@ export const roomCreate = {
     scope: 'room' as const,
     mutating: true,
     wire: 'room.close' as const,
-    mcp: { tool: 'vibe3d_close_room' as const, annotations: { destructiveHint: true } },
+    mcp: {
+      tool: 'vibe3d_close_room' as const,
+      annotations: { destructiveHint: true },
+      roomArg: true,
+    },
     cli: { command: 'room rm', args: '<roomId> [--purge]' },
     errors: ['E_ROOM_NOT_FOUND', 'E_LOCKED'] as const,
   },

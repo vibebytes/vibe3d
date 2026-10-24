@@ -30,19 +30,46 @@ const pngOk = png.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0
 const opened = await rpc(`/r/${roomId}/rpc`, 'editor.open', {});
 
 const exported = await rpc(`/r/${roomId}/rpc`, 'export.glb', {});
-const file = await fetch(base + exported.url);
+let job = { jobId: exported.jobId, state: exported.state };
+for (let i = 0; i < 100 && job.state !== 'done' && job.state !== 'failed'; i++) {
+  await new Promise((r) => setTimeout(r, 100));
+  job = await rpc('/rpc', 'job.get', { jobId: exported.jobId });
+}
+if (job.state !== 'done') throw new Error(`export.glb did not finish: ${JSON.stringify(job)}`);
+const file = await fetch(base + job.url);
 const glb = Buffer.from(await file.arrayBuffer());
 const glbOk = glb.subarray(0, 4).toString('utf8') === 'glTF';
 
-const tampered = await fetch(`${base}${exported.url.split('&')[0]}&sig=${'0'.repeat(32)}`);
+const tampered = await fetch(`${base}${job.url.split('&')[0]}&sig=${'0'.repeat(32)}`);
+
+const checks = {
+  healthOk: health.ok === true,
+  snapshotPng: pngOk,
+  snapshotSize: shot.width === 640 && shot.height === 360,
+  editorUrl: typeof opened.url === 'string' && opened.url.includes(`/editor/r/${roomId}`),
+  exportDone: job.state === 'done',
+  exportHttp: file.status === 200,
+  exportGlb: glbOk,
+  tamperedRejected: tampered.status === 401 || tampered.status === 403,
+};
+
+const failed = Object.entries(checks)
+  .filter(([, v]) => !v)
+  .map(([k]) => k);
 
 console.log(
   JSON.stringify({
-    health,
     roomId,
     snapshot: { mime: shot.mime, bytes: png.length, pngOk, width: shot.width, height: shot.height },
     editorUrl: opened.url,
     export: { jobId: exported.jobId, bytes: glb.length, glbOk, status: file.status },
     tamperedStatus: tampered.status,
+    checks,
+    failed,
   }),
 );
+
+if (failed.length > 0) {
+  console.error(`smoke-render FAILED: ${failed.join(', ')}`);
+  process.exit(1);
+}

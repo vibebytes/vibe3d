@@ -1,0 +1,235 @@
+import { MCP_TOOLS } from '@vibebyte/vibe3d-capabilities';
+import type { Studio } from '@vibebyte/vibe3d-client';
+import { describe, expect, it } from 'vitest';
+import { type ToolResult, ToolRuntime } from '../src/tools';
+
+interface Call {
+  method: string;
+  roomId?: string;
+  params: Record<string, unknown>;
+}
+
+function fakeStudio() {
+  const calls: Call[] = [];
+  let seq = 0;
+  const client = {
+    call: async (method: string, params: Record<string, unknown>) => {
+      calls.push({ method, params });
+      if (method === 'room.create') {
+        seq += 1;
+        const roomId = `r_${String(seq).padStart(8, '0')}`;
+        return { roomId, name: 'x', url: `http://127.0.0.1:1/r/${roomId}`, revision: 0 };
+      }
+      return { revision: 1 };
+    },
+  };
+  const studio = {
+    client,
+    createRoom: async (input: Record<string, unknown>) => {
+      const room = (await client.call('room.create', input)) as { roomId: string };
+      return { id: room.roomId };
+    },
+    room: (roomId: string) => ({
+      id: roomId,
+      invoke: async (method: string, params: Record<string, unknown>) => {
+        calls.push({ method, roomId, params });
+        if (method === 'room.get') return { roomId, name: 'x', revision: 1, nodeCount: 0 };
+        return { revision: 1, closed: true };
+      },
+    }),
+  };
+  return { studio: studio as unknown as Studio, calls };
+}
+
+const jsonOf = (result: ToolResult): Record<string, unknown> => {
+  const first = result.content[0] as { text: string };
+  return JSON.parse(first.text) as Record<string, unknown>;
+};
+
+const propsOf = (schema: unknown): Record<string, unknown> =>
+  (schema as { properties?: Record<string, unknown> }).properties ?? {};
+
+describe('MCP 工具 schema：room_id 只在连接层', () => {
+  const roomArgTools = ['vibe3d_get_room', 'vibe3d_close_room', 'vibe3d_open_editor'];
+
+  it('room 级工具默认不暴露 room_id', () => {
+    for (const tool of MCP_TOOLS) {
+      const exposed = 'room_id' in propsOf(tool.inputSchema);
+      expect(exposed, tool.name).toBe(roomArgTools.includes(tool.name));
+    }
+  });
+
+  it('room_id 永远不是必填', () => {
+    for (const tool of MCP_TOOLS) {
+      const required = (tool.inputSchema as { required?: string[] }).required ?? [];
+      expect(required.includes('room_id'), tool.name).toBe(false);
+    }
+  });
+});
+
+describe('ToolRuntime 会话绑定', () => {
+  it('未绑定时 room 级工具直接报错，提示先建房', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio);
+    const result = await runtime.call('vibe3d_create_node', { kind: 'mesh' });
+    expect(result.isError).toBe(true);
+    expect(jsonOf(result).code).toBe('E_INVALID_PARAMS');
+    expect(String(jsonOf(result).message)).toContain('vibe3d_create_room');
+    expect(calls).toHaveLength(0);
+  });
+
+  it('create_room 后自动绑定，后续工具不再传 room_id', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio);
+    const created = await runtime.call('vibe3d_create_room', { name: '客厅' });
+    expect(jsonOf(created).roomId).toBe('r_00000001');
+    const result = await runtime.call('vibe3d_create_node', { kind: 'mesh', shape: 'box' });
+    expect(result.isError).toBeUndefined();
+    const last = calls.at(-1) as Call;
+    expect(last.method).toBe('node.create');
+    expect(last.roomId).toBe('r_00000001');
+    expect(last.params).toEqual({ kind: 'mesh', shape: 'box' });
+  });
+
+  it('旧客户端传相同 room_id 时忽略该参数', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000a');
+    const result = await runtime.call('vibe3d_create_node', { kind: 'mesh', room_id: 'r_0000000a' });
+    expect(result.isError).toBeUndefined();
+    expect((calls.at(-1) as Call).roomId).toBe('r_0000000a');
+    expect((calls.at(-1) as Call).params).not.toHaveProperty('roomId');
+  });
+
+  it('旧客户端传别的 room_id 时显式报错，不下发 RPC', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000a');
+    const result = await runtime.call('vibe3d_get_scene', { room_id: 'r_0000000b' });
+    expect(result.isError).toBe(true);
+    expect(jsonOf(result).code).toBe('E_INVALID_PARAMS');
+    expect(String(jsonOf(result).message)).toContain('vibe3d_get_room');
+    expect(calls).toHaveLength(0);
+  });
+
+  it('get_room 的 room_id 会切换绑定', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000a');
+    await runtime.call('vibe3d_get_room', { room_id: 'r_0000000b' });
+    expect(runtime.session.current).toBe('r_0000000b');
+    await runtime.call('vibe3d_get_scene', {});
+    expect((calls.at(-1) as Call).roomId).toBe('r_0000000b');
+  });
+
+  it('关闭当前房间后解绑', async () => {
+    const { studio } = fakeStudio();
+    const runtime = new ToolRuntime(studio);
+    await runtime.call('vibe3d_create_room', {});
+    await runtime.call('vibe3d_close_room', {});
+    expect(runtime.session.current).toBeUndefined();
+    const result = await runtime.call('vibe3d_get_scene', {});
+    expect(result.isError).toBe(true);
+  });
+
+  it('open_editor 未绑定时先建房再打开', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio);
+    await runtime.call('vibe3d_open_editor', {});
+    expect(calls.map((call) => call.method)).toEqual(['room.create', 'editor.open']);
+    expect((calls[1] as Call).roomId).toBe('r_00000001');
+    expect(runtime.session.current).toBe('r_00000001');
+  });
+
+  it('构造参数可预绑定房间', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    await runtime.call('vibe3d_render_snapshot', { width: 64, height: 64 });
+    expect((calls.at(-1) as Call).roomId).toBe('r_0000000c');
+  });
+
+  it('参数校验失败的 message 里带字段与原因', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const result = await runtime.call('vibe3d_render_snapshot', { width: 'abc' });
+    expect(result.isError).toBe(true);
+    expect(String(jsonOf(result).message)).toContain('width');
+    expect(calls).toHaveLength(0);
+  });
+
+  it('snake_case 数字字符串按数字下发', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    await runtime.call('vibe3d_render_snapshot', { width: '640', height: '480', settle_ms: '120' });
+    const params = (calls.at(-1) as Call).params as Record<string, unknown>;
+    expect(params.width).toBe(640);
+    expect(params.settleMs).toBe(120);
+  });
+
+  it('apply_ops 收到 JSON 字符串与字符串布尔时自动还原', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const ops = JSON.stringify([{ op: 'node.delete', id: 'n_12345678', cascade: 'false' }]);
+    const result = await runtime.call('vibe3d_apply_ops', { ops, dry_run: 'true' });
+    expect(result.isError).toBeFalsy();
+    const params = (calls.at(-1) as Call).params as Record<string, unknown>;
+    expect(params.ops).toEqual([{ op: 'node.delete', id: 'n_12345678', cascade: false }]);
+    expect(params.dryRun).toBe(true);
+  });
+
+  it('数组里的数字字符串按数字还原', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const result = await runtime.call('vibe3d_create_node', {
+      kind: 'mesh',
+      shape: 'box',
+      size: ['1', '2', '1'],
+    });
+    expect(result.isError).toBeFalsy();
+    const params = (calls.at(-1) as Call).params as Record<string, unknown>;
+    expect(params.size).toEqual([1, 2, 1]);
+  });
+
+  it('单个 op 的 JSON 字符串自动包成数组', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const ops = JSON.stringify({ op: 'node.delete', id: 'n_12345678' });
+    const result = await runtime.call('vibe3d_apply_ops', { ops });
+    expect(result.isError).toBeFalsy();
+    const params = (calls.at(-1) as Call).params as Record<string, unknown>;
+    expect(params.ops).toEqual([{ op: 'node.delete', id: 'n_12345678' }]);
+  });
+
+  it('{"ops":[...]} 包装字符串自动解包', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const ops = JSON.stringify({ ops: [{ op: 'node.delete', id: 'n_12345678' }] });
+    const result = await runtime.call('vibe3d_apply_ops', { ops });
+    expect(result.isError).toBeFalsy();
+    const params = (calls.at(-1) as Call).params as Record<string, unknown>;
+    expect(params.ops).toEqual([{ op: 'node.delete', id: 'n_12345678' }]);
+  });
+
+  it('解析成功但条目非法时报条目级错误，而不是“Expected array”', async () => {
+    const { studio } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const result = await runtime.call('vibe3d_apply_ops', { ops: '[{"op":"node.delete"}]' });
+    expect(result.isError).toBe(true);
+    const message = String(jsonOf(result).message);
+    expect(message).toContain('ops.0');
+    expect(message).not.toContain('Expected array, received string');
+  });
+
+  it('非 JSON 的字符串报错里带解析失败原因', async () => {
+    const { studio } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const result = await runtime.call('vibe3d_apply_ops', { ops: '[{"op":"node.delete"' });
+    expect(result.isError).toBe(true);
+    expect(String(jsonOf(result).message)).toContain('JSON 解析失败');
+  });
+
+  it('非 JSON 的字符串不会被强行解析', async () => {
+    const { studio } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const result = await runtime.call('vibe3d_apply_ops', { ops: 'not-json' });
+    expect(result.isError).toBe(true);
+    expect(String(jsonOf(result).message)).toContain('ops');
+  });
+});

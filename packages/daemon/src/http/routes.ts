@@ -132,17 +132,15 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
     const filename = 'name' in blob ? String((blob as File).name || 'upload.glb') : 'upload.glb';
     const bytes = Buffer.from(await blob.arrayBuffer());
     const info = classifyUpload({ filename, mime: blob.type, bytes });
-    const report = parseGltf(bytes, filename);
     const sha = await deps.blobs.put(bytes);
-    room.registerAsset({
-      sha,
-      bytes: bytes.length,
-      name: filename.slice(0, 300),
-      mime: info.mime,
-      kind: 'gltf',
-      gltf: report,
-    });
-    return writeJson({ sha, bytes: bytes.length, kind: 'gltf', gltf: report });
+    const base = { sha, bytes: bytes.length, name: filename.slice(0, 300), mime: info.mime };
+    if (info.kind === 'image') {
+      const meta = room.registerAsset({ ...base, kind: 'image', image: info.image });
+      return writeJson({ sha, bytes: bytes.length, kind: 'image', meta });
+    }
+    const report = parseGltf(bytes, filename);
+    const meta = room.registerAsset({ ...base, kind: 'gltf', gltf: report });
+    return writeJson({ sha, bytes: bytes.length, kind: 'gltf', meta, gltf: report });
   });
 
   app.get('/assets/:sha', async (c) => {
@@ -187,8 +185,7 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
     });
   });
 
-  const surface = async (c: Context, roomId: RoomId | null): Promise<Response> => {
-    const res = await serveEditor(c, deps, roomId);
+  const withTokenCookie = (c: Context, res: Response): Response => {
     const query = c.req.query('t');
     if (query && tokenMatches(token, query)) {
       res.headers.append(
@@ -199,11 +196,18 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
     return res;
   };
 
-  app.get('/r/:roomId', requireSurfaceToken(token, { allowQuery: true }), (c) =>
-    surface(c, c.req.param('roomId') as RoomId),
-  );
+  const surface = async (c: Context): Promise<Response> =>
+    withTokenCookie(c, await serveEditor(c, deps, null));
 
-  app.get('/', requireSurfaceToken(token, { allowQuery: true }), (c) => surface(c, null));
+  app.get('/r/:roomId', requireSurfaceToken(token, { allowQuery: true }), (c) => {
+    const search = new URL(c.req.url).search;
+    return withTokenCookie(c, c.redirect(`/editor/r/${c.req.param('roomId')}${search}`, 302));
+  });
+
+  app.get('/', requireSurfaceToken(token, { allowQuery: true }), (c) => {
+    const search = new URL(c.req.url).search;
+    return withTokenCookie(c, c.redirect(`/editor/${search}`, 302));
+  });
 }
 
 async function serveEditor(c: Context, deps: RouteDeps, _roomId: RoomId | null): Promise<Response> {

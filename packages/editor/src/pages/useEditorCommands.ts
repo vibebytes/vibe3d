@@ -11,6 +11,7 @@ interface EditorCommandArgs {
   onRedo(): void;
   onSnapshot(): void;
   onExport(): void;
+  onImport(): void;
   onDelete(): void;
   onFrame(): void;
   onPreset(preset: Preset): void;
@@ -19,6 +20,7 @@ interface EditorCommandArgs {
 
 export function editorCommands(a: EditorCommandArgs): PaletteCommand[] {
   const commands: PaletteCommand[] = [
+    { id: 'asset.import', label: '导入 glTF / GLB 模型…', hint: 'GLB', run: a.onImport },
     { id: 'add.box', label: '添加立方体', run: () => a.onAdd('box') },
     { id: 'add.sphere', label: '添加球体', run: () => a.onAdd('sphere') },
     { id: 'add.cylinder', label: '添加圆柱', run: () => a.onAdd('cylinder') },
@@ -28,6 +30,7 @@ export function editorCommands(a: EditorCommandArgs): PaletteCommand[] {
     { id: 'render.snapshot', label: '离屏快照…', run: a.onSnapshot },
     { id: 'export.glb', label: '导出 GLB…', run: a.onExport },
     { id: 'panel.scene', label: '切到场景面板', run: () => a.onTab('scene') },
+    { id: 'panel.assets', label: '切到素材面板', run: () => a.onTab('assets') },
     { id: 'panel.inspector', label: '切到属性面板', run: () => a.onTab('inspector') },
     ...(['cine', 'clean', 'flat'] as Preset[]).map((preset) => ({
       id: `stage.${preset}`,

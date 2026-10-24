@@ -11,7 +11,7 @@ interface SelectionStore {
   reset(): void;
 }
 
-const last = (ids: string[]): string | null => (ids.length ? ids[ids.length - 1] : null);
+const last = (ids: string[]): string | null => ids[ids.length - 1] ?? null;
 
 export const useSelection = create<SelectionStore>((set, get) => ({
   ids: [],

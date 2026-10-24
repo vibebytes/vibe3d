@@ -7,8 +7,12 @@ export interface Limits {
 
 export const DEFAULT_LIMITS: Limits = { maxNodes: 20_000, maxDepth: 32 };
 
-function fail(message: string, data?: Record<string, unknown>): never {
-  throw new AppError('E_INVALID_PARAMS', message, data);
+function fail(
+  message: string,
+  data?: Record<string, unknown>,
+  code: 'E_INVALID_PARAMS' | 'E_ASSET_TYPE' = 'E_INVALID_PARAMS',
+): never {
+  throw new AppError(code, message, data);
 }
 
 const finiteVec = (v: readonly number[]): boolean => v.every((n) => Number.isFinite(n));
@@ -29,7 +33,14 @@ export function validateDoc(doc: SceneDoc, limits: Limits = DEFAULT_LIMITS): voi
     if (node.parent !== null && !doc.nodes[node.parent])
       fail('父节点不存在', { id: key, parent: node.parent });
     if (node.kind === 'mesh') {
-      if (!doc.materials[node.material]) fail('材质引用不存在', { id: key, material: node.material });
+      const material = doc.materials[node.material];
+      if (!material) fail('材质引用不存在', { id: key, material: node.material });
+      if (material.map) {
+        const asset = doc.assets[material.map];
+        if (!asset || asset.kind !== 'image' || asset.image?.hdri) {
+          fail('材质贴图必须是普通图片资产', { id: key, sha: material.map }, 'E_ASSET_TYPE');
+        }
+      }
     }
     if (node.kind === 'model') {
       const asset = doc.assets[node.sha];
@@ -39,6 +50,13 @@ export function validateDoc(doc: SceneDoc, limits: Limits = DEFAULT_LIMITS): voi
         fail('动画 clip 不在资产报告里', { id: key, clip });
       }
       if (clip && (asset.gltf?.skins ?? 0) === 0) fail('资产没有蒙皮，不能播放动画', { id: key, clip });
+    }
+  }
+
+  if (doc.env.hdri) {
+    const asset = doc.assets[doc.env.hdri];
+    if (!asset || asset.kind !== 'image' || !asset.image?.hdri) {
+      fail('环境贴图必须是 HDRI 资产', { sha: doc.env.hdri }, 'E_ASSET_TYPE');
     }
   }
 

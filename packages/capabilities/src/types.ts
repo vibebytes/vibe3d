@@ -17,11 +17,31 @@ export const WIRE_METHODS = [
   'selection.get',
   'asset.inspect',
   'asset.put',
+  'asset.list',
+  'asset.delete',
   'camera.set',
   'render.snapshot',
+  'render.views',
+  'render.node',
+  'render.pick',
   'export.glb',
   'job.get',
+  'job.list',
+  'job.cancel',
   'editor.open',
+  'scene.export',
+  'scene.import',
+  'scene.checkpoint',
+  'scene.checkpoints',
+  'scene.restore',
+  'scene.query',
+  'node.get',
+  'scene.stats',
+  'scene.validate',
+  'node.transform_many',
+  'node.array',
+  'node.group',
+  'material.assign',
 ] as const;
 
 export type WireMethod = (typeof WIRE_METHODS)[number];
@@ -41,6 +61,8 @@ export interface CliSpec {
 export interface McpSpec {
   tool: `vibe3d_${string}`;
   annotations?: ToolAnnotations;
+  /** 房间是操作对象（读/关/打开）而非路由：room_id 以可选参数暴露，省略时取会话绑定 */
+  roomArg?: boolean;
 }
 
 export interface CapabilitySpec<I = unknown, O = unknown> {
@@ -78,6 +100,9 @@ export function defineCapabilities<const T extends SpecRecord>(specs: T): T {
       if (!spec.mcp.tool.startsWith('vibe3d_')) throw new Error(`${name}: tool 必须以 vibe3d_ 开头`);
       if (seenTools.has(spec.mcp.tool)) throw new Error(`${name}: tool 重复 ${spec.mcp.tool}`);
       seenTools.add(spec.mcp.tool);
+      if (spec.mcp.roomArg && spec.scope !== 'room') {
+        throw new Error(`${name}: 只有 room scope 能声明 mcp.roomArg`);
+      }
     }
     if (spec.cli) {
       if (seenCli.has(spec.cli.command)) throw new Error(`${name}: cli 命令重复 ${spec.cli.command}`);

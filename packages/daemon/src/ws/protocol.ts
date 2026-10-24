@@ -14,6 +14,7 @@ export const serverFrameSchema = z.discriminatedUnion('type', [
       'scene.changed',
       'selection.changed',
       'job.progress',
+      'job.done',
       'surface.presence',
       'snapshot.request',
     ]),

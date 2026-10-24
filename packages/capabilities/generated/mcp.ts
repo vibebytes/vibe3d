@@ -2,7 +2,7 @@
 export const MCP_TOOLS = [
   {
     name: "vibe3d_create_room",
-    title: "创建房间：分配 roomId 与文档，可选模板",
+    title: "创建房间：分配 roomId 与文档；下次写操作会自动开窗，无需预先调用 vibe3d_open_editor",
     capability: "room.create",
     annotations: {},
     inputSchema: {
@@ -40,7 +40,7 @@ export const MCP_TOOLS = [
   },
   {
     name: "vibe3d_get_room",
-    title: "读取房间摘要",
+    title: "读取房间摘要（含 editors：0 表示暂无窗口在看，下一次写操作会自动开窗）",
     capability: "room.get",
     annotations: {"readOnlyHint":true},
     inputSchema: {
@@ -48,12 +48,10 @@ export const MCP_TOOLS = [
       "properties": {
         "room_id": {
           "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
+          "pattern": "^r_[a-z0-9]{8}$",
+          "description": "房间 id；省略时用当前会话绑定的房间"
         }
       },
-      "required": [
-        "room_id"
-      ],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
     },
@@ -66,17 +64,15 @@ export const MCP_TOOLS = [
     inputSchema: {
       "type": "object",
       "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        },
         "purge": {
           "type": "boolean"
+        },
+        "room_id": {
+          "type": "string",
+          "pattern": "^r_[a-z0-9]{8}$",
+          "description": "房间 id；省略时用当前会话绑定的房间"
         }
       },
-      "required": [
-        "room_id"
-      ],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
     },
@@ -88,15 +84,7 @@ export const MCP_TOOLS = [
     annotations: {"readOnlyHint":true},
     inputSchema: {
       "type": "object",
-      "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        }
-      },
-      "required": [
-        "room_id"
-      ],
+      "properties": {},
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
     },
@@ -108,14 +96,492 @@ export const MCP_TOOLS = [
     annotations: {"readOnlyHint":true},
     inputSchema: {
       "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_query_nodes",
+    title: "按名称 / 类型 / 材质 / 区域查询节点，返回世界包围盒，支持 limit+cursor 分页",
+    capability: "scene.query",
+    annotations: {"readOnlyHint":true},
+    inputSchema: {
+      "type": "object",
       "properties": {
-        "room_id": {
+        "name": {
           "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "mesh",
+            "group",
+            "light",
+            "model"
+          ]
+        },
+        "material_id": {
+          "type": "string",
+          "pattern": "^m_[a-z0-9]{8}$"
+        },
+        "bbox": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "max": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          "required": [
+            "min",
+            "max"
+          ],
+          "additionalProperties": false
+        },
+        "min_y": {
+          "type": "number"
+        },
+        "max_y": {
+          "type": "number"
+        },
+        "has_anim": {
+          "type": "boolean"
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        },
+        "cursor": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_get_node",
+    title: "单节点详情：世界包围盒、材质、父子关系与 children",
+    capability: "node.get",
+    annotations: {"readOnlyHint":true},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "pattern": "^n_[a-z0-9]{8}$"
         }
       },
       "required": [
-        "room_id"
+        "node_id"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_scene_stats",
+    title: "场景统计：节点数、按类型分组、三角面、材质、贴图与预估 draw call",
+    capability: "scene.stats",
+    annotations: {"readOnlyHint":true},
+    inputSchema: {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_validate_scene",
+    title: "几何体检：悬空 / 穿模 / 沉地 / 出界，忽略列表可豁免",
+    capability: "scene.validate",
+    annotations: {"readOnlyHint":true},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "floating",
+              "intersect",
+              "belowGround",
+              "outsideBounds"
+            ]
+          }
+        },
+        "tolerance": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "ignore": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "maxItems": 500
+        },
+        "bounds": {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "max": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          "required": [
+            "min",
+            "max"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_transform_many",
+    title: "批量变换：ids 或 filter 二选一，一次撤销",
+    capability: "node.transform_many",
+    annotations: {"readOnlyHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "minItems": 1,
+          "maxItems": 500
+        },
+        "filter": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "mesh",
+                "group",
+                "light",
+                "model"
+              ]
+            },
+            "material_id": {
+              "type": "string",
+              "pattern": "^m_[a-z0-9]{8}$"
+            },
+            "min_y": {
+              "type": "number"
+            },
+            "max_y": {
+              "type": "number"
+            },
+            "has_anim": {
+              "type": "boolean"
+            },
+            "visible": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "translate": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "rotate": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "scale": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_array_nodes",
+    title: "线性阵列：沿 offset 复制 count 份，支持 jitter 与 rotateStep",
+    capability: "node.array",
+    annotations: {"readOnlyHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^n_[a-z0-9]{8}$"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "offset": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "jitter": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "rotate_step": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "count",
+        "offset"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_group_nodes",
+    title: "编组：按选区包围盒中心建组，keepWorld 保持世界位置",
+    capability: "node.group",
+    annotations: {"readOnlyHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "minItems": 1,
+          "maxItems": 500
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "keep_world": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "ids",
+        "name"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_assign_material",
+    title: "批量换材质：ids 或 filter 二选一，仅作用于 mesh",
+    capability: "material.assign",
+    annotations: {"readOnlyHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "minItems": 1,
+          "maxItems": 500
+        },
+        "filter": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "mesh",
+                "group",
+                "light",
+                "model"
+              ]
+            },
+            "material_id": {
+              "type": "string",
+              "pattern": "^m_[a-z0-9]{8}$"
+            },
+            "min_y": {
+              "type": "number"
+            },
+            "max_y": {
+              "type": "number"
+            },
+            "has_anim": {
+              "type": "boolean"
+            },
+            "visible": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        "material_id": {
+          "type": "string",
+          "pattern": "^m_[a-z0-9]{8}$"
+        }
+      },
+      "required": [
+        "material_id"
       ],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
@@ -123,16 +589,12 @@ export const MCP_TOOLS = [
   },
   {
     name: "vibe3d_apply_ops",
-    title: "原子应用一批 op，返回逆操作",
+    title: "原子应用一批 op（ops 传数组，不要传 JSON 字符串；返回逆操作与 nodeCount；node.create 需带 geometry 与已存在的 material，基础体优先用 vibe3d_create_node）",
     capability: "ops.apply",
     annotations: {"readOnlyHint":false},
     inputSchema: {
       "type": "object",
       "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        },
         "ops": {
           "type": "array",
           "items": {
@@ -1006,6 +1468,132 @@ export const MCP_TOOLS = [
                             "type": "null"
                           }
                         ]
+                      },
+                      "geometry": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "box"
+                              },
+                              "size": {
+                                "type": "array",
+                                "minItems": 3,
+                                "maxItems": 3,
+                                "items": [
+                                  {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0
+                                  },
+                                  {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0
+                                  },
+                                  {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "size"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "sphere"
+                              },
+                              "radius": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "segments": {
+                                "type": "integer",
+                                "minimum": 3,
+                                "maximum": 128
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "radius",
+                              "segments"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "cylinder"
+                              },
+                              "radius_top": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "radius_bottom": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "height": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "segments": {
+                                "type": "integer",
+                                "minimum": 3,
+                                "maximum": 128
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "radius_top",
+                              "radius_bottom",
+                              "height",
+                              "segments"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "plane"
+                              },
+                              "width": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "height": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "width",
+                              "height"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "material": {
+                        "type": "string",
+                        "pattern": "^m_[a-z0-9]{8}$"
+                      },
+                      "sha": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
                       }
                     },
                     "additionalProperties": false
@@ -1269,8 +1857,15 @@ export const MCP_TOOLS = [
                         "minimum": 0
                       },
                       "hdri": {
-                        "type": "string",
-                        "pattern": "^[0-9a-f]{64}$"
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^[0-9a-f]{64}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       }
                     },
                     "additionalProperties": false
@@ -1440,6 +2035,241 @@ export const MCP_TOOLS = [
                 },
                 "required": [
                   "op"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "type": "string",
+                    "const": "asset.register"
+                  },
+                  "asset": {
+                    "type": "object",
+                    "properties": {
+                      "sha": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      },
+                      "bytes": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "name": {
+                        "type": "string",
+                        "maxLength": 300
+                      },
+                      "mime": {
+                        "type": "string",
+                        "maxLength": 120
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "gltf",
+                          "image",
+                          "bin"
+                        ]
+                      },
+                      "gltf": {
+                        "type": "object",
+                        "properties": {
+                          "version": {
+                            "type": "string",
+                            "const": "2.0"
+                          },
+                          "self_contained": {
+                            "type": "boolean"
+                          },
+                          "missing": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "extensions": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "unsupported": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "meshes": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "prims": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "tris": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "materials": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "textures": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "animations": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "duration_sec": {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                "channels": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "duration_sec",
+                                "channels"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "skins": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "size": {
+                            "type": "object",
+                            "properties": {
+                              "min": {
+                                "type": "array",
+                                "minItems": 3,
+                                "maxItems": 3,
+                                "items": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "number"
+                                  }
+                                ]
+                              },
+                              "max": {
+                                "type": "array",
+                                "minItems": 3,
+                                "maxItems": 3,
+                                "items": [
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "number"
+                                  },
+                                  {
+                                    "type": "number"
+                                  }
+                                ]
+                              },
+                              "diag": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "min",
+                              "max",
+                              "diag"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "hero_guess": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "version",
+                          "self_contained",
+                          "missing",
+                          "extensions",
+                          "unsupported",
+                          "meshes",
+                          "prims",
+                          "tris",
+                          "materials",
+                          "textures",
+                          "animations",
+                          "skins",
+                          "size"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "image": {
+                        "type": "object",
+                        "properties": {
+                          "width": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "height": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "hdri": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "width",
+                          "height",
+                          "hdri"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "sha",
+                      "bytes",
+                      "name",
+                      "mime",
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "op",
+                  "asset"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "type": "string",
+                    "const": "asset.unregister"
+                  },
+                  "sha": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "required": [
+                  "op",
+                  "sha"
                 ],
                 "additionalProperties": false
               },
@@ -2397,6 +3227,28 @@ export const MCP_TOOLS = [
                                 "size"
                               ],
                               "additionalProperties": false
+                            },
+                            "image": {
+                              "type": "object",
+                              "properties": {
+                                "width": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "height": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "hdri": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "width",
+                                "height",
+                                "hdri"
+                              ],
+                              "additionalProperties": false
                             }
                           },
                           "required": [
@@ -2625,7 +3477,6 @@ export const MCP_TOOLS = [
         }
       },
       "required": [
-        "room_id",
         "ops"
       ],
       "additionalProperties": false,
@@ -2640,10 +3491,6 @@ export const MCP_TOOLS = [
     inputSchema: {
       "type": "object",
       "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        },
         "kind": {
           "type": "string",
           "enum": [
@@ -2947,7 +3794,6 @@ export const MCP_TOOLS = [
         }
       },
       "required": [
-        "room_id",
         "kind"
       ],
       "additionalProperties": false,
@@ -2962,10 +3808,6 @@ export const MCP_TOOLS = [
     inputSchema: {
       "type": "object",
       "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        },
         "node_id": {
           "type": "string",
           "pattern": "^n_[a-z0-9]{8}$"
@@ -3164,7 +4006,6 @@ export const MCP_TOOLS = [
         }
       },
       "required": [
-        "room_id",
         "node_id",
         "patch"
       ],
@@ -3180,10 +4021,6 @@ export const MCP_TOOLS = [
     inputSchema: {
       "type": "object",
       "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        },
         "node_id": {
           "type": "string",
           "pattern": "^n_[a-z0-9]{8}$"
@@ -3193,7 +4030,96 @@ export const MCP_TOOLS = [
         }
       },
       "required": [
-        "room_id",
+        "node_id"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_clone_node",
+    title: "克隆节点子树：换 id、共享材质与资产",
+    capability: "node.clone",
+    annotations: {},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "pattern": "^n_[a-z0-9]{8}$"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "transform": {
+          "type": "object",
+          "properties": {
+            "p": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "r": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "s": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": [
         "node_id"
       ],
       "additionalProperties": false,
@@ -3208,10 +4134,6 @@ export const MCP_TOOLS = [
     inputSchema: {
       "type": "object",
       "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        },
         "stage": {
           "type": "object",
           "properties": {
@@ -3242,7 +4164,6 @@ export const MCP_TOOLS = [
         }
       },
       "required": [
-        "room_id",
         "stage"
       ],
       "additionalProperties": false,
@@ -3257,10 +4178,6 @@ export const MCP_TOOLS = [
     inputSchema: {
       "type": "object",
       "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        },
         "node_id": {
           "type": "string",
           "pattern": "^n_[a-z0-9]{8}$"
@@ -3274,7 +4191,6 @@ export const MCP_TOOLS = [
         }
       },
       "required": [
-        "room_id",
         "node_id"
       ],
       "additionalProperties": false,
@@ -3288,15 +4204,7 @@ export const MCP_TOOLS = [
     annotations: {"readOnlyHint":false},
     inputSchema: {
       "type": "object",
-      "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        }
-      },
-      "required": [
-        "room_id"
-      ],
+      "properties": {},
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
     },
@@ -3308,15 +4216,7 @@ export const MCP_TOOLS = [
     annotations: {"readOnlyHint":false},
     inputSchema: {
       "type": "object",
-      "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        }
-      },
-      "required": [
-        "room_id"
-      ],
+      "properties": {},
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
     },
@@ -3329,10 +4229,6 @@ export const MCP_TOOLS = [
     inputSchema: {
       "type": "object",
       "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        },
         "from": {
           "type": "integer",
           "minimum": 0
@@ -3342,9 +4238,6 @@ export const MCP_TOOLS = [
           "minimum": 0
         }
       },
-      "required": [
-        "room_id"
-      ],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
     },
@@ -3356,14 +4249,1261 @@ export const MCP_TOOLS = [
     annotations: {"readOnlyHint":true},
     inputSchema: {
       "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_export_scene",
+    title: "导出整份场景文档（纯 JSON，不落盘）",
+    capability: "scene.export",
+    annotations: {"readOnlyHint":true},
+    inputSchema: {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_import_scene",
+    title: "整份文档回灌：校验后走一条 scene.replace",
+    capability: "scene.import",
+    annotations: {},
+    inputSchema: {
+      "type": "object",
       "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
+        "doc": {
+          "type": "object",
+          "properties": {
+            "schema_version": {
+              "type": "number",
+              "const": 1
+            },
+            "revision": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "name": {
+              "type": "string",
+              "maxLength": 120
+            },
+            "nodes": {
+              "type": "object",
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^n_[a-z0-9]{8}$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "parent": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^n_[a-z0-9]{8}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "visible": {
+                        "type": "boolean"
+                      },
+                      "transform": {
+                        "type": "object",
+                        "properties": {
+                          "p": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "r": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "s": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "p",
+                          "r",
+                          "s"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "kind": {
+                        "type": "string",
+                        "const": "group"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "parent",
+                      "visible",
+                      "transform",
+                      "kind"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^n_[a-z0-9]{8}$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "parent": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^n_[a-z0-9]{8}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "visible": {
+                        "type": "boolean"
+                      },
+                      "transform": {
+                        "type": "object",
+                        "properties": {
+                          "p": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "r": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "s": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "p",
+                          "r",
+                          "s"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "kind": {
+                        "type": "string",
+                        "const": "mesh"
+                      },
+                      "geometry": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "box"
+                              },
+                              "size": {
+                                "type": "array",
+                                "minItems": 3,
+                                "maxItems": 3,
+                                "items": [
+                                  {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0
+                                  },
+                                  {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0
+                                  },
+                                  {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "size"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "sphere"
+                              },
+                              "radius": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "segments": {
+                                "type": "integer",
+                                "minimum": 3,
+                                "maximum": 128
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "radius",
+                              "segments"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "cylinder"
+                              },
+                              "radius_top": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "radius_bottom": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "height": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "segments": {
+                                "type": "integer",
+                                "minimum": 3,
+                                "maximum": 128
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "radius_top",
+                              "radius_bottom",
+                              "height",
+                              "segments"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "plane"
+                              },
+                              "width": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              "height": {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "width",
+                              "height"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      "material": {
+                        "type": "string",
+                        "pattern": "^m_[a-z0-9]{8}$"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "parent",
+                      "visible",
+                      "transform",
+                      "kind",
+                      "geometry",
+                      "material"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^n_[a-z0-9]{8}$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "parent": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^n_[a-z0-9]{8}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "visible": {
+                        "type": "boolean"
+                      },
+                      "transform": {
+                        "type": "object",
+                        "properties": {
+                          "p": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "r": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "s": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "p",
+                          "r",
+                          "s"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "kind": {
+                        "type": "string",
+                        "const": "light"
+                      },
+                      "light": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "directional",
+                              "point",
+                              "spot",
+                              "ambient"
+                            ]
+                          },
+                          "color": {
+                            "type": "array",
+                            "minItems": 4,
+                            "maxItems": 4,
+                            "items": [
+                              {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                              },
+                              {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                              },
+                              {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                              },
+                              {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                              }
+                            ]
+                          },
+                          "intensity": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "position": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "target": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "angle": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 3.141592653589793
+                          },
+                          "penumbra": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          "cast_shadow": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "color",
+                          "intensity"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "parent",
+                      "visible",
+                      "transform",
+                      "kind",
+                      "light"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^n_[a-z0-9]{8}$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200
+                      },
+                      "parent": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^n_[a-z0-9]{8}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "visible": {
+                        "type": "boolean"
+                      },
+                      "transform": {
+                        "type": "object",
+                        "properties": {
+                          "p": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "r": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "s": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "p",
+                          "r",
+                          "s"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "kind": {
+                        "type": "string",
+                        "const": "model"
+                      },
+                      "sha": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      },
+                      "anim": {
+                        "type": "object",
+                        "properties": {
+                          "playing": {
+                            "type": "boolean"
+                          },
+                          "clip": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "speed": {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        },
+                        "required": [
+                          "playing",
+                          "speed"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "parent",
+                      "visible",
+                      "transform",
+                      "kind",
+                      "sha"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "propertyNames": {
+                "pattern": "^n_[a-z0-9]{8}$"
+              }
+            },
+            "roots": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              }
+            },
+            "materials": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "base_color": {
+                    "type": "array",
+                    "minItems": 4,
+                    "maxItems": 4,
+                    "items": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    ]
+                  },
+                  "metalness": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "roughness": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "emissive": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    ]
+                  },
+                  "emissive_intensity": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "opacity": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "double_sided": {
+                    "type": "boolean"
+                  },
+                  "map": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "required": [
+                  "base_color",
+                  "metalness",
+                  "roughness",
+                  "emissive",
+                  "emissive_intensity",
+                  "opacity",
+                  "double_sided"
+                ],
+                "additionalProperties": false
+              },
+              "propertyNames": {
+                "pattern": "^m_[a-z0-9]{8}$"
+              }
+            },
+            "assets": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "sha": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  "bytes": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "name": {
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "mime": {
+                    "type": "string",
+                    "maxLength": 120
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "gltf",
+                      "image",
+                      "bin"
+                    ]
+                  },
+                  "gltf": {
+                    "type": "object",
+                    "properties": {
+                      "version": {
+                        "type": "string",
+                        "const": "2.0"
+                      },
+                      "self_contained": {
+                        "type": "boolean"
+                      },
+                      "missing": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "extensions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "unsupported": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "meshes": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "prims": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "tris": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "materials": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "textures": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "animations": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "name": {
+                              "type": "string"
+                            },
+                            "duration_sec": {
+                              "type": "number",
+                              "minimum": 0
+                            },
+                            "channels": {
+                              "type": "integer",
+                              "minimum": 0
+                            }
+                          },
+                          "required": [
+                            "name",
+                            "duration_sec",
+                            "channels"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "skins": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "size": {
+                        "type": "object",
+                        "properties": {
+                          "min": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "max": {
+                            "type": "array",
+                            "minItems": 3,
+                            "maxItems": 3,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "diag": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "min",
+                          "max",
+                          "diag"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "hero_guess": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "version",
+                      "self_contained",
+                      "missing",
+                      "extensions",
+                      "unsupported",
+                      "meshes",
+                      "prims",
+                      "tris",
+                      "materials",
+                      "textures",
+                      "animations",
+                      "skins",
+                      "size"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "image": {
+                    "type": "object",
+                    "properties": {
+                      "width": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "height": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "hdri": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "width",
+                      "height",
+                      "hdri"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "sha",
+                  "bytes",
+                  "name",
+                  "mime",
+                  "kind"
+                ],
+                "additionalProperties": false
+              },
+              "propertyNames": {
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            },
+            "env": {
+              "type": "object",
+              "properties": {
+                "background": {
+                  "type": "array",
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "items": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  ]
+                },
+                "ambient": {
+                  "type": "array",
+                  "minItems": 4,
+                  "maxItems": 4,
+                  "items": [
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  ]
+                },
+                "ambient_intensity": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "hdri": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "required": [
+                "background",
+                "ambient",
+                "ambient_intensity"
+              ],
+              "additionalProperties": false
+            },
+            "stage": {
+              "type": "object",
+              "properties": {
+                "preset": {
+                  "type": "string",
+                  "enum": [
+                    "cine",
+                    "clean",
+                    "flat"
+                  ]
+                },
+                "exposure": {
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 8
+                },
+                "auto_exposure": {
+                  "type": "boolean"
+                },
+                "ground": {
+                  "type": "boolean"
+                },
+                "keep_model_lights": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "preset",
+                "auto_exposure",
+                "ground",
+                "keep_model_lights"
+              ],
+              "additionalProperties": false
+            },
+            "camera": {
+              "type": "object",
+              "properties": {
+                "mode": {
+                  "type": "string",
+                  "enum": [
+                    "persp",
+                    "ortho"
+                  ]
+                },
+                "p": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "target": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "fov": {
+                  "type": "number",
+                  "minimum": 1,
+                  "maximum": 179
+                },
+                "zoom": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "required": [
+                "mode",
+                "p",
+                "target",
+                "fov",
+                "zoom"
+              ],
+              "additionalProperties": false
+            },
+            "updated_at": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "schema_version",
+            "revision",
+            "name",
+            "nodes",
+            "roots",
+            "materials",
+            "assets",
+            "env",
+            "stage",
+            "camera",
+            "updated_at"
+          ],
+          "additionalProperties": false
+        },
+        "expect_revision": {
+          "type": "integer",
+          "minimum": 0
         }
       },
       "required": [
-        "room_id"
+        "doc"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_checkpoint_scene",
+    title: "打检查点：快照当前文档到房间目录",
+    capability: "scene.checkpoint",
+    annotations: {},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_list_checkpoints",
+    title: "列出检查点（按时间倒序）",
+    capability: "scene.checkpoints",
+    annotations: {"readOnlyHint":true},
+    inputSchema: {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_restore_scene",
+    title: "回到检查点：先自动留底再整份回灌",
+    capability: "scene.restore",
+    annotations: {},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "checkpoint_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
+      },
+      "required": [
+        "checkpoint_id"
       ],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
@@ -3377,13 +5517,13 @@ export const MCP_TOOLS = [
     inputSchema: {
       "type": "object",
       "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        },
         "src": {
           "type": "string",
           "minLength": 1
+        },
+        "sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
         },
         "name": {
           "type": "string",
@@ -3467,10 +5607,6 @@ export const MCP_TOOLS = [
           ]
         }
       },
-      "required": [
-        "room_id",
-        "src"
-      ],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
     },
@@ -3483,10 +5619,6 @@ export const MCP_TOOLS = [
     inputSchema: {
       "type": "object",
       "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        },
         "src": {
           "type": "string",
           "minLength": 1
@@ -3501,8 +5633,72 @@ export const MCP_TOOLS = [
         }
       },
       "required": [
-        "room_id",
         "src"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_put_asset",
+    title: "上传贴图 / HDRI 并注册进房间资产表",
+    capability: "asset.put",
+    annotations: {},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "src": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "policy": {
+          "type": "string",
+          "enum": [
+            "strict",
+            "local",
+            "allow"
+          ]
+        }
+      },
+      "required": [
+        "src"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_list_assets",
+    title: "列出房间资产及引用计数",
+    capability: "asset.list",
+    annotations: {"readOnlyHint":true},
+    inputSchema: {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_delete_asset",
+    title: "移除未被引用的资产",
+    capability: "asset.delete",
+    annotations: {},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "sha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "sha"
       ],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
@@ -3516,10 +5712,6 @@ export const MCP_TOOLS = [
     inputSchema: {
       "type": "object",
       "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        },
         "camera": {
           "type": "object",
           "properties": {
@@ -3583,9 +5775,6 @@ export const MCP_TOOLS = [
           ]
         }
       },
-      "required": [
-        "room_id"
-      ],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
     },
@@ -3598,9 +5787,92 @@ export const MCP_TOOLS = [
     inputSchema: {
       "type": "object",
       "properties": {
-        "room_id": {
+        "width": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 4096
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 4096
+        },
+        "format": {
           "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
+          "enum": [
+            "png",
+            "jpeg"
+          ]
+        },
+        "settle_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "at": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3600
+        },
+        "transparent": {
+          "type": "boolean"
+        },
+        "shading": {
+          "type": "string",
+          "enum": [
+            "flat",
+            "wireframe",
+            "normals"
+          ]
+        },
+        "overlay": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "grid",
+              "axes",
+              "bbox"
+            ]
+          },
+          "maxItems": 3
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_render_views",
+    title: "多视角出图：一次拿到 1–6 张带标签、可对照的截图",
+    capability: "render.views",
+    annotations: {"readOnlyHint":true,"openWorldHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "views": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "front",
+              "back",
+              "left",
+              "right",
+              "top",
+              "three_quarter"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 6
+        },
+        "node_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "maxItems": 20
         },
         "width": {
           "type": "integer",
@@ -3631,27 +5903,244 @@ export const MCP_TOOLS = [
         },
         "transparent": {
           "type": "boolean"
+        },
+        "shading": {
+          "type": "string",
+          "enum": [
+            "flat",
+            "wireframe",
+            "normals"
+          ]
+        },
+        "overlay": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "grid",
+              "axes",
+              "bbox"
+            ]
+          },
+          "maxItems": 3
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_render_node",
+    title: "单资产特写：自动框选一个节点并怼近拍一张",
+    capability: "render.node",
+    annotations: {"readOnlyHint":true,"openWorldHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "node_id": {
+          "type": "string",
+          "pattern": "^n_[a-z0-9]{8}$"
+        },
+        "view": {
+          "type": "string",
+          "enum": [
+            "front",
+            "back",
+            "left",
+            "right",
+            "top",
+            "three_quarter"
+          ]
+        },
+        "padding": {
+          "type": "number",
+          "minimum": 0.2,
+          "maximum": 5
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 4096
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 4096
+        },
+        "format": {
+          "type": "string",
+          "enum": [
+            "png",
+            "jpeg"
+          ]
+        },
+        "settle_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "at": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3600
+        },
+        "transparent": {
+          "type": "boolean"
+        },
+        "shading": {
+          "type": "string",
+          "enum": [
+            "flat",
+            "wireframe",
+            "normals"
+          ]
+        },
+        "overlay": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "grid",
+              "axes",
+              "bbox"
+            ]
+          },
+          "maxItems": 3
         }
       },
       "required": [
-        "room_id"
+        "node_id"
       ],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
     },
   },
   {
+    name: "vibe3d_render_pick",
+    title: "像素取色：给点给区域，直接量出颜色与直方图",
+    capability: "render.pick",
+    annotations: {"readOnlyHint":true,"openWorldHint":false},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "points": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4095
+              },
+              "y": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4095
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 32
+        },
+        "rect": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4095
+            },
+            "y": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4095
+            },
+            "w": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4096
+            },
+            "h": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4096
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "w",
+            "h"
+          ],
+          "additionalProperties": false
+        },
+        "top_colors": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "width": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 4096
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 4096
+        },
+        "settle_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "at": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3600
+        },
+        "transparent": {
+          "type": "boolean"
+        },
+        "shading": {
+          "type": "string",
+          "enum": [
+            "flat",
+            "wireframe",
+            "normals"
+          ]
+        },
+        "overlay": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "grid",
+              "axes",
+              "bbox"
+            ]
+          },
+          "maxItems": 3
+        }
+      },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
     name: "vibe3d_export_glb",
-    title: "把场景导出为 GLB，返回签名下载地址",
+    title: "把场景导出为 GLB，返回任务 ID",
     capability: "export.glb",
     annotations: {"readOnlyHint":true},
     inputSchema: {
       "type": "object",
       "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        },
         "node_ids": {
           "type": "array",
           "items": {
@@ -3660,8 +6149,57 @@ export const MCP_TOOLS = [
           }
         }
       },
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_job_get",
+    title: "查询导出任务状态",
+    capability: "job.get",
+    annotations: {"readOnlyHint":true},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
       "required": [
-        "room_id"
+        "job_id"
+      ],
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_job_list",
+    title: "列出导出任务（可按房间过滤）",
+    capability: "job.list",
+    annotations: {"readOnlyHint":true},
+    inputSchema: {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false,
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+  },
+  {
+    name: "vibe3d_job_cancel",
+    title: "取消导出任务（排队中立即出队，运行中丢弃结果）",
+    capability: "job.cancel",
+    annotations: {},
+    inputSchema: {
+      "type": "object",
+      "properties": {
+        "job_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "job_id"
       ],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
@@ -3669,27 +6207,28 @@ export const MCP_TOOLS = [
   },
   {
     name: "vibe3d_open_editor",
-    title: "在浏览器打开房间编辑器",
+    title: "在本地浏览器打开房间编辑器（默认直接弹出窗口；open:false 只回链接）；省略 room_id 时用会话绑定（未绑定自动建房）",
     capability: "editor.open",
     annotations: {},
     inputSchema: {
       "type": "object",
       "properties": {
-        "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$"
-        },
         "focus": {
           "type": "string",
           "pattern": "^n_[a-z0-9]{8}$"
         },
         "reuse": {
           "type": "boolean"
+        },
+        "open": {
+          "type": "boolean"
+        },
+        "room_id": {
+          "type": "string",
+          "pattern": "^r_[a-z0-9]{8}$",
+          "description": "房间 id；省略时用当前会话绑定的房间"
         }
       },
-      "required": [
-        "room_id"
-      ],
       "additionalProperties": false,
       "$schema": "http://json-schema.org/draft-07/schema#"
     },

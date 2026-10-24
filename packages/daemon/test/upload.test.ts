@@ -33,7 +33,17 @@ describe('upload: 类型与内容校验', () => {
     try {
       classifyUpload({ filename: 'model.fbx', bytes: Buffer.from('x') });
     } catch (e) {
-      expect((e as { data?: { allowed?: string[] } }).data?.allowed).toEqual(['.glb', '.gltf']);
+      expect((e as { data?: { allowed?: string[] } }).data?.allowed).toEqual([
+        '.glb',
+        '.gltf',
+        '.png',
+        '.jpg',
+        '.jpeg',
+        '.webp',
+        '.ktx2',
+        '.hdr',
+        '.exr',
+      ]);
     }
     expect(codeOf(() => classifyUpload({ filename: 'noext', bytes: glb() }))).toBe('E_ASSET_TYPE');
   });
@@ -46,7 +56,17 @@ describe('upload: 类型与内容校验', () => {
       const err = e as { code?: string; data?: { mime?: string; allowed?: string[] } };
       expect(err.code).toBe('E_ASSET_TYPE');
       expect(err.data?.mime).toBe('text/plain');
-      expect(err.data?.allowed).toEqual(['model/gltf-binary', 'model/gltf+json', 'application/octet-stream']);
+      expect(err.data?.allowed).toEqual([
+        'model/gltf-binary',
+        'model/gltf+json',
+        'image/png',
+        'image/jpeg',
+        'image/webp',
+        'image/ktx2',
+        'image/vnd.radiance',
+        'image/x-exr',
+        'application/octet-stream',
+      ]);
     }
   });
 

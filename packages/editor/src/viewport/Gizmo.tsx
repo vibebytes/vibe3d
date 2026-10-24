@@ -17,9 +17,6 @@ export function Gizmo({ enabled }: { enabled: boolean }) {
   const patchNode = useDoc((s) => s.patchNode);
 
   const tcRef = useRef<ComponentRef<typeof TransformControls>>(null);
-  useEffect(() => {
-    window.__tc = tcRef.current;
-  });
   // biome-ignore lint/correctness/useExhaustiveDependencies: revision invalidates in-place scene mutations
   const object = useMemo(
     () => (selected ? findNodeObject(scene, selected) : null),

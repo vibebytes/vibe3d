@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Icon } from '../common/Icon';
 import { health } from '../lib/rpc';
 import { type ConnStatus, useConn } from '../stores/conn';
 import { useDoc } from '../stores/doc';
@@ -51,9 +52,9 @@ function useRenderer(): string {
 
 function Cell({ label, value }: { label: string; value: string }) {
   return (
-    <span className="flex items-baseline gap-1">
-      <span className="text-base-content/30">{label}</span>
-      <span className="num text-base-content/60">{value}</span>
+    <span className="flex items-baseline gap-1 whitespace-nowrap">
+      <span className="text-base-content/50">{label}</span>
+      <span className="num text-base-content/75">{value}</span>
     </span>
   );
 }
@@ -64,6 +65,7 @@ export function StatusBar({ revision, nodes }: { revision: number; nodes: number
   const selected = useSelection((s) => s.primary);
   const selectedCount = useSelection((s) => s.ids.length);
   const preset = useDoc((s) => s.doc?.stage.preset ?? 'clean');
+  const importing = useDoc((s) => s.importing);
   const showStats = useUi((s) => s.showStats);
   const conn = useConn((s) => s.status);
   const latency = useConn((s) => s.latency);
@@ -71,7 +73,12 @@ export function StatusBar({ revision, nodes }: { revision: number; nodes: number
   const online = conn === 'online';
 
   return (
-    <div className="flex h-6 shrink-0 items-center gap-3 overflow-hidden border-t border-base-300 bg-base-200 px-3 text-[10px]">
+    <footer className="flex h-8 shrink-0 items-center gap-2.5 overflow-hidden border-t border-base-300 bg-base-200/80 px-3.5 text-[11px]">
+      <span className="flex items-center gap-1.5 text-base-content/55">
+        <Icon name="layers" size={11} />
+        <span className="tracking-wide">vibe3d</span>
+      </span>
+      <span className="divider-v !h-2.5 !mx-0" />
       <Cell label="rev" value={String(revision)} />
       <Cell label="节点" value={String(nodes)} />
       <Cell
@@ -79,21 +86,28 @@ export function StatusBar({ revision, nodes }: { revision: number; nodes: number
         value={selected ? (selectedCount > 1 ? `${selected} +${selectedCount - 1}` : selected) : '—'}
       />
       <Cell label="配方" value={preset} />
-      <span className="ml-auto flex items-center gap-3">
+      {importing && (
+        <span className="chip chip--live h-[18px]">
+          <i className="dot dot--pulse" />
+          导入中 {Math.round(importing.ratio * 100)}%
+        </span>
+      )}
+      <span className="ml-auto flex items-center gap-2.5">
         {showStats ? (
           <>
-            <Cell label="渲染器" value={renderer} />
+            <Cell label="renderer" value={renderer} />
             <Cell label="fps" value={fps ? String(fps) : '—'} />
           </>
         ) : null}
         {latency !== null ? <Cell label="rtt" value={`${latency}ms`} /> : null}
         {conn === 'reconnecting' ? <Cell label="重试" value={String(retries)} /> : null}
-        <Cell label="链路" value={CONN_LABEL[conn]} />
         <span
-          className={`inline-block size-1.5 rounded-full ${online ? 'bg-success' : conn === 'connecting' || conn === 'reconnecting' ? 'bg-warning' : 'bg-base-content/20'}`}
-          title={`WS ${CONN_LABEL[conn]}`}
-        />
+          className={`chip h-[18px] ${online ? 'chip--live' : conn === 'connecting' || conn === 'reconnecting' ? 'chip--warn' : ''}`}
+        >
+          <i className={`dot ${online ? '' : 'dot--pulse'}`} />
+          {CONN_LABEL[conn]}
+        </span>
       </span>
-    </div>
+    </footer>
   );
 }

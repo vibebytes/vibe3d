@@ -67,6 +67,9 @@ export class ChromiumRenderer implements Renderer {
               format,
               at: opts.at,
               transparent: opts.transparent,
+              camera: opts.camera,
+              shading: opts.shading,
+              overlay: opts.overlay,
             })}) ?? null`,
             awaitPromise: true,
             returnByValue: true,
@@ -229,7 +232,7 @@ export class ChromiumRenderer implements Renderer {
       { width, height, deviceScaleFactor: 1, mobile: false },
       page.sessionId,
     );
-    const url = `${this.opts.baseUrl()}/r/${roomId}?headless=1&t=${encodeURIComponent(this.opts.token)}`;
+    const url = `${this.opts.baseUrl()}/editor/r/${roomId}?headless=1&t=${encodeURIComponent(this.opts.token)}`;
     await cdp.send('Page.navigate', { url }, page.sessionId, this.opts.navigateTimeoutMs ?? 20_000);
     await this.waitReady(page.sessionId);
     return page;

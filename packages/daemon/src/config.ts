@@ -18,6 +18,7 @@ export const configSchema = z.object({
   renderer: z.enum(['auto', 'none', 'chromium', 'editor']).default('auto'),
   chromePath: z.string().optional(),
   renderTimeoutMs: z.coerce.number().int().min(1000).max(120_000).default(20_000),
+  openEditor: z.boolean().default(true),
   logLevel: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
 });
 
@@ -64,6 +65,10 @@ export function parseConfig(argv: string[], env: NodeJS.ProcessEnv = process.env
     renderer: flags.renderer ?? env.VIBE3D_RENDERER,
     chromePath: flags.chrome ?? env.VIBE3D_CHROME,
     renderTimeoutMs: flags['render-timeout'] ?? env.VIBE3D_RENDER_TIMEOUT,
+    openEditor:
+      flags['open-editor'] === true
+        ? true
+        : bool(typeof flags['open-editor'] === 'string' ? flags['open-editor'] : env.VIBE3D_OPEN_EDITOR, true),
     logLevel: flags['log-level'] ?? env.VIBE3D_LOG_LEVEL,
   };
 

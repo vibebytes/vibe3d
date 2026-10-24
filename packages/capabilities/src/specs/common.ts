@@ -3,6 +3,10 @@ import { z } from 'zod';
 
 export const roomId = z.string().regex(/^r_[a-z0-9]{8}$/);
 
+export const intIn = (min: number, max: number) => z.coerce.number().int().min(min).max(max);
+
+export const numIn = (min: number, max: number) => z.coerce.number().min(min).max(max);
+
 export const transformInput = z.object({
   p: vec3.optional(),
   r: vec3.optional(),

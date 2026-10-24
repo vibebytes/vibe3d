@@ -1,10 +1,14 @@
 import type { CameraState, Material, SceneDoc, StageState } from '@vibebyte/vibe3d-protocol';
 import { create } from 'zustand';
+import { splitFiles } from '../lib/asset-files';
+import { fitTransform, importName, isGltfFile, rowOffset } from '../lib/import-model';
 import { rpc } from '../lib/rpc';
+import { uploadGltf, uploadImage } from '../lib/upload';
 import { type RoomSocket, connectRoom } from '../lib/ws';
 import type { CaptureOptions, CaptureResult } from '../viewport/CaptureBridge';
 import { useConn } from './conn';
 import { useSelection } from './selection';
+import { parseSnapshotCamera } from './snapshot-camera';
 
 declare global {
   interface Window {
@@ -22,20 +26,55 @@ declare global {
 
 type Status = 'idle' | 'loading' | 'ready' | 'error';
 
+export interface ImportProgress {
+  name: string;
+  index: number;
+  total: number;
+  ratio: number;
+}
+
+export interface ImportedModel {
+  nodeId: string;
+  name: string;
+  sha: string;
+  bytes: number;
+}
+
+export interface ImportOutcome {
+  imported: ImportedModel[];
+  failed: { name: string; message: string }[];
+}
+
+export interface UploadedImage {
+  sha: string;
+  name: string;
+  bytes: number;
+}
+
+export interface ImageOutcome {
+  uploaded: UploadedImage[];
+  failed: { name: string; message: string }[];
+}
+
 interface DocStore {
   roomId: string;
   doc: SceneDoc | null;
   status: Status;
   error: string | null;
   online: boolean;
+  importing: ImportProgress | null;
   socket: RoomSocket | null;
   load(roomId: string): Promise<void>;
   refresh(): Promise<void>;
   createNode(kind: 'box' | 'sphere' | 'cylinder' | 'light'): Promise<void>;
+  importModels(files: File[]): Promise<ImportOutcome>;
+  uploadImages(files: File[]): Promise<ImageOutcome>;
+  ingestFiles(files: File[]): Promise<{ models: ImportOutcome; images: ImageOutcome; rejected: string[] }>;
   patchNode(id: string, patch: Record<string, unknown>): Promise<void>;
   patchMaterial(id: string, material: Material): Promise<void>;
   removeNode(id: string): Promise<void>;
   setStage(stage: Partial<StageState>): Promise<void>;
+  setEnv(env: Partial<SceneDoc['env']>): Promise<void>;
   setCamera(camera: CameraState): Promise<void>;
   frameCamera(mode: 'fit' | 'close' | 'wide'): Promise<void>;
   playAnimation(id: string, opts?: { clip?: string; speed?: number }): Promise<void>;
@@ -51,6 +90,7 @@ export const useDoc = create<DocStore>((set, get) => ({
   status: 'idle',
   error: null,
   online: false,
+  importing: null,
   socket: null,
 
   async load(roomId) {
@@ -72,6 +112,17 @@ export const useDoc = create<DocStore>((set, get) => ({
               const value = evt.data[key];
               return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
             };
+            const shading =
+              evt.data.shading === 'flat' ||
+              evt.data.shading === 'wireframe' ||
+              evt.data.shading === 'normals'
+                ? evt.data.shading
+                : undefined;
+            const overlay = Array.isArray(evt.data.overlay)
+              ? (evt.data.overlay.filter(
+                  (k): k is 'grid' | 'axes' | 'bbox' => k === 'grid' || k === 'axes' || k === 'bbox',
+                ) as CaptureOptions['overlay'])
+              : undefined;
             try {
               const shot = window.__vibe3dCapture?.({
                 width: num('width'),
@@ -79,6 +130,9 @@ export const useDoc = create<DocStore>((set, get) => ({
                 format: evt.data.format === 'jpeg' ? 'jpeg' : 'png',
                 at: num('at'),
                 transparent: evt.data.transparent === true,
+                camera: parseSnapshotCamera(evt.data.camera),
+                shading,
+                overlay: overlay && overlay.length > 0 ? overlay : undefined,
               });
               if (shot) {
                 get().socket?.send({
@@ -135,6 +189,84 @@ export const useDoc = create<DocStore>((set, get) => ({
     useSelection.getState().select(res.nodeId);
   },
 
+  async importModels(files) {
+    const roomId = get().roomId;
+    if (!roomId) throw new Error('房间尚未载入');
+    const outcome: ImportOutcome = { imported: [], failed: [] };
+    const list = files.filter((file) => {
+      if (isGltfFile(file.name)) return true;
+      outcome.failed.push({ name: file.name, message: '只支持 .glb / .gltf' });
+      return false;
+    });
+
+    try {
+      for (let i = 0; i < list.length; i += 1) {
+        const file = list[i];
+        if (!file) continue;
+        const name = importName(file.name);
+        const progress = (ratio: number): void => {
+          set({ importing: { name: file.name, index: i + 1, total: list.length, ratio } });
+        };
+        progress(0);
+        try {
+          const upload = await uploadGltf(roomId, file, (ratio) => progress(ratio * 0.85));
+          const transform = fitTransform(upload.gltf.size, { offsetX: rowOffset(i, list.length) });
+          const { nodeId } = await rpc<{ nodeId: string }>(
+            'node.import',
+            { sha: upload.sha, name, transform },
+            roomId,
+          );
+          outcome.imported.push({ nodeId, name, sha: upload.sha, bytes: upload.bytes });
+        } catch (err) {
+          outcome.failed.push({
+            name: file.name,
+            message: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
+    } finally {
+      set({ importing: null });
+    }
+
+    if (outcome.imported.length > 0) {
+      await get().refresh();
+      const last = outcome.imported[outcome.imported.length - 1];
+      if (last) useSelection.getState().select(last.nodeId);
+      await get().frameCamera('fit');
+    }
+    return outcome;
+  },
+
+  async uploadImages(files) {
+    const roomId = get().roomId;
+    if (!roomId) throw new Error('房间尚未载入');
+    const outcome: ImageOutcome = { uploaded: [], failed: [] };
+    for (const file of files) {
+      try {
+        const res = await uploadImage(roomId, file);
+        outcome.uploaded.push({ sha: res.sha, name: res.meta.name || file.name, bytes: res.bytes });
+      } catch (err) {
+        outcome.failed.push({
+          name: file.name,
+          message: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+    if (outcome.uploaded.length > 0) await get().refresh();
+    return outcome;
+  },
+
+  async ingestFiles(files) {
+    const split = splitFiles(files);
+    const models = split.models.length
+      ? await get().importModels(split.models)
+      : { imported: [], failed: [] };
+    const images = split.images.length
+      ? await get().uploadImages(split.images)
+      : { uploaded: [], failed: [] };
+    return { models, images, rejected: split.rejected.map((r) => `${r.name}：${r.reason}`) };
+  },
+
   async patchNode(id, patch) {
     const roomId = get().roomId;
     if (!roomId) return;
@@ -161,6 +293,16 @@ export const useDoc = create<DocStore>((set, get) => ({
     const roomId = get().roomId;
     if (!roomId) return;
     await rpc('stage.set', { stage }, roomId);
+    await get().refresh();
+  },
+
+  async setEnv(patch) {
+    const roomId = get().roomId;
+    const doc = get().doc;
+    if (!roomId || !doc) return;
+    const env: Omit<SceneDoc['env'], 'hdri'> & { hdri?: string | null } = { ...doc.env, ...patch };
+    if ('hdri' in patch) env.hdri = patch.hdri ?? null;
+    await rpc('ops.apply', { ops: [{ op: 'env.set', env }] }, roomId);
     await get().refresh();
   },
 
@@ -209,7 +351,7 @@ export const useDoc = create<DocStore>((set, get) => ({
   dispose() {
     get().socket?.close();
     useConn.getState().reset();
-    set({ socket: null, doc: null, status: 'idle', roomId: '' });
+    set({ socket: null, doc: null, status: 'idle', roomId: '', importing: null });
   },
 }));
 

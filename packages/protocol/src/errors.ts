@@ -23,6 +23,11 @@ export const ERROR_CODES = [
   'E_ASSET_EXTERNAL_REFS',
   'E_RATE_LIMITED',
   'E_ASSET_TYPE',
+  'E_ASSET_IN_USE',
+  'E_LIMIT_EXCEEDED',
+  'E_BUSY',
+  'E_CHECKPOINT_NOT_FOUND',
+  'E_NODE_NOT_FOUND',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
@@ -55,6 +60,11 @@ export const ERROR_SPECS: Record<ErrorCode, ErrorSpec> = {
   E_ASSET_EXTERNAL_REFS: { rpc: -32013, http: 422, retryable: false, message: 'glTF 非自包含' },
   E_RATE_LIMITED: { rpc: -32014, http: 429, retryable: true, message: '请求过于频繁' },
   E_ASSET_TYPE: { rpc: -32015, http: 415, retryable: false, message: '资产类型不支持' },
+  E_ASSET_IN_USE: { rpc: -32016, http: 409, retryable: false, message: '资产仍被引用' },
+  E_LIMIT_EXCEEDED: { rpc: -32017, http: 409, retryable: false, message: '超出容量上限' },
+  E_BUSY: { rpc: -32018, http: 429, retryable: true, message: '队列已满，请稍后重试' },
+  E_CHECKPOINT_NOT_FOUND: { rpc: -32019, http: 404, retryable: false, message: '检查点不存在' },
+  E_NODE_NOT_FOUND: { rpc: -32020, http: 404, retryable: false, message: '节点不存在' },
 };
 
 export interface AppErrorData {

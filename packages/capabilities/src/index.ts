@@ -8,3 +8,4 @@ export {
   type ToolAnnotations,
 } from './types';
 export { MCP_TOOLS } from '../generated/mcp';
+export { describeIssues, type ParamIssue, toIssues } from './issues';

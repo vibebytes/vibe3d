@@ -2,32 +2,7 @@
 import { Vibe3DError, isVibe3DError } from '@vibebyte/vibe3d-client';
 import { parseArgs } from './args';
 import { run } from './commands';
-
-const HELP = `vibe3d — 专家级 3D 场景 CLI（与 MCP / HTTP 同一套能力）
-
-用法：vibe3d <group> <command> [args] [--flags]
-
-  status                        daemon 健康与能力清单
-  room new [--name n] [--template empty|showroom|product]
-  room ls | room show <roomId> | room rm <roomId> [--purge]
-  scene get|summary|undo|redo|diff <roomId>
-  scene apply <roomId> --ops <json|@file> [--dry-run]
-  node create <roomId> --kind mesh|group|light [--shape box|sphere|cylinder|plane]
-  node update <roomId> <nodeId> --patch <json|@file>
-  node rm <roomId> <nodeId> [--no-cascade]
-  stage set <roomId> --preset <name> | --stage <json|@file>
-  anim play <roomId> <nodeId> [--clip n] [--speed 1]
-  camera set <roomId> [--frame fit|close|wide] [--p x,y,z] [--target x,y,z]
-  render snapshot <roomId> [--out shot.png] [--size 1280x720] [--format png|jpeg] [--settle-ms 180] [--at 1.2] [--transparent]
-  export glb <roomId> [--node id] [--out scene.glb]
-  open <roomId> [--focus nodeId] [--no-reuse]
-  model import <roomId> <src> [--name n] [--autoplay]
-  asset inspect <roomId> <src>
-  call <method> [--params <json|@file>] [--room <roomId>]
-  daemon [--port 0] [--persist]   （前台运行 daemon）
-
-全局：--home <dir> --url <http://127.0.0.1:port> --token <t> --pretty
-`;
+import { HELP } from './help';
 
 function exitCode(err: unknown): number {
   if (!isVibe3DError(err)) return 1;

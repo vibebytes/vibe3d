@@ -24,7 +24,10 @@ export function Section({
   return (
     <section className="space-y-2">
       <header className="flex items-center justify-between">
-        <h3 className="text-[11px] uppercase tracking-widest text-base-content/40">{title}</h3>
+        <h3 className="flex items-center gap-1.5 text-[10.5px] font-medium uppercase tracking-[0.16em] text-base-content/55">
+          <span className="h-2.5 w-[2px] rounded-full bg-primary/70" />
+          {title}
+        </h3>
         {right}
       </header>
       {children}

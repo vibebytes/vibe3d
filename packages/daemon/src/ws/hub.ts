@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import type { CameraState } from '@vibebyte/vibe3d-protocol';
+import type { OverlayKind, ShadingMode } from '../context';
 import { type ServerFrame, encodeFrame } from './protocol';
 
 export interface SocketLike {
@@ -18,6 +20,9 @@ export interface SnapshotRequest {
   format?: 'png' | 'jpeg';
   at?: number;
   transparent?: boolean;
+  camera?: CameraState;
+  shading?: ShadingMode;
+  overlay?: OverlayKind[];
 }
 
 export interface SnapshotCapture {

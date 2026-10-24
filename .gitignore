@@ -155,6 +155,8 @@ vite.config.ts.timestamp-*
 .smoke-home/
 .vibe3d/
 .tmp/
+.devhome/
+packages/daemon/.devhome/
 
 # Playwright
 test-results/

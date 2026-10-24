@@ -49,6 +49,12 @@ export const materialSchema = z.object({
   map: shaSchema.optional(),
 });
 
+export const assetImageSchema = z.object({
+  width: z.number().int().min(0),
+  height: z.number().int().min(0),
+  hdri: z.boolean(),
+});
+
 export const lightSpecSchema = z.object({
   type: z.enum(['directional', 'point', 'spot', 'ambient']),
   color: rgba,
