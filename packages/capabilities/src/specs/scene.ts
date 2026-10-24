@@ -445,7 +445,7 @@ export const sceneOps = {
   },
   'ops.apply': {
     title:
-      '原子应用一批 op（ops 传数组，不要传 JSON 字符串；node.create 可省 id，服务端补齐并在 assigned 回报；返回逆操作与 nodeCount；基础体优先用 vibe3d_create_node）',
+      '原子应用一批 op（传数组，别传 JSON 字符串；node.create 可省 id，服务端补齐并在 assigned 回报；id/parent 可写 @名字，解析结果在 resolved 回报；返回逆操作与 nodeCount）',
     input: z.object({
       roomId,
       ops: opListSchema,
@@ -461,6 +461,7 @@ export const sceneOps = {
       assigned: z
         .array(z.object({ index: z.number().int().min(0), name: z.string(), id: nodeIdSchema }))
         .optional(),
+      resolved: z.record(z.string(), nodeIdSchema).optional(),
       summary: z.object({
         created: z.number().int().min(0),
         updated: z.number().int().min(0),

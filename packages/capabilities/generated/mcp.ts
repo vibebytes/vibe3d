@@ -1024,7 +1024,7 @@ export const MCP_TOOLS = [
   },
   {
     name: "vibe3d_apply_ops",
-    title: "原子应用一批 op（ops 传数组，不要传 JSON 字符串；node.create 可省 id，服务端补齐并在 assigned 回报；返回逆操作与 nodeCount；基础体优先用 vibe3d_create_node）",
+    title: "原子应用一批 op（传数组，别传 JSON 字符串；node.create 可省 id，服务端补齐并在 assigned 回报；id/parent 可写 @名字，解析结果在 resolved 回报；返回逆操作与 nodeCount）",
     capability: "ops.apply",
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
@@ -1058,8 +1058,16 @@ export const MCP_TOOLS = [
                           "parent": {
                             "anyOf": [
                               {
-                                "type": "string",
-                                "pattern": "^n_[a-z0-9]{8}$"
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^n_[a-z0-9]{8}$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "pattern": "^@\\S{1,200}$"
+                                  }
+                                ]
                               },
                               {
                                 "type": "null"
@@ -1261,8 +1269,16 @@ export const MCP_TOOLS = [
                           "parent": {
                             "anyOf": [
                               {
-                                "type": "string",
-                                "pattern": "^n_[a-z0-9]{8}$"
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^n_[a-z0-9]{8}$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "pattern": "^@\\S{1,200}$"
+                                  }
+                                ]
                               },
                               {
                                 "type": "null"
@@ -1757,8 +1773,16 @@ export const MCP_TOOLS = [
                           "parent": {
                             "anyOf": [
                               {
-                                "type": "string",
-                                "pattern": "^n_[a-z0-9]{8}$"
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^n_[a-z0-9]{8}$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "pattern": "^@\\S{1,200}$"
+                                  }
+                                ]
                               },
                               {
                                 "type": "null"
@@ -2066,8 +2090,16 @@ export const MCP_TOOLS = [
                           "parent": {
                             "anyOf": [
                               {
-                                "type": "string",
-                                "pattern": "^n_[a-z0-9]{8}$"
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^n_[a-z0-9]{8}$"
+                                  },
+                                  {
+                                    "type": "string",
+                                    "pattern": "^@\\S{1,200}$"
+                                  }
+                                ]
                               },
                               {
                                 "type": "null"
@@ -2312,8 +2344,16 @@ export const MCP_TOOLS = [
                     "const": "node.update"
                   },
                   "id": {
-                    "type": "string",
-                    "pattern": "^n_[a-z0-9]{8}$"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^n_[a-z0-9]{8}$"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^@\\S{1,200}$"
+                      }
+                    ]
                   },
                   "patch": {
                     "type": "object",
@@ -2967,8 +3007,16 @@ export const MCP_TOOLS = [
                     "const": "node.delete"
                   },
                   "id": {
-                    "type": "string",
-                    "pattern": "^n_[a-z0-9]{8}$"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^n_[a-z0-9]{8}$"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^@\\S{1,200}$"
+                      }
+                    ]
                   },
                   "cascade": {
                     "type": "boolean"
@@ -2988,14 +3036,30 @@ export const MCP_TOOLS = [
                     "const": "node.reparent"
                   },
                   "id": {
-                    "type": "string",
-                    "pattern": "^n_[a-z0-9]{8}$"
-                  },
-                  "parent": {
                     "anyOf": [
                       {
                         "type": "string",
                         "pattern": "^n_[a-z0-9]{8}$"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^@\\S{1,200}$"
+                      }
+                    ]
+                  },
+                  "parent": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^n_[a-z0-9]{8}$"
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^@\\S{1,200}$"
+                          }
+                        ]
                       },
                       {
                         "type": "null"

@@ -49,7 +49,8 @@ describe('@name references in ops', () => {
   it('同批先 create 再按 @name 引用，指向服务端补的 id', async () => {
     const h = makeHarness();
     const roomId = await room(h);
-    const base = await makeNamed(h, roomId, '模板');
+    const templateId = await makeNamed(h, roomId, '模板');
+    const base = (await doc(h, roomId)).nodes[templateId];
     const fresh = { ...base, name: '新块' };
     delete fresh.id;
 
@@ -65,7 +66,7 @@ describe('@name references in ops', () => {
       },
       roomId,
     );
-    expect(codeOf(res.body)).toBeUndefined();
+    expect(res.body.error).toBeUndefined();
     const id = res.body.result.assigned[0].id;
     expect(res.body.result.resolved).toEqual({ '@新块': id });
     expect((await doc(h, roomId)).nodes[id].visible).toBe(false);
@@ -95,12 +96,7 @@ describe('@name references in ops', () => {
     await makeNamed(h, roomId, '同名');
     await makeNamed(h, roomId, '同名');
 
-    const res = await call(
-      h,
-      'ops.apply',
-      { roomId, ops: [{ op: 'node.delete', id: '@同名' }] },
-      roomId,
-    );
+    const res = await call(h, 'ops.apply', { roomId, ops: [{ op: 'node.delete', id: '@同名' }] }, roomId);
     expect(codeOf(res.body)).toBe('E_INVALID_PARAMS');
     expect(res.body.error.message).toContain('同名');
   });

@@ -21,6 +21,7 @@ import {
   materialPresetSchema,
   materialSchema,
   nodeIdSchema,
+  nodeRefSchema,
   nprSchema,
   postSchema,
   shaSchema,
@@ -55,12 +56,12 @@ const nodePatchSchema = z.object({
 
 export const opSchema = z.discriminatedUnion('op', [
   z.object({ op: z.literal('node.create'), node: newNodeSchema }),
-  z.object({ op: z.literal('node.update'), id: nodeIdSchema, patch: nodePatchSchema }),
-  z.object({ op: z.literal('node.delete'), id: nodeIdSchema, cascade: z.boolean().optional() }),
+  z.object({ op: z.literal('node.update'), id: nodeRefSchema, patch: nodePatchSchema }),
+  z.object({ op: z.literal('node.delete'), id: nodeRefSchema, cascade: z.boolean().optional() }),
   z.object({
     op: z.literal('node.reparent'),
-    id: nodeIdSchema,
-    parent: nodeIdSchema.nullable(),
+    id: nodeRefSchema,
+    parent: nodeRefSchema.nullable(),
     index: z.number().int().min(0).optional(),
   }),
   z.object({ op: z.literal('material.set'), id: materialIdSchema, material: materialSchema }),

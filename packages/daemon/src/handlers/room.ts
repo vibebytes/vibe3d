@@ -67,6 +67,62 @@ const assignNodeIds = (ops: readonly Op[]): { ops: Op[]; assigned: AssignedId[] 
   return { ops: out, assigned };
 };
 
+const isRef = (v: unknown): v is string => typeof v === 'string' && v.startsWith('@');
+
+const nameTable = (doc: SceneDoc): Map<string, Set<string>> => {
+  const table = new Map<string, Set<string>>();
+  for (const node of Object.values(doc.nodes)) {
+    const ids = table.get(node.name) ?? new Set<string>();
+    ids.add(node.id);
+    table.set(node.name, ids);
+  }
+  return table;
+};
+
+const resolveNodeRefs = (
+  doc: SceneDoc,
+  ops: readonly Op[],
+): { ops: Op[]; resolved: Record<string, string> } => {
+  const table = nameTable(doc);
+  const resolved: Record<string, string> = {};
+  const resolve = (ref: string): string => {
+    const name = ref.slice(1);
+    const ids = table.get(name);
+    if (!ids || ids.size === 0) {
+      throw new AppError('E_NODE_NOT_FOUND', `找不到名为「${name}」的节点：${ref}`, {
+        hint: '先用 scene.query 或 node.query 确认节点名，或直接传 node id',
+      });
+    }
+    if (ids.size > 1) {
+      throw new AppError('E_INVALID_PARAMS', `节点名「${name}」同名 ${ids.size} 个，${ref} 无法定位`, {
+        hint: '请改用 node id 引用（scene.query 可按 name 查到全部 id）',
+      });
+    }
+    const id = [...ids][0] as string;
+    resolved[ref] = id;
+    return id;
+  };
+  const take = (v: unknown): unknown => (isRef(v) ? resolve(v) : v);
+  const out = ops.map((op) => {
+    let next: Op = op;
+    if (op.op === 'node.create') {
+      next = { ...op, node: { ...op.node, parent: take(op.node.parent) as string | null } } as Op;
+      const id = op.node.id;
+      if (id) {
+        const ids = table.get(op.node.name) ?? new Set<string>();
+        ids.add(id);
+        table.set(op.node.name, ids);
+      }
+    } else if (op.op === 'node.update' || op.op === 'node.delete') {
+      next = { ...op, id: take(op.id) as string } as Op;
+    } else if (op.op === 'node.reparent') {
+      next = { ...op, id: take(op.id) as string, parent: take(op.parent) as string | null } as Op;
+    }
+    return next;
+  });
+  return { ops: out, resolved };
+};
+
 const sceneFeedback = (
   doc: SceneDoc,
   ctx?: { baseUrl: string; token?: string; surfaces?: (roomId: string) => number },
@@ -206,8 +262,12 @@ export const roomHandlers: HandlersFor<Keys> = {
 
   'ops.apply': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    const { ops, assigned } = assignNodeIds(p.ops as Op[]);
-    const extra = assigned.length ? { assigned } : {};
+    const { ops: withIds, assigned } = assignNodeIds(p.ops as Op[]);
+    const { ops, resolved } = resolveNodeRefs(room.doc, withIds);
+    const extra = {
+      ...(assigned.length ? { assigned } : {}),
+      ...(Object.keys(resolved).length ? { resolved } : {}),
+    };
     if (p.dryRun) {
       const { doc, inverse, warnings, summary } = applyOps(room.doc, ops);
       return {

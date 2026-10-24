@@ -12,6 +12,7 @@ import {
   materialIdSchema,
   materialSchema,
   nodeIdSchema,
+  nodeRefSchema,
   rgba,
   shaSchema,
   stageStateSchema,
@@ -103,10 +104,10 @@ export const sceneNodeSchema = z.discriminatedUnion('kind', [
 ]);
 
 export const newNodeSchema = z.discriminatedUnion('kind', [
-  groupNodeSchema.extend({ id: nodeIdSchema.optional() }),
-  meshNodeSchema.extend({ id: nodeIdSchema.optional() }),
-  lightNodeSchema.extend({ id: nodeIdSchema.optional() }),
-  modelNodeSchema.extend({ id: nodeIdSchema.optional() }),
+  groupNodeSchema.extend({ id: nodeIdSchema.optional(), parent: nodeRefSchema.nullable() }),
+  meshNodeSchema.extend({ id: nodeIdSchema.optional(), parent: nodeRefSchema.nullable() }),
+  lightNodeSchema.extend({ id: nodeIdSchema.optional(), parent: nodeRefSchema.nullable() }),
+  modelNodeSchema.extend({ id: nodeIdSchema.optional(), parent: nodeRefSchema.nullable() }),
 ]);
 
 export const gltfAnimationSchema = z.object({

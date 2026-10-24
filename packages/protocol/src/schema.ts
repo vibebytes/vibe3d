@@ -9,6 +9,7 @@ export const rgb = z.tuple([unit, unit, unit]);
 export const rgba = z.tuple([unit, unit, unit, unit]);
 
 export const nodeIdSchema = z.string().regex(NODE_ID_RE, 'invalid node id');
+export const nodeRefSchema = z.union([nodeIdSchema, z.string().regex(/^@\S{1,200}$/, 'invalid node ref')]);
 export const fxIdSchema = z.string().regex(FX_ID_RE, 'invalid fx id');
 export const materialIdSchema = z.string().regex(MATERIAL_ID_RE, 'invalid material id');
 export const shaSchema = z.string().regex(SHA_RE, 'invalid sha256');
