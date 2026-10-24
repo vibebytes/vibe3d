@@ -1,5 +1,11 @@
 import { AppError, type AssetMeta, type Op, type RoomId, type SceneDoc } from '@vibebyte/vibe3d-protocol';
-import { applyOps, validateDoc, type OpSummary } from '@vibebyte/vibe3d-scene';
+import {
+  type ChangedPaths,
+  type OpSummary,
+  applyOps,
+  changedPaths,
+  validateDoc,
+} from '@vibebyte/vibe3d-scene';
 
 export interface ApplyResult {
   revision: number;
@@ -88,9 +94,7 @@ export class Room {
       if (hit) return hit;
     }
     if (opts.expectRevision !== undefined && opts.expectRevision !== this.doc.revision) {
-      throw new AppError('E_CONFLICT', 'revision 冲突', {
-        currentRevision: this.doc.revision,
-      });
+      throw this.conflict(opts.expectRevision);
     }
 
     const before = this.doc;
@@ -214,6 +218,36 @@ export class Room {
 
   opsAt(revision: number): Op[] {
     return this.opLog.get(revision) ?? [];
+  }
+
+  changedSince(expectRevision: number): ChangedPaths {
+    const base = this.history.get(expectRevision);
+    if (!base) return { paths: [], truncated: false };
+    return changedPaths(base, this.doc);
+  }
+
+  conflict(expectRevision: number, reason?: 'missingBase'): AppError {
+    const revision = this.doc.revision;
+    const { paths, truncated } = this.changedSince(expectRevision);
+    const missing = reason === 'missingBase';
+    return new AppError('E_CONFLICT', missing ? 'strict 模式下写操作必须带 baseRevision' : 'revision 冲突', {
+      expectRevision,
+      actualRevision: revision,
+      currentRevision: revision,
+      changedPaths: paths,
+      truncated,
+      ...(missing ? { reason } : {}),
+      hint: missing
+        ? `先 scene.get 取当前 revision，再带 baseRevision:${revision} 重试`
+        : `先 scene.get 读回当前 revision，再用 baseRevision:${revision} 重试；changedPaths 列出你 base 之后被改动的路径`,
+      next: missing
+        ? { tool: 'vibe3d_ops_apply', params: { baseRevision: revision } }
+        : {
+            tool: 'vibe3d_scene_get',
+            params: { roomId: this.id },
+            after: `vibe3d_ops_apply{baseRevision:${revision}}`,
+          },
+    });
   }
 
   registerAsset(meta: AssetMeta): AssetMeta {

@@ -170,7 +170,7 @@ export const roomHandlers: HandlersFor<Keys> = {
     const room = ctx.rooms.get(p.roomId);
     assertAssetRefs(p.doc);
     if (p.expectRevision !== undefined && p.expectRevision !== room.revision) {
-      throw new AppError('E_CONFLICT', 'revision 冲突', { currentRevision: room.revision });
+      throw room.conflict(p.expectRevision);
     }
     const result = await room.run(() =>
       room.apply([{ op: 'scene.replace', doc: p.doc }], { expectRevision: p.expectRevision }),

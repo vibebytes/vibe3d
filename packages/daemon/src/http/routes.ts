@@ -33,6 +33,11 @@ interface Envelope {
 
 const JSON_TYPE = { 'content-type': 'application/json; charset=utf-8' };
 
+const STRICT_BASE: Record<string, string> = {
+  'ops.apply': 'baseRevision',
+  'scene.import': 'expectRevision',
+};
+
 function writeJson(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -87,6 +92,13 @@ function rpc(kind: 'control' | 'data', deps: RouteDeps, roomId?: string) {
         throw new AppError('E_NO_METHOD', `数据面不接受方法：${method}`);
       }
       const params = roomId ? { ...envelope.params, roomId } : envelope.params;
+      if (roomId && c.req.query('strict') === '1') {
+        const field = STRICT_BASE[method];
+        if (field && params[field] === undefined) {
+          const room = deps.ctx.rooms.get(roomId);
+          throw room.conflict(room.revision, 'missingBase');
+        }
+      }
       const result =
         method === 'hello'
           ? hello(deps.ctx)
