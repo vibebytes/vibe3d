@@ -3,7 +3,11 @@ import { validateScene } from '@vibebyte/vibe3d-scene';
 import { describe, expect, it } from 'vitest';
 import { MAT } from './helpers';
 
-function cube(id: `n_${string}`, p: [number, number, number], parent: `n_${string}` | null = null): SceneNode {
+function cube(
+  id: `n_${string}`,
+  p: [number, number, number],
+  parent: `n_${string}` | null = null,
+): SceneNode {
   return {
     id,
     kind: 'mesh',
@@ -25,7 +29,7 @@ function doc(nodes: SceneNode[]): SceneDoc {
 }
 
 const boundsOf = (doc: SceneDoc, code: string) =>
-  validateScene(doc).issues.find((issue) => issue.code === code)?.bounds;
+  validateScene(doc, { semantics: true }).issues.find((issue) => issue.code === code)?.bounds;
 
 describe('scene.validate issue bounds', () => {
   it('floating issue 携带节点世界包围盒', () => {
@@ -40,7 +44,7 @@ describe('scene.validate issue bounds', () => {
 
   it('orphan-child issue 携带父子的包围盒并集', () => {
     const d = doc([cube('n_00000001', [0, 0.5, 0]), cube('n_00000002', [5, 0.5, 0], 'n_00000001')]);
-    expect(boundsOf(d, 'orphan-child')).toEqual({ min: [-0.5, 0, -0.5], max: [5.5, 1, 5.5] });
+    expect(boundsOf(d, 'orphan-child')).toEqual({ min: [-0.5, 0, -0.5], max: [5.5, 1.5, 0.5] });
   });
 
   it('语义类 issue 也带 bounds（取涉及节点并集，取不到时省略）', () => {

@@ -2,6 +2,7 @@ import type { SceneDoc } from '@vibebyte/vibe3d-protocol';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelection } from '../stores/selection';
 import { CameraPanel } from './CameraPanel';
+import { DiagnosticsPanel } from './DiagnosticsPanel';
 import { FxPanel } from './FxPanel';
 import { LightPanel } from './LightPanel';
 import { MaterialPanel } from './MaterialPanel';
@@ -9,7 +10,7 @@ import { ModelPanel } from './ModelPanel';
 import { StagePanel } from './StagePanel';
 import { TransformPanel } from './TransformPanel';
 
-type TabId = 'node' | 'material' | 'light' | 'model' | 'fx' | 'stage' | 'camera';
+type TabId = 'node' | 'material' | 'light' | 'model' | 'fx' | 'stage' | 'camera' | 'diagnostics';
 
 export function Inspector({ doc }: { doc: SceneDoc }) {
   const selected = useSelection((s) => s.primary);
@@ -20,7 +21,12 @@ export function Inspector({ doc }: { doc: SceneDoc }) {
     if (node?.kind === 'mesh') list.push({ id: 'material', label: '材质' });
     if (node?.kind === 'light') list.push({ id: 'light', label: '灯光' });
     if (node?.kind === 'model') list.push({ id: 'model', label: '模型' });
-    list.push({ id: 'fx', label: '动效' }, { id: 'stage', label: '呈现' }, { id: 'camera', label: '相机' });
+    list.push(
+      { id: 'fx', label: '动效' },
+      { id: 'stage', label: '呈现' },
+      { id: 'camera', label: '相机' },
+      { id: 'diagnostics', label: '体检' },
+    );
     return list;
   }, [node]);
   const [tab, setTab] = useState<TabId>('node');
@@ -57,6 +63,7 @@ export function Inspector({ doc }: { doc: SceneDoc }) {
         {tab === 'fx' && <FxPanel key={node?.id ?? 'scene'} doc={doc} node={node} />}
         {tab === 'stage' && <StagePanel doc={doc} />}
         {tab === 'camera' && <CameraPanel doc={doc} />}
+        {tab === 'diagnostics' && <DiagnosticsPanel />}
       </div>
     </div>
   );

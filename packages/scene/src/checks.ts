@@ -18,6 +18,15 @@ export interface SceneIssue {
   severity: 'warn' | 'error';
   detail: string;
   fixHint: string;
+  bounds?: Bounds;
+}
+
+export function unionBounds(boxes: (Bounds | null | undefined)[]): Bounds | undefined {
+  const list = boxes.filter((b): b is Bounds => b != null);
+  if (!list.length) return undefined;
+  const min = [0, 1, 2].map((axis) => Math.min(...list.map((b) => b.min[axis]!)));
+  const max = [0, 1, 2].map((axis) => Math.max(...list.map((b) => b.max[axis]!)));
+  return { min: min as Bounds['min'], max: max as Bounds['max'] };
 }
 
 export interface GroundEvidence {
@@ -51,7 +60,10 @@ function isSolid(node: { kind: string }): boolean {
   return node.kind === 'mesh' || node.kind === 'model';
 }
 
-function inferGround(doc: SceneDoc, tolerance: number): { groundY: number; evidence?: GroundEvidence; warning?: string } {
+function inferGround(
+  doc: SceneDoc,
+  tolerance: number,
+): { groundY: number; evidence?: GroundEvidence; warning?: string } {
   const boxes: { id: string; box: Bounds }[] = [];
   for (const node of Object.values(doc.nodes)) {
     if (!node.visible || !isSolid(node)) continue;
@@ -81,9 +93,12 @@ function inferGround(doc: SceneDoc, tolerance: number): { groundY: number; evide
     }
   }
   if (!best) {
-    return { groundY: 0, warning: `未找到可作地面的水平面，groundY 回退 0（可显式传 groundY）` };
+    return { groundY: 0, warning: '未找到可作地面的水平面，groundY 回退 0（可显式传 groundY）' };
   }
-  return { groundY: best.top, evidence: { source: 'inferred', nodeId: best.id, area: best.area, top: best.top } };
+  return {
+    groundY: best.top,
+    evidence: { source: 'inferred', nodeId: best.id, area: best.area, top: best.top },
+  };
 }
 
 function overlap(a: Bounds, b: Bounds, tolerance: number): boolean {
@@ -126,6 +141,7 @@ function auditSemantics(doc: SceneDoc, tolerance: number, ignore: Set<string>): 
       severity: 'warn',
       detail: `${node.name} 的世界包围盒完全落在实体父节点 ${parent.name} 之外`,
       fixHint: '核对父节点的 transform，或用 node.reparent 保持世界坐标重新挂载',
+      bounds: unionBounds([childBox, parentBox]),
     });
   }
 
@@ -146,6 +162,7 @@ function auditSemantics(doc: SceneDoc, tolerance: number, ignore: Set<string>): 
         severity: 'warn',
         detail: `${g.name} 的缩放 [${s.map((v) => v.toFixed(2)).join(', ')}] 超出 [0.2, 5]`,
         fixHint: '把缩放烘进子节点几何，或拆成更小的组；异常缩放会放大后续变换误差',
+        bounds: nodeBounds(doc, g.id) ?? undefined,
       });
     }
 
@@ -160,6 +177,7 @@ function auditSemantics(doc: SceneDoc, tolerance: number, ignore: Set<string>): 
           severity: 'warn',
           detail: `${g.name} 缩放 [${s.map((v) => v.toFixed(2)).join(', ')}] 下仍有 ${suspects.length} 个子节点以大于 1 的局部 p 定位`,
           fixHint: '用 node.group keepWorld 重新归一化，或把子节点 p 减去组锚点',
+          bounds: unionBounds([nodeBounds(doc, g.id), ...suspects.map((child) => nodeBounds(doc, child.id))]),
         });
       }
     }
@@ -187,6 +205,7 @@ function auditSemantics(doc: SceneDoc, tolerance: number, ignore: Set<string>): 
       severity: 'warn',
       detail: `${g.name} 的子节点 |p| 从 ${values[split - 1]!.value.toFixed(2)} 跳到 ${values[split]!.value.toFixed(2)}（${Math.round(10 ** gap)}×），量级双峰`,
       fixHint: '检查是否一部分子节点用局部坐标、另一部分用世界坐标；统一到组局部坐标系',
+      bounds: unionBounds(visibleKids.map((child) => nodeBounds(doc, child.id))),
     });
   }
 
@@ -223,6 +242,7 @@ export function validateScene(doc: SceneDoc, opts: ValidateOptions = {}): Valida
           severity: 'warn',
           detail: `${node.name} 最低点 ${box.min[1].toFixed(3)} 高于地面 ${groundY.toFixed(3)}`,
           fixHint: '下移节点使其接触地面，或把 ignore 加入豁免（如吊灯、悬空装饰）',
+          bounds: box,
         });
       }
     }
@@ -237,6 +257,7 @@ export function validateScene(doc: SceneDoc, opts: ValidateOptions = {}): Valida
           severity: 'error',
           detail: `${node.name} 完全沉入地面以下（顶面 ${box.max[1].toFixed(3)} < ${groundY.toFixed(3)}）`,
           fixHint: '上移节点，或检查 transform.p 的 y 是否为负值',
+          bounds: box,
         });
       }
     }
@@ -255,6 +276,7 @@ export function validateScene(doc: SceneDoc, opts: ValidateOptions = {}): Valida
             severity: 'warn',
             detail: `${a.node.name} 与 ${b.node.name} 包围盒重叠`,
             fixHint: '移开其中一个节点，或用 node.get 核对世界包围盒',
+            bounds: unionBounds([a.box, b.box]),
           });
         }
       }
@@ -270,6 +292,7 @@ export function validateScene(doc: SceneDoc, opts: ValidateOptions = {}): Valida
           severity: 'warn',
           detail: `${node.name} 超出给定范围`,
           fixHint: '把节点移回 bounds 内，或放宽 bounds',
+          bounds: box,
         });
       }
     }

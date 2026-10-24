@@ -247,6 +247,7 @@ export const sceneOps = {
           severity: z.enum(['warn', 'error']),
           detail: z.string(),
           fixHint: z.string(),
+          bounds: z.object({ min: vec3, max: vec3 }).optional(),
         }),
       ),
       groundY: z.number().finite(),

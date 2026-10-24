@@ -99,7 +99,9 @@ describe('诊断面板 store', () => {
     calls.length = 0;
     const issue = useDiagnostics.getState().issues.find((i) => i.code === 'belowGround')!;
     await useDiagnostics.getState().focus(issue);
-    expect(calls.some(([m, p]) => m === 'camera.set' && p.bbox === issue.bounds && p.padding === 1.6)).toBe(true);
+    expect(calls.some(([m, p]) => m === 'camera.set' && p.bbox === issue.bounds && p.padding === 1.6)).toBe(
+      true,
+    );
     expect(useSelection.getState().ids).toEqual(['n_00000003']);
   });
 
