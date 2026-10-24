@@ -20,11 +20,11 @@ export const HELP = `vibe3d — 专家级 3D 场景 CLI（与 MCP / HTTP 同一�
   anim play <roomId> <nodeId> [--clip n] [--speed 1]
   camera set <roomId> [--frame fit|close|wide] [--preset miniature_45] [--name hero] [--p x,y,z] [--target x,y,z]
   camera save <roomId> --name <hero> | camera rm <roomId> <hero>
-  render snapshot <roomId> [--out shot.png] [--size 1280x720] [--format png|jpeg] [--settle-ms 180] [--at 1.2] [--transparent] [--shading flat|wireframe|normals|material|rendered] [--overlay grid,axes,bbox,ground,centerline,scale,normal]
-  render views <roomId> [--views three_quarter,front,top] [--node id1,id2] [--out dir/] [--size 1280x720] [--format png|jpeg] [--shading flat|wireframe|normals|material|rendered] [--overlay grid,axes,bbox,ground,centerline,scale,normal]
-  render node <roomId> <nodeId> [--view three_quarter] [--padding 1.2] [--out shot.png] [--size 1280x720] [--format png|jpeg] [--shading flat|wireframe|normals|material|rendered] [--overlay grid,axes,bbox,ground,centerline,scale,normal]
-  render pick <roomId> [--points 10,10;20,20] [--rect x,y,w,h] [--top-colors 5] [--size 1280x720] [--shading flat|wireframe|normals|material|rendered] [--overlay grid,axes,bbox,ground,centerline,scale,normal]
-  ↳ --shading flat 纯色去光照 / wireframe 线框看穿模 / normals 法线查朝向 / material 保留原色与贴图去光照 / rendered 成品光照并强制阴影；--overlay 可逗号多选（grid 地面网格、axes 原点轴、bbox 包围盒、ground 地平面、centerline 中轴、scale 标尺、normal 法线），只影响本次出图，渲染后自动还原
+  render snapshot <roomId> [--out shot.png] [--size 1280x720] [--format png|jpeg] [--settle-ms 180] [--at 1.2] [--transparent] [--shading flat|wireframe|normals|material|rendered] [--overlay grid,axes,bbox,ground,centerline,scale,normal,dims]
+  render views <roomId> [--views three_quarter,front,top] [--node id1,id2] [--out dir/] [--size 1280x720] [--format png|jpeg] [--shading flat|wireframe|normals|material|rendered] [--overlay grid,axes,bbox,ground,centerline,scale,normal,dims]
+  render node <roomId> <nodeId> [--view three_quarter] [--padding 1.2] [--out shot.png] [--size 1280x720] [--format png|jpeg] [--shading flat|wireframe|normals|material|rendered] [--overlay grid,axes,bbox,ground,centerline,scale,normal,dims]
+  render pick <roomId> [--points 10,10;20,20] [--rect x,y,w,h] [--top-colors 5] [--size 1280x720] [--shading flat|wireframe|normals|material|rendered] [--overlay grid,axes,bbox,ground,centerline,scale,normal,dims]
+  ↳ --shading flat 纯色去光照 / wireframe 线框看穿模 / normals 法线查朝向 / material 保留原色与贴图去光照 / rendered 成品光照并强制阴影；--overlay 可逗号多选（grid 地面网格、axes 原点轴、bbox 包围盒、ground 地平面、centerline 中轴、scale 标尺（带长度文字）、normal 法线、dims 三维尺寸文字），只影响本次出图，渲染后自动还原
   export glb <roomId> [--node id] [--out scene.glb] [--timeout 600] [--no-wait]
   job get <jobId> | job wait <jobId> [--timeout 600] | job cancel <jobId>
   job ls [roomId]

@@ -9,7 +9,16 @@ const targetBox = z.object({
   max: z.tuple([z.number(), z.number(), z.number()]),
 });
 export const shadingMode = z.enum(['flat', 'wireframe', 'normals', 'material', 'rendered']);
-export const overlayKind = z.enum(['grid', 'axes', 'bbox', 'ground', 'centerline', 'scale', 'normal']);
+export const overlayKind = z.enum([
+  'grid',
+  'axes',
+  'bbox',
+  'ground',
+  'centerline',
+  'scale',
+  'normal',
+  'dims',
+]);
 
 export const qualityLevel = z.enum(['draft', 'standard', 'high']);
 
@@ -29,7 +38,7 @@ const imageOpts = {
   at: numIn(0, 3600).optional(),
   transparent: z.boolean().optional(),
   shading: shadingMode.optional(),
-  overlay: z.array(overlayKind).max(7).optional(),
+  overlay: z.array(overlayKind).max(8).optional(),
   highlight: z.array(nodeIdSchema).max(200).optional(),
   isolate: z.array(nodeIdSchema).max(200).optional(),
   quality: qualityLevel.optional(),
@@ -314,9 +323,7 @@ export const renderOps = {
         }),
       ),
       unknown: z.number().int(),
-      mask: z
-        .object({ encoding: z.literal('deflate-index8'), base64: z.string() })
-        .optional(),
+      mask: z.object({ encoding: z.literal('deflate-index8'), base64: z.string() }).optional(),
     }),
     scope: 'room' as const,
     mutating: false,

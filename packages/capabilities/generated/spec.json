@@ -35035,10 +35035,11 @@
                 "ground",
                 "centerline",
                 "scale",
-                "normal"
+                "normal",
+                "dims"
               ]
             },
-            "maxItems": 7
+            "maxItems": 8
           },
           "highlight": {
             "type": "array",
@@ -35245,10 +35246,11 @@
                 "ground",
                 "centerline",
                 "scale",
-                "normal"
+                "normal",
+                "dims"
               ]
             },
-            "maxItems": 7
+            "maxItems": 8
           },
           "highlight": {
             "type": "array",
@@ -35639,10 +35641,11 @@
                 "ground",
                 "centerline",
                 "scale",
-                "normal"
+                "normal",
+                "dims"
               ]
             },
-            "maxItems": 7
+            "maxItems": 8
           },
           "highlight": {
             "type": "array",
@@ -35991,10 +35994,11 @@
                 "ground",
                 "centerline",
                 "scale",
-                "normal"
+                "normal",
+                "dims"
               ]
             },
-            "maxItems": 7
+            "maxItems": 8
           },
           "highlight": {
             "type": "array",
@@ -36443,10 +36447,11 @@
                 "ground",
                 "centerline",
                 "scale",
-                "normal"
+                "normal",
+                "dims"
               ]
             },
-            "maxItems": 7
+            "maxItems": 8
           },
           "settleMs": {
             "type": "integer",

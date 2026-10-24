@@ -25,12 +25,12 @@ async function room(h: Harness): Promise<string> {
 }
 
 describe('render overlay 新种类', () => {
-  it('ground / centerline / scale / normal 原样下发到渲染器', async () => {
+  it('ground / centerline / scale / normal / dims 原样下发到渲染器', async () => {
     const h = makeHarness();
     const seen: SnapshotOptions[] = [];
     h.ctx.renderer = fakeRenderer(seen) as unknown as DispatchContext['renderer'];
     const roomId = await room(h);
-    const overlay = ['ground', 'centerline', 'scale', 'normal'];
+    const overlay = ['ground', 'centerline', 'scale', 'normal', 'dims'];
     const { body } = await call(h, 'render.snapshot', { roomId, overlay }, roomId);
     expect(body.error).toBeUndefined();
     expect(seen[0]?.overlay).toEqual(overlay);

@@ -9,6 +9,7 @@ export const OVERLAY_KINDS = [
   'centerline',
   'scale',
   'normal',
+  'dims',
 ] as const;
 
 export type ShadingMode = (typeof SHADING_MODES)[number];

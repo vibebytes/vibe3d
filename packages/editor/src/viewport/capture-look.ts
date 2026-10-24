@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 export type ShadingMode = 'flat' | 'wireframe' | 'normals' | 'material' | 'rendered';
-export type OverlayKind = 'grid' | 'axes' | 'bbox' | 'ground' | 'centerline' | 'scale' | 'normal';
+export type OverlayKind = 'grid' | 'axes' | 'bbox' | 'ground' | 'centerline' | 'scale' | 'normal' | 'dims';
 
 export function shadingNeedsShadows(mode?: ShadingMode): boolean {
   return mode === 'rendered';
@@ -91,6 +91,7 @@ export function addOverlays(
   if (kinds.includes('ground')) added.push(groundOverlay(box, size, center));
   if (kinds.includes('centerline')) added.push(centerlineOverlay(box, center));
   if (kinds.includes('scale')) added.push(scaleOverlay(box, size, center));
+  if (kinds.includes('dims')) added.push(dimsOverlay(box, size, center));
   if (kinds.includes('normal') && root) added.push(normalOverlay(root, span));
   for (const obj of added) scene.add(obj);
   return () => {
@@ -98,10 +99,13 @@ export function addOverlays(
       scene.remove(obj);
       obj.traverse((child) => {
         const mesh = child as THREE.Mesh;
-        mesh.geometry?.dispose?.();
         const material = mesh.material;
-        if (Array.isArray(material)) for (const item of material) item.dispose();
-        else material?.dispose?.();
+        if (Array.isArray(material)) {
+          for (const item of material) disposeMaterial(item);
+        } else if (material) {
+          disposeMaterial(material);
+        }
+        if (!(child as THREE.Sprite).isSprite) mesh.geometry?.dispose?.();
       });
     }
   };
@@ -163,6 +167,74 @@ function centerlineOverlay(box: THREE.Box3, center: THREE.Vector3): THREE.Object
   return line;
 }
 
+function disposeMaterial(material: THREE.Material): void {
+  const map = (material as THREE.SpriteMaterial).map;
+  map?.dispose();
+  material.dispose();
+}
+
+function labelTexture(text: string, color: number): THREE.CanvasTexture | null {
+  if (typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  const css = `#${color.toString(16).padStart(6, '0')}`;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = 'bold 40px sans-serif';
+  ctx.fillStyle = css;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+function labelSprite(text: string, height: number, color = 0xe9eff5): THREE.Sprite {
+  const material = new THREE.SpriteMaterial({
+    color,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+  });
+  const map = labelTexture(text, color);
+  if (map) material.map = map;
+  const sprite = new THREE.Sprite(material);
+  sprite.userData.text = text;
+  const width = Math.max(text.length * height * 0.52, height);
+  sprite.scale.set(width, height, 1);
+  sprite.renderOrder = 999;
+  return sprite;
+}
+
+function meterLabel(value: number): string {
+  return `${value.toFixed(2)} m`;
+}
+
+function dimsOverlay(box: THREE.Box3, size: THREE.Vector3, center: THREE.Vector3): THREE.Object3D {
+  const group = new THREE.Group();
+  group.name = 'overlay:dims';
+  group.userData.size = [size.x, size.y, size.z];
+  const span = Math.max(size.x, size.y, size.z, 0.001);
+  const height = Math.max(span * 0.05, 0.02);
+  const pad = height * 1.2;
+  const entries: Array<[string, number, THREE.Vector3]> = [
+    ['x', size.x, new THREE.Vector3(center.x, box.min.y - pad, box.max.z)],
+    ['y', size.y, new THREE.Vector3(box.max.x + pad, center.y, box.max.z)],
+    ['z', size.z, new THREE.Vector3(box.max.x + pad, box.min.y - pad, center.z)],
+  ];
+  for (const [axis, value, position] of entries) {
+    const sprite = labelSprite(meterLabel(value), height);
+    sprite.name = `overlay:dims:${axis}`;
+    sprite.userData.axis = axis;
+    sprite.position.copy(position);
+    group.add(sprite);
+  }
+  return group;
+}
+
 function niceLength(extent: number): number {
   const base = 10 ** Math.floor(Math.log10(Math.max(extent, 1e-6)));
   for (const mult of [5, 2, 1]) {
@@ -201,6 +273,10 @@ function scaleOverlay(box: THREE.Box3, size: THREE.Vector3, center: THREE.Vector
     end.renderOrder = 999;
     group.add(end);
   }
+  const label = labelSprite(meterLabel(length), Math.max(length * 0.08, 0.02));
+  label.name = 'overlay:scale:label';
+  label.position.set(x0 + length / 2, y + tick * 3, z);
+  group.add(label);
   return group;
 }
 

@@ -29,13 +29,7 @@ import { useConn } from './conn';
 import { useSelection } from './selection';
 import { parseSnapshotCamera } from './snapshot-camera';
 
-const SHADING_MODES: readonly ShadingMode[] = [
-  'flat',
-  'wireframe',
-  'normals',
-  'material',
-  'rendered',
-];
+const SHADING_MODES: readonly ShadingMode[] = ['flat', 'wireframe', 'normals', 'material', 'rendered'];
 const OVERLAY_KINDS: readonly OverlayKind[] = [
   'grid',
   'axes',
@@ -44,6 +38,7 @@ const OVERLAY_KINDS: readonly OverlayKind[] = [
   'centerline',
   'scale',
   'normal',
+  'dims',
 ];
 
 export type CameraPreset = 'miniature_45';
@@ -169,9 +164,7 @@ export const useDoc = create<DocStore>((set, get) => ({
             };
             const shading = SHADING_MODES.find((mode) => mode === evt.data.shading);
             const overlay = Array.isArray(evt.data.overlay)
-              ? evt.data.overlay.filter((k): k is OverlayKind =>
-                  OVERLAY_KINDS.some((kind) => kind === k),
-                )
+              ? evt.data.overlay.filter((k): k is OverlayKind => OVERLAY_KINDS.some((kind) => kind === k))
               : undefined;
             const ids = (key: string): string[] | undefined => {
               const value = evt.data[key];

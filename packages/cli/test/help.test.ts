@@ -14,7 +14,7 @@ describe('cli help', () => {
       'asset rm <roomId>',
       'job wait <jobId>',
       '[--shading flat|wireframe|normals|material|rendered]',
-      '[--overlay grid,axes,bbox,ground,centerline,scale,normal]',
+      '[--overlay grid,axes,bbox,ground,centerline,scale,normal,dims]',
       'render views <roomId>',
       'render node <roomId>',
       'render pick <roomId>',

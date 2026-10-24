@@ -1,5 +1,5 @@
-import type { QualityPreset } from '@vibebyte/vibe3d-scene';
 import type { AssetMeta, CameraState, GltfReport, SceneDoc } from '@vibebyte/vibe3d-protocol';
+import type { QualityPreset } from '@vibebyte/vibe3d-scene';
 import type { JobQueue } from './jobs/queue';
 import type { JobStore } from './jobs/store';
 import type { RoomManager } from './rooms/manager';
@@ -7,7 +7,7 @@ import type { RoomManager } from './rooms/manager';
 export type AssetPolicy = 'strict' | 'local' | 'allow';
 
 export type ShadingMode = 'flat' | 'wireframe' | 'normals' | 'material' | 'rendered';
-export type OverlayKind = 'grid' | 'axes' | 'bbox' | 'ground' | 'centerline' | 'scale' | 'normal';
+export type OverlayKind = 'grid' | 'axes' | 'bbox' | 'ground' | 'centerline' | 'scale' | 'normal' | 'dims';
 
 export interface SnapshotOptions {
   width?: number;

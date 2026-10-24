@@ -12601,10 +12601,11 @@ export const MCP_TOOLS = [
               "ground",
               "centerline",
               "scale",
-              "normal"
+              "normal",
+              "dims"
             ]
           },
-          "maxItems": 7
+          "maxItems": 8
         },
         "highlight": {
           "type": "array",
@@ -12718,10 +12719,11 @@ export const MCP_TOOLS = [
               "ground",
               "centerline",
               "scale",
-              "normal"
+              "normal",
+              "dims"
             ]
           },
-          "maxItems": 7
+          "maxItems": 8
         },
         "highlight": {
           "type": "array",
@@ -12831,10 +12833,11 @@ export const MCP_TOOLS = [
               "ground",
               "centerline",
               "scale",
-              "normal"
+              "normal",
+              "dims"
             ]
           },
-          "maxItems": 7
+          "maxItems": 8
         },
         "highlight": {
           "type": "array",
@@ -12982,10 +12985,11 @@ export const MCP_TOOLS = [
               "ground",
               "centerline",
               "scale",
-              "normal"
+              "normal",
+              "dims"
             ]
           },
-          "maxItems": 7
+          "maxItems": 8
         },
         "highlight": {
           "type": "array",
@@ -13159,10 +13163,11 @@ export const MCP_TOOLS = [
               "ground",
               "centerline",
               "scale",
-              "normal"
+              "normal",
+              "dims"
             ]
           },
-          "maxItems": 7
+          "maxItems": 8
         },
         "settle_ms": {
           "type": "integer",

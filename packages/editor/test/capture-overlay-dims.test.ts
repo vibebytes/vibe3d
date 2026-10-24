@@ -36,7 +36,7 @@ describe('J2 出图辅助：标尺与尺寸文字', () => {
     const group = overlay(scene, 'scale') as THREE.Group;
     const [label] = sprites(group);
     expect(label).toBeInstanceOf(THREE.Sprite);
-    expect(label.userData.text).toBe(`${group.userData.length} m`);
+    expect(label.userData.text).toBe('2.00 m');
     expect(label.position.y).toBeGreaterThan(0);
     expect(label.position.x).toBeCloseTo(1, 5);
     expect((label.material as THREE.SpriteMaterial).depthTest).toBe(false);
