@@ -1,4 +1,5 @@
 export { relativeTransform, worldMatrix, worldPointToLocal } from './frame';
+export { subtreeIds } from './subtree';
 export { arrayPlacements, type ArrayAxis, type ArrayMode, type ArrayOptions, type Placement } from './array';
 export {
   attachDelta,

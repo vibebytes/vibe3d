@@ -85,8 +85,17 @@ export const opSchema = z.discriminatedUnion('op', [
     speed: z.number().finite().positive().optional(),
   }),
   z.object({ op: z.literal('animation.stop'), target: nodeIdSchema }),
-  z.object({ op: z.literal('animation.define'), target: nodeIdSchema, clip: clipSchema }),
-  z.object({ op: z.literal('animation.clear'), target: nodeIdSchema }),
+  z.object({
+    op: z.literal('animation.define'),
+    target: nodeIdSchema,
+    clip: clipSchema,
+    applyTo: z.enum(['node', 'subtree']).optional(),
+  }),
+  z.object({
+    op: z.literal('animation.clear'),
+    target: nodeIdSchema,
+    applyTo: z.enum(['node', 'subtree']).optional(),
+  }),
   z.object({ op: z.literal('fx.create'), fx: fxSchema }),
   z.object({ op: z.literal('fx.delete'), id: fxIdSchema }),
   z.object({

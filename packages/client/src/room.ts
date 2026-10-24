@@ -189,8 +189,11 @@ export class RoomHandle {
     return this.invoke('animation.define', params);
   }
 
-  clearAnimation(nodeId: string): Promise<CapResult<'animation.clear'>> {
-    return this.invoke('animation.clear', { nodeId });
+  clearAnimation(
+    nodeId: string,
+    params: Omit<CapParams<'animation.clear'>, 'roomId' | 'nodeId'> = {},
+  ): Promise<CapResult<'animation.clear'>> {
+    return this.invoke('animation.clear', { nodeId, ...params });
   }
 
   createFx(params: Omit<CapParams<'fx.create'>, 'roomId'>): Promise<CapResult<'fx.create'>> {

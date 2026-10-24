@@ -11,6 +11,7 @@ import {
 import { frameCamera, miniatureCamera } from './frame';
 import { normalizeMap, presetMaterial } from './material';
 import { sceneStats } from './stats';
+import { subtreeIds } from './subtree';
 import { DEFAULT_LIMITS, type Limits, validateDoc } from './validate';
 
 export interface OpSummary {
@@ -67,27 +68,8 @@ function mergeStageBlock(previous: unknown, patch: unknown): unknown {
   return out;
 }
 
-function childrenMap(doc: SceneDoc): Map<string, string[]> {
-  const map = new Map<string, string[]>();
-  for (const [id, node] of Object.entries(doc.nodes)) {
-    if (!node.parent) continue;
-    const list = map.get(node.parent);
-    if (list) list.push(id);
-    else map.set(node.parent, [id]);
-  }
-  return map;
-}
-
 function subtree(doc: SceneDoc, rootId: string): string[] {
-  const kids = childrenMap(doc);
-  const out: string[] = [];
-  const queue = [rootId];
-  while (queue.length > 0) {
-    const id = queue.shift()!;
-    out.push(id);
-    for (const child of kids.get(id) ?? []) queue.push(child);
-  }
-  return out;
+  return subtreeIds(doc, rootId);
 }
 
 const isAncestor = (doc: SceneDoc, ancestor: string, id: string): boolean => {
@@ -373,17 +355,24 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       return;
     }
     case 'animation.define': {
-      const node = doc.nodes[op.target] ?? fail('节点不存在', { id: op.target });
-      const previous = node.clip ? clone(node.clip) : null;
-      node.clip = clone(op.clip);
-      inverse.push({ op: 'node.update', id: op.target, patch: { clip: previous } });
+      const ids = op.applyTo === 'subtree' ? subtree(doc, op.target) : [op.target];
+      for (const id of ids) {
+        const node = doc.nodes[id] ?? fail('节点不存在', { id });
+        const previous = node.clip ? clone(node.clip) : null;
+        node.clip = clone(op.clip);
+        inverse.push({ op: 'node.update', id, patch: { clip: previous } });
+      }
       return;
     }
     case 'animation.clear': {
-      const node = doc.nodes[op.target] ?? fail('节点不存在', { id: op.target });
-      const previous = node.clip ? clone(node.clip) : null;
-      Reflect.deleteProperty(node, 'clip');
-      if (previous) inverse.push({ op: 'animation.define', target: op.target, clip: previous });
+      const ids = op.applyTo === 'subtree' ? subtree(doc, op.target) : [op.target];
+      for (const id of ids) {
+        const node = doc.nodes[id] ?? fail('节点不存在', { id });
+        if (!node.clip) continue;
+        const previous = clone(node.clip);
+        Reflect.deleteProperty(node, 'clip');
+        inverse.push({ op: 'animation.define', target: id, clip: previous });
+      }
       return;
     }
     case 'fx.create': {

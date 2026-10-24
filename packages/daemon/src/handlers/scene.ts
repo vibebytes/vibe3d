@@ -19,17 +19,18 @@ import {
   arrayPlacements,
   attachDelta,
   frameTarget,
+  mergeGroup,
   nodeBounds,
   nodeOwnBounds,
   nodeView,
+  pickNode,
+  queryNodes,
   relativeTransform,
+  sceneStats,
+  subtreeIds,
+  validateScene,
   worldMatrix,
   worldPointToLocal,
-  pickNode,
-  mergeGroup,
-  queryNodes,
-  sceneStats,
-  validateScene,
 } from '@vibebyte/vibe3d-scene';
 import type { HandlersFor } from './types';
 
@@ -264,7 +265,10 @@ export const sceneHandlers: HandlersFor<Keys> = {
     if (!room.doc.nodes[p.targetId]) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.targetId} 不存在`);
     const delta = attachDelta(room.doc, p.id, p.targetId, { face: p.face, corner: p.corner, offset: p.gap });
     if (!delta) {
-      throw new AppError('E_UNSUPPORTED', `节点 ${p.id} 不可见或缺少可吸附的包围盒`, { id: p.id, targetId: p.targetId });
+      throw new AppError('E_UNSUPPORTED', `节点 ${p.id} 不可见或缺少可吸附的包围盒`, {
+        id: p.id,
+        targetId: p.targetId,
+      });
     }
     const m = worldMatrix(room.doc, p.id);
     const world: Vec = [(m?.[12] ?? 0) + delta[0], (m?.[13] ?? 0) + delta[1], (m?.[14] ?? 0) + delta[2]];
@@ -288,7 +292,12 @@ export const sceneHandlers: HandlersFor<Keys> = {
     }
     const transform = (p.keepWorld ?? true) ? relativeTransform(room.doc, p.id, p.parent) : null;
     const ops: Op[] = [
-      { op: 'node.reparent', id: p.id, parent: p.parent, ...(p.index === undefined ? {} : { index: p.index }) },
+      {
+        op: 'node.reparent',
+        id: p.id,
+        parent: p.parent,
+        ...(p.index === undefined ? {} : { index: p.index }),
+      },
     ];
     if (transform) ops.push({ op: 'node.update', id: p.id, patch: { transform } });
     const result = await room.run(() => room.apply(ops));
@@ -580,19 +589,22 @@ export const sceneHandlers: HandlersFor<Keys> = {
   'animation.define': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     if (!room.doc.nodes[p.nodeId]) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.nodeId} 不存在`);
+    const appliedTo = p.applyTo === 'subtree' ? subtreeIds(room.doc, p.nodeId) : [p.nodeId];
     const result = await room.run(() =>
-      room.apply([{ op: 'animation.define', target: p.nodeId, clip: p.clip }]),
+      room.apply([{ op: 'animation.define', target: p.nodeId, clip: p.clip, applyTo: p.applyTo }]),
     );
-    return { revision: result.revision, nodeId: p.nodeId };
+    return { revision: result.revision, nodeId: p.nodeId, appliedTo };
   },
 
   'animation.clear': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    const node = room.doc.nodes[p.nodeId];
-    if (!node) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.nodeId} 不存在`);
-    const existed = node.clip !== undefined;
-    const result = await room.run(() => room.apply([{ op: 'animation.clear', target: p.nodeId }]));
-    return { revision: result.revision, cleared: existed };
+    if (!room.doc.nodes[p.nodeId]) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.nodeId} 不存在`);
+    const ids = p.applyTo === 'subtree' ? subtreeIds(room.doc, p.nodeId) : [p.nodeId];
+    const appliedTo = ids.filter((id) => room.doc.nodes[id]?.clip !== undefined);
+    const result = await room.run(() =>
+      room.apply([{ op: 'animation.clear', target: p.nodeId, applyTo: p.applyTo }]),
+    );
+    return { revision: result.revision, cleared: appliedTo.length > 0, appliedTo };
   },
 
   'fx.create': async (p, ctx) => {

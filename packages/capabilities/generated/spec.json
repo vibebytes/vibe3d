@@ -8428,6 +8428,13 @@
                         "type"
                       ],
                       "additionalProperties": false
+                    },
+                    "applyTo": {
+                      "type": "string",
+                      "enum": [
+                        "node",
+                        "subtree"
+                      ]
                     }
                   },
                   "required": [
@@ -8447,6 +8454,13 @@
                     "target": {
                       "type": "string",
                       "pattern": "^n_[a-z0-9]{8}$"
+                    },
+                    "applyTo": {
+                      "type": "string",
+                      "enum": [
+                        "node",
+                        "subtree"
+                      ]
                     }
                   },
                   "required": [
@@ -14409,6 +14423,13 @@
                         "type"
                       ],
                       "additionalProperties": false
+                    },
+                    "applyTo": {
+                      "type": "string",
+                      "enum": [
+                        "node",
+                        "subtree"
+                      ]
                     }
                   },
                   "required": [
@@ -14428,6 +14449,13 @@
                     "target": {
                       "type": "string",
                       "pattern": "^n_[a-z0-9]{8}$"
+                    },
+                    "applyTo": {
+                      "type": "string",
+                      "enum": [
+                        "node",
+                        "subtree"
+                      ]
                     }
                   },
                   "required": [
@@ -18657,7 +18685,7 @@
       },
       "cli": {
         "command": "anim define",
-        "args": "<roomId> <nodeId> --type sway"
+        "args": "<roomId> <nodeId> --type sway [--apply-to subtree]"
       },
       "input": {
         "type": "object",
@@ -18751,6 +18779,13 @@
               "type"
             ],
             "additionalProperties": false
+          },
+          "applyTo": {
+            "type": "string",
+            "enum": [
+              "node",
+              "subtree"
+            ]
           }
         },
         "required": [
@@ -18771,11 +18806,19 @@
           "nodeId": {
             "type": "string",
             "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "appliedTo": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            }
           }
         },
         "required": [
           "revision",
-          "nodeId"
+          "nodeId",
+          "appliedTo"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -18802,7 +18845,7 @@
       },
       "cli": {
         "command": "anim clear",
-        "args": "<roomId> <nodeId>"
+        "args": "<roomId> <nodeId> [--apply-to subtree]"
       },
       "input": {
         "type": "object",
@@ -18814,6 +18857,13 @@
           "nodeId": {
             "type": "string",
             "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "applyTo": {
+            "type": "string",
+            "enum": [
+              "node",
+              "subtree"
+            ]
           }
         },
         "required": [
@@ -18832,11 +18882,19 @@
           },
           "cleared": {
             "type": "boolean"
+          },
+          "appliedTo": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            }
           }
         },
         "required": [
           "revision",
-          "cleared"
+          "cleared",
+          "appliedTo"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -23384,6 +23442,13 @@
                         "type"
                       ],
                       "additionalProperties": false
+                    },
+                    "applyTo": {
+                      "type": "string",
+                      "enum": [
+                        "node",
+                        "subtree"
+                      ]
                     }
                   },
                   "required": [
@@ -23403,6 +23468,13 @@
                     "target": {
                       "type": "string",
                       "pattern": "^n_[a-z0-9]{8}$"
+                    },
+                    "applyTo": {
+                      "type": "string",
+                      "enum": [
+                        "node",
+                        "subtree"
+                      ]
                     }
                   },
                   "required": [

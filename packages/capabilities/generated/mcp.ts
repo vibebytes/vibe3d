@@ -4049,6 +4049,13 @@ export const MCP_TOOLS = [
                       "type"
                     ],
                     "additionalProperties": false
+                  },
+                  "apply_to": {
+                    "type": "string",
+                    "enum": [
+                      "node",
+                      "subtree"
+                    ]
                   }
                 },
                 "required": [
@@ -4068,6 +4075,13 @@ export const MCP_TOOLS = [
                   "target": {
                     "type": "string",
                     "pattern": "^n_[a-z0-9]{8}$"
+                  },
+                  "apply_to": {
+                    "type": "string",
+                    "enum": [
+                      "node",
+                      "subtree"
+                    ]
                   }
                 },
                 "required": [
@@ -7961,6 +7975,13 @@ export const MCP_TOOLS = [
             "type"
           ],
           "additionalProperties": false
+        },
+        "apply_to": {
+          "type": "string",
+          "enum": [
+            "node",
+            "subtree"
+          ]
         }
       },
       "required": [
@@ -7982,6 +8003,13 @@ export const MCP_TOOLS = [
         "node_id": {
           "type": "string",
           "pattern": "^n_[a-z0-9]{8}$"
+        },
+        "apply_to": {
+          "type": "string",
+          "enum": [
+            "node",
+            "subtree"
+          ]
         }
       },
       "required": [

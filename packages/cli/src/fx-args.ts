@@ -49,6 +49,13 @@ export function clipFromFlags(flags: Flags): ClipSpec {
   }) as ClipSpec;
 }
 
+export function applyToFromFlags(flags: Flags): 'node' | 'subtree' | undefined {
+  const value = str(flags, 'apply-to');
+  if (!value) return undefined;
+  if (value !== 'node' && value !== 'subtree') throw new Error(`--apply-to 只支持 node|subtree：${value}`);
+  return value;
+}
+
 export function fxSpecFromFlags(flags: Flags): Omit<FxSpec, 'id'> {
   const type = str(flags, 'type') ?? 'particles';
   if (!FX_TYPES.includes(type as (typeof FX_TYPES)[number])) {

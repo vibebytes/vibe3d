@@ -168,9 +168,7 @@ export const sceneOps = {
       nodeId: nodeIdSchema.nullable(),
       hitPoint: vec3.nullable(),
       distance: z.number().finite().nullable(),
-      candidates: z.array(
-        z.object({ nodeId: nodeIdSchema, distance: z.number().finite(), hitPoint: vec3 }),
-      ),
+      candidates: z.array(z.object({ nodeId: nodeIdSchema, distance: z.number().finite(), hitPoint: vec3 })),
       ray: z.object({ origin: vec3, direction: vec3 }),
     }),
     scope: 'room' as const,
@@ -272,7 +270,8 @@ export const sceneOps = {
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'node.array': {
-    title: '阵列：linear 沿 offset 复制、radial 绕 center 成环、grid 按 cols 铺网格，均支持 jitter 与 rotateStep',
+    title:
+      '阵列：linear 沿 offset 复制、radial 绕 center 成环、grid 按 cols 铺网格，均支持 jitter 与 rotateStep',
     input: z.object({
       roomId,
       id: nodeIdSchema,
@@ -536,24 +535,33 @@ export const sceneOps = {
   },
   'animation.define': {
     title: '定义程序化动画：位移 / 旋转 / 缩放轨道',
-    input: z.object({ roomId, nodeId: nodeIdSchema, clip: clipSchema }),
-    output: revisionOut.extend({ nodeId: nodeIdSchema }),
+    input: z.object({
+      roomId,
+      nodeId: nodeIdSchema,
+      clip: clipSchema,
+      applyTo: z.enum(['node', 'subtree']).optional(),
+    }),
+    output: revisionOut.extend({ nodeId: nodeIdSchema, appliedTo: z.array(nodeIdSchema) }),
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.apply' as const,
     mcp: { tool: 'vibe3d_define_animation' as const },
-    cli: { command: 'anim define', args: '<roomId> <nodeId> --type sway' },
+    cli: { command: 'anim define', args: '<roomId> <nodeId> --type sway [--apply-to subtree]' },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'animation.clear': {
     title: '清除节点上的程序化动画',
-    input: z.object({ roomId, nodeId: nodeIdSchema }),
-    output: revisionOut.extend({ cleared: z.boolean() }),
+    input: z.object({
+      roomId,
+      nodeId: nodeIdSchema,
+      applyTo: z.enum(['node', 'subtree']).optional(),
+    }),
+    output: revisionOut.extend({ cleared: z.boolean(), appliedTo: z.array(nodeIdSchema) }),
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.apply' as const,
     mcp: { tool: 'vibe3d_clear_animation' as const, annotations: { destructiveHint: true } },
-    cli: { command: 'anim clear', args: '<roomId> <nodeId>' },
+    cli: { command: 'anim clear', args: '<roomId> <nodeId> [--apply-to subtree]' },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'fx.create': {

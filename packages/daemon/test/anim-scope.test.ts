@@ -69,12 +69,7 @@ describe('animation.define 作用域', () => {
       { roomId, nodeId: leafId, clip: { type: 'spin', channel: 'ry' } },
       roomId,
     );
-    await call(
-      h,
-      'animation.define',
-      { roomId, nodeId: rootId, clip: sway, applyTo: 'subtree' },
-      roomId,
-    );
+    await call(h, 'animation.define', { roomId, nodeId: rootId, clip: sway, applyTo: 'subtree' }, roomId);
     expect((await clips(h, roomId))[leafId]).toBe('sway');
     await call(h, 'scene.undo', { roomId }, roomId);
     const got = await clips(h, roomId);
@@ -88,19 +83,9 @@ describe('animation.clear 作用域', () => {
   it("applyTo:'subtree' 清空子树、保留树外 clip，重复清理返回空 appliedTo", async () => {
     const h = makeHarness();
     const { roomId, rootId, midId, leafId, sideId } = await tree(h);
-    await call(
-      h,
-      'animation.define',
-      { roomId, nodeId: rootId, clip: sway, applyTo: 'subtree' },
-      roomId,
-    );
+    await call(h, 'animation.define', { roomId, nodeId: rootId, clip: sway, applyTo: 'subtree' }, roomId);
     await call(h, 'animation.define', { roomId, nodeId: sideId, clip: sway }, roomId);
-    const { body } = await call(
-      h,
-      'animation.clear',
-      { roomId, nodeId: rootId, applyTo: 'subtree' },
-      roomId,
-    );
+    const { body } = await call(h, 'animation.clear', { roomId, nodeId: rootId, applyTo: 'subtree' }, roomId);
     expect(body.error).toBeUndefined();
     expect(body.result.cleared).toBe(true);
     expect(body.result.appliedTo).toEqual([rootId, midId, leafId]);
@@ -108,12 +93,7 @@ describe('animation.clear 作用域', () => {
     expect([got[rootId], got[midId], got[leafId]]).toEqual([null, null, null]);
     expect(got[sideId]).toBe('sway');
 
-    const again = await call(
-      h,
-      'animation.clear',
-      { roomId, nodeId: rootId, applyTo: 'subtree' },
-      roomId,
-    );
+    const again = await call(h, 'animation.clear', { roomId, nodeId: rootId, applyTo: 'subtree' }, roomId);
     expect(again.body.result.cleared).toBe(false);
     expect(again.body.result.appliedTo).toEqual([]);
   });
