@@ -30871,7 +30871,9 @@
             "enum": [
               "flat",
               "wireframe",
-              "normals"
+              "normals",
+              "material",
+              "rendered"
             ]
           },
           "overlay": {
@@ -31079,7 +31081,9 @@
             "enum": [
               "flat",
               "wireframe",
-              "normals"
+              "normals",
+              "material",
+              "rendered"
             ]
           },
           "overlay": {
@@ -31471,7 +31475,9 @@
             "enum": [
               "flat",
               "wireframe",
-              "normals"
+              "normals",
+              "material",
+              "rendered"
             ]
           },
           "overlay": {
@@ -31821,7 +31827,9 @@
             "enum": [
               "flat",
               "wireframe",
-              "normals"
+              "normals",
+              "material",
+              "rendered"
             ]
           },
           "overlay": {
@@ -32271,7 +32279,9 @@
             "enum": [
               "flat",
               "wireframe",
-              "normals"
+              "normals",
+              "material",
+              "rendered"
             ]
           },
           "overlay": {

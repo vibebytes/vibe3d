@@ -8,7 +8,7 @@ const targetBox = z.object({
   min: z.tuple([z.number(), z.number(), z.number()]),
   max: z.tuple([z.number(), z.number(), z.number()]),
 });
-export const shadingMode = z.enum(['flat', 'wireframe', 'normals']);
+export const shadingMode = z.enum(['flat', 'wireframe', 'normals', 'material', 'rendered']);
 export const overlayKind = z.enum(['grid', 'axes', 'bbox', 'ground', 'centerline', 'scale', 'normal']);
 
 export const qualityLevel = z.enum(['draft', 'standard', 'high']);

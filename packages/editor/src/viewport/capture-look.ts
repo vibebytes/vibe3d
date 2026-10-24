@@ -1,20 +1,39 @@
 import * as THREE from 'three';
 
-export type ShadingMode = 'flat' | 'wireframe' | 'normals';
+export type ShadingMode = 'flat' | 'wireframe' | 'normals' | 'material' | 'rendered';
 export type OverlayKind = 'grid' | 'axes' | 'bbox' | 'ground' | 'centerline' | 'scale' | 'normal';
+
+export function shadingNeedsShadows(mode?: ShadingMode): boolean {
+  return mode === 'rendered';
+}
 
 function exportRoot(scene: THREE.Scene): THREE.Object3D | undefined {
   return scene.getObjectByName('vibe3d-export');
 }
 
-function shadingMaterial(mode: ShadingMode): THREE.Material {
+function unlitCopy(source: THREE.Material): THREE.MeshBasicMaterial {
+  const src = source as THREE.MeshStandardMaterial;
+  const material = new THREE.MeshBasicMaterial();
+  if (src.color) material.color.copy(src.color);
+  if (src.map) material.map = src.map;
+  material.transparent = src.transparent;
+  material.opacity = src.opacity;
+  material.alphaTest = src.alphaTest;
+  material.side = src.side;
+  material.vertexColors = src.vertexColors;
+  material.depthWrite = src.depthWrite;
+  return material;
+}
+
+function shadingMaterial(mode: ShadingMode, source: THREE.Material): THREE.Material {
   if (mode === 'normals') return new THREE.MeshNormalMaterial();
   if (mode === 'wireframe') return new THREE.MeshBasicMaterial({ color: 0x8fb7ff, wireframe: true });
+  if (mode === 'material') return unlitCopy(source);
   return new THREE.MeshBasicMaterial({ color: 0xc9d3dd });
 }
 
 export function applyShading(scene: THREE.Scene, mode?: ShadingMode): () => void {
-  if (!mode) return () => {};
+  if (!mode || mode === 'rendered') return () => {};
   const root = exportRoot(scene);
   if (!root) return () => {};
   const swapped: Array<{ mesh: THREE.Mesh; previous: THREE.Material | THREE.Material[] }> = [];
@@ -23,8 +42,8 @@ export function applyShading(scene: THREE.Scene, mode?: ShadingMode): () => void
     if (!mesh.isMesh || !mesh.visible) return;
     swapped.push({ mesh, previous: mesh.material });
     mesh.material = Array.isArray(mesh.material)
-      ? mesh.material.map(() => shadingMaterial(mode))
-      : shadingMaterial(mode);
+      ? mesh.material.map((item) => shadingMaterial(mode, item))
+      : shadingMaterial(mode, mesh.material);
   });
   return () => {
     for (const entry of swapped) {

@@ -22,10 +22,29 @@ import type {
   CaptureResult,
   IdPassOptions,
   IdPassResult,
+  OverlayKind,
+  ShadingMode,
 } from '../viewport/CaptureBridge';
 import { useConn } from './conn';
 import { useSelection } from './selection';
 import { parseSnapshotCamera } from './snapshot-camera';
+
+const SHADING_MODES: readonly ShadingMode[] = [
+  'flat',
+  'wireframe',
+  'normals',
+  'material',
+  'rendered',
+];
+const OVERLAY_KINDS: readonly OverlayKind[] = [
+  'grid',
+  'axes',
+  'bbox',
+  'ground',
+  'centerline',
+  'scale',
+  'normal',
+];
 
 export type CameraPreset = 'miniature_45';
 
@@ -148,16 +167,11 @@ export const useDoc = create<DocStore>((set, get) => ({
               const value = evt.data[key];
               return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
             };
-            const shading =
-              evt.data.shading === 'flat' ||
-              evt.data.shading === 'wireframe' ||
-              evt.data.shading === 'normals'
-                ? evt.data.shading
-                : undefined;
+            const shading = SHADING_MODES.find((mode) => mode === evt.data.shading);
             const overlay = Array.isArray(evt.data.overlay)
-              ? (evt.data.overlay.filter(
-                  (k): k is 'grid' | 'axes' | 'bbox' => k === 'grid' || k === 'axes' || k === 'bbox',
-                ) as CaptureOptions['overlay'])
+              ? evt.data.overlay.filter((k): k is OverlayKind =>
+                  OVERLAY_KINDS.some((kind) => kind === k),
+                )
               : undefined;
             const ids = (key: string): string[] | undefined => {
               const value = evt.data[key];

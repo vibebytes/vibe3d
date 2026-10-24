@@ -1,7 +1,15 @@
 import { str } from './args';
 
-export const SHADING_MODES = ['flat', 'wireframe', 'normals'] as const;
-export const OVERLAY_KINDS = ['grid', 'axes', 'bbox'] as const;
+export const SHADING_MODES = ['flat', 'wireframe', 'normals', 'material', 'rendered'] as const;
+export const OVERLAY_KINDS = [
+  'grid',
+  'axes',
+  'bbox',
+  'ground',
+  'centerline',
+  'scale',
+  'normal',
+] as const;
 
 export type ShadingMode = (typeof SHADING_MODES)[number];
 export type OverlayKind = (typeof OVERLAY_KINDS)[number];

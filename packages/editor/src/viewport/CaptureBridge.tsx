@@ -10,7 +10,13 @@ import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three
 import { applyFxAt } from '../three/fx';
 import { applyIdMaterials } from '../three/id-pass-materials';
 import { missingModelIds } from '../three/model-ready';
-import { addOverlays, applyHighlight, applyIsolate, applyShading } from './capture-look';
+import {
+  addOverlays,
+  applyHighlight,
+  applyIsolate,
+  applyShading,
+  shadingNeedsShadows,
+} from './capture-look';
 import { applyShadowResolution, qualityOf } from './capture-quality';
 import type { OverlayKind, ShadingMode } from './capture-look';
 
@@ -154,7 +160,10 @@ function captureFrame(
   const restoreIsolate = applyIsolate(scene, opts.isolate);
   const preset = qualityOf(opts.quality);
   const restoreShadow = applyShadowResolution(scene, preset.shadowMapSize);
+  const shadowsForced = shadingNeedsShadows(opts.shading) && !gl.shadowMap.enabled;
+  if (shadowsForced) gl.shadowMap.enabled = true;
   const restoreLook = (): void => {
+    if (shadowsForced) gl.shadowMap.enabled = false;
     restoreShadow();
     restoreIsolate();
     restoreHighlight();

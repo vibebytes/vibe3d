@@ -10887,7 +10887,9 @@ export const MCP_TOOLS = [
           "enum": [
             "flat",
             "wireframe",
-            "normals"
+            "normals",
+            "material",
+            "rendered"
           ]
         },
         "overlay": {
@@ -11002,7 +11004,9 @@ export const MCP_TOOLS = [
           "enum": [
             "flat",
             "wireframe",
-            "normals"
+            "normals",
+            "material",
+            "rendered"
           ]
         },
         "overlay": {
@@ -11113,7 +11117,9 @@ export const MCP_TOOLS = [
           "enum": [
             "flat",
             "wireframe",
-            "normals"
+            "normals",
+            "material",
+            "rendered"
           ]
         },
         "overlay": {
@@ -11262,7 +11268,9 @@ export const MCP_TOOLS = [
           "enum": [
             "flat",
             "wireframe",
-            "normals"
+            "normals",
+            "material",
+            "rendered"
           ]
         },
         "overlay": {
@@ -11437,7 +11445,9 @@ export const MCP_TOOLS = [
           "enum": [
             "flat",
             "wireframe",
-            "normals"
+            "normals",
+            "material",
+            "rendered"
           ]
         },
         "overlay": {
