@@ -19,7 +19,7 @@ export function toRpcFailure(err: unknown): RpcFailure {
       body: {
         code: err.rpc,
         message: err.message,
-        data: { code: err.code, retryable: err.retryable, ...(err.data ?? {}) },
+        data: { code: err.code, retryable: err.retryable, ...(err.toJSON().data ?? {}) },
       },
     };
   }
