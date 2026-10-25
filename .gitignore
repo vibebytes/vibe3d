@@ -162,3 +162,4 @@ packages/daemon/.devhome/
 test-results/
 playwright-report/
 blob-report/
+.vibe3d_assets/

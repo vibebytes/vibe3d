@@ -10143,7 +10143,8 @@ export const MCP_TOOLS = [
             "strict",
             "local",
             "allow"
-          ]
+          ],
+          "description": "来源策略：local（缺省）只读资产根与本机地址；allow 放行任意本地路径与外网；strict 拒绝网络"
         }
       },
       "additionalProperties": false
@@ -10168,7 +10169,8 @@ export const MCP_TOOLS = [
             "strict",
             "local",
             "allow"
-          ]
+          ],
+          "description": "来源策略：local（缺省）只读资产根与本机地址；allow 放行任意本地路径与外网；strict 拒绝网络"
         }
       },
       "required": [
@@ -10210,7 +10212,8 @@ export const MCP_TOOLS = [
             "strict",
             "local",
             "allow"
-          ]
+          ],
+          "description": "来源策略：local（缺省）只读资产根与本机地址；allow 放行任意本地路径与外网；strict 拒绝网络"
         }
       },
       "required": [

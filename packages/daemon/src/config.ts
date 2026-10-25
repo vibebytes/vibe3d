@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { homedir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { z } from 'zod';
 
@@ -14,7 +14,16 @@ export const configSchema = z.object({
   rateLimit: z.coerce.number().min(0).max(100_000).default(200),
   rateBurst: z.coerce.number().int().min(1).max(100_000).default(200),
   token: z.string().min(8),
-  assetRoots: z.array(z.string()).default([]),
+  assetRoots: z.preprocess(
+    (v) =>
+      typeof v === 'string'
+        ? v
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : v,
+    z.array(z.string()).default([]),
+  ),
   renderer: z.enum(['auto', 'none', 'chromium', 'editor']).default('auto'),
   chromePath: z.string().optional(),
   renderTimeoutMs: z.coerce.number().int().min(1000).max(120_000).default(20_000),
@@ -35,16 +44,27 @@ const bool = (v: string | undefined, fallback: boolean): boolean =>
 
 export function parseConfig(argv: string[], env: NodeJS.ProcessEnv = process.env): Config {
   const flags: Record<string, string | boolean> = {};
+  const rootArgs: string[] = [];
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? '';
     if (!arg.startsWith('--')) continue;
     const body = arg.slice(2);
     const eq = body.indexOf('=');
     if (eq !== -1) {
-      flags[body.slice(0, eq)] = body.slice(eq + 1);
+      const key = body.slice(0, eq);
+      const value = body.slice(eq + 1);
+      if (key === 'asset-root') rootArgs.push(value);
+      else flags[key] = value;
       continue;
     }
     const next = argv[i + 1];
+    if (body === 'asset-root') {
+      if (next && !next.startsWith('--')) {
+        rootArgs.push(next);
+        i++;
+      }
+      continue;
+    }
     if (next && !next.startsWith('--')) {
       flags[body] = next;
       i++;
@@ -67,7 +87,7 @@ export function parseConfig(argv: string[], env: NodeJS.ProcessEnv = process.env
     rateLimit: flags['rate-limit'] ?? env.VIBE3D_RATE_LIMIT,
     rateBurst: flags['rate-burst'] ?? env.VIBE3D_RATE_BURST,
     token: flags.token ?? env.VIBE3D_TOKEN ?? randomBytes(32).toString('hex'),
-    assetRoots: flags['asset-root'] ?? env.VIBE3D_ASSET_ROOTS,
+    assetRoots: rootArgs.length > 0 ? rootArgs : env.VIBE3D_ASSET_ROOTS,
     renderer: flags.renderer ?? env.VIBE3D_RENDERER,
     chromePath: flags.chrome ?? env.VIBE3D_CHROME,
     renderTimeoutMs: flags['render-timeout'] ?? env.VIBE3D_RENDER_TIMEOUT,
@@ -92,14 +112,11 @@ export function parseConfig(argv: string[], env: NodeJS.ProcessEnv = process.env
   if (parsed.data.host !== '127.0.0.1' && parsed.data.host !== 'localhost') {
     throw new Error('只允许监听 127.0.0.1 / localhost');
   }
-  const roots = String(parsed.data.assetRoots)
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .map((s) => resolve(s));
+  const roots = parsed.data.assetRoots.map((s) => resolve(s));
+  const fallback = [process.cwd(), tmpdir(), homedir()].map((p) => resolve(p));
   return {
     ...parsed.data,
     home: resolve(parsed.data.home),
-    assetRoots: roots.length > 0 ? roots : [process.cwd()],
+    assetRoots: [...new Set(roots.length > 0 ? roots : fallback)],
   };
 }

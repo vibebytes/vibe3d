@@ -45,13 +45,14 @@ function contains(root: string, path: string): boolean {
   return path === root || path.startsWith(base);
 }
 
-async function localPath(src: string, roots: string[]): Promise<string> {
+async function localPath(src: string, roots: string[], policy: AssetPolicy): Promise<string> {
   let real: string;
   try {
     real = await realpath(resolve(src));
   } catch {
     throw new AppError('E_ASSET_MISSING', `文件不存在或不可读：${src}`);
   }
+  if (policy === 'allow') return real;
   for (const root of roots) {
     let base: string;
     try {
@@ -61,7 +62,16 @@ async function localPath(src: string, roots: string[]): Promise<string> {
     }
     if (contains(base, real)) return real;
   }
-  throw new AppError('E_UNSUPPORTED', `本地路径不在允许的资产根目录内：${src}`, { roots });
+  throw new AppError('E_UNSUPPORTED', `本地路径不在允许的资产根目录内：${src}`, {
+    roots: [...new Set(roots.map((root) => resolve(root)))],
+    resolved: real,
+    hint: '本次调用显式传 policy:"allow" 即可放行；长期放行把资产放进资产根，或用 --asset-root <dir> / VIBE3D_ASSET_ROOTS 扩大范围',
+    next: {
+      tool: 'vibe3d_put_asset',
+      params: { src, policy: 'allow' },
+      after: 'vibe3d_import_asset{sha}',
+    },
+  });
 }
 
 async function readCapped(res: Response, src: string, maxBytes: number): Promise<Buffer> {
@@ -156,7 +166,7 @@ export function createIngest({
       }
       return download(src, policy, fetchImpl, maxBytes);
     }
-    const path = await localPath(src, roots);
+    const path = await localPath(src, roots, policy);
     const bytes = await readFile(path);
     if (bytes.length > maxBytes) {
       throw new AppError('E_PAYLOAD_TOO_LARGE', `资产超过上限：${src}`, {

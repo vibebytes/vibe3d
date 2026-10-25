@@ -86,7 +86,7 @@ const GUIDES: Record<string, Guide> = {
     description: '先探针再入库：inspect → put/import → 对齐落地 → 策略',
     body: [
       '1. 本地文件先 vibe3d_inspect_asset：看尺寸、动画、外部引用，决定要不要转换。',
-      '2. 外部地址用 vibe3d_put_asset 入库（policy 缺省 strict），再用 vibe3d_import_asset 落成节点。',
+      '2. 外部地址或资产根之外的本地文件用 vibe3d_put_asset 入库（本地路径不在根内须传 policy:"allow"），再用 vibe3d_import_asset 落成节点。',
       '3. 整份场景用 vibe3d_import_scene：它是替换语义，只在初始化或回滚时用；先 vibe3d_checkpoint_scene 留底。',
       '4. 落地：按 inspect 回的真实包围盒算 y，别假设原点在脚底。',
       '5. 批量摆放用 vibe3d_array_nodes 或 vibe3d_transform_many，保持同一朝向基准。',

@@ -2,6 +2,11 @@ import { assetMetaSchema, gltfReportSchema, nodeIdSchema, shaSchema } from '@vib
 import { z } from 'zod';
 import { roomId, transformInput } from './common';
 
+const policyInput = z
+  .enum(['strict', 'local', 'allow'])
+  .optional()
+  .describe('来源策略：local（缺省）只读资产根与本机地址；allow 放行任意本地路径与外网；strict 拒绝网络');
+
 export const assetOps = {
   'node.import': {
     title: '导入 glTF/GLB 为 model 节点',
@@ -14,7 +19,7 @@ export const assetOps = {
       transform: transformInput.optional(),
       align: z.enum(['ground', 'center', 'none']).optional(),
       autoplay: z.boolean().optional(),
-      policy: z.enum(['strict', 'local', 'allow']).optional(),
+      policy: policyInput,
     }),
     output: z.object({
       nodeId: nodeIdSchema,
@@ -44,7 +49,7 @@ export const assetOps = {
     input: z.object({
       roomId,
       src: z.string().min(1),
-      policy: z.enum(['strict', 'local', 'allow']).optional(),
+      policy: policyInput,
     }),
     output: z.object({ sha: shaSchema, cached: z.boolean(), report: gltfReportSchema }),
     scope: 'room' as const,
@@ -61,7 +66,7 @@ export const assetOps = {
       src: z.string().min(1),
       kind: z.enum(['auto', 'image', 'hdri', 'model']).optional(),
       name: z.string().min(1).max(300).optional(),
-      policy: z.enum(['strict', 'local', 'allow']).optional(),
+      policy: policyInput,
     }),
     output: z.object({
       sha: shaSchema,
