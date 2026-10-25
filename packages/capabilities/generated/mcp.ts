@@ -6745,145 +6745,157 @@ export const MCP_TOOLS = [
       "type": "object",
       "properties": {
         "stage": {
-          "type": "object",
-          "properties": {
-            "preset": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "preset": {
+                  "type": "string",
+                  "enum": [
+                    "cine",
+                    "clean",
+                    "flat"
+                  ]
+                },
+                "exposure": {
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 8
+                },
+                "auto_exposure": {
+                  "type": "boolean"
+                },
+                "ground": {
+                  "type": "boolean"
+                },
+                "keep_model_lights": {
+                  "type": "boolean"
+                },
+                "post": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "dof": {
+                          "type": "object",
+                          "properties": {
+                            "aperture": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            "focus_distance": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 100
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "bloom": {
+                          "type": "object",
+                          "properties": {
+                            "intensity": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 5
+                            },
+                            "threshold": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 2
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "ssao": {
+                          "type": "object",
+                          "properties": {
+                            "radius": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 5
+                            },
+                            "intensity": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 5
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "tonemap": {
+                          "type": "string",
+                          "enum": [
+                            "aces",
+                            "linear",
+                            "reinhard"
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "npr": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "outline": {
+                          "type": "object",
+                          "properties": {
+                            "width": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 10
+                            },
+                            "color": {
+                              "type": "array",
+                              "minItems": 4,
+                              "maxItems": 4,
+                              "items": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1
+                              }
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "ramp_steps": {
+                          "type": "integer",
+                          "minimum": 2,
+                          "maximum": 8
+                        },
+                        "rim": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            {
               "type": "string",
               "enum": [
                 "cine",
                 "clean",
                 "flat"
               ]
-            },
-            "exposure": {
-              "type": "number",
-              "minimum": 0.1,
-              "maximum": 8
-            },
-            "auto_exposure": {
-              "type": "boolean"
-            },
-            "ground": {
-              "type": "boolean"
-            },
-            "keep_model_lights": {
-              "type": "boolean"
-            },
-            "post": {
-              "anyOf": [
-                {
-                  "type": "object",
-                  "properties": {
-                    "dof": {
-                      "type": "object",
-                      "properties": {
-                        "aperture": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 1
-                        },
-                        "focus_distance": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 100
-                        }
-                      },
-                      "additionalProperties": false
-                    },
-                    "bloom": {
-                      "type": "object",
-                      "properties": {
-                        "intensity": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 5
-                        },
-                        "threshold": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 2
-                        }
-                      },
-                      "additionalProperties": false
-                    },
-                    "ssao": {
-                      "type": "object",
-                      "properties": {
-                        "radius": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 5
-                        },
-                        "intensity": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 5
-                        }
-                      },
-                      "additionalProperties": false
-                    },
-                    "tonemap": {
-                      "type": "string",
-                      "enum": [
-                        "aces",
-                        "linear",
-                        "reinhard"
-                      ]
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "npr": {
-              "anyOf": [
-                {
-                  "type": "object",
-                  "properties": {
-                    "outline": {
-                      "type": "object",
-                      "properties": {
-                        "width": {
-                          "type": "number",
-                          "minimum": 0,
-                          "maximum": 10
-                        },
-                        "color": {
-                          "type": "array",
-                          "minItems": 4,
-                          "maxItems": 4,
-                          "items": {
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 1
-                          }
-                        }
-                      },
-                      "additionalProperties": false
-                    },
-                    "ramp_steps": {
-                      "type": "integer",
-                      "minimum": 2,
-                      "maximum": 8
-                    },
-                    "rim": {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                {
-                  "type": "null"
-                }
-              ]
             }
-          },
-          "additionalProperties": false
+          ]
         }
       },
       "required": [

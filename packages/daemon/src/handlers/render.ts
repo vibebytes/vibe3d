@@ -44,10 +44,18 @@ type Keys =
 
 function requireRenderer(ctx: DispatchContext, roomId?: string): Renderer {
   if (!ctx.renderer?.ready) {
-    throw new AppError('E_RENDER_UNAVAILABLE', '渲染器不可用：本进程未启用离屏渲染');
+    throw new AppError('E_RENDER_UNAVAILABLE', '渲染器不可用：本进程未启用离屏渲染', {
+      renderer: null,
+      hint: '用 vibe3d_open_editor 打开编辑器窗口，让页面接管渲染；无窗口时改用 vibe3d_render_snapshot',
+      next: { tool: 'vibe3d_open_editor', params: roomId ? { roomId } : {} },
+    });
   }
   if (roomId && ctx.renderer.available && !ctx.renderer.available(roomId)) {
-    throw new AppError('E_RENDER_UNAVAILABLE', `房间 ${roomId} 没有在线的 editor / headless 页面`);
+    throw new AppError('E_RENDER_UNAVAILABLE', `房间 ${roomId} 没有在线的 editor / headless 页面`, {
+      renderer: ctx.renderer.name,
+      hint: `先用 vibe3d_open_editor 打开房间 ${roomId}，页面就绪后重试`,
+      next: { tool: 'vibe3d_open_editor', params: { roomId } },
+    });
   }
   return ctx.renderer;
 }
@@ -100,7 +108,10 @@ export const renderHandlers: HandlersFor<Keys> = {
     const room = ctx.rooms.get(p.roomId);
     const renderer = requireRenderer(ctx, room.id);
     const quality = resolveQuality(p.quality);
-    const shot = await renderer.snapshot({ roomId: room.id, doc: room.doc }, imageOptions(p, room.doc, quality));
+    const shot = await renderer.snapshot(
+      { roomId: room.id, doc: room.doc },
+      imageOptions(p, room.doc, quality),
+    );
     return {
       revision: room.revision,
       mime: shot.mime,
@@ -244,7 +255,11 @@ export const renderHandlers: HandlersFor<Keys> = {
       });
     }
     if (!renderer.idPass) {
-      throw new AppError('E_RENDER_UNAVAILABLE', '当前渲染器不支持 id-pass');
+      throw new AppError('E_RENDER_UNAVAILABLE', `当前渲染器 ${renderer.name} 不支持 id-pass`, {
+        renderer: renderer.name,
+        hint: 'id-pass 需要已连接的编辑器页面：先用 vibe3d_open_editor 打开房间再重试；只要像素色值用 vibe3d_render_pick，常规截图用 vibe3d_render_snapshot',
+        next: { tool: 'vibe3d_render_snapshot', params: { roomId: room.id, width, height } },
+      });
     }
     const palette = buildIdLegend(room.doc);
     const shot = await renderer.idPass(

@@ -42,7 +42,7 @@ interface Reply {
   jsonrpc?: '2.0';
   id?: number | string | null;
   result?: unknown;
-  error?: { code?: number; message?: string; data?: { code?: string; message?: string; data?: unknown } };
+  error?: { code?: number; message?: string; data?: Record<string, unknown> };
 }
 
 export class RpcClient implements Transport {
@@ -98,7 +98,10 @@ export class RpcClient implements Transport {
         { jsonrpc: '2.0', id: ++this.seq, method: 'hello', params: {} },
         { timeoutMs: 10_000 },
       )
-        .then((hello) => ({ version: hello.daemonVersion ?? 'unknown', capabilities: hello.capabilities ?? [] }))
+        .then((hello) => ({
+          version: hello.daemonVersion ?? 'unknown',
+          capabilities: hello.capabilities ?? [],
+        }))
         .catch((err: unknown) => {
           this.caps = undefined;
           throw err;
@@ -147,9 +150,14 @@ export class RpcClient implements Transport {
         res.status,
       );
     if (payload.error) {
-      const code = payload.error.data?.code ?? 'E_INTERNAL';
-      const message = payload.error.data?.message ?? payload.error.message ?? '未知错误';
-      throw toVibe3DError(code, message, payload.error.data?.data, res.status);
+      const info = payload.error.data ?? {};
+      const code = typeof info.code === 'string' ? info.code : 'E_INTERNAL';
+      const message = typeof info.message === 'string' ? info.message : (payload.error.message ?? '未知错误');
+      const detail = Object.fromEntries(
+        Object.entries(info).filter(([k]) => k !== 'code' && k !== 'retryable' && k !== 'message'),
+      );
+      const data = Object.keys(detail).length > 0 ? detail : undefined;
+      throw toVibe3DError(code, message, data, res.status);
     }
     return payload.result as T;
   }

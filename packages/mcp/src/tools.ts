@@ -7,7 +7,7 @@ import {
 } from '@vibebyte/vibe3d-capabilities';
 import { type RoomHandle, type Studio, Vibe3DError } from '@vibebyte/vibe3d-client';
 import { coerceForSchema, deepCamel } from './coerce';
-import { paramHint } from './hints';
+import { paramHint, schemaHint } from './hints';
 import { describeTool, presentSchema } from './presentation';
 import { RoomSession } from './session';
 
@@ -68,17 +68,28 @@ function failure(err: unknown): ToolResult {
   };
 }
 
-function jsonHint(input: Record<string, unknown>, issues: Array<{ path: (string | number)[] }>): string {
-  const field = issues[0]?.path[0];
-  if (typeof field !== 'string') return '';
-  const value = input[field];
-  if (typeof value !== 'string') return '';
-  try {
-    JSON.parse(value.trim());
-    return '';
-  } catch (err) {
-    return `；${field} 收到的是字符串，JSON 解析失败（${(err as Error).message}），请直接传数组`;
-  }
+function receivedType(value: unknown): string {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return 'array';
+  return typeof value;
+}
+
+function reportToolError(
+  tool: string,
+  issues: ReadonlyArray<{ path: ReadonlyArray<string | number>; message: string }>,
+  input: Record<string, unknown>,
+): void {
+  const first = issues[0];
+  const field = first && first.path.length > 0 ? String(first.path[0]) : undefined;
+  const entry = {
+    event: 'tool.error',
+    tool,
+    code: 'E_INVALID_PARAMS',
+    field,
+    received: field ? receivedType(input[field]) : undefined,
+    reason: first?.message,
+  };
+  process.stderr.write(`${JSON.stringify(entry)}\n`);
 }
 
 export class ToolRuntime {
@@ -107,9 +118,10 @@ export class ToolRuntime {
       if (viewOf(capability).scope === 'room') await this.resolveRoom(capability, input);
       const params = spec.input.safeParse(coerceForSchema(spec.input, input));
       if (!params.success) {
+        reportToolError(name, params.error.issues, input);
         throw new Vibe3DError(
           'E_INVALID_PARAMS',
-          `${capability} 参数校验失败：${describeIssues(params.error.issues)}${paramHint(params.error.issues)}${jsonHint(input, params.error.issues)}`,
+          `${capability} 参数校验失败：${describeIssues(params.error.issues)}${paramHint(params.error.issues)}${schemaHint(input, params.error.issues, spec.input)}`,
           { issues: toIssues(params.error.issues) },
         );
       }

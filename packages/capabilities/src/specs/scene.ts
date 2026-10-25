@@ -30,6 +30,9 @@ const stagePatch = stageStateSchema.partial().extend({
   npr: nprSchema.nullable().optional(),
 });
 
+const stagePreset = z.enum(['cine', 'clean', 'flat']).transform((preset) => ({ preset }));
+const stageInput = z.union([stagePatch, stagePreset]);
+
 const budgetMetric = z
   .object({
     limit: z.number().int().min(0),
@@ -558,7 +561,7 @@ export const sceneOps = {
   },
   'stage.set': {
     title: '换舞台：预设、曝光、后处理与三渲二',
-    input: z.object({ roomId, stage: stagePatch }),
+    input: z.object({ roomId, stage: stageInput }),
     output: revisionOut.extend({ stage: stageStateSchema }),
     scope: 'room' as const,
     mutating: true,
