@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { MCP_TOOLS } from '../../capabilities/generated/mcp';
 
-const DESTRUCTIVE = [
-  'vibe3d_undo',
-  'vibe3d_redo',
-  'vibe3d_delete_node',
-  'vibe3d_delete_asset',
-  'vibe3d_delete_camera',
-  'vibe3d_delete_fx',
-  'vibe3d_clear_animation',
-  'vibe3d_restore_scene',
-  'vibe3d_close_room',
+const byName = (name: string) => MCP_TOOLS.find((tool) => tool.name === name);
+
+const DESTRUCTIVE_GROUPS = [
+  'vibe3d_room',
+  'vibe3d_scene',
+  'vibe3d_node',
+  'vibe3d_asset',
+  'vibe3d_camera',
+  'vibe3d_fx',
+  'vibe3d_animation',
 ];
 
 describe('MCP 工具注解', () => {
@@ -25,17 +25,31 @@ describe('MCP 工具注解', () => {
     }
   });
 
-  it('读工具幂等、写工具非幂等；删除/撤销类标记 destructive', () => {
-    for (const tool of MCP_TOOLS) {
-      const a = tool.annotations ?? {};
-      expect(a.idempotentHint, tool.name).toBe(a.readOnlyHint);
-      if (DESTRUCTIVE.includes(tool.name)) expect(a.destructiveHint, tool.name).toBe(true);
+  it('含破坏性 op 的分组标记 destructive，且不再宣称只读', () => {
+    for (const name of DESTRUCTIVE_GROUPS) {
+      const tool = byName(name);
+      expect(tool, name).toBeDefined();
+      expect(tool?.annotations?.destructiveHint, name).toBe(true);
+      expect(tool?.annotations?.readOnlyHint, name).toBe(false);
     }
   });
 
-  it('仍保持 room.close 的 destructive 语义', () => {
-    const close = MCP_TOOLS.find((t) => t.name === 'vibe3d_close_room');
-    expect(close?.annotations?.destructiveHint).toBe(true);
-    expect(close?.annotations?.readOnlyHint).toBe(false);
+  it('纯写分组不标 destructive', () => {
+    for (const name of ['vibe3d_mesh', 'vibe3d_stage', 'vibe3d_material']) {
+      expect(byName(name)?.annotations?.destructiveHint, name).toBe(false);
+    }
+  });
+
+  it('只读分组 readOnly 且 idempotent', () => {
+    const status = byName('vibe3d_status');
+    expect(status?.annotations?.readOnlyHint).toBe(true);
+    expect(status?.annotations?.idempotentHint).toBe(true);
+    expect(status?.annotations?.destructiveHint).toBe(false);
+  });
+
+  it('仍保持 room.close 的 destructive 语义（聚合到 room 分组）', () => {
+    const room = byName('vibe3d_room');
+    expect(room?.annotations?.destructiveHint).toBe(true);
+    expect(room?.annotations?.readOnlyHint).toBe(false);
   });
 });

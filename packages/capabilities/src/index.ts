@@ -5,7 +5,20 @@ export {
   type CapabilitySpec,
   type CliSpec,
   type McpSpec,
+  type McpOpDoc,
+  type McpToolDoc,
   type ToolAnnotations,
 } from './types';
-export { MCP_TOOLS } from '../generated/mcp';
+export { MCP_TOOLS, MCP_LEGACY_ALIASES } from '../generated/mcp';
+export {
+  TOOL_GROUPS,
+  GROUP_BY_CAPABILITY,
+  LEGACY_OF,
+  LEGACY_TOOL_ALIASES,
+  groupAnnotations,
+  isFlatTool,
+  type ToolGroup,
+  type GroupOp,
+} from './tool-groups';
+export { describeCapability, type ParamDoc } from './help';
 export { describeIssues, type ParamIssue, toIssues } from './issues';

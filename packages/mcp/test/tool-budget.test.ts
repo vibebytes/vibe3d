@@ -6,14 +6,14 @@ const byName = (name: string) => tools.find((tool) => tool.name === name);
 const quoted = tools.map((tool) => ({ name: tool.name, bytes: JSON.stringify(tool).length }));
 
 describe('advertised tool list budget', () => {
-  it('keeps the whole tools/list payload under 64KB', () => {
-    expect(JSON.stringify(tools).length).toBeLessThanOrEqual(64 * 1024);
+  it('keeps the whole tools/list payload under 16KB', () => {
+    expect(JSON.stringify(tools).length).toBeLessThanOrEqual(16 * 1024);
   });
 
-  it('keeps every description under 240 chars', () => {
+  it('keeps every description under 360 chars', () => {
     const long = tools
       .map((tool) => ({ name: tool.name, chars: tool.description.length }))
-      .filter((tool) => tool.chars > 240);
+      .filter((tool) => tool.chars > 360);
     expect(long).toEqual([]);
   });
 
@@ -26,8 +26,7 @@ describe('advertised tool list budget', () => {
     const schema = byName('vibe3d_apply_ops')?.inputSchema as {
       properties?: Record<string, { items?: { type?: string } }>;
     };
-    const ops = schema.properties?.ops;
-    expect(ops?.items?.type).toBe('object');
+    expect(schema.properties?.ops?.items?.type).toBe('object');
   });
 
   it('tells the model to prefer dedicated tools over apply_ops', () => {
@@ -35,9 +34,13 @@ describe('advertised tool list budget', () => {
   });
 
   it('documents colour and id conventions where they actually bite', () => {
-    expect(byName('vibe3d_set_environment')?.description).toContain('[r,g,b,a]');
-    expect(byName('vibe3d_create_material')?.description).toMatch(/服务端生成/);
-    expect(byName('vibe3d_create_fx')?.description).toContain('服务端生成');
-    expect(byName('vibe3d_create_node')?.description).toContain('#RRGGBB');
+    expect(byName('vibe3d_stage')?.description).toContain('[r,g,b,a]');
+    expect(byName('vibe3d_material')?.description).toMatch(/服务端生成/);
+    expect(byName('vibe3d_fx')?.description).toContain('服务端生成');
+    expect(tools.some((tool) => tool.description.includes('#RRGGBB'))).toBe(true);
+  });
+
+  it('points at id-pass capability from the status tool', () => {
+    expect(byName('vibe3d_status')?.description).toContain('id-pass');
   });
 });

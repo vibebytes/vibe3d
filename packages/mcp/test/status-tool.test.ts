@@ -26,13 +26,11 @@ describe('vibe3d_status：不落盘的能力探测', () => {
     const tool = byName('vibe3d_status');
     expect(tool?.description).toContain('id-pass');
     expect((tool?.annotations as { readOnlyHint?: boolean } | undefined)?.readOnlyHint).toBe(true);
-    expect(toolByName('vibe3d_status')?.capability).toBe('system.status');
+    expect(toolByName('vibe3d_status')?.ops[0]?.capability).toBe('system.status');
   });
 
   it('keeps render tool descriptions pointing at the probe', () => {
-    for (const name of ['vibe3d_render_snapshot', 'vibe3d_render_id_pass']) {
-      expect(byName(name)?.description, name).toContain('vibe3d_status');
-    }
+    expect(byName('vibe3d_render')?.description).toContain('vibe3d_status');
   });
 
   it('returns the daemon payload untouched', async () => {

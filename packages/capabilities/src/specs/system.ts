@@ -22,7 +22,7 @@ export const systemOps = {
     scope: 'daemon' as const,
     mutating: false,
     wire: 'system.status' as const,
-    mcp: { tool: 'vibe3d_status' as const, annotations: { readOnlyHint: true } },
+    mcp: { annotations: { readOnlyHint: true } },
     cli: { command: 'status', args: '' },
     errors: [] as const,
   },

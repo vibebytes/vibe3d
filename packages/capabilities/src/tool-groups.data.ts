@@ -1,0 +1,144 @@
+import type { ToolGroup } from './tool-groups';
+
+export const TOOL_GROUP_TABLE: readonly ToolGroup[] = [
+  { tool: 'vibe3d_status', title: '能力探测：渲染器是否就绪、能否出 ID 通道、快照上限与载荷上限', ops: [['status', 'system.status', 'status']] },
+  {
+    tool: 'vibe3d_room',
+    title: '房间：建 / 列 / 切绑定 / 看摘要 / 关 / 时间线',
+    ops: [
+      ['create', 'room.create', 'create_room'],
+      ['list', 'room.list', 'list_rooms'],
+      ['use', 'room.use', 'use_room'],
+      ['get', 'room.get', 'get_room'],
+      ['close', 'room.close', 'close_room'],
+      ['timeline', 'room.timeline', 'room_timeline'],
+    ],
+  },
+  {
+    tool: 'vibe3d_scene',
+    title: '场景：取整份 / 摘要 / 查询节点 / 统计 / 拾取 / 体检 / 撤销重做 / 差分 / 导入导出 / 检查点 / 当前选中',
+    ops: [
+      ['get', 'scene.get', 'get_scene'],
+      ['summary', 'scene.summary', 'scene_summary'],
+      ['query', 'scene.query', 'query_nodes'],
+      ['stats', 'scene.stats', 'scene_stats'],
+      ['pick', 'scene.pick', 'pick_node'],
+      ['validate', 'scene.validate', 'validate_scene'],
+      ['undo', 'scene.undo', 'undo'],
+      ['redo', 'scene.redo', 'redo'],
+      ['diff', 'scene.diff', 'scene_diff'],
+      ['export', 'scene.export', 'export_scene'],
+      ['import', 'scene.import', 'import_scene'],
+      ['checkpoint', 'scene.checkpoint', 'checkpoint_scene'],
+      ['checkpoints', 'scene.checkpoints', 'list_checkpoints'],
+      ['restore', 'scene.restore', 'restore_scene'],
+      ['selection', 'selection.get', 'get_selection'],
+    ],
+  },
+  {
+    tool: 'vibe3d_node',
+    title: '节点：建 / 改 / 删 / 克隆 / 读 / 换父 / 批量变换 / 阵列 / 吸附 / 编组 / 合并烘焙 / 导入模型',
+    ops: [
+      ['create', 'node.create', 'create_node'],
+      ['update', 'node.update', 'update_node'],
+      ['delete', 'node.delete', 'delete_node'],
+      ['clone', 'node.clone', 'clone_node'],
+      ['get', 'node.get', 'get_node'],
+      ['reparent', 'node.reparent', 'reparent_node'],
+      ['transform', 'node.transform_many', 'transform_many'],
+      ['array', 'node.array', 'array_nodes'],
+      ['attach', 'node.attach', 'attach_node'],
+      ['group', 'node.group', 'group_nodes'],
+      ['merge', 'node.merge', 'merge_nodes'],
+      ['import', 'node.import', 'import_asset'],
+    ],
+  },
+  {
+    tool: 'vibe3d_material',
+    title: '材质：按预设建 / 局部改 / 贴图与 UV / 批量指派',
+    ops: [
+      ['create', 'material.create', 'create_material'],
+      ['patch', 'material.patch', 'patch_material'],
+      ['map', 'material.map', 'map_material'],
+      ['assign', 'material.assign', 'assign_material'],
+    ],
+  },
+  {
+    tool: 'vibe3d_stage',
+    title: '舞台与环境：预设/曝光/后处理/三渲二；雾、背景、环境光、HDRI',
+    ops: [
+      ['set', 'stage.set', 'set_stage'],
+      ['env', 'env.set', 'set_environment'],
+    ],
+  },
+  {
+    tool: 'vibe3d_animation',
+    title: '程序化动画：定义轨道 / 播放 / 清除',
+    ops: [
+      ['define', 'animation.define', 'define_animation'],
+      ['play', 'animation.play', 'play_animation'],
+      ['clear', 'animation.clear', 'clear_animation'],
+    ],
+  },
+  {
+    tool: 'vibe3d_fx',
+    title: '特效：粒子或光柱，建 / 删',
+    ops: [
+      ['create', 'fx.create', 'create_fx'],
+      ['delete', 'fx.delete', 'delete_fx'],
+    ],
+  },
+  {
+    tool: 'vibe3d_mesh',
+    title: '网格构造：布尔 / 管体扫掠 / 背板扫掠 / 文字图片贴花',
+    ops: [
+      ['boolean', 'mesh.boolean', 'boolean_mesh'],
+      ['tube', 'mesh.tube', 'tube_mesh'],
+      ['backdrop', 'mesh.backdrop', 'backdrop_mesh'],
+      ['decal', 'decal.create', 'create_decal'],
+    ],
+  },
+  {
+    tool: 'vibe3d_asset',
+    title: '资产：解析 glTF / 上传贴图模型 / 列表 / 删除',
+    ops: [
+      ['inspect', 'asset.inspect', 'inspect_asset'],
+      ['put', 'asset.put', 'put_asset'],
+      ['list', 'asset.list', 'list_assets'],
+      ['delete', 'asset.delete', 'delete_asset'],
+    ],
+  },
+  {
+    tool: 'vibe3d_camera',
+    title: '机位：设置 / 保存命名机位 / 删除',
+    ops: [
+      ['set', 'camera.set', 'set_camera'],
+      ['save', 'camera.save', 'save_camera'],
+      ['delete', 'camera.delete', 'delete_camera'],
+    ],
+  },
+  {
+    tool: 'vibe3d_render',
+    title: '渲染：快照 / 多视角 / 单资产特写 / 像素取色 / ID 通道 / 序列帧',
+    ops: [
+      ['snapshot', 'render.snapshot', 'render_snapshot'],
+      ['views', 'render.views', 'render_views'],
+      ['node', 'render.node', 'render_node'],
+      ['pick', 'render.pick', 'render_pick'],
+      ['id_pass', 'render.id-pass', 'render_id_pass'],
+      ['sequence', 'render.sequence', 'render_sequence'],
+    ],
+  },
+  { tool: 'vibe3d_export_glb', title: '导出 GLB（任务制，用 vibe3d_job 查进度）', ops: [['glb', 'export.glb', 'export_glb']] },
+  {
+    tool: 'vibe3d_job',
+    title: '导出任务：查询 / 列表 / 取消',
+    ops: [
+      ['get', 'job.get', 'job_get'],
+      ['list', 'job.list', 'job_list'],
+      ['cancel', 'job.cancel', 'job_cancel'],
+    ],
+  },
+  { tool: 'vibe3d_open_editor', title: '打开房间编辑器（默认弹窗）', ops: [['open', 'editor.open', 'open_editor']] },
+  { tool: 'vibe3d_apply_ops', title: '原子批量 op（仅用于跨节点依赖；日常请用专用工具）', ops: [['apply', 'ops.apply', 'apply_ops']] },
+];

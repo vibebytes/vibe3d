@@ -1,37 +1,36 @@
 import { MCP_TOOLS } from '@vibebyte/vibe3d-capabilities';
 import { describe, expect, it } from 'vitest';
 import { getPrompt, listPrompts } from '../src/guide';
-import { listTools } from '../src/tools';
+import { listTools, toolByName } from '../src/tools';
 
 const tools = listTools();
 const byName = (name: string) => tools.find((tool) => tool.name === name);
-const specOf = (name: string) => MCP_TOOLS.find((tool) => tool.name === name);
 
 describe('K1 工具描述分组', () => {
-  it('每条描述都以能力命名空间前缀开头', () => {
-    for (const tool of tools) {
-      const spec = specOf(tool.name);
-      expect(spec, tool.name).toBeDefined();
-      expect(tool.description.startsWith(`[${spec?.capability.split('.')[0]}] `), tool.name).toBe(true);
+  it('每条描述都以工具名前缀开头', () => {
+    for (const tool of tools.slice(1)) {
+      expect(tool.description.startsWith(`[${tool.name.slice(7)}] `), tool.name).toBe(true);
     }
   });
 
-  it('前缀取自能力命名空间，不靠工具名猜', () => {
-    expect(byName('vibe3d_render_snapshot')?.description).toMatch(/^\[render\] /);
-    expect(byName('vibe3d_create_node')?.description).toMatch(/^\[node\] /);
-    expect(byName('vibe3d_create_room')?.description).toMatch(/^\[room\] /);
-    expect(byName('vibe3d_scene_stats')?.description).toMatch(/^\[scene\] /);
-    expect(byName('vibe3d_apply_ops')?.description).toMatch(/^\[ops\] /);
+  it('多 op 工具在描述里直接列出 op 与必填字段', () => {
+    expect(byName('vibe3d_node')?.description).toMatch(/op: .*create\{kind\}/);
+    expect(byName('vibe3d_scene')?.description).toContain('vibe3d_help');
   });
 
-  it('分组只加前缀，正文与附加提示不变', () => {
+  it('单 op 工具仍然扁平，不要求 op', () => {
+    expect(byName('vibe3d_status')?.description).not.toContain('op: ');
     expect(byName('vibe3d_apply_ops')?.description).toContain('逐条操作请用专用工具');
-    expect(byName('vibe3d_create_node')?.description).toContain('#RRGGBB');
-    expect(byName('vibe3d_set_environment')?.description).toContain('[r,g,b,a]');
   });
 
-  it('不新增工具：tools/list 仍与注册表逐条对齐', () => {
-    expect(tools.length).toBe(MCP_TOOLS.length);
+  it('旧扁平工具名仍能解析到分组工具', () => {
+    expect(toolByName('vibe3d_create_node')?.name).toBe('vibe3d_node');
+    expect(toolByName('vibe3d_render_snapshot')?.name).toBe('vibe3d_render');
+  });
+
+  it('tools/list = 分组工具 + 一个 help', () => {
+    expect(tools.length).toBe(MCP_TOOLS.length + 1);
+    expect(byName('vibe3d_help')).toBeDefined();
   });
 });
 
@@ -56,9 +55,9 @@ describe('K1 任务剧本（MCP prompts，按需加载）', () => {
 
   it('剧本给步骤与具体工具名，不打包全量 spec', () => {
     const text = getPrompt('vibe3d.build').messages[0]?.content.text ?? '';
-    expect(text).toContain('vibe3d_create_room');
-    expect(text).toContain('vibe3d_scene_stats');
-    expect(text).toContain('vibe3d_render_snapshot');
+    expect(text).toContain('vibe3d_room {op:"create"}');
+    expect(text).toContain('vibe3d_scene {op:"stats"}');
+    expect(text).toContain('vibe3d_render {op:"snapshot"}');
     expect(text).not.toContain('inputSchema');
   });
 

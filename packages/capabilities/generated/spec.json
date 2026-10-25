@@ -12,6 +12,8 @@
       "errors": [],
       "mcp": {
         "tool": "vibe3d_status",
+        "op": "status",
+        "legacy": "vibe3d_status",
         "annotations": {
           "readOnlyHint": true
         },
@@ -109,7 +111,9 @@
         "E_LOCKED"
       ],
       "mcp": {
-        "tool": "vibe3d_create_room",
+        "tool": "vibe3d_room",
+        "op": "create",
+        "legacy": "vibe3d_create_room",
         "annotations": {},
         "roomArg": false
       },
@@ -176,7 +180,9 @@
         "E_INVALID_PARAMS"
       ],
       "mcp": {
-        "tool": "vibe3d_list_rooms",
+        "tool": "vibe3d_room",
+        "op": "list",
+        "legacy": "vibe3d_list_rooms",
         "annotations": {
           "readOnlyHint": true
         },
@@ -268,7 +274,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_use_room",
+        "tool": "vibe3d_room",
+        "op": "use",
+        "legacy": "vibe3d_use_room",
         "annotations": {
           "readOnlyHint": true
         },
@@ -340,7 +348,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_get_room",
+        "tool": "vibe3d_room",
+        "op": "get",
+        "legacy": "vibe3d_get_room",
         "annotations": {
           "readOnlyHint": true
         },
@@ -425,7 +435,9 @@
         "E_LOCKED"
       ],
       "mcp": {
-        "tool": "vibe3d_close_room",
+        "tool": "vibe3d_room",
+        "op": "close",
+        "legacy": "vibe3d_close_room",
         "annotations": {
           "destructiveHint": true
         },
@@ -482,7 +494,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_room_timeline",
+        "tool": "vibe3d_room",
+        "op": "timeline",
+        "legacy": "vibe3d_room_timeline",
         "annotations": {
           "readOnlyHint": true
         },
@@ -572,7 +586,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_get_scene",
+        "tool": "vibe3d_scene",
+        "op": "get",
+        "legacy": "vibe3d_get_scene",
         "annotations": {
           "readOnlyHint": true
         },
@@ -2943,7 +2959,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_scene_summary",
+        "tool": "vibe3d_scene",
+        "op": "summary",
+        "legacy": "vibe3d_scene_summary",
         "annotations": {
           "readOnlyHint": true
         },
@@ -3219,7 +3237,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_query_nodes",
+        "tool": "vibe3d_scene",
+        "op": "query",
+        "legacy": "vibe3d_query_nodes",
         "annotations": {
           "readOnlyHint": true
         },
@@ -3539,7 +3559,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_get_node",
+        "tool": "vibe3d_node",
+        "op": "get",
+        "legacy": "vibe3d_get_node",
         "annotations": {
           "readOnlyHint": true
         },
@@ -4238,7 +4260,9 @@
         "E_BUDGET_EXCEEDED"
       ],
       "mcp": {
-        "tool": "vibe3d_scene_stats",
+        "tool": "vibe3d_scene",
+        "op": "stats",
+        "legacy": "vibe3d_scene_stats",
         "annotations": {
           "readOnlyHint": true
         },
@@ -4500,7 +4524,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_pick_node",
+        "tool": "vibe3d_scene",
+        "op": "pick",
+        "legacy": "vibe3d_pick_node",
         "annotations": {
           "readOnlyHint": true
         },
@@ -4817,7 +4843,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_validate_scene",
+        "tool": "vibe3d_scene",
+        "op": "validate",
+        "legacy": "vibe3d_validate_scene",
         "annotations": {
           "readOnlyHint": true
         },
@@ -5118,7 +5146,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_transform_many",
+        "tool": "vibe3d_node",
+        "op": "transform",
+        "legacy": "vibe3d_transform_many",
         "annotations": {
           "readOnlyHint": false
         },
@@ -5269,7 +5299,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_array_nodes",
+        "tool": "vibe3d_node",
+        "op": "array",
+        "legacy": "vibe3d_array_nodes",
         "annotations": {
           "readOnlyHint": false
         },
@@ -5433,7 +5465,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_attach_node",
+        "tool": "vibe3d_node",
+        "op": "attach",
+        "legacy": "vibe3d_attach_node",
         "annotations": {
           "readOnlyHint": false
         },
@@ -5567,7 +5601,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_group_nodes",
+        "tool": "vibe3d_node",
+        "op": "group",
+        "legacy": "vibe3d_group_nodes",
         "annotations": {
           "readOnlyHint": false
         },
@@ -5644,7 +5680,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_merge_nodes",
+        "tool": "vibe3d_node",
+        "op": "merge",
+        "legacy": "vibe3d_merge_nodes",
         "annotations": {
           "readOnlyHint": false
         },
@@ -5728,7 +5766,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_reparent_node",
+        "tool": "vibe3d_node",
+        "op": "reparent",
+        "legacy": "vibe3d_reparent_node",
         "annotations": {
           "readOnlyHint": false
         },
@@ -5804,7 +5844,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_assign_material",
+        "tool": "vibe3d_material",
+        "op": "assign",
+        "legacy": "vibe3d_assign_material",
         "annotations": {
           "readOnlyHint": false
         },
@@ -5913,6 +5955,8 @@
       ],
       "mcp": {
         "tool": "vibe3d_apply_ops",
+        "op": "apply",
+        "legacy": "vibe3d_apply_ops",
         "annotations": {
           "readOnlyHint": false
         },
@@ -18666,7 +18710,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_create_node",
+        "tool": "vibe3d_node",
+        "op": "create",
+        "legacy": "vibe3d_create_node",
         "annotations": {},
         "roomArg": false
       },
@@ -19156,7 +19202,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_update_node",
+        "tool": "vibe3d_node",
+        "op": "update",
+        "legacy": "vibe3d_update_node",
         "annotations": {},
         "roomArg": false
       },
@@ -19443,7 +19491,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_delete_node",
+        "tool": "vibe3d_node",
+        "op": "delete",
+        "legacy": "vibe3d_delete_node",
         "annotations": {
           "destructiveHint": true
         },
@@ -19508,7 +19558,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_clone_node",
+        "tool": "vibe3d_node",
+        "op": "clone",
+        "legacy": "vibe3d_clone_node",
         "annotations": {},
         "roomArg": false
       },
@@ -19642,7 +19694,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_set_stage",
+        "tool": "vibe3d_stage",
+        "op": "set",
+        "legacy": "vibe3d_set_stage",
         "annotations": {},
         "roomArg": false
       },
@@ -20013,7 +20067,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_play_animation",
+        "tool": "vibe3d_animation",
+        "op": "play",
+        "legacy": "vibe3d_play_animation",
         "annotations": {},
         "roomArg": false
       },
@@ -20090,7 +20146,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_define_animation",
+        "tool": "vibe3d_animation",
+        "op": "define",
+        "legacy": "vibe3d_define_animation",
         "annotations": {},
         "roomArg": false
       },
@@ -20261,7 +20319,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_clear_animation",
+        "tool": "vibe3d_animation",
+        "op": "clear",
+        "legacy": "vibe3d_clear_animation",
         "annotations": {
           "destructiveHint": true
         },
@@ -20338,7 +20398,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_create_fx",
+        "tool": "vibe3d_fx",
+        "op": "create",
+        "legacy": "vibe3d_create_fx",
         "annotations": {},
         "roomArg": false
       },
@@ -20518,7 +20580,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_delete_fx",
+        "tool": "vibe3d_fx",
+        "op": "delete",
+        "legacy": "vibe3d_delete_fx",
         "annotations": {
           "destructiveHint": true
         },
@@ -20579,7 +20643,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_create_material",
+        "tool": "vibe3d_material",
+        "op": "create",
+        "legacy": "vibe3d_create_material",
         "annotations": {},
         "roomArg": false
       },
@@ -20826,7 +20892,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_patch_material",
+        "tool": "vibe3d_material",
+        "op": "patch",
+        "legacy": "vibe3d_patch_material",
         "annotations": {},
         "roomArg": false
       },
@@ -21067,7 +21135,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_map_material",
+        "tool": "vibe3d_material",
+        "op": "map",
+        "legacy": "vibe3d_map_material",
         "annotations": {},
         "roomArg": false
       },
@@ -21161,7 +21231,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_set_environment",
+        "tool": "vibe3d_stage",
+        "op": "env",
+        "legacy": "vibe3d_set_environment",
         "annotations": {},
         "roomArg": false
       },
@@ -21608,7 +21680,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_undo",
+        "tool": "vibe3d_scene",
+        "op": "undo",
+        "legacy": "vibe3d_undo",
         "annotations": {
           "readOnlyHint": false,
           "destructiveHint": true
@@ -21664,7 +21738,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_redo",
+        "tool": "vibe3d_scene",
+        "op": "redo",
+        "legacy": "vibe3d_redo",
         "annotations": {
           "readOnlyHint": false,
           "destructiveHint": true
@@ -21716,7 +21792,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_scene_diff",
+        "tool": "vibe3d_scene",
+        "op": "diff",
+        "legacy": "vibe3d_scene_diff",
         "annotations": {
           "readOnlyHint": true
         },
@@ -28138,7 +28216,9 @@
       "hostCoupled": false,
       "errors": [],
       "mcp": {
-        "tool": "vibe3d_get_selection",
+        "tool": "vibe3d_scene",
+        "op": "selection",
+        "legacy": "vibe3d_get_selection",
         "annotations": {
           "readOnlyHint": true
         },
@@ -28191,7 +28271,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_export_scene",
+        "tool": "vibe3d_scene",
+        "op": "export",
+        "legacy": "vibe3d_export_scene",
         "annotations": {
           "readOnlyHint": true
         },
@@ -30565,7 +30647,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_import_scene",
+        "tool": "vibe3d_scene",
+        "op": "import",
+        "legacy": "vibe3d_import_scene",
         "annotations": {},
         "roomArg": false
       },
@@ -32940,7 +33024,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_checkpoint_scene",
+        "tool": "vibe3d_scene",
+        "op": "checkpoint",
+        "legacy": "vibe3d_checkpoint_scene",
         "annotations": {},
         "roomArg": false
       },
@@ -32998,7 +33084,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_list_checkpoints",
+        "tool": "vibe3d_scene",
+        "op": "checkpoints",
+        "legacy": "vibe3d_list_checkpoints",
         "annotations": {
           "readOnlyHint": true
         },
@@ -33081,7 +33169,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_restore_scene",
+        "tool": "vibe3d_scene",
+        "op": "restore",
+        "legacy": "vibe3d_restore_scene",
         "annotations": {
           "destructiveHint": true
         },
@@ -33177,7 +33267,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_create_decal",
+        "tool": "vibe3d_mesh",
+        "op": "decal",
+        "legacy": "vibe3d_create_decal",
         "annotations": {},
         "roomArg": false
       },
@@ -33341,7 +33433,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_boolean_mesh",
+        "tool": "vibe3d_mesh",
+        "op": "boolean",
+        "legacy": "vibe3d_boolean_mesh",
         "annotations": {},
         "roomArg": false
       },
@@ -33429,7 +33523,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_tube_mesh",
+        "tool": "vibe3d_mesh",
+        "op": "tube",
+        "legacy": "vibe3d_tube_mesh",
         "annotations": {},
         "roomArg": false
       },
@@ -33620,7 +33716,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_backdrop_mesh",
+        "tool": "vibe3d_mesh",
+        "op": "backdrop",
+        "legacy": "vibe3d_backdrop_mesh",
         "annotations": {},
         "roomArg": false
       },
@@ -33792,7 +33890,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_import_asset",
+        "tool": "vibe3d_node",
+        "op": "import",
+        "legacy": "vibe3d_import_asset",
         "annotations": {},
         "roomArg": false
       },
@@ -34094,7 +34194,9 @@
         "E_ASSET_EXTERNAL_REFS"
       ],
       "mcp": {
-        "tool": "vibe3d_inspect_asset",
+        "tool": "vibe3d_asset",
+        "op": "inspect",
+        "legacy": "vibe3d_inspect_asset",
         "annotations": {
           "readOnlyHint": true
         },
@@ -34311,7 +34413,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_put_asset",
+        "tool": "vibe3d_asset",
+        "op": "put",
+        "legacy": "vibe3d_put_asset",
         "annotations": {},
         "roomArg": false
       },
@@ -34596,7 +34700,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_list_assets",
+        "tool": "vibe3d_asset",
+        "op": "list",
+        "legacy": "vibe3d_list_assets",
         "annotations": {
           "readOnlyHint": true
         },
@@ -34883,7 +34989,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_delete_asset",
+        "tool": "vibe3d_asset",
+        "op": "delete",
+        "legacy": "vibe3d_delete_asset",
         "annotations": {
           "destructiveHint": true
         },
@@ -34940,7 +35048,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_set_camera",
+        "tool": "vibe3d_camera",
+        "op": "set",
+        "legacy": "vibe3d_set_camera",
         "annotations": {},
         "roomArg": false
       },
@@ -35261,7 +35371,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_save_camera",
+        "tool": "vibe3d_camera",
+        "op": "save",
+        "legacy": "vibe3d_save_camera",
         "annotations": {},
         "roomArg": false
       },
@@ -35499,7 +35611,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_delete_camera",
+        "tool": "vibe3d_camera",
+        "op": "delete",
+        "legacy": "vibe3d_delete_camera",
         "annotations": {
           "destructiveHint": true
         },
@@ -35685,7 +35799,9 @@
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_render_snapshot",
+        "tool": "vibe3d_render",
+        "op": "snapshot",
+        "legacy": "vibe3d_render_snapshot",
         "annotations": {
           "readOnlyHint": true,
           "openWorldHint": false
@@ -35872,7 +35988,9 @@
         "E_INVALID_PARAMS"
       ],
       "mcp": {
-        "tool": "vibe3d_render_views",
+        "tool": "vibe3d_render",
+        "op": "views",
+        "legacy": "vibe3d_render_views",
         "annotations": {
           "readOnlyHint": true,
           "openWorldHint": false
@@ -36271,7 +36389,9 @@
         "E_INVALID_PARAMS"
       ],
       "mcp": {
-        "tool": "vibe3d_render_node",
+        "tool": "vibe3d_render",
+        "op": "node",
+        "legacy": "vibe3d_render_node",
         "annotations": {
           "readOnlyHint": true,
           "openWorldHint": false
@@ -36589,7 +36709,9 @@
         "E_INVALID_PARAMS"
       ],
       "mcp": {
-        "tool": "vibe3d_render_pick",
+        "tool": "vibe3d_render",
+        "op": "pick",
+        "legacy": "vibe3d_render_pick",
         "annotations": {
           "readOnlyHint": true,
           "openWorldHint": false
@@ -36894,7 +37016,9 @@
         "E_INVALID_PARAMS"
       ],
       "mcp": {
-        "tool": "vibe3d_render_id_pass",
+        "tool": "vibe3d_render",
+        "op": "id_pass",
+        "legacy": "vibe3d_render_id_pass",
         "annotations": {
           "readOnlyHint": true,
           "openWorldHint": false
@@ -37103,7 +37227,9 @@
         "E_JOB_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_render_sequence",
+        "tool": "vibe3d_render",
+        "op": "sequence",
+        "legacy": "vibe3d_render_sequence",
         "annotations": {
           "readOnlyHint": true
         },
@@ -37232,6 +37358,8 @@
       ],
       "mcp": {
         "tool": "vibe3d_export_glb",
+        "op": "glb",
+        "legacy": "vibe3d_export_glb",
         "annotations": {
           "readOnlyHint": true
         },
@@ -37310,7 +37438,9 @@
         "E_JOB_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_job_get",
+        "tool": "vibe3d_job",
+        "op": "get",
+        "legacy": "vibe3d_job_get",
         "annotations": {
           "readOnlyHint": true
         },
@@ -37430,7 +37560,9 @@
       "hostCoupled": false,
       "errors": [],
       "mcp": {
-        "tool": "vibe3d_job_list",
+        "tool": "vibe3d_job",
+        "op": "list",
+        "legacy": "vibe3d_job_list",
         "annotations": {
           "readOnlyHint": true
         },
@@ -37561,7 +37693,9 @@
         "E_JOB_NOT_FOUND"
       ],
       "mcp": {
-        "tool": "vibe3d_job_cancel",
+        "tool": "vibe3d_job",
+        "op": "cancel",
+        "legacy": "vibe3d_job_cancel",
         "annotations": {},
         "roomArg": false
       },
@@ -37682,6 +37816,8 @@
       ],
       "mcp": {
         "tool": "vibe3d_open_editor",
+        "op": "open",
+        "legacy": "vibe3d_open_editor",
         "annotations": {},
         "roomArg": true
       },

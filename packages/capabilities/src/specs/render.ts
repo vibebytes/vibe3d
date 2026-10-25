@@ -104,7 +104,6 @@ export const renderOps = {
     scope: 'room' as const,
     mutating: true,
     wire: 'camera.set' as const,
-    mcp: { tool: 'vibe3d_set_camera' as const },
     cli: {
       command: 'camera set',
       args: '<roomId> [--frame fit] [--name hero] [--preset miniature_45] [--p x,y,z] [--target x,y,z]',
@@ -125,7 +124,6 @@ export const renderOps = {
     scope: 'room' as const,
     mutating: true,
     wire: 'camera.save' as const,
-    mcp: { tool: 'vibe3d_save_camera' as const },
     cli: { command: 'camera save', args: '<roomId> --name hero' },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
@@ -139,7 +137,7 @@ export const renderOps = {
     scope: 'room' as const,
     mutating: true,
     wire: 'camera.delete' as const,
-    mcp: { tool: 'vibe3d_delete_camera' as const, annotations: { destructiveHint: true } },
+    mcp: { annotations: { destructiveHint: true } },
     cli: { command: 'camera rm', args: '<roomId> <name>' },
     errors: ['E_CAMERA_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
@@ -161,7 +159,6 @@ export const renderOps = {
     mutating: false,
     wire: 'render.snapshot' as const,
     mcp: {
-      tool: 'vibe3d_render_snapshot' as const,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     cli: {
@@ -201,7 +198,6 @@ export const renderOps = {
     mutating: false,
     wire: 'render.views' as const,
     mcp: {
-      tool: 'vibe3d_render_views' as const,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     cli: {
@@ -234,7 +230,6 @@ export const renderOps = {
     mutating: false,
     wire: 'render.node' as const,
     mcp: {
-      tool: 'vibe3d_render_node' as const,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     cli: {
@@ -289,7 +284,6 @@ export const renderOps = {
     mutating: false,
     wire: 'render.pick' as const,
     mcp: {
-      tool: 'vibe3d_render_pick' as const,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     cli: {
@@ -329,7 +323,6 @@ export const renderOps = {
     mutating: false,
     wire: 'render.id-pass' as const,
     mcp: {
-      tool: 'vibe3d_render_id_pass' as const,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     cli: {
@@ -359,7 +352,7 @@ export const renderOps = {
     scope: 'room' as const,
     mutating: false,
     wire: 'render.sequence' as const,
-    mcp: { tool: 'vibe3d_render_sequence' as const, annotations: { readOnlyHint: true } },
+    mcp: { annotations: { readOnlyHint: true } },
     cli: {
       command: 'render sequence',
       args: '<roomId> --from s --to s [--fps 24] [--size 1280x720] [--shading flat] [--wait]',
@@ -389,7 +382,7 @@ export const renderOps = {
     scope: 'room' as const,
     mutating: false,
     wire: 'export.glb' as const,
-    mcp: { tool: 'vibe3d_export_glb' as const, annotations: { readOnlyHint: true } },
+    mcp: { annotations: { readOnlyHint: true } },
     cli: { command: 'export glb', args: '<roomId> [--node id] [--out scene.glb] [--wait]' },
     errors: ['E_RENDER_UNAVAILABLE', 'E_JOB_NOT_FOUND', 'E_ROOM_NOT_FOUND', 'E_BUSY'] as const,
   },
@@ -400,7 +393,7 @@ export const renderOps = {
     scope: 'daemon' as const,
     mutating: false,
     wire: 'job.get' as const,
-    mcp: { tool: 'vibe3d_job_get' as const, annotations: { readOnlyHint: true } },
+    mcp: { annotations: { readOnlyHint: true } },
     cli: { command: 'job get', args: '<jobId>' },
     errors: ['E_JOB_NOT_FOUND'] as const,
   },
@@ -411,7 +404,7 @@ export const renderOps = {
     scope: 'room' as const,
     mutating: false,
     wire: 'job.list' as const,
-    mcp: { tool: 'vibe3d_job_list' as const, annotations: { readOnlyHint: true } },
+    mcp: { annotations: { readOnlyHint: true } },
     cli: { command: 'job ls', args: '[roomId]' },
     errors: [] as const,
   },
@@ -422,7 +415,6 @@ export const renderOps = {
     scope: 'daemon' as const,
     mutating: true,
     wire: 'job.cancel' as const,
-    mcp: { tool: 'vibe3d_job_cancel' as const },
     cli: { command: 'job cancel', args: '<jobId>' },
     errors: ['E_JOB_NOT_FOUND'] as const,
   },
@@ -446,7 +438,7 @@ export const renderOps = {
     mutating: false,
     hostCoupled: true,
     wire: 'editor.open' as const,
-    mcp: { tool: 'vibe3d_open_editor' as const, roomArg: true },
+    mcp: { roomArg: true },
     cli: { command: 'open', args: '<roomId>' },
     errors: ['E_ROOM_NOT_FOUND'] as const,
   },

@@ -1,7 +1,7 @@
 import { createInterface } from 'node:readline';
 import { getPrompt, listPrompts } from './guide';
 import type { ToolResult, ToolRuntime } from './tools';
-import { listTools } from './tools';
+import { HELP_TOOL, helpResult, listTools } from './tools';
 
 const SUPPORTED = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const SERVER_INFO = { name: 'vibe3d', version: '0.1.0', title: 'vibe3d 3D 场景' };
@@ -83,8 +83,12 @@ export function createServer(deps: ServerDeps) {
       const args = req.params?.arguments ?? {};
       let result: ToolResult;
       try {
-        const runtime = await deps.runtime();
-        result = await runtime.call(name, args);
+        if (name === HELP_TOOL.name) {
+          result = helpResult(args);
+        } else {
+          const runtime = await deps.runtime();
+          result = await runtime.call(name, args);
+        }
       } catch (err) {
         result = {
           content: [
@@ -133,5 +137,5 @@ export function createServer(deps: ServerDeps) {
     });
   }
 
-  return { start };
+  return { start, handle };
 }

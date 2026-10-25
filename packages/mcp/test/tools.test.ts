@@ -50,20 +50,15 @@ const propsOf = (schema: unknown): Record<string, unknown> =>
   (schema as { properties?: Record<string, unknown> }).properties ?? {};
 
 describe('MCP 工具 schema：room_id 只在连接层', () => {
-  const roomArgTools = ['vibe3d_use_room', 'vibe3d_get_room', 'vibe3d_close_room', 'vibe3d_open_editor'];
-
-  it('room 级工具默认不暴露 room_id', () => {
-    for (const tool of MCP_TOOLS) {
-      const exposed = 'room_id' in propsOf(tool.inputSchema);
-      expect(exposed, tool.name).toBe(roomArgTools.includes(tool.name));
-    }
-  });
-
-  it('room_id 默认可选，只有 vibe3d_use_room 必填', () => {
+  it('room_id 只作为可选字段出现，且从不进入 required', () => {
     for (const tool of MCP_TOOLS) {
       const required = (tool.inputSchema as { required?: string[] }).required ?? [];
-      expect(required.includes('room_id'), tool.name).toBe(tool.name === 'vibe3d_use_room');
+      expect(required.includes('room_id'), tool.name).toBe(false);
     }
+    const room = MCP_TOOLS.find((tool) => tool.name === 'vibe3d_room');
+    const node = MCP_TOOLS.find((tool) => tool.name === 'vibe3d_node');
+    expect('room_id' in propsOf(room?.inputSchema)).toBe(true);
+    expect('room_id' in propsOf(node?.inputSchema)).toBe(false);
   });
 });
 

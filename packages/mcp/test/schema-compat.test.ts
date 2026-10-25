@@ -19,9 +19,13 @@ describe('advertised tool schemas 是合规的 JSON Schema 2020-12', () => {
     }
   });
 
-  it('被折叠的数组仍保留长度约束（set_camera 的三元组）', () => {
-    const camera = tools.find((tool) => tool.name === 'vibe3d_set_camera');
-    expect(camera).toBeDefined();
-    expect(JSON.stringify(camera?.inputSchema)).toContain('"minItems":3');
+  it('分组信封保留 op 枚举与唯一必填字段', () => {
+    const camera = tools.find((tool) => tool.name === 'vibe3d_camera');
+    const schema = camera?.inputSchema as {
+      properties?: { op?: { enum?: string[] } };
+      required?: string[];
+    };
+    expect(schema.properties?.op?.enum).toContain('set');
+    expect(schema.required).toEqual(['op']);
   });
 });

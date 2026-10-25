@@ -1,6 +1,7 @@
 import { ERROR_CODES } from '@vibebyte/vibe3d-protocol';
 import type { ErrorCode } from '@vibebyte/vibe3d-protocol';
 import { z } from 'zod';
+import type { CapabilityName } from './registry';
 
 export const WIRE_METHODS = [
   'hello',
@@ -73,7 +74,7 @@ export type ResolvedAnnotations = Required<ToolAnnotations>;
 /** MCP 的 hint 一旦省略就回落协议默认值（openWorldHint 默认 true），所以这里统一显式补齐 */
 export function resolveAnnotations(spec: {
   mutating: boolean;
-  mcp?: { annotations?: ToolAnnotations };
+  mcp?: McpSpec;
 }): ResolvedAnnotations {
   const a = spec.mcp?.annotations ?? {};
   const readOnlyHint = a.readOnlyHint ?? !spec.mutating;
@@ -91,10 +92,25 @@ export interface CliSpec {
 }
 
 export interface McpSpec {
-  tool: `vibe3d_${string}`;
   annotations?: ToolAnnotations;
   /** 房间是操作对象（读/关/打开）而非路由：room_id 以可选参数暴露，省略时取会话绑定 */
   roomArg?: boolean | 'required';
+}
+
+/** 多 op 工具的一次调用落点：op 名由 tool-groups 决定，缺省取能力名最后一段 */
+export interface McpOpDoc {
+  op: string;
+  capability: CapabilityName;
+  title: string;
+}
+
+export interface McpToolDoc {
+  name: `vibe3d_${string}`;
+  title: string;
+  /** 单 op 工具直接用能力输入 schema；多 op 工具走 { op, params } */
+  ops: readonly McpOpDoc[];
+  annotations: ResolvedAnnotations;
+  inputSchema: Record<string, unknown>;
 }
 
 export interface CapabilitySpec<I = unknown, O = unknown> {
@@ -113,7 +129,6 @@ export interface CapabilitySpec<I = unknown, O = unknown> {
 export type SpecRecord = Record<string, CapabilitySpec<unknown, unknown>>;
 
 export function defineCapabilities<const T extends SpecRecord>(specs: T): T {
-  const seenTools = new Set<string>();
   const seenCli = new Set<string>();
   for (const [name, spec] of Object.entries(specs)) {
     if (!(spec.input instanceof z.ZodObject)) {
@@ -129,9 +144,6 @@ export function defineCapabilities<const T extends SpecRecord>(specs: T): T {
       throw new Error(`${name}: daemon scope 不得声明 roomId`);
     }
     if (spec.mcp) {
-      if (!spec.mcp.tool.startsWith('vibe3d_')) throw new Error(`${name}: tool 必须以 vibe3d_ 开头`);
-      if (seenTools.has(spec.mcp.tool)) throw new Error(`${name}: tool 重复 ${spec.mcp.tool}`);
-      seenTools.add(spec.mcp.tool);
       if (spec.mcp.roomArg && spec.scope !== 'room') {
         throw new Error(`${name}: 只有 room scope 能声明 mcp.roomArg`);
       }

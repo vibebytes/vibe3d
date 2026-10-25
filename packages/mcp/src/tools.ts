@@ -1,7 +1,10 @@
 import {
   CAPABILITIES,
   type CapabilityName,
+  MCP_LEGACY_ALIASES,
   MCP_TOOLS,
+  type McpToolDoc,
+  describeCapability,
   describeIssues,
   toIssues,
 } from '@vibebyte/vibe3d-capabilities';
@@ -11,7 +14,27 @@ import { paramHint, schemaHint } from './hints';
 import { describeTool, presentSchema } from './presentation';
 import { RoomSession } from './session';
 
-export type ToolDef = (typeof MCP_TOOLS)[number];
+export type ToolDef = McpToolDoc;
+
+export const HELP_TOOL = {
+  name: 'vibe3d_help',
+  title: '查参数契约：给 tool(+op) 返回该 op 的参数字段/必填/枚举/错误码与示例；不给 tool 则列出全部工具与 op',
+  inputSchema: {
+    $schema: 'https://json-schema.org/draft/2020-12/schema',
+    type: 'object',
+    properties: {
+      tool: { type: 'string', description: '如 vibe3d_node' },
+      op: { type: 'string', description: '如 create' },
+    },
+    additionalProperties: false,
+  },
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: false,
+  },
+} as const;
 
 export interface TextContent {
   type: 'text';
@@ -35,8 +58,81 @@ interface SpecView {
 
 const viewOf = (capability: CapabilityName): SpecView => CAPABILITIES[capability] as SpecView;
 
+interface Picked {
+  capability: CapabilityName;
+  op: string;
+  input: Record<string, unknown>;
+}
+
+const asRecord = (value: unknown): Record<string, unknown> | undefined =>
+  value && typeof value === 'object' && !Array.isArray(value)
+    ? (deepCamel(value) as Record<string, unknown>)
+    : undefined;
+
+function pickOp(tool: ToolDef, rawArgs: unknown, pinnedOp?: string): Picked | { error: string } {
+  const raw = (rawArgs ?? {}) as Record<string, unknown>;
+  const given = asRecord(raw.params);
+  const top = Object.fromEntries(Object.entries(raw).filter(([k]) => k !== 'op' && k !== 'params'));
+  const merged = { ...(given ?? {}), ...(deepCamel(top) as Record<string, unknown>) };
+  const wanted = (typeof raw.op === 'string' && raw.op) || pinnedOp;
+
+  if (tool.ops.length === 1) {
+    const only = tool.ops[0];
+    if (!only) return { error: `${tool.name} 没有可调用的 op` };
+    if (wanted && wanted !== only.op) {
+      return { error: `${tool.name} 只支持 op ${only.op}，收到 ${wanted}；直接传参数即可` };
+    }
+    const flat = given ? merged : (deepCamel(raw) as Record<string, unknown>);
+    return { capability: only.capability, op: only.op, input: flat };
+  }
+
+  const names = tool.ops.map((o) => o.op);
+  if (!wanted) {
+    return {
+      error: `${tool.name} 需要 op 字段（可选：${names.join(' / ')}）。形如 {"op":"${names[0]}","params":{...}}；字段细节用 vibe3d_help {tool:"${tool.name}", op}`,
+    };
+  }
+  const hit = tool.ops.find((o) => o.op === wanted);
+  if (!hit) {
+    const near = names.filter((n) => n.includes(wanted) || wanted.includes(n));
+    return {
+      error: `${tool.name} 没有 op「${wanted}」。可选：${names.join(' / ')}${near.length > 0 ? `；是否想用 ${near.join(' / ')}` : ''}`,
+    };
+  }
+  return { capability: hit.capability, op: hit.op, input: merged };
+}
+
+function helpText(rawArgs: unknown): string {
+  const raw = (rawArgs ?? {}) as { tool?: unknown; op?: unknown };
+  const index = MCP_TOOLS.map((tool) => ({ tool: tool.name, ops: tool.ops.map((o) => o.op) }));
+  if (typeof raw.tool !== 'string' || !raw.tool) {
+    return JSON.stringify({ tools: index, hint: '传 {tool, op} 查单个 op 的参数契约' });
+  }
+  const tool = toolByName(raw.tool);
+  if (!tool) {
+    return JSON.stringify({ error: `未知 tool：${raw.tool}`, tools: index.map((t) => t.tool) });
+  }
+  const op = typeof raw.op === 'string' && raw.op ? raw.op : undefined;
+  const entries = op ? tool.ops.filter((o) => o.op === op) : tool.ops;
+  if (entries.length === 0) {
+    return JSON.stringify({ error: `${tool.name} 没有 op「${op}」`, ops: tool.ops.map((o) => o.op) });
+  }
+  return JSON.stringify({
+    tool: tool.name,
+    title: tool.title,
+    ops: entries.map((entry) => describeCapability(entry.capability)),
+  });
+}
+
+export function helpResult(rawArgs: unknown): ToolResult {
+  return { content: [{ type: 'text', text: helpText(rawArgs) }] };
+}
+
 export function toolByName(name: string): ToolDef | undefined {
-  return MCP_TOOLS.find((tool) => tool.name === name);
+  const direct = MCP_TOOLS.find((tool) => tool.name === name);
+  if (direct) return direct;
+  const alias = MCP_LEGACY_ALIASES[name as keyof typeof MCP_LEGACY_ALIASES];
+  return alias ? MCP_TOOLS.find((tool) => tool.name === alias.tool) : undefined;
 }
 
 export function listTools(): Array<{
@@ -45,12 +141,20 @@ export function listTools(): Array<{
   inputSchema: unknown;
   annotations?: unknown;
 }> {
-  return MCP_TOOLS.map((tool) => ({
-    name: tool.name,
-    description: describeTool(tool),
-    inputSchema: presentSchema(tool),
-    annotations: tool.annotations,
-  }));
+  return [
+    {
+      name: HELP_TOOL.name,
+      description: HELP_TOOL.title,
+      inputSchema: HELP_TOOL.inputSchema,
+      annotations: HELP_TOOL.annotations,
+    },
+    ...MCP_TOOLS.map((tool) => ({
+      name: tool.name,
+      description: describeTool(tool),
+      inputSchema: presentSchema(tool),
+      annotations: tool.annotations,
+    })),
+  ];
 }
 
 function failure(err: unknown): ToolResult {
@@ -102,6 +206,9 @@ export class ToolRuntime {
   }
 
   async call(name: string, rawArgs: unknown): Promise<ToolResult> {
+    if (name === HELP_TOOL.name) {
+      return { content: [{ type: 'text', text: helpText(rawArgs) }] };
+    }
     const tool = toolByName(name);
     if (!tool) {
       return {
@@ -111,10 +218,15 @@ export class ToolRuntime {
         isError: true,
       };
     }
-    const capability = tool.capability as CapabilityName;
+    const picked = pickOp(tool, rawArgs, MCP_LEGACY_ALIASES[name]?.op);
+    if ('error' in picked) return failure(new Vibe3DError('E_INVALID_PARAMS', picked.error));
+    const { capability, op } = picked;
     const spec = CAPABILITIES[capability];
+    if (name !== tool.name) {
+      process.stderr.write(`${JSON.stringify({ event: 'tool.alias', called: name, tool: tool.name, op })}\n`);
+    }
     try {
-      const input = deepCamel(rawArgs ?? {}) as Record<string, unknown>;
+      const input = picked.input;
       if (viewOf(capability).scope === 'room') await this.resolveRoom(capability, input);
       const params = spec.input.safeParse(coerceForSchema(spec.input, input));
       if (!params.success) {

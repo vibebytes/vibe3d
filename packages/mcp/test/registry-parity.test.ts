@@ -1,20 +1,14 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { CAPABILITIES, MCP_TOOLS } from '@vibebyte/vibe3d-capabilities';
+import { CAPABILITIES, MCP_LEGACY_ALIASES, MCP_TOOLS } from '@vibebyte/vibe3d-capabilities';
 import { describe, expect, it } from 'vitest';
 import { listTools } from '../src/tools';
 
-interface Spec {
-  mcp?: { tool: string };
-}
+const served = listTools()
+  .map((tool) => tool.name)
+  .filter((name) => name !== 'vibe3d_help');
 
-const registry = CAPABILITIES as unknown as Record<string, Spec>;
-
-const declared = Object.entries(registry)
-  .filter(([, spec]) => spec.mcp)
-  .map(([capability, spec]) => ({ capability, tool: (spec.mcp as { tool: string }).tool }));
-
-const served = listTools().map((tool) => tool.name);
+const opCount = MCP_TOOLS.reduce((total, tool) => total + tool.ops.length, 0);
 
 const docPath = fileURLToPath(new URL('../../../../agent/docs/vibe3d/vibe3d-packages.md', import.meta.url));
 
@@ -30,27 +24,46 @@ function docToolCount(): number {
   return count;
 }
 
-describe('tools/list 与 capabilities 注册表对齐', () => {
-  it('注册表里声明的工具名不重复', () => {
-    const names = declared.map((item) => item.tool);
+describe('tools/list 与 capabilities 分组表对齐', () => {
+  it('分组工具名不重复', () => {
+    const names = MCP_TOOLS.map((tool) => tool.name);
     expect(new Set(names).size).toBe(names.length);
   });
 
-  it('tools/list 长度等于注册表声明数', () => {
-    expect(served.length).toBe(declared.length);
+  it('tools/list 长度等于分组数', () => {
+    expect(served.length).toBe(MCP_TOOLS.length);
   });
 
   it('两侧工具名集合完全一致：缺一个或多一个都失败', () => {
-    expect([...served].sort()).toEqual(declared.map((item) => item.tool).sort());
+    expect([...served].sort()).toEqual(MCP_TOOLS.map((tool) => tool.name).sort());
   });
 
-  it('tools/list 每一项都能回溯到唯一能力', () => {
+  it('每个 op 回溯到唯一能力，且全部能力都被覆盖', () => {
+    const seen = new Set<string>();
     for (const tool of MCP_TOOLS) {
-      expect(registry[tool.capability]?.mcp?.tool, tool.name).toBe(tool.name);
+      for (const op of tool.ops) {
+        expect(CAPABILITIES[op.capability], `${tool.name}#${op.op}`).toBeDefined();
+        expect(seen.has(op.capability), op.capability).toBe(false);
+        seen.add(op.capability);
+      }
     }
+    expect(seen.size).toBe(Object.keys(CAPABILITIES).length);
   });
 
-  it.skipIf(!existsSync(docPath))('文档 §1.2 的能力表计数与 tools/list 一致', () => {
-    expect(docToolCount()).toBe(served.length);
+  it('旧工具名别名都指向存在的分组工具与 op', () => {
+    for (const [legacy, target] of Object.entries(MCP_LEGACY_ALIASES)) {
+      const tool = MCP_TOOLS.find((item) => item.name === target.tool);
+      expect(tool, legacy).toBeDefined();
+      expect(
+        tool?.ops.some((op) => op.op === target.op),
+        legacy,
+      ).toBe(true);
+    }
+    const flatCount = MCP_TOOLS.filter((tool) => tool.ops.length === 1).length;
+    expect(Object.keys(MCP_LEGACY_ALIASES).length).toBe(opCount - flatCount);
+  });
+
+  it.skipIf(!existsSync(docPath))('文档 §1.2 的能力行数与 op 总数一致', () => {
+    expect(docToolCount()).toBe(opCount);
   });
 });
