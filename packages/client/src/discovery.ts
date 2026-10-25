@@ -171,8 +171,17 @@ export async function connect(opts: ConnectOptions = {}): Promise<RunRecord & { 
     return { ...run, client: new RpcClient({ url: opts.url, token }) };
   }
   const home = opts.home ?? defaultHome();
-  const found = await findRunning(home);
-  const run = found ?? (opts.autostart === false ? undefined : await startDaemon(opts));
+  let run = await findRunning(home);
+  if (!run && opts.autostart !== false) {
+    try {
+      run = await startDaemon(opts);
+    } catch (err) {
+      // 竞态：另一个客户端可能正在拉起 daemon，等它发布 run 文件后复用
+      await delay(1500);
+      run = await findRunning(home);
+      if (!run) throw err;
+    }
+  }
   if (!run) throw new Vibe3DError('E_NO_DAEMON', `没有运行中的 daemon（home=${home}）`);
   return { ...run, client: new RpcClient({ url: `http://${run.host}:${run.port}`, token: run.token }) };
 }

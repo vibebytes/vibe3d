@@ -43,7 +43,7 @@ async function main(): Promise<void> {
   };
   for (const dir of Object.values(dirs)) mkdirSync(dir, { recursive: true });
 
-  const release = config.persist ? acquireLock(config.home) : () => undefined;
+  const release = acquireLock(config.home);
   const blobs = new BlobStore(dirs.blobs);
   const hub = new WsHub({ maxSnapshotBytes: config.wsMaxPayloadBytes - 256 * 1024 });
 
