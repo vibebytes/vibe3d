@@ -22,14 +22,15 @@ function unlitCopy(source: THREE.Material): THREE.MeshBasicMaterial {
   material.side = src.side;
   material.vertexColors = src.vertexColors;
   material.depthWrite = src.depthWrite;
+  material.fog = false;
   return material;
 }
 
 function shadingMaterial(mode: ShadingMode, source: THREE.Material): THREE.Material {
   if (mode === 'normals') return new THREE.MeshNormalMaterial();
-  if (mode === 'wireframe') return new THREE.MeshBasicMaterial({ color: 0x8fb7ff, wireframe: true });
+  if (mode === 'wireframe') return new THREE.MeshBasicMaterial({ color: 0x8fb7ff, wireframe: true, fog: false });
   if (mode === 'material') return unlitCopy(source);
-  return new THREE.MeshBasicMaterial({ color: 0xc9d3dd });
+  return new THREE.MeshBasicMaterial({ color: 0xc9d3dd, fog: false });
 }
 
 export function applyShading(scene: THREE.Scene, mode?: ShadingMode): () => void {

@@ -182,8 +182,9 @@ function StageEffects({ doc, headless }: { doc: SceneDoc; headless: boolean }) {
 }
 
 function Fog({ doc }: { doc: SceneDoc }) {
-  const { color, near, far } = fogSettings(doc.env.fog);
-  return <fog attach="fog" args={[color, near, far]} />;
+  const settings = fogSettings(doc.env.fog, doc.env.background);
+  if (!settings) return null;
+  return <fog attach="fog" args={[settings.color, settings.near, settings.far]} />;
 }
 
 function Backdrop({ env }: { env: SceneDoc['env'] }) {

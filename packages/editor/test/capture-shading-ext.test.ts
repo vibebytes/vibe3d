@@ -32,8 +32,19 @@ describe('B5 着色档 material / rendered', () => {
     expect(next.transparent).toBe(true);
     expect(next.opacity).toBe(0.5);
     expect(next.side).toBe(THREE.DoubleSide);
+    expect(next.fog).toBe(false);
     restore();
     expect(mesh.material).toBe(original);
+  });
+
+  it('诊断着色档（material / flat / wireframe）不吃雾', () => {
+    for (const mode of ['flat', 'wireframe', 'material'] as const) {
+      const { scene, mesh } = makeScene(new THREE.MeshStandardMaterial({ color: 0x888888 }));
+      const restore = applyShading(scene, mode);
+      const next = mesh.material as THREE.Material;
+      expect({ mode, fog: next.fog }).toEqual({ mode, fog: false });
+      restore();
+    }
   });
 
   it('material 对数组材质逐项映射，还原后顺序不变', () => {

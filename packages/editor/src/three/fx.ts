@@ -8,11 +8,12 @@ export interface FogSettings {
   far: number;
 }
 
-export const DEFAULT_FOG: FogSettings = { color: 0x0b0f14, near: 18, far: 42 };
-
-export function fogSettings(fog?: { color?: number[]; near: number; far: number } | null): FogSettings {
-  if (!fog) return DEFAULT_FOG;
-  const c = fog.color ?? [0.043, 0.059, 0.078, 1];
+export function fogSettings(
+  fog?: { color?: number[]; near: number; far: number } | null,
+  background?: readonly number[],
+): FogSettings | null {
+  if (!fog) return null;
+  const c = fog.color ?? background ?? [0.043, 0.059, 0.078, 1];
   return {
     color: new THREE.Color(c[0] ?? 0, c[1] ?? 0, c[2] ?? 0).getHex(),
     near: fog.near,

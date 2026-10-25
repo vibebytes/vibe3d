@@ -77,14 +77,25 @@ describe('applyFxAt', () => {
 });
 
 describe('fogSettings', () => {
-  it('falls back to 18/42 without a fog spec', () => {
-    expect(fogSettings(undefined)).toEqual({ color: 0x0b0f14, near: 18, far: 42 });
+  it('未配置雾时返回 null（默认无雾）', () => {
+    expect(fogSettings(undefined)).toBeNull();
+    expect(fogSettings(null)).toBeNull();
+  });
+
+  it('未指定颜色时跟随环境背景色', () => {
+    const fog = fogSettings({ near: 5, far: 60 }, [1, 1, 1, 1]);
+    expect(fog).toEqual({ color: 0xffffff, near: 5, far: 60 });
   });
 
   it('honours doc env fog values', () => {
     const fog = fogSettings({ color: [1, 0, 0, 1], near: 5, far: 60 });
-    expect(fog.near).toBe(5);
-    expect(fog.far).toBe(60);
-    expect(fog.color).toBe(0xff0000);
+    expect(fog?.near).toBe(5);
+    expect(fog?.far).toBe(60);
+    expect(fog?.color).toBe(0xff0000);
+  });
+
+  it('显式雾色优先于背景色', () => {
+    const fog = fogSettings({ color: [0, 0, 1, 1], near: 1, far: 2 }, [1, 1, 1, 1]);
+    expect(fog?.color).toBe(0x0000ff);
   });
 });
