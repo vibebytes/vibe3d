@@ -8,6 +8,7 @@ import type { BlobStore } from '../assets/blobstore';
 import { parseGltf } from '../assets/gltf-parse';
 import { classifyUpload } from '../assets/upload';
 import type { DispatchContext } from '../context';
+import { SANDBOX_FRAME_HEADERS, allowSandboxedFrame } from './middleware';
 import { dispatch, hello } from '../dispatch';
 import type { Logger } from '../logger';
 import { toRpcFailure } from './errors';
@@ -48,7 +49,7 @@ const STRICT_BASE: Record<string, string> = {
 function writeJson(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...JSON_TYPE },
+    headers: { ...JSON_TYPE, ...SANDBOX_FRAME_HEADERS },
   });
 }
 
@@ -181,8 +182,8 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
     });
   });
 
-  app.post('/rpc', requireBearer(token), rateLimit, bodyLimit(8 * 1024 * 1024), rpc('control', deps));
-  app.post('/r/:roomId/rpc', requireBearer(token), rateLimit, bodyLimit(8 * 1024 * 1024), (c) =>
+  app.post('/rpc', allowSandboxedFrame(), requireBearer(token), rateLimit, bodyLimit(8 * 1024 * 1024), rpc('control', deps));
+  app.post('/r/:roomId/rpc', allowSandboxedFrame(), requireBearer(token), rateLimit, bodyLimit(8 * 1024 * 1024), (c) =>
     rpc('data', deps, c.req.param('roomId'))(c),
   );
 
@@ -287,15 +288,25 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
     return res;
   };
 
-  const surface = async (c: Context): Promise<Response> =>
-    withTokenCookie(c, await serveEditor(c, deps, null));
+  const logSurfaceOpen = (c: Context, roomId: string | null): void => {
+    deps.logger.info({
+      event: 'surface.open',
+      roomId,
+      viaQueryToken: Boolean(c.req.query('t')),
+      embedded: c.req.header('sec-fetch-dest') === 'iframe',
+      ua: c.req.header('user-agent')?.slice(0, 120),
+    });
+  };
 
-  app.get('/r/:roomId', requireSurfaceToken(token, { allowQuery: true }), (c) => {
+  app.get('/r/:roomId', requireSurfaceToken(token, { allowQuery: true, logger: deps.logger }), (c) => {
+    const roomId = c.req.param('roomId');
+    logSurfaceOpen(c, roomId);
     const search = new URL(c.req.url).search;
-    return withTokenCookie(c, c.redirect(`/editor/r/${c.req.param('roomId')}${search}`, 302));
+    return withTokenCookie(c, c.redirect(`/editor/r/${roomId}${search}`, 302));
   });
 
-  app.get('/', requireSurfaceToken(token, { allowQuery: true }), (c) => {
+  app.get('/', requireSurfaceToken(token, { allowQuery: true, logger: deps.logger }), (c) => {
+    logSurfaceOpen(c, null);
     const search = new URL(c.req.url).search;
     return withTokenCookie(c, c.redirect(`/editor/${search}`, 302));
   });
@@ -364,7 +375,7 @@ export function serveEditorAsset(deps: RouteDeps, rel: string): Response {
   const ext = path.slice(path.lastIndexOf('.'));
   try {
     return new Response(createReadStream(path) as unknown as ReadableStream, {
-      headers: { 'content-type': MIME[ext] ?? 'application/octet-stream' },
+      headers: { 'content-type': MIME[ext] ?? 'application/octet-stream', ...SANDBOX_FRAME_HEADERS },
     });
   } catch {
     throw new AppError('E_ASSET_MISSING', `editor 静态文件不存在：${clean}`);

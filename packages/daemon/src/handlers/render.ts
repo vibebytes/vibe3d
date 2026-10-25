@@ -160,16 +160,31 @@ export const renderHandlers: HandlersFor<Keys> = {
     const shots = [];
     const failures: { view: ViewName; code: string; message: string }[] = [];
     let firstError: unknown;
-    for (const view of views) {
-      try {
-        const framed = frameTarget(room.doc, { ids, view }) ?? target;
-        const shot = await renderer.snapshot(
-          { roomId: room.id, doc: room.doc },
-          {
-            ...imageOptions(p, room.doc, quality),
-            camera: framed.camera,
-          },
-        );
+    const results = await Promise.all(
+      views.map(async (view) => {
+        try {
+          const framed = frameTarget(room.doc, { ids, view }) ?? target;
+          const shot = await renderer.snapshot(
+            { roomId: room.id, doc: room.doc },
+            {
+              ...imageOptions(p, room.doc, quality),
+              camera: framed.camera,
+            },
+          );
+          return {
+            ok: true as const,
+            view,
+            framed,
+            shot,
+          };
+        } catch (err) {
+          return { ok: false as const, view, err };
+        }
+      }),
+    );
+    for (const result of results) {
+      if (result.ok) {
+        const { view, framed, shot } = result;
         shots.push({
           view,
           label: VIEW_LABELS[view],
@@ -180,14 +195,15 @@ export const renderHandlers: HandlersFor<Keys> = {
           ...presentShot(shot),
           camera: framed.camera,
         });
-      } catch (err) {
-        firstError ??= err;
-        failures.push({
-          view,
-          code: err instanceof AppError ? err.code : 'E_INTERNAL',
-          message: err instanceof Error ? err.message : String(err),
-        });
+        continue;
       }
+      const err = result.err;
+      firstError ??= err;
+      failures.push({
+        view: result.view,
+        code: err instanceof AppError ? err.code : 'E_INTERNAL',
+        message: err instanceof Error ? err.message : String(err),
+      });
     }
     if (shots.length === 0 && firstError) throw firstError;
     return {
@@ -362,18 +378,19 @@ export const renderHandlers: HandlersFor<Keys> = {
           return body;
         };
         try {
-          for (let i = 0; i < count; i++) {
-            const at = p.from + i / p.fps;
-            const shot = await renderer.snapshot(
-              { roomId: room.id, doc: snapshot },
-              { ...options, at: Math.min(at, p.to) },
-            );
+          const frameAt = (i: number): number => Math.min(p.from + i / p.fps, p.to);
+          const persist = async (i: number, at: number, shot: { base64: string }) => {
             const frameFile = `${record.id}-${String(i).padStart(4, '0')}.png`;
             const bytes = Buffer.from(shot.base64, 'base64');
             await writeFile(join(dir, frameFile), bytes);
             frames.push({ index: i, at, file: frameFile, bytes: bytes.length });
-            report(0.05 + (0.85 * (i + 1)) / count, `frame ${i + 1}/${count}`);
+          };
+          for (let i = 0; i < count; i += 1) {
             if (record.cancelRequested) break;
+            const at = frameAt(i);
+            const shot = await renderer.snapshot({ roomId: room.id, doc: snapshot }, { ...options, at });
+            await persist(i, at, shot);
+            report(0.05 + (0.85 * (i + 1)) / count, `frame ${i + 1}/${count}`);
           }
           const body = await writeManifest(record.cancelRequested ? 'cancelled' : 'done');
           report(0.98, 'manifest');
@@ -455,6 +472,15 @@ export const renderHandlers: HandlersFor<Keys> = {
       ctx.autoOpen?.set(room.id, opened ? 'opened' : 'failed');
       if (!opened) hint = `自动打开浏览器失败（系统 opener 不可用），改动仍会实时推送：手动打开 ${url}。`;
     }
+    ctx.logger?.info({
+      event: 'surface.open',
+      via: 'editor.open',
+      roomId: room.id,
+      reused,
+      opened,
+      editors,
+      focus: p.focus,
+    });
     return { url, reused, opened, editors, ...(hint ? { hint } : {}) };
   },
 };

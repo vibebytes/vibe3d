@@ -27,9 +27,16 @@ export interface ThumbLatest {
 export class ThumbsStore {
   private readonly store = new Map<string, ThumbEntry>();
   private readonly inflight = new Set<string>();
+  private readonly pending: Array<() => void> = [];
+  private active = 0;
   private chain: Promise<void> = Promise.resolve();
 
-  constructor(private readonly opts: { getRenderer: (ctx: DispatchContext) => Renderer | undefined }) {}
+  constructor(
+    private readonly opts: {
+      getRenderer: (ctx: DispatchContext) => Renderer | undefined;
+      concurrency?: number;
+    },
+  ) {}
 
   latest(roomId: string): ThumbLatest | undefined {
     const e = this.store.get(roomId);
@@ -59,25 +66,49 @@ export class ThumbsStore {
     if (this.store.get(room.id)?.key === key || this.inflight.has(key)) return;
     this.inflight.add(key);
     this.chain = this.chain
+      .then(() => this.acquire())
       .then(async () => {
-        const shot = await renderer.snapshot(
-          { roomId: room.id, doc: room.doc },
-          { width: THUMB_WIDTH, height: THUMB_HEIGHT, format: 'png', quality: resolveQuality('draft') },
-        );
-        const cur = this.store.get(room.id);
-        if (cur && cur.revision > revision) return;
-        this.store.set(room.id, {
-          key,
-          revision,
-          hash: THUMB_HASH,
-          mime: shot.mime,
-          bytes: Buffer.from(shot.base64, 'base64'),
-        });
+        try {
+          const shot = await renderer.snapshot(
+            { roomId: room.id, doc: room.doc },
+            { width: THUMB_WIDTH, height: THUMB_HEIGHT, format: 'png', quality: resolveQuality('draft') },
+          );
+          const cur = this.store.get(room.id);
+          if (cur && cur.revision > revision) return;
+          this.store.set(room.id, {
+            key,
+            revision,
+            hash: THUMB_HASH,
+            mime: shot.mime,
+            bytes: Buffer.from(shot.base64, 'base64'),
+          });
+        } finally {
+          this.release();
+        }
       })
       .catch(() => undefined)
       .finally(() => {
         this.inflight.delete(key);
       });
+  }
+
+  private acquire(): Promise<void> {
+    const limit = Math.max(1, this.opts.concurrency ?? 2);
+    if (this.active < limit) {
+      this.active += 1;
+      return Promise.resolve();
+    }
+    return new Promise<void>((resolve) => {
+      this.pending.push(() => {
+        this.active += 1;
+        resolve();
+      });
+    });
+  }
+
+  private release(): void {
+    this.active = Math.max(0, this.active - 1);
+    this.pending.shift()?.();
   }
 
   private safeRenderer(ctx: DispatchContext): Renderer | undefined {

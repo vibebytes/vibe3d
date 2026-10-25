@@ -46,6 +46,20 @@ export interface SnapshotCapture {
   meta?: ShotMeta;
 }
 
+export interface IdPassRequest {
+  width: number;
+  height: number;
+  camera?: CameraState;
+  at?: number;
+  legend: Record<string, string>;
+}
+
+export interface IdPassCapture {
+  width?: number;
+  height?: number;
+  rgba?: string;
+}
+
 const MAX_BUFFER_BYTES = 4 * 1024 * 1024;
 
 export class WsHub {
@@ -64,6 +78,16 @@ export class WsHub {
       candidates: HubClient[];
       index: number;
       opts?: SnapshotRequest;
+      timeoutMs: number;
+    }
+  >();
+  private readonly snapshotChains = new Map<string, Promise<unknown>>();
+  private readonly idPassWaiters = new Map<
+    string,
+    {
+      resolve: (shot: IdPassCapture) => void;
+      reject: (err: Error) => void;
+      timer: NodeJS.Timeout;
     }
   >();
 
@@ -125,6 +149,19 @@ export class WsHub {
     else this.presence(client.roomId);
   }
 
+  closeRoom(roomId: string): void {
+    const set = this.rooms.get(roomId);
+    if (!set) return;
+    this.rooms.delete(roomId);
+    for (const client of set) {
+      try {
+        client.socket.close(4004, 'room evicted');
+      } catch {
+        /* 已断开 */
+      }
+    }
+  }
+
   count(roomId: string): number {
     let n = 0;
     for (const client of this.rooms.get(roomId) ?? []) if (!client.headless) n += 1;
@@ -163,20 +200,66 @@ export class WsHub {
   }
 
   requestSnapshot(roomId: string, opts: SnapshotRequest = {}, timeoutMs = 5_000): Promise<SnapshotCapture> {
-    const candidates = [...(this.rooms.get(roomId) ?? [])];
+    const online = [...(this.rooms.get(roomId) ?? [])];
+    const headless = online.filter((c) => c.headless);
+    const candidates = headless.length > 0 ? headless : online;
     if (candidates.length === 0) {
-      return Promise.reject(new Error('房间没有在线 editor / headless 页面'));
+      return Promise.reject(new Error('房间没有在线页面'));
     }
-    const requestId = randomUUID();
-    return new Promise<SnapshotCapture>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        this.waiters.delete(requestId);
-        reject(new Error('editor 快照超时'));
-      }, timeoutMs);
-      const waiter = { resolve, reject, timer, candidates, index: 0 };
-      this.waiters.set(requestId, waiter);
-      this.sendSnapshotRequest(requestId, waiter, opts);
+    const run = (): Promise<SnapshotCapture> =>
+      new Promise<SnapshotCapture>((resolve, reject) => {
+        const requestId = randomUUID();
+        const timer = setTimeout(() => {
+          this.waiters.delete(requestId);
+          reject(new Error('editor 快照超时'));
+        }, timeoutMs);
+        const waiter = { resolve, reject, timer, candidates, index: 0, timeoutMs };
+        this.waiters.set(requestId, waiter);
+        this.sendSnapshotRequest(requestId, waiter, opts);
+      });
+    const prev = this.snapshotChains.get(roomId);
+    if (!prev) {
+      const first = run();
+      const firstTail = first.catch(() => undefined);
+      this.snapshotChains.set(roomId, firstTail);
+      void firstTail.then(() => {
+        if (this.snapshotChains.get(roomId) === firstTail) this.snapshotChains.delete(roomId);
+      });
+      return first;
+    }
+    const next = prev.then(run, run);
+    const tail = next.catch(() => undefined);
+    this.snapshotChains.set(roomId, tail);
+    void tail.then(() => {
+      if (this.snapshotChains.get(roomId) === tail) this.snapshotChains.delete(roomId);
     });
+    return next;
+  }
+
+  requestIdPass(roomId: string, opts: IdPassRequest, timeoutMs = 5_000): Promise<IdPassCapture> {
+    const online = [...(this.rooms.get(roomId) ?? [])];
+    const target = online.find((c) => c.headless) ?? online[0];
+    if (!target) return Promise.reject(new Error('房间没有在线页面'));
+    const requestId = randomUUID();
+    return new Promise<IdPassCapture>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.idPassWaiters.delete(requestId);
+        reject(new Error('editor id-pass 超时'));
+      }, timeoutMs);
+      this.idPassWaiters.set(requestId, { resolve, reject, timer });
+      target.socket.send(
+        encodeFrame({ type: 'event', event: 'idpass.request', data: { requestId, ...opts } }),
+      );
+    });
+  }
+
+  resolveIdPass(requestId: string, capture?: IdPassCapture, error?: string): void {
+    const waiter = this.idPassWaiters.get(requestId);
+    if (!waiter) return;
+    this.idPassWaiters.delete(requestId);
+    clearTimeout(waiter.timer);
+    if (error || !capture?.rgba) waiter.reject(new Error(error ?? 'editor id-pass 失败'));
+    else waiter.resolve(capture);
   }
 
   resolveSnapshotUpload(
@@ -215,6 +298,12 @@ export class WsHub {
     if (failure) {
       waiter.index += 1;
       if (waiter.index < waiter.candidates.length) {
+        const remaining = Math.max(1_000, Math.round(waiter.timeoutMs / waiter.candidates.length));
+        clearTimeout(waiter.timer);
+        waiter.timer = setTimeout(() => {
+          this.waiters.delete(requestId);
+          waiter.reject(new Error('editor 快照超时'));
+        }, remaining);
         this.sendSnapshotRequest(requestId, waiter, waiter.opts ?? {});
         return;
       }

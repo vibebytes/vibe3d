@@ -42,7 +42,7 @@ const defaults: Persistent = {
 
 function load(): Persistent {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = window.localStorage.getItem(KEY);
     return raw ? { ...defaults, ...(JSON.parse(raw) as Partial<Persistent>) } : defaults;
   } catch {
     return defaults;
@@ -97,7 +97,7 @@ useUi.subscribe((s) => {
     viewMode: s.viewMode,
   };
   try {
-    localStorage.setItem(KEY, JSON.stringify(persisted));
+    window.localStorage.setItem(KEY, JSON.stringify(persisted));
   } catch {
     // storage full or blocked: UI prefs are best-effort
   }

@@ -32,7 +32,8 @@ const GUIDES: Record<string, Guide> = {
     title: '从零搭一个场景',
     description: '建房间 → 分区骨架 → 基础体 → 材质与环境 → 首次出图自检',
     body: [
-      '1. vibe3d_room {op:"create"}：建房并绑定会话；之后别再传 room_id。',
+      '1. vibe3d_room {op:"create"}：建房并绑定会话；之后别再传 room_id。写操作会自动开窗，不要预先调 vibe3d_open_editor。',
+      '1b. 需要确认画面是否真的在显示：看 vibe3d_open_editor 返回的 state（connected / opening / not_connected）或 vibe3d_room {op:"get"} 的 editors；editors=0 时改动只写进场景，看不到画面。',
       '2. vibe3d_scene {op:"stats"}：记下基线节点数/三角面，交付前拿同一组数字对比。',
       '3. 先骨架后细节：用 vibe3d_node {op:"create"} 的 kind:"group" 建分区（地面/主体/配景），再把 mesh 挂到组下。',
       '4. 尺寸用真实米：box 的 size 就是长宽高，位置给 transform.p，落地前先确认地面高度。',

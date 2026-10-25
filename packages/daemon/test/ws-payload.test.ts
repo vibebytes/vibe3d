@@ -86,8 +86,8 @@ describe('ws frame limit enforcement', () => {
     const closed = new Promise<number>((resolve) => ws.on('close', (code) => resolve(code)));
     ws.send(JSON.stringify({ type: 'snapshot.result', requestId: 'big', png: 'a'.repeat(4096) }));
     expect(await closed).toBe(1009);
-    const warn = s.warns.find((w) => w.event === 'ws.error');
-    expect(warn).toMatchObject({ event: 'ws.error', code: 'E_WS_PAYLOAD', limit: 2048 });
+    const warn = s.warns.find((w) => w.event === 'surface.ws.error');
+    expect(warn).toMatchObject({ event: 'surface.ws.error', code: 'E_WS_PAYLOAD', limit: 2048 });
   });
 
   it('accepts a 2 MiB frame under the default limit', async () => {

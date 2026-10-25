@@ -45,6 +45,27 @@ export const HELP_TOOL = {
   },
 } as const;
 
+interface EditorOpenResult {
+  url: string;
+  reused: boolean;
+  opened: boolean;
+  editors: number;
+  hint?: string;
+}
+
+function editorOpenView(result: unknown): Record<string, unknown> {
+  const r = (result ?? {}) as Partial<EditorOpenResult>;
+  const editors = typeof r.editors === 'number' ? r.editors : 0;
+  const state = editors > 0 ? 'connected' : r.opened ? 'opening' : 'not_connected';
+  const next =
+    editors > 0
+      ? '编辑器已连接：直接改场景，画面会实时推送；不要再调用 vibe3d_open_editor。'
+      : r.opened
+        ? '窗口已弹出，页面连接需要 1–2 秒；先做别的改动，稍后用 vibe3d_render_snapshot 或 vibe3d_room {op:"get"} 的 editors 确认。'
+        : '没有窗口连接：把 url 交给用户手动打开，或改用 vibe3d_render_snapshot 出图。';
+  return { ...r, state, next };
+}
+
 export interface TextContent {
   type: 'text';
   text: string;
@@ -517,7 +538,9 @@ export class ToolRuntime {
           },
         };
       }
-      const content: Array<TextContent | ImageContent> = [{ type: 'text', text: JSON.stringify(result) }];
+      const content: Array<TextContent | ImageContent> = [
+        { type: 'text', text: JSON.stringify(capability === 'editor.open' ? editorOpenView(result) : result) },
+      ];
       if (droppedNote) content.push({ type: 'text', text: droppedNote });
       return { content, structuredContent: result };
     } catch (err) {

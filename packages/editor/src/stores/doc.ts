@@ -243,6 +243,42 @@ export const useDoc = create<DocStore>((set, get) => ({
               get().socket?.send({ type: 'snapshot.result', requestId, error: message });
             }
           }
+          if (evt.event === 'idpass.request') {
+            const requestId = typeof evt.data.requestId === 'string' ? evt.data.requestId : null;
+            if (!requestId) return;
+            const legend = evt.data.legend;
+            if (!legend || typeof legend !== 'object') {
+              get().socket?.send({ type: 'idpass.result', requestId, error: 'legend 缺失' });
+              return;
+            }
+            const num = (key: string): number | undefined => {
+              const value = evt.data[key];
+              return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+            };
+            try {
+              const shot = window.__vibe3dIdPass?.({
+                width: num('width'),
+                height: num('height'),
+                at: num('at'),
+                camera: parseSnapshotCamera(evt.data.camera),
+                legend: legend as Record<string, string>,
+              });
+              if (!shot) {
+                get().socket?.send({ type: 'idpass.result', requestId, error: 'id-pass unavailable' });
+                return;
+              }
+              get().socket?.send({
+                type: 'idpass.result',
+                requestId,
+                width: shot.width,
+                height: shot.height,
+                rgba: shot.rgba,
+              });
+            } catch (err) {
+              const message = err instanceof Error ? err.message : String(err);
+              get().socket?.send({ type: 'idpass.result', requestId, error: message });
+            }
+          }
         },
         (online) => {
           set({ online });

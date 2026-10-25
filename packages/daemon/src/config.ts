@@ -25,6 +25,7 @@ export const configSchema = z.object({
     z.array(z.string()).default([]),
   ),
   renderer: z.enum(['auto', 'none', 'chromium', 'editor']).default('auto'),
+  jobConcurrency: z.coerce.number().int().min(1).max(16).default(2),
   chromePath: z.string().optional(),
   renderTimeoutMs: z.coerce.number().int().min(1000).max(120_000).default(20_000),
   wsMaxPayloadBytes: z.coerce
@@ -89,6 +90,7 @@ export function parseConfig(argv: string[], env: NodeJS.ProcessEnv = process.env
     token: flags.token ?? env.VIBE3D_TOKEN ?? randomBytes(32).toString('hex'),
     assetRoots: rootArgs.length > 0 ? rootArgs : env.VIBE3D_ASSET_ROOTS,
     renderer: flags.renderer ?? env.VIBE3D_RENDERER,
+    jobConcurrency: flags['job-concurrency'] ?? env.VIBE3D_JOB_CONCURRENCY,
     chromePath: flags.chrome ?? env.VIBE3D_CHROME,
     renderTimeoutMs: flags['render-timeout'] ?? env.VIBE3D_RENDER_TIMEOUT,
     wsMaxPayloadBytes: flags['ws-max-payload'] ?? env.VIBE3D_WS_MAX_PAYLOAD,

@@ -20,6 +20,8 @@ export interface RoomManagerOptions {
   persistDir?: string;
   logger: Logger;
   onChange?: (room: Room, change: ChangeInfo) => void;
+  isBusy?: (roomId: string) => boolean;
+  onEvict?: (roomId: string) => void;
 }
 
 export class RoomManager {
@@ -121,10 +123,15 @@ export class RoomManager {
   }
 
   private evictIfNeeded(): boolean {
-    const idle = [...this.rooms.values()].sort((a, b) => (a.updatedAt < b.updatedAt ? -1 : 1))[0];
+    const candidates = [...this.rooms.values()]
+      .filter((room) => !this.opts.isBusy?.(room.id))
+      .sort((a, b) => (a.updatedAt < b.updatedAt ? -1 : 1));
+    const idle = candidates[0];
     if (!idle) return false;
     this.rooms.delete(idle.id);
+    flushRoom(this.opts.persistDir, idle);
     this.opts.logger.info({ event: 'room.evict', roomId: idle.id });
+    this.opts.onEvict?.(idle.id);
     return true;
   }
 }

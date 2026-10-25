@@ -33,17 +33,19 @@ export function connectRoom(
   onState?: (open: boolean) => void,
 ): RoomSocket {
   const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const t = token();
   const params = new URLSearchParams();
-  if (t) params.set('t', t);
   params.set('clientId', CLIENT_ID);
   if (new URLSearchParams(window.location.search).get('headless') === '1') params.set('headless', '1');
-  const url = `${proto}//${window.location.host}/r/${roomId}/ws?${params.toString()}`;
+  const base = `${proto}//${window.location.host}/r/${roomId}/ws?${params.toString()}`;
   let closed = false;
   let timer: number | undefined;
   let socket: WebSocket | undefined;
 
   const open = () => {
+    // Read the token per attempt: an embedded surface only receives it after the host handshake,
+    // which can land after the first connect.
+    const t = token();
+    const url = t ? `${base}&t=${encodeURIComponent(t)}` : base;
     socket = new WebSocket(url);
     socket.onopen = () => onState?.(true);
     socket.onmessage = (msg) => {
@@ -68,11 +70,25 @@ export function connectRoom(
     };
   };
 
+  const onToken = () => {
+    if (closed) return;
+    if (timer) window.clearTimeout(timer);
+    const prev = socket;
+    socket = undefined;
+    if (prev) {
+      prev.onclose = null;
+      prev.close();
+    }
+    open();
+  };
+  window.addEventListener('vibe3d:token', onToken);
+
   open();
 
   return {
     close() {
       closed = true;
+      window.removeEventListener('vibe3d:token', onToken);
       if (timer) window.clearTimeout(timer);
       socket?.close();
     },

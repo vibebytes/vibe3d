@@ -11,7 +11,7 @@ import { openInBrowser } from './browser';
 import { parseConfig } from './config';
 import type { DispatchContext } from './context';
 import { flushAll } from './doc/persist';
-import { JobQueue } from './jobs/queue';
+import { JobQueue, MAX_QUEUED } from './jobs/queue';
 import { JobStore, sweepExports } from './jobs/store';
 import { acquireLock } from './lock';
 import { createLogger } from './logger';
@@ -58,6 +58,11 @@ async function main(): Promise<void> {
         ops: change.ops,
         actor: { kind: 'agent', id: 'daemon' },
       }),
+    isBusy: (roomId) => hub.count(roomId) > 0,
+    onEvict: (roomId) => {
+      hub.event(roomId, 'room.evicted', { roomId });
+      hub.closeRoom(roomId);
+    },
   });
   rooms.load();
 
@@ -73,24 +78,30 @@ async function main(): Promise<void> {
 
   const { ingest, inspect } = createIngest({ blobs, roots: config.assetRoots });
   const jobStore = new JobStore();
-  const jobs = new JobQueue(jobStore, {
-    progress: (job) =>
-      hub.event(job.roomId, 'job.progress', {
-        jobId: job.id,
-        pct: job.progress,
-        ...(job.phase ? { phase: job.phase } : {}),
-      }),
-    done: (job) =>
-      hub.event(job.roomId, 'job.done', {
-        jobId: job.id,
-        state: 'done',
-        url: job.result?.url,
-        bytes: job.result?.bytes,
-        revision: job.result?.revision,
-      }),
-    failed: (job) => hub.event(job.roomId, 'job.done', { jobId: job.id, state: 'failed', error: job.error }),
-    cancelled: (job) => hub.event(job.roomId, 'job.done', { jobId: job.id, state: 'cancelled' }),
-  });
+  const jobs = new JobQueue(
+    jobStore,
+    {
+      progress: (job) =>
+        hub.event(job.roomId, 'job.progress', {
+          jobId: job.id,
+          pct: job.progress,
+          ...(job.phase ? { phase: job.phase } : {}),
+        }),
+      done: (job) =>
+        hub.event(job.roomId, 'job.done', {
+          jobId: job.id,
+          state: 'done',
+          url: job.result?.url,
+          bytes: job.result?.bytes,
+          revision: job.result?.revision,
+        }),
+      failed: (job) =>
+        hub.event(job.roomId, 'job.done', { jobId: job.id, state: 'failed', error: job.error }),
+      cancelled: (job) => hub.event(job.roomId, 'job.done', { jobId: job.id, state: 'cancelled' }),
+    },
+    MAX_QUEUED,
+    config.jobConcurrency,
+  );
   const ctx: DispatchContext = {
     rooms,
     baseUrl: '',
@@ -101,6 +112,7 @@ async function main(): Promise<void> {
     selection: () => [],
     surfaces: (roomId) => hub.count(roomId),
     autoOpen: new Map(),
+    logger,
     ...(config.openEditor ? { openExternal: openInBrowser } : {}),
   };
   ctx.renderer = createRenderer({
@@ -131,8 +143,7 @@ async function main(): Promise<void> {
   jobSweep.unref();
   const heartbeat = createHeartbeat({
     hub,
-    onEvict: (count) =>
-      logger.warn({ event: 'ws.heartbeat.evict', count }, '清理无心跳的编辑器连接'),
+    onEvict: (count) => logger.warn({ event: 'ws.heartbeat.evict', count }, '清理无心跳的编辑器连接'),
   });
   heartbeat.start();
   const server = serve({ fetch: app.fetch, hostname: config.host, port: config.port }) as Server;

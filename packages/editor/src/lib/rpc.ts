@@ -1,20 +1,37 @@
 const DAEMON = import.meta.env.VITE_DAEMON_URL ?? '';
 const TOKEN_KEY = 'vibe3d.token';
 
+/** Sandboxed iframes (`allow-scripts` only) throw on any `localStorage` access. */
+function store(): Storage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+let memoryToken = '';
+
 export function captureToken(): string {
   const url = new URL(window.location.href);
   const fromQuery = url.searchParams.get('t');
   if (fromQuery) {
-    localStorage.setItem(TOKEN_KEY, fromQuery);
+    memoryToken = fromQuery;
+    store()?.setItem(TOKEN_KEY, fromQuery);
     url.searchParams.delete('t');
     window.history.replaceState({}, '', url.toString());
     return fromQuery;
   }
-  return localStorage.getItem(TOKEN_KEY) ?? '';
+  return token();
 }
 
 export function token(): string {
-  return localStorage.getItem(TOKEN_KEY) ?? '';
+  return memoryToken || store()?.getItem(TOKEN_KEY) || '';
+}
+
+export function setToken(next: string): void {
+  memoryToken = next;
+  store()?.setItem(TOKEN_KEY, next);
 }
 
 export class RpcError extends Error {

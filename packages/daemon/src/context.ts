@@ -2,6 +2,7 @@ import type { AssetMeta, CameraState, GltfReport, SceneDoc } from '@vibebyte/vib
 import type { FogMode, QualityPreset, ShotMeta } from '@vibebyte/vibe3d-scene';
 import type { JobQueue } from './jobs/queue';
 import type { JobStore } from './jobs/store';
+import type { Logger } from './logger';
 import type { RoomManager } from './rooms/manager';
 import type { ThumbsStore } from './thumbs';
 
@@ -105,6 +106,7 @@ export interface DispatchContext {
   openExternal?: (url: string) => boolean | Promise<boolean>;
   thumbs?: ThumbsStore;
   autoOpen?: Map<string, AutoOpenState>;
+  logger?: Logger;
 }
 
 export interface HelloResult {

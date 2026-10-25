@@ -5,7 +5,7 @@ export interface AlphaRendererOptions {
 }
 
 export function alphaRendererOptions(samples: number): AlphaRendererOptions {
-  return { antialias: samples > 0, alpha: true, preserveDrawingBuffer: false };
+  return { antialias: samples > 0, alpha: true, preserveDrawingBuffer: true };
 }
 
 export interface AlphaRendererCache<T> {

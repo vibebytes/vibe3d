@@ -28,7 +28,8 @@ function cookieToken(header: string | undefined): string | undefined {
   return undefined;
 }
 
-function reject(socket: Duplex, status: number, reason: string): void {
+function reject(socket: Duplex, status: number, reason: string, logger?: Logger, detail?: Record<string, unknown>): void {
+  logger?.warn({ event: 'surface.ws.reject', status, reason, ...detail });
   socket.write(`HTTP/1.1 ${status} ${reason}\r\nconnection: close\r\n\r\n`);
   socket.destroy();
 }
@@ -57,19 +58,25 @@ export function attachWebSocket(deps: WsDeps): WebSocketServer {
   deps.server.on('upgrade', (req: IncomingMessage, socket: Duplex, head: Buffer) => {
     const url = new URL(req.url ?? '/', 'http://127.0.0.1');
     const match = /^\/r\/([^/]+)\/ws$/.exec(url.pathname);
-    if (!match) return reject(socket, 404, 'Not Found');
+    if (!match) return reject(socket, 404, 'Not Found', deps.logger, { path: url.pathname });
 
     const roomId = match[1] ?? '';
     const token = url.searchParams.get('t') ?? cookieToken(req.headers.cookie);
-    if (!isRoomId(roomId)) return reject(socket, 400, 'Bad Request');
-    if (!tokenMatches(deps.token, token)) return reject(socket, 401, 'Unauthorized');
+    if (!isRoomId(roomId)) return reject(socket, 400, 'Bad Request', deps.logger, { roomId });
+    if (!tokenMatches(deps.token, token)) {
+      return reject(socket, 401, 'Unauthorized', deps.logger, {
+        roomId,
+        hasQueryToken: Boolean(url.searchParams.get('t')),
+        hasCookie: Boolean(cookieToken(req.headers.cookie)),
+      });
+    }
 
     let room: ReturnType<DispatchContext['rooms']['get']>;
     try {
       room = deps.ctx.rooms.get(roomId);
     } catch (err) {
-      if (err instanceof AppError) return reject(socket, err.http, 'Not Found');
-      return reject(socket, 500, 'Internal Server Error');
+      if (err instanceof AppError) return reject(socket, err.http, 'Not Found', deps.logger, { roomId });
+      return reject(socket, 500, 'Internal Server Error', deps.logger, { roomId, err: String(err) });
     }
 
     wss.handleUpgrade(req, socket, head, (ws) => {
@@ -86,7 +93,21 @@ export function attachWebSocket(deps: WsDeps): WebSocketServer {
           editors: deps.hub.count(roomId),
         }),
       );
-      deps.logger.debug({ event: 'ws.open', roomId });
+      deps.logger.info({
+        event: 'surface.ws.open',
+        roomId,
+        clientId: client.clientId,
+        headless: client.headless,
+        editors: deps.hub.count(roomId),
+      });
+      deps.logger.info({
+        event: 'surface.ready',
+        roomId,
+        clientId: client.clientId,
+        headless: client.headless,
+        editors: deps.hub.count(roomId),
+        revision: room.revision,
+      });
 
       ws.on('message', (raw) => {
         deps.hub.touch(client);
@@ -113,16 +134,29 @@ export function attachWebSocket(deps: WsDeps): WebSocketServer {
           );
           return;
         }
+        if (frame.type === 'idpass.result') {
+          deps.hub.resolveIdPass(
+            frame.requestId,
+            { width: frame.width, height: frame.height, rgba: frame.rgba },
+            frame.error,
+          );
+          return;
+        }
         deps.onClientFrame?.(roomId, ws, frame);
       });
 
       ws.on('close', () => {
         deps.hub.remove(client);
-        deps.logger.debug({ event: 'ws.close', roomId });
+        deps.logger.info({
+          event: 'surface.ws.close',
+          roomId,
+          clientId: client.clientId,
+          editors: deps.hub.count(roomId),
+        });
       });
       ws.on('error', (err) =>
         deps.logger.warn({
-          event: 'ws.error',
+          event: 'surface.ws.error',
           roomId,
           code: isPayloadOverflow(err) ? 'E_WS_PAYLOAD' : 'E_WS_SOCKET',
           limit: maxPayload,

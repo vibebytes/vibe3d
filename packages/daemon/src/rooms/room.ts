@@ -124,7 +124,7 @@ export class Room {
     const snapshot = structuredClone(before);
     this.undoStack.push(snapshot);
     if (this.undoStack.length > MAX_HISTORY) this.undoStack.shift();
-    this.remember(before.revision, snapshot);
+    this.remember(before.revision, snapshot, true);
     this.redoStack = [];
     this.commit(next, ops, opts.author ?? currentAuthor());
 
@@ -319,8 +319,8 @@ export class Room {
     return meta;
   }
 
-  private remember(revision: number, doc: SceneDoc): void {
-    this.history.set(revision, doc);
+  private remember(revision: number, doc: SceneDoc, owned = false): void {
+    this.history.set(revision, owned ? doc : structuredClone(doc));
     while (this.history.size > MAX_REVISIONS) {
       const oldest = this.history.keys().next().value;
       if (oldest === undefined) break;

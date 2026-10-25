@@ -1,5 +1,5 @@
 import { existsSync, readdirSync } from 'node:fs';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { parseConfig } from '../src/config';
 import { EditorRenderer } from '../src/render/editor';
 import { createRenderer } from '../src/render/index';
@@ -79,6 +79,20 @@ vi.mock('../src/render/cdp', () => {
     }
   }
   return { Cdp, CdpError };
+});
+
+beforeEach(() => {
+  state.executable = '/fake/chrome';
+  state.shot = 'AAA';
+  state.evalQueue = [];
+  state.navFailures = 0;
+  state.launches = 0;
+  state.pages = 0;
+  state.navigations = 0;
+  state.readyProbes = 0;
+  state.stallFirstPage = false;
+  state.targets = 0;
+  state.closedTargets = [];
 });
 
 function png(width: number, height: number): string {
@@ -465,12 +479,6 @@ describe('AutoRenderer', () => {
       exportsDir: h.dirs.exports,
     })!;
     await expect(auto3.snapshot(input, {})).resolves.toMatchObject({ width: 7, height: 9 });
-
-    state.evalQueue = [
-      { result: { value: { ready: true } } },
-      { result: { value: Buffer.from('xyz').toString('base64') } },
-    ];
-    await expect(auto3.exportGlb(input)).resolves.toMatchObject({ bytes: 3 });
     await auto3.close?.();
   });
 });

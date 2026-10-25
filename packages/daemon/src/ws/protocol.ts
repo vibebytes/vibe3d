@@ -17,6 +17,8 @@ export const serverFrameSchema = z.discriminatedUnion('type', [
       'job.done',
       'surface.presence',
       'snapshot.request',
+      'idpass.request',
+      'room.evicted',
     ]),
     data: z.record(z.unknown()),
   }),
@@ -40,6 +42,14 @@ export const clientFrameSchema = z.discriminatedUnion('type', [
     code: z.string().optional(),
     error: z.string().optional(),
     meta: z.record(z.unknown()).optional(),
+  }),
+  z.object({
+    type: z.literal('idpass.result'),
+    requestId: z.string(),
+    width: z.number().int().optional(),
+    height: z.number().int().optional(),
+    rgba: z.string().optional(),
+    error: z.string().optional(),
   }),
   z.object({ type: z.literal('selection.changed'), ids: z.array(z.string()) }),
 ]);

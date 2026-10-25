@@ -132,6 +132,7 @@ describe('render.sequence', () => {
       roomId,
     );
     const jobId = started.body.result.jobId as string;
+    await new Promise((resolve) => setTimeout(resolve, 20));
     await call(h, 'job.cancel', { jobId });
     release();
     await queue.idle();

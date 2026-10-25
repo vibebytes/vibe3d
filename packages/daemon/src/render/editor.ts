@@ -1,5 +1,5 @@
 import { AppError } from '@vibebyte/vibe3d-protocol';
-import type { RenderInput, Renderer, Snapshot, SnapshotOptions } from '../context';
+import type { IdPassOptions, IdPassShot, RenderInput, Renderer, Snapshot, SnapshotOptions } from '../context';
 import type { WsHub } from '../ws/hub';
 
 export const DEFAULT_SNAPSHOT_TIMEOUT_MS = 5_000;
@@ -76,7 +76,7 @@ export class EditorRenderer implements Renderer {
           isolate: opts.isolate,
           fog: opts.fog,
         },
-        budgetMs + settleMs,
+        budgetMs,
       );
     } catch (err) {
       if (err instanceof AppError) throw err;
@@ -92,6 +92,42 @@ export class EditorRenderer implements Renderer {
       ...size,
       ...(shot.meta ? { meta: shot.meta } : {}),
     };
+  }
+
+  async idPass(input: RenderInput, opts: IdPassOptions): Promise<IdPassShot> {
+    const settleMs = opts.settleMs ?? 0;
+    if (settleMs > 0) await new Promise((resolve) => setTimeout(resolve, settleMs));
+    const area = snapshotAreaPixels(opts.width, opts.height);
+    const budgetMs = Math.max(this.timeoutMs, snapshotTimeoutMs(area));
+    let shot: { width?: number; height?: number; rgba?: string };
+    try {
+      shot = await this.hub.requestIdPass(
+        input.roomId,
+        {
+          width: opts.width,
+          height: opts.height,
+          camera: opts.camera,
+          at: opts.at,
+          legend: opts.legend,
+        },
+        budgetMs,
+      );
+    } catch (err) {
+      if (err instanceof AppError) throw err;
+      throw new AppError('E_RENDER_UNAVAILABLE', `editor id-pass 失败：${String(err)}`);
+    }
+    const width = shot.width ?? opts.width;
+    const height = shot.height ?? opts.height;
+    if (!shot.rgba) throw new AppError('E_RENDER_UNAVAILABLE', '页面未返回 id-pass 像素');
+    const rgba = new Uint8Array(Buffer.from(shot.rgba, 'base64'));
+    if (rgba.length !== width * height * 4) {
+      throw new AppError('E_RENDER_UNAVAILABLE', 'id-pass 像素长度与尺寸不符', {
+        bytes: rgba.length,
+        width,
+        height,
+      });
+    }
+    return { width, height, rgba };
   }
 
   async exportGlb(): Promise<{ jobId: string; url: string; bytes: number }> {

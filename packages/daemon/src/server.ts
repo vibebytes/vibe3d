@@ -6,7 +6,7 @@ import type { Config } from './config';
 import type { DispatchContext } from './context';
 import { toRpcFailure } from './http/errors';
 import { signExportUrl } from './http/export-url';
-import { hostGuard, requestId } from './http/middleware';
+import { allowSandboxedFrame, hostGuard, requestId } from './http/middleware';
 import { type RouteDeps, mountRoutes, serveEditorAsset, serveVendorAsset } from './http/routes';
 import type { Logger } from './logger';
 import { ThumbsStore } from './thumbs';
@@ -57,8 +57,12 @@ export function createApp(deps: AppDeps): Hono {
   };
   mountRoutes(app, routes);
 
-  app.get('/editor/*', (c) => serveEditorAsset(routes, c.req.path.slice('/editor/'.length)));
-  app.get('/vendor/*', (c) => serveVendorAsset(routes, c.req.path.slice('/vendor/'.length)));
+  app.get('/editor/*', allowSandboxedFrame(), (c) => serveEditorAsset(routes, c.req.path.slice('/editor/'.length)));
+  app.get('/vendor/*', allowSandboxedFrame(), (c) => serveVendorAsset(routes, c.req.path.slice('/vendor/'.length)));
+
+  // Sandboxed iframes preflight every cross-origin POST; answer before auth so the
+  // browser never sees a 401 on OPTIONS.
+  app.options('*', allowSandboxedFrame(), (c) => c.body(null, 204));
 
   app.notFound((c) => json({ error: { code: 'E_NO_METHOD', message: `无此路由：${c.req.path}` } }, 404));
 

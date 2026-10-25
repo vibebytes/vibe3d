@@ -33,29 +33,70 @@ export class AutoRenderer implements Renderer {
   }
 
   async snapshot(input: Parameters<Renderer['snapshot']>[0], opts: Parameters<Renderer['snapshot']>[1]) {
+    const hasEditor = this.hub.count(input.roomId) > 0;
+    if (!hasEditor) return this.chromium.snapshot(input, opts);
+    if (!this.chromium.ready) return this.editor.snapshot(input, opts);
+    const started = Date.now();
+    const editorShot = this.editor.snapshot(input, opts).then(
+      (shot) => ({ source: 'editor' as const, ok: true as const, shot }),
+      (err: unknown) => ({ source: 'editor' as const, ok: false as const, err }),
+    );
+    const chromiumShot = this.chromium.snapshot(input, opts).then(
+      (shot) => ({ source: 'chromium' as const, ok: true as const, shot }),
+      (err: unknown) => ({ source: 'chromium' as const, ok: false as const, err }),
+    );
+    const first = await Promise.race([editorShot, chromiumShot]);
+    if (first.ok) {
+      this.logger.debug({
+        event: 'renderer.snapshot',
+        renderer: first.source,
+        bytes: first.shot.base64.length,
+        elapsedMs: Date.now() - started,
+      });
+      return first.shot;
+    }
+    const code = fallbackCode(first.err);
+    if (code === 'E_PAYLOAD_TOO_LARGE') {
+      this.logger.warn({
+        event: 'renderer.editor_fallback',
+        code,
+        elapsedMs: Date.now() - started,
+        err: String(first.err),
+      });
+      throw first.err;
+    }
+    const other = first.source === 'editor' ? chromiumShot : editorShot;
+    const second = await other;
+    if (second.ok) {
+      this.logger.warn({
+        event: 'renderer.editor_fallback',
+        code,
+        elapsedMs: Date.now() - started,
+        err: String(first.err),
+      });
+      return second.shot;
+    }
+    throw first.err;
+  }
+
+  async idPass(
+    input: Parameters<NonNullable<Renderer['idPass']>>[0],
+    opts: Parameters<NonNullable<Renderer['idPass']>>[1],
+  ) {
     if (this.hub.count(input.roomId) > 0) {
-      const started = Date.now();
       try {
-        const shot = await this.editor.snapshot(input, opts);
-        this.logger.debug({
-          event: 'renderer.snapshot',
-          renderer: 'editor',
-          bytes: shot.base64.length,
-          elapsedMs: Date.now() - started,
-        });
-        return shot;
+        return await this.editor.idPass(input, opts);
       } catch (err) {
-        const code = fallbackCode(err);
         this.logger.warn({
           event: 'renderer.editor_fallback',
-          code,
-          elapsedMs: Date.now() - started,
+          op: 'id-pass',
+          code: fallbackCode(err),
           err: String(err),
         });
-        if (code === 'E_PAYLOAD_TOO_LARGE' || !this.chromium.ready) throw err;
+        if (!this.chromium.ready) throw err;
       }
     }
-    return this.chromium.snapshot(input, opts);
+    return this.chromium.idPass(input, opts);
   }
 
   exportGlb(input: Parameters<Renderer['exportGlb']>[0], nodeIds?: string[]) {
@@ -100,7 +141,8 @@ export function createRenderer(deps: RendererDeps): Renderer | undefined {
     logger,
     navigateTimeoutMs: config.renderTimeoutMs,
     readyTimeoutMs: deps.readyTimeoutMs ?? (Number(process.env.VIBE3D_READY_TIMEOUT_MS) || 20_000),
-    maxPages: deps.maxPages ?? (Number(process.env.VIBE3D_RENDER_PAGES) || 3),
+    maxPages: deps.maxPages ?? (Number(process.env.VIBE3D_RENDER_PAGES) || 6),
+    revisionGraceMs: Number(process.env.VIBE3D_REVISION_GRACE_MS) || undefined,
   });
   if (config.renderer === 'chromium') return chromium;
 

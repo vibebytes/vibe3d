@@ -31,11 +31,11 @@ describe('alpha renderer cache', () => {
     expect(cache.get().id).toBe(2);
   });
 
-  it('does not preserve the drawing buffer by default', () => {
+  it('preserves the drawing buffer so toDataURL avoids a ReadPixels stall', () => {
     expect(alphaRendererOptions(4)).toEqual({
       antialias: true,
       alpha: true,
-      preserveDrawingBuffer: false,
+      preserveDrawingBuffer: true,
     });
     expect(alphaRendererOptions(0).antialias).toBe(false);
   });

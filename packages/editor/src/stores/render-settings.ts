@@ -111,7 +111,7 @@ const KEY = 'vibe3d.renderSettings';
 
 function load(): RenderSettings {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = window.localStorage.getItem(KEY);
     return raw ? parseRenderSettings(JSON.parse(raw)) : { ...defaultRenderSettings, overlay: [] };
   } catch {
     return { ...defaultRenderSettings, overlay: [] };
@@ -120,7 +120,7 @@ function load(): RenderSettings {
 
 function save(s: RenderSettings) {
   try {
-    localStorage.setItem(KEY, JSON.stringify(s));
+    window.localStorage.setItem(KEY, JSON.stringify(s));
   } catch {
     /* storage unavailable */
   }

@@ -55,7 +55,7 @@ describe('JobStore', () => {
 });
 
 describe('JobQueue', () => {
-  it('runs one job at a time in FIFO order', async () => {
+  it('runs one job at a time per room in FIFO order', async () => {
     const store = new JobStore();
     const seen: string[] = [];
     const queue = new JobQueue(store);
@@ -67,7 +67,7 @@ describe('JobQueue', () => {
       return { url: name, bytes: 1, revision: 1 };
     };
     const a = store.create('export.glb', 'r1');
-    const b = store.create('export.glb', 'r2');
+    const b = store.create('export.glb', 'r1');
     queue.enqueue(a, make('a'));
     queue.enqueue(b, make('b'));
     await Promise.resolve();
@@ -81,6 +81,60 @@ describe('JobQueue', () => {
     await queue.idle();
     expect(store.get(a.id)?.state).toBe('done');
     expect(store.get(b.id)?.state).toBe('done');
+    expect(queue.depth).toBe(0);
+  });
+
+  it('runs jobs from different rooms concurrently', async () => {
+    const store = new JobStore();
+    const seen: string[] = [];
+    const queue = new JobQueue(store, {}, 64, 2);
+    const releases: Array<() => void> = [];
+    const make = (name: string) => async () => {
+      seen.push(`start:${name}`);
+      await new Promise<void>((resolve) => releases.push(resolve));
+      seen.push(`end:${name}`);
+      return { url: name, bytes: 1, revision: 1 };
+    };
+    const a = store.create('export.glb', 'r1');
+    const b = store.create('export.glb', 'r2');
+    queue.enqueue(a, make('a'));
+    queue.enqueue(b, make('b'));
+    await Promise.resolve();
+    expect(seen).toEqual(['start:a', 'start:b']);
+    expect(queue.runningCount).toBe(2);
+    releases.shift()?.();
+    releases.shift()?.();
+    await queue.idle();
+    expect(store.get(a.id)?.state).toBe('done');
+    expect(store.get(b.id)?.state).toBe('done');
+  });
+
+  it('skips a busy room instead of blocking the free slot', async () => {
+    const store = new JobStore();
+    const seen: string[] = [];
+    const queue = new JobQueue(store, {}, 64, 2);
+    const releases: Array<() => void> = [];
+    const make = (name: string) => async () => {
+      seen.push(`start:${name}`);
+      await new Promise<void>((resolve) => releases.push(resolve));
+      seen.push(`end:${name}`);
+      return { url: name, bytes: 1, revision: 1 };
+    };
+    const a = store.create('export.glb', 'r1');
+    const b = store.create('export.glb', 'r1');
+    const c = store.create('export.glb', 'r2');
+    queue.enqueue(a, make('a'));
+    queue.enqueue(b, make('b'));
+    queue.enqueue(c, make('c'));
+    await Promise.resolve();
+    expect(seen).toEqual(['start:a', 'start:c']);
+    expect(queue.runningCount).toBe(2);
+    releases.shift()?.();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(seen).toEqual(['start:a', 'start:c', 'end:a', 'start:b']);
+    releases.shift()?.();
+    releases.shift()?.();
+    await queue.idle();
     expect(queue.depth).toBe(0);
   });
 

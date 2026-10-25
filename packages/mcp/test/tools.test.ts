@@ -34,6 +34,9 @@ function fakeStudio() {
       invoke: async (method: string, params: Record<string, unknown>) => {
         calls.push({ method, roomId, params });
         if (method === 'room.get') return { roomId, name: 'x', revision: 1, nodeCount: 0 };
+        if (method === 'editor.open') {
+          return { url: `http://127.0.0.1:1/r/${roomId}`, reused: true, opened: false, editors: 1 };
+        }
         return { revision: 1, closed: true };
       },
     }),
@@ -131,6 +134,35 @@ describe('ToolRuntime 会话绑定', () => {
     expect(calls.map((call) => call.method)).toEqual(['room.create', 'editor.open']);
     expect((calls[1] as Call).roomId).toBe('r_00000001');
     expect(runtime.session.current).toBe('r_00000001');
+  });
+
+  it('open_editor 的返回体带 state 与 next，告诉 LLM 画面到底连上没有', async () => {
+    const { studio } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const connected = jsonOf(await runtime.call('vibe3d_open_editor', {}));
+    console.log('DEBUG', JSON.stringify(connected), runtime.session.current);
+    expect(connected.state).toBe('connected');
+    expect(connected.editors).toBe(1);
+    expect(connected.url).toBe('http://127.0.0.1:1/r/r_0000000c');
+    expect(connected.reused).toBe(true);
+    expect(connected.opened).toBe(false);
+    expect(String(connected.next)).toContain('不要再调用 vibe3d_open_editor');
+  });
+
+  it('open_editor 没有窗口连接时引导改用 snapshot', async () => {
+    const { studio } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const room = studio.room('r_0000000c') as unknown as {
+      invoke: (method: string, params: Record<string, unknown>) => Promise<unknown>;
+    };
+    const original = room.invoke;
+    room.invoke = async (method, params) =>
+      method === 'editor.open'
+        ? { url: 'http://127.0.0.1:1/r/r_0000000c', reused: false, opened: false, editors: 0 }
+        : original(method, params);
+    const view = jsonOf(await runtime.call('vibe3d_open_editor', {}));
+    expect(view.state).toBe('not_connected');
+    expect(String(view.next)).toContain('vibe3d_render_snapshot');
   });
 
   it('构造参数可预绑定房间', async () => {

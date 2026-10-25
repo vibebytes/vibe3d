@@ -183,7 +183,6 @@ export const roomHandlers: HandlersFor<Keys> = {
     const all = ctx.rooms
       .list()
       .map((room) => {
-        ctx.thumbs?.ensure(ctx, room);
         const meta = room.meta();
         const thumb = ctx.thumbs?.latest(room.id);
         return { meta, thumbUrl: thumb ? thumbUrl(ctx.baseUrl, room.id, thumb) : undefined };
@@ -194,6 +193,12 @@ export const roomHandlers: HandlersFor<Keys> = {
     const page = rest.slice(0, limit);
     const last = page.at(-1)?.meta;
     const nextCursor = last && rest.length > page.length ? encodeCursor(last) : undefined;
+    if (ctx.thumbs) {
+      for (const { meta } of page) {
+        const room = ctx.rooms.get(meta.roomId);
+        if (room) ctx.thumbs.ensure(ctx, room);
+      }
+    }
     return {
       rooms: page.map(({ meta, thumbUrl: url }) => ({
         roomId: meta.roomId,
@@ -308,26 +313,20 @@ export const roomHandlers: HandlersFor<Keys> = {
         ...sceneFeedback(doc, ctx, p.roomId),
       };
     }
-    return room.run(async () => {
-      const result = await room.apply(ops, { expectRevision: p.baseRevision, opId: p.opId });
-      return { ...result, ...extra, ...sceneFeedback(room.doc, ctx, p.roomId) };
-    });
+    const result = await room.run(() => room.apply(ops, { expectRevision: p.baseRevision, opId: p.opId }));
+    return { ...result, ...extra, ...sceneFeedback(room.doc, ctx, p.roomId) };
   },
 
   'scene.undo': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    return room.run(async () => {
-      const { revision } = p.opId ? await room.undoOp(p.opId) : await room.undo();
-      return { revision };
-    });
+    const { revision } = await room.run(() => (p.opId ? room.undoOp(p.opId) : room.undo()));
+    return { revision };
   },
 
   'scene.redo': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    return room.run(async () => {
-      const { revision } = await room.redo();
-      return { revision };
-    });
+    const { revision } = await room.run(() => room.redo());
+    return { revision };
   },
 
   'scene.diff': async (p, ctx) => {

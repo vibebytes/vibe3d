@@ -74,16 +74,21 @@ function autoOpenEditor(name: CapabilityName, params: unknown, result: unknown, 
   const state = autoOpenState(ctx);
   if (state.has(roomId)) return;
   state.set(roomId, 'pending');
-  const fail = (): void => {
+  const log = ctx.logger;
+  const fail = (err?: unknown): void => {
     state.set(roomId, 'failed');
+    log?.warn({ event: 'surface.autoopen', roomId, trigger: name, ok: false, err: err ? String(err) : undefined });
   };
   try {
     void Promise.resolve(open(editorUrl(ctx, roomId)))
-      .then((ok) => state.set(roomId, ok ? 'opened' : 'failed'))
+      .then((ok) => {
+        state.set(roomId, ok ? 'opened' : 'failed');
+        log?.info({ event: 'surface.autoopen', roomId, trigger: name, ok });
+      })
       .catch(fail);
-  } catch {
+  } catch (err) {
     // 打不开浏览器不影响写场景
-    fail();
+    fail(err);
   }
 }
 

@@ -2,6 +2,7 @@ import { randomUUID, timingSafeEqual } from 'node:crypto';
 import { AppError } from '@vibebyte/vibe3d-protocol';
 import type { MiddlewareHandler } from 'hono';
 import { getCookie } from 'hono/cookie';
+import type { Logger } from '../logger';
 
 export const TOKEN_COOKIE = 'vibe3d_token';
 
@@ -65,13 +66,43 @@ export function requireBearer(expected: string): MiddlewareHandler {
 
 export function requireSurfaceToken(
   expected: string,
-  opts: { allowQuery?: boolean } = {},
+  opts: { allowQuery?: boolean; logger?: Logger } = {},
 ): MiddlewareHandler {
   return async (c, next) => {
     const cookie = getCookie(c, TOKEN_COOKIE);
     const query = opts.allowQuery ? c.req.query('t') : undefined;
     if (!tokenMatches(expected, cookie) && !tokenMatches(expected, query)) {
+      opts.logger?.warn({
+        event: 'surface.open.denied',
+        path: c.req.path,
+        hasCookie: Boolean(cookie),
+        hasQueryToken: Boolean(query),
+        reason: !cookie && !query ? 'no_token' : 'token_mismatch',
+      });
       throw new AppError('E_UNAUTHORIZED', '缺少或错误的访问 token');
+    }
+    await next();
+  };
+}
+
+/**
+ * Sandboxed iframes (`allow-scripts` without `allow-same-origin`) send `Origin: null`,
+ * so the editor bundle, its assets and its RPC calls are all cross-origin. Auth still
+ * relies on the bearer token, so a wildcard origin does not widen access.
+ */
+export const SANDBOX_FRAME_HEADERS: Record<string, string> = {
+  'access-control-allow-origin': '*',
+  'cross-origin-resource-policy': 'cross-origin',
+};
+
+export function allowSandboxedFrame(): MiddlewareHandler {
+  return async (c, next) => {
+    for (const [k, v] of Object.entries(SANDBOX_FRAME_HEADERS)) c.header(k, v);
+    if (c.req.method === 'OPTIONS') {
+      c.header('access-control-allow-methods', 'GET, POST, OPTIONS');
+      c.header('access-control-allow-headers', 'authorization, content-type');
+      c.header('access-control-max-age', '600');
+      return c.body(null, 204);
     }
     await next();
   };
