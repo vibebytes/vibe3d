@@ -336,6 +336,11 @@ const halve = (value: unknown, fallback: number): number => {
   return Math.max(64, Math.round(n / 2));
 };
 
+const fogFar = (fog: unknown): number | string => {
+  const far = (fog as { far?: unknown } | null | undefined)?.far;
+  return typeof far === 'number' && Number.isFinite(far) ? far : '?';
+};
+
 function timeoutNextSteps(capability: string, params: Record<string, unknown>): NextStep[] {
   const steps: NextStep[] = [];
   if (capability === 'render.snapshot') {
@@ -515,27 +520,34 @@ export class ToolRuntime {
           width: number;
           height: number;
           revision: number;
+          quality?: string;
+          fog?: unknown;
+          distanceToTarget?: number | null;
+          camera?: unknown;
+          warning?: string | null;
         };
+        const meta = {
+          width: shot.width,
+          height: shot.height,
+          revision: shot.revision,
+          mime: shot.mime,
+          ...(shot.quality ? { quality: shot.quality } : {}),
+          fog: shot.fog ?? null,
+          distanceToTarget: shot.distanceToTarget ?? null,
+          camera: shot.camera ?? null,
+          warning: shot.warning ?? null,
+        };
+        const warningNote = shot.warning
+          ? `⚠ ${shot.warning}（distanceToTarget=${shot.distanceToTarget ?? '?'}，fog.far=${fogFar(shot.fog)}）。先调 vibe3d_camera {op:"set"} 或 vibe3d_stage {op:"env"} 的 fog，再重出图。`
+          : '';
         return {
           content: [
             { type: 'image', data: shot.base64, mimeType: shot.mime },
-            {
-              type: 'text',
-              text: JSON.stringify({
-                width: shot.width,
-                height: shot.height,
-                revision: shot.revision,
-                mime: shot.mime,
-              }),
-            },
+            { type: 'text', text: JSON.stringify(meta) },
+            ...(warningNote ? [{ type: 'text' as const, text: warningNote }] : []),
             ...(droppedNote ? [{ type: 'text' as const, text: droppedNote }] : []),
           ],
-          structuredContent: {
-            width: shot.width,
-            height: shot.height,
-            revision: shot.revision,
-            mime: shot.mime,
-          },
+          structuredContent: meta,
         };
       }
       const content: Array<TextContent | ImageContent> = [

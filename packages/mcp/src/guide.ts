@@ -68,6 +68,7 @@ const GUIDES: Record<string, Guide> = {
       '6. 需要逐像素定位物体时用 vibe3d_render {op:"id_pass"}，别靠肉眼数。',
       '7. 动画预览：vibe3d_render {op:"sequence"} 按 fps 采帧，任务状态用 vibe3d_job {op:"get"} 查。',
       '8. 每张图都回 revision；下次改完对不上 revision 就说明看的是旧图。',
+      '9. 出图后先看 fog.enabled 与 distanceToTarget：warning 非空说明主体被雾吃掉或裁切（distanceToTarget 越界 fog.near/far），先调相机距离或 vibe3d_stage {op:"env"} 的 fog 再重出，别拿这张图当验收依据。',
     ].join('\n'),
   },
   'vibe3d.verify': {

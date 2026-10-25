@@ -23,23 +23,30 @@ function fakeStudio() {
       return { revision: 1 };
     },
   };
+  const rooms = new Map<string, { id: string; invoke: (method: string, params: Record<string, unknown>) => Promise<unknown> }>();
   const studio = {
     client,
     createRoom: async (input: Record<string, unknown>) => {
       const room = (await client.call('room.create', input)) as { roomId: string };
       return { id: room.roomId };
     },
-    room: (roomId: string) => ({
-      id: roomId,
-      invoke: async (method: string, params: Record<string, unknown>) => {
-        calls.push({ method, roomId, params });
-        if (method === 'room.get') return { roomId, name: 'x', revision: 1, nodeCount: 0 };
-        if (method === 'editor.open') {
-          return { url: `http://127.0.0.1:1/r/${roomId}`, reused: true, opened: false, editors: 1 };
-        }
-        return { revision: 1, closed: true };
-      },
-    }),
+    room: (roomId: string) => {
+      const cached = rooms.get(roomId);
+      if (cached) return cached;
+      const handle = {
+        id: roomId,
+        invoke: async (method: string, params: Record<string, unknown>) => {
+          calls.push({ method, roomId, params });
+          if (method === 'room.get') return { roomId, name: 'x', revision: 1, nodeCount: 0 };
+          if (method === 'editor.open') {
+            return { url: `http://127.0.0.1:1/r/${roomId}`, reused: true, opened: false, editors: 1 };
+          }
+          return { revision: 1, closed: true };
+        },
+      };
+      rooms.set(roomId, handle);
+      return handle;
+    },
   };
   return { studio: studio as unknown as Studio, calls };
 }
@@ -139,8 +146,7 @@ describe('ToolRuntime 会话绑定', () => {
   it('open_editor 的返回体带 state 与 next，告诉 LLM 画面到底连上没有', async () => {
     const { studio } = fakeStudio();
     const runtime = new ToolRuntime(studio, 'r_0000000c');
-    const connected = jsonOf(await runtime.call('vibe3d_open_editor', {}));
-    console.log('DEBUG', JSON.stringify(connected), runtime.session.current);
+    const connected = jsonOf(await runtime.call('vibe3d_open_editor', { room_id: 'r_0000000c' }));
     expect(connected.state).toBe('connected');
     expect(connected.editors).toBe(1);
     expect(connected.url).toBe('http://127.0.0.1:1/r/r_0000000c');
@@ -160,7 +166,7 @@ describe('ToolRuntime 会话绑定', () => {
       method === 'editor.open'
         ? { url: 'http://127.0.0.1:1/r/r_0000000c', reused: false, opened: false, editors: 0 }
         : original(method, params);
-    const view = jsonOf(await runtime.call('vibe3d_open_editor', {}));
+    const view = jsonOf(await runtime.call('vibe3d_open_editor', { room_id: 'r_0000000c' }));
     expect(view.state).toBe('not_connected');
     expect(String(view.next)).toContain('vibe3d_render_snapshot');
   });
@@ -188,6 +194,62 @@ describe('ToolRuntime 会话绑定', () => {
     const params = (calls.at(-1) as Call).params as Record<string, unknown>;
     expect(params.width).toBe(640);
     expect(params.settleMs).toBe(120);
+  });
+
+  it('snapshot 返回体带上 fog / distanceToTarget / warning', async () => {
+    const { studio } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const shot = {
+      revision: 3,
+      mime: 'image/png',
+      base64: 'AAAA',
+      width: 64,
+      height: 64,
+      quality: 'standard',
+      fog: { enabled: true, color: 0xffffff, near: 1, far: 40, mode: 'doc' },
+      distanceToTarget: 55,
+      camera: { position: [0, 5, 55], target: [0, 0, 0] },
+      warning: '主体已在雾远端之外，画面会塌成雾色',
+    };
+    (studio as unknown as { room: unknown }).room = (roomId: string) => ({
+      id: roomId,
+      invoke: async () => shot,
+    });
+    const result = await runtime.call('vibe3d_render_snapshot', { width: 64, height: 64 });
+    const structured = result.structuredContent as Record<string, unknown>;
+    expect(structured.distanceToTarget).toBe(55);
+    expect((structured.fog as Record<string, unknown>).enabled).toBe(true);
+    expect(structured.warning).toContain('雾远端');
+    const text = JSON.parse((result.content[1] as { text: string }).text) as Record<string, unknown>;
+    expect(text.distanceToTarget).toBe(55);
+    expect((text.fog as Record<string, unknown>).far).toBe(40);
+    expect(text.warning).toContain('雾远端');
+    const texts = result.content.filter((c) => c.type === 'text') as Array<{ text: string }>;
+    expect(texts.some((c) => c.text.includes('⚠') && c.text.includes('雾远端'))).toBe(true);
+  });
+
+  it('snapshot 无 warning 时不追加告警 text', async () => {
+    const { studio } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const shot = {
+      revision: 3,
+      mime: 'image/png',
+      base64: 'AAAA',
+      width: 64,
+      height: 64,
+      fog: { enabled: false, color: 0xffffff, near: 0, far: 0, mode: 'off', reason: 'option' },
+      distanceToTarget: 12,
+      camera: { position: [0, 5, 12], target: [0, 0, 0] },
+      warning: null,
+    };
+    (studio as unknown as { room: unknown }).room = (roomId: string) => ({
+      id: roomId,
+      invoke: async () => shot,
+    });
+    const result = await runtime.call('vibe3d_render_snapshot', { width: 64, height: 64 });
+    const texts = result.content.filter((c) => c.type === 'text') as Array<{ text: string }>;
+    expect(texts).toHaveLength(1);
+    expect((result.structuredContent as Record<string, unknown>).distanceToTarget).toBe(12);
   });
 
   it('apply_ops 收到 JSON 字符串与字符串布尔时自动还原', async () => {
