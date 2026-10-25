@@ -32,6 +32,18 @@ export function defaultHome(): string {
   return process.env.VIBE3D_HOME ? resolve(process.env.VIBE3D_HOME) : join(homedir(), '.vibe3d');
 }
 
+export function countRooms(home: string): number {
+  const dir = join(home, 'rooms');
+  if (!existsSync(dir)) return 0;
+  return readdirSync(dir).filter((entry) => !entry.startsWith('.')).length;
+}
+
+export function startBudgetMs(roomCount: number, env: NodeJS.ProcessEnv = process.env): number {
+  const override = Number(env.VIBE3D_START_TIMEOUT_MS);
+  if (Number.isFinite(override) && override > 0) return override;
+  return Math.min(45_000, 15_000 + Math.max(0, roomCount) * 500);
+}
+
 export function listRuns(home = defaultHome()): RunRecord[] {
   const dir = join(home, 'run');
   if (!existsSync(dir)) return [];
@@ -114,7 +126,7 @@ export async function startDaemon(opts: ConnectOptions = {}): Promise<RunRecord>
   const args = [...loader, file, '--home', home, ...(opts.spawnArgs ?? [])];
   const child = spawn(process.execPath, args, { detached: true, stdio: 'ignore' });
   child.unref();
-  const deadline = Date.now() + 15_000;
+  const deadline = Date.now() + startBudgetMs(countRooms(home));
   while (Date.now() < deadline) {
     await delay(120);
     const run = listRuns(home).find((item) => item.pid === child.pid);

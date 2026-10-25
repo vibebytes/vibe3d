@@ -15,7 +15,7 @@ describe('runtime memo', () => {
 
   it('连接失败后下一次调用可重试', async () => {
     const factory = vi
-      .fn<[], Promise<string>>()
+      .fn<() => Promise<string>>()
       .mockRejectedValueOnce(new Error('E_NO_DAEMON'))
       .mockResolvedValueOnce('studio');
     const get = createMemoRuntime(factory);
@@ -38,7 +38,7 @@ describe('预热', () => {
 
   it('预热失败不产生未处理拒绝，后续仍可重试', async () => {
     const factory = vi
-      .fn<[], Promise<string>>()
+      .fn<() => Promise<string>>()
       .mockRejectedValueOnce(new Error('boot'))
       .mockResolvedValueOnce('studio');
     const get = createMemoRuntime(factory);
