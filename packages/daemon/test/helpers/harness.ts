@@ -8,6 +8,7 @@ import type { DispatchContext } from '../../src/context';
 import type { Logger } from '../../src/logger';
 import { RoomManager } from '../../src/rooms/manager';
 import { createApp } from '../../src/server';
+import type { WsHub } from '../../src/ws/hub';
 
 export function silentLogger(): Logger {
   const noop = (): void => undefined;
@@ -33,7 +34,9 @@ export interface Harness {
   token: string;
 }
 
-export function makeHarness(opts: { maxRooms?: number; persist?: boolean } = {}): Harness {
+export function makeHarness(
+  opts: { maxRooms?: number; persist?: boolean; hub?: WsHub } = {},
+): Harness {
   const root = mkdtempSync(join(tmpdir(), 'v3d-cov-'));
   const dirs = {
     rooms: join(root, 'rooms'),
@@ -72,6 +75,7 @@ export function makeHarness(opts: { maxRooms?: number; persist?: boolean } = {})
     logger,
     editorDir: dirs.editor,
     exportsDir: dirs.exports,
+    hub: opts.hub,
   });
   return { root, dirs, config, ctx, rooms, blobs, logger, app, token };
 }

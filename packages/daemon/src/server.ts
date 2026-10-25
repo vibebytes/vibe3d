@@ -8,6 +8,7 @@ import { hostGuard, requestId } from './http/middleware';
 import { type RouteDeps, mountRoutes, serveEditorAsset, serveVendorAsset } from './http/routes';
 import type { Logger } from './logger';
 import { ThumbsStore } from './thumbs';
+import type { WsHub } from './ws/hub';
 
 export interface AppDeps {
   config: Config;
@@ -16,6 +17,7 @@ export interface AppDeps {
   logger: Logger;
   editorDir: string;
   exportsDir: string;
+  hub?: WsHub;
 }
 
 function json(body: unknown, status: number): Response {
@@ -42,6 +44,7 @@ export function createApp(deps: AppDeps): Hono {
     editorDir: deps.editorDir,
     exportsDir: deps.exportsDir,
     limits: { rate: deps.config.rateLimit, burst: deps.config.rateBurst },
+    hub: deps.hub,
   };
   mountRoutes(app, routes);
 

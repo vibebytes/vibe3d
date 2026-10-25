@@ -18,6 +18,12 @@ export const configSchema = z.object({
   renderer: z.enum(['auto', 'none', 'chromium', 'editor']).default('auto'),
   chromePath: z.string().optional(),
   renderTimeoutMs: z.coerce.number().int().min(1000).max(120_000).default(20_000),
+  wsMaxPayloadBytes: z.coerce
+    .number()
+    .int()
+    .min(1024 * 1024)
+    .max(64 * 1024 * 1024)
+    .default(16 * 1024 * 1024),
   openEditor: z.boolean().default(true),
   logLevel: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
 });
@@ -65,6 +71,7 @@ export function parseConfig(argv: string[], env: NodeJS.ProcessEnv = process.env
     renderer: flags.renderer ?? env.VIBE3D_RENDERER,
     chromePath: flags.chrome ?? env.VIBE3D_CHROME,
     renderTimeoutMs: flags['render-timeout'] ?? env.VIBE3D_RENDER_TIMEOUT,
+    wsMaxPayloadBytes: flags['ws-max-payload'] ?? env.VIBE3D_WS_MAX_PAYLOAD,
     openEditor:
       flags['open-editor'] === true
         ? true

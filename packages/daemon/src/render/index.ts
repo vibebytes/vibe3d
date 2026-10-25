@@ -6,7 +6,15 @@ import type { WsHub } from '../ws/hub';
 import { ChromiumRenderer } from './chromium';
 import { EditorRenderer } from './editor';
 
-class AutoRenderer implements Renderer {
+function fallbackCode(err: unknown): string {
+  if (err instanceof AppError) {
+    if (err.code === 'E_PAYLOAD_TOO_LARGE') return err.code;
+    return /超时|timeout/i.test(err.message) ? 'E_SNAPSHOT_TIMEOUT' : err.code;
+  }
+  return /超时|timeout/i.test(String(err)) ? 'E_SNAPSHOT_TIMEOUT' : 'E_RENDER_UNAVAILABLE';
+}
+
+export class AutoRenderer implements Renderer {
   readonly name = 'auto';
 
   constructor(
@@ -26,11 +34,25 @@ class AutoRenderer implements Renderer {
 
   async snapshot(input: Parameters<Renderer['snapshot']>[0], opts: Parameters<Renderer['snapshot']>[1]) {
     if (this.hub.count(input.roomId) > 0) {
+      const started = Date.now();
       try {
-        return await this.editor.snapshot(input, opts);
+        const shot = await this.editor.snapshot(input, opts);
+        this.logger.debug({
+          event: 'renderer.snapshot',
+          renderer: 'editor',
+          bytes: shot.base64.length,
+          elapsedMs: Date.now() - started,
+        });
+        return shot;
       } catch (err) {
-        this.logger.warn({ event: 'renderer.editor_fallback', err: String(err) });
-        if (!this.chromium.ready) throw err;
+        const code = fallbackCode(err);
+        this.logger.warn({
+          event: 'renderer.editor_fallback',
+          code,
+          elapsedMs: Date.now() - started,
+          err: String(err),
+        });
+        if (code === 'E_PAYLOAD_TOO_LARGE' || !this.chromium.ready) throw err;
       }
     }
     return this.chromium.snapshot(input, opts);

@@ -1,6 +1,6 @@
 import { useThree } from '@react-three/fiber';
-import { type QualityPreset } from '@vibebyte/vibe3d-scene';
 import type { CameraState } from '@vibebyte/vibe3d-protocol';
+import type { QualityPreset } from '@vibebyte/vibe3d-scene';
 import { useEffect } from 'react';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
@@ -10,15 +10,10 @@ import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three
 import { applyFxAt } from '../three/fx';
 import { applyIdMaterials } from '../three/id-pass-materials';
 import { missingModelIds } from '../three/model-ready';
-import {
-  addOverlays,
-  applyHighlight,
-  applyIsolate,
-  applyShading,
-  shadingNeedsShadows,
-} from './capture-look';
-import { applyShadowResolution, qualityOf } from './capture-quality';
+import { alphaRendererCache, alphaRendererOptions } from './alpha-cache';
+import { addOverlays, applyHighlight, applyIsolate, applyShading, shadingNeedsShadows } from './capture-look';
 import type { OverlayKind, ShadingMode } from './capture-look';
+import { applyShadowResolution, qualityOf, resolveCaptureSize } from './capture-quality';
 
 export type { OverlayKind, ShadingMode } from './capture-look';
 
@@ -97,6 +92,20 @@ function pendingModels(root: THREE.Object3D, nodeIds?: string[] | null): string[
   return missingModelIds(useDoc.getState().doc, present, nodeIds);
 }
 
+const alphaPools = new Map<boolean, ReturnType<typeof alphaRendererCache<THREE.WebGLRenderer>>>();
+
+function alphaPool(antialias: boolean) {
+  let pool = alphaPools.get(antialias);
+  if (!pool) {
+    pool = alphaRendererCache(
+      () => new THREE.WebGLRenderer(alphaRendererOptions(antialias ? 1 : 0)),
+      (renderer) => renderer.dispose(),
+    );
+    alphaPools.set(antialias, pool);
+  }
+  return pool;
+}
+
 function captureFrame(
   gl: THREE.WebGLRenderer,
   scene: THREE.Scene,
@@ -104,11 +113,13 @@ function captureFrame(
   viewport: Size,
   opts: CaptureOptions = {},
 ): CaptureResult {
-  const width = clamp(opts.width ?? viewport.width, 64, 4096);
-  const height = clamp(opts.height ?? viewport.height, 64, 4096);
   const format = opts.format === 'jpeg' ? 'jpeg' : 'png';
   const mime = `image/${format}`;
   const quality = format === 'jpeg' ? 0.9 : undefined;
+  const preset = qualityOf(opts.quality);
+  const { width, height } = resolveCaptureSize({ width: opts.width, height: opts.height }, viewport, {
+    ratio: preset.pixelRatio,
+  });
   if (typeof opts.at === 'number') animations.seekAll(opts.at);
 
   const doc = useDoc.getState().doc;
@@ -158,7 +169,6 @@ function captureFrame(
   const clearOverlays = addOverlays(scene, opts.overlay, scope);
   const restoreHighlight = applyHighlight(scene, opts.highlight);
   const restoreIsolate = applyIsolate(scene, opts.isolate);
-  const preset = qualityOf(opts.quality);
   const restoreShadow = applyShadowResolution(scene, preset.shadowMapSize);
   const shadowsForced = shadingNeedsShadows(opts.shading) && !gl.shadowMap.enabled;
   if (shadowsForced) gl.shadowMap.enabled = true;
@@ -173,11 +183,7 @@ function captureFrame(
 
   let dataUrl: string;
   if (opts.transparent) {
-    const alphaRenderer = new THREE.WebGLRenderer({
-      antialias: preset.samples > 0,
-      alpha: true,
-      preserveDrawingBuffer: true,
-    });
+    const alphaRenderer = alphaPool(preset.samples > 0).get();
     alphaRenderer.setPixelRatio(preset.pixelRatio);
     alphaRenderer.setSize(width, height, false);
     alphaRenderer.shadowMap.enabled = gl.shadowMap.enabled;
@@ -197,8 +203,6 @@ function captureFrame(
       restoreLook();
       restoreAspect();
       restoreCamera();
-      alphaRenderer.dispose();
-      alphaRenderer.forceContextLoss();
     }
   } else {
     const prevRatio = gl.getPixelRatio();

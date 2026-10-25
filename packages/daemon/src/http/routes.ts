@@ -2,7 +2,7 @@ import { createReadStream, statSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { CAPABILITIES, type CapabilityName } from '@vibebyte/vibe3d-capabilities';
-import { AppError, type RoomId } from '@vibebyte/vibe3d-protocol';
+import { AppError, type RoomId, isRoomId } from '@vibebyte/vibe3d-protocol';
 import type { Context, Hono } from 'hono';
 import type { BlobStore } from '../assets/blobstore';
 import { parseGltf } from '../assets/gltf-parse';
@@ -14,6 +14,7 @@ import { toRpcFailure } from './errors';
 import { EXPORT_FILE_RE, exportMime, verifyExportSig } from './export-url';
 import { TOKEN_COOKIE, bodyLimit, requireBearer, requireSurfaceToken, tokenMatches } from './middleware';
 import { rateLimiter } from './ratelimit';
+import type { WsHub } from '../ws/hub';
 
 export interface RouteDeps {
   ctx: DispatchContext;
@@ -23,6 +24,7 @@ export interface RouteDeps {
   editorDir: string;
   exportsDir: string;
   limits: { rate: number; burst: number };
+  hub?: WsHub;
 }
 
 interface Envelope {
@@ -132,6 +134,22 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
   app.post('/r/:roomId/rpc', requireBearer(token), rateLimit, bodyLimit(8 * 1024 * 1024), (c) =>
     rpc('data', deps, c.req.param('roomId'))(c),
   );
+
+  app.post('/r/:roomId/snapshot/:requestId', requireBearer(token), bodyLimit(64 * 1024 * 1024), async (c) => {
+    const roomId = c.req.param('roomId');
+    const requestId = c.req.param('requestId');
+    if (!isRoomId(roomId)) throw new AppError('E_INVALID_PARAMS', 'roomId 非法');
+    const hub = deps.hub;
+    if (!hub) throw new AppError('E_RENDER_UNAVAILABLE', '快照上传通道未就绪');
+    const bytes = new Uint8Array(await c.req.arrayBuffer());
+    if (bytes.length === 0) throw new AppError('E_INVALID_PARAMS', '快照内容为空');
+    const mime = c.req.header('content-type') ?? 'image/png';
+    if (!hub.resolveSnapshotUpload(requestId, { bytes, mime })) {
+      throw new AppError('E_INVALID_PARAMS', '快照请求已过期');
+    }
+    deps.logger.debug({ event: 'snapshot.upload', roomId, requestId, bytes: bytes.length });
+    return writeJson({ ok: true, bytes: bytes.length });
+  });
 
   app.post('/r/:roomId/assets', requireBearer(token), bodyLimit(64 * 1024 * 1024), async (c) => {
     const room = ctx.rooms.get(c.req.param('roomId'));

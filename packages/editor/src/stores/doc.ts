@@ -15,6 +15,7 @@ import { create } from 'zustand';
 import { splitFiles } from '../lib/asset-files';
 import { fitTransform, importName, isGltfFile, rowOffset } from '../lib/import-model';
 import { rpc } from '../lib/rpc';
+import { base64ToBytes, fitsMaxBytes, shrinkCapture, uploadSnapshot } from '../lib/snapshot-upload';
 import { uploadGltf, uploadImage } from '../lib/upload';
 import { type RoomSocket, connectRoom } from '../lib/ws';
 import type {
@@ -153,7 +154,7 @@ export const useDoc = create<DocStore>((set, get) => ({
       set({ doc, status: 'ready' });
       const socket = connectRoom(
         roomId,
-        (evt) => {
+        async (evt) => {
           if (evt.event === 'scene.changed') void get().refresh();
           if (evt.event === 'snapshot.request') {
             const requestId = typeof evt.data.requestId === 'string' ? evt.data.requestId : null;
@@ -175,10 +176,9 @@ export const useDoc = create<DocStore>((set, get) => ({
             const highlight = ids('highlight');
             const isolate = ids('isolate');
             try {
-              const shot = window.__vibe3dCapture?.({
-                width: num('width'),
-                height: num('height'),
-                format: evt.data.format === 'jpeg' ? 'jpeg' : 'png',
+              const maxBytes = num('maxBytes');
+              const base = {
+                format: evt.data.format === 'jpeg' ? ('jpeg' as const) : ('png' as const),
                 at: num('at'),
                 transparent: evt.data.transparent === true,
                 camera: parseSnapshotCamera(evt.data.camera),
@@ -186,19 +186,46 @@ export const useDoc = create<DocStore>((set, get) => ({
                 overlay: overlay && overlay.length > 0 ? overlay : undefined,
                 highlight: highlight && highlight.length > 0 ? highlight : undefined,
                 isolate: isolate && isolate.length > 0 ? isolate : undefined,
+              };
+              let shot = window.__vibe3dCapture?.({
+                ...base,
+                width: num('width'),
+                height: num('height'),
               });
-              if (shot) {
+              for (let attempt = 0; attempt < 2 && shot; attempt += 1) {
+                if (fitsMaxBytes(shot.base64.length, maxBytes)) break;
+                const smaller = shrinkCapture(shot.width, shot.height);
+                shot = window.__vibe3dCapture?.({
+                  ...base,
+                  width: smaller.width,
+                  height: smaller.height,
+                });
+              }
+              if (!shot) {
+                get().socket?.send({ type: 'snapshot.result', requestId, error: 'capture unavailable' });
+                return;
+              }
+              if (!fitsMaxBytes(shot.base64.length, maxBytes)) {
                 get().socket?.send({
                   type: 'snapshot.result',
                   requestId,
-                  png: shot.base64,
-                  mime: shot.mime,
-                  width: shot.width,
-                  height: shot.height,
+                  error: 'snapshot 超出大小预算',
+                  code: 'E_SNAPSHOT_TOO_LARGE',
+                  bytes: shot.base64.length,
                 });
-              } else {
-                get().socket?.send({ type: 'snapshot.result', requestId, error: 'capture unavailable' });
+                return;
               }
+              const mime = shot.mime || (base.format === 'jpeg' ? 'image/jpeg' : 'image/png');
+              const bytes = await uploadSnapshot(roomId, requestId, base64ToBytes(shot.base64), mime);
+              get().socket?.send({
+                type: 'snapshot.result',
+                requestId,
+                uploaded: true,
+                mime,
+                width: shot.width,
+                height: shot.height,
+                bytes,
+              });
             } catch (err) {
               const message = err instanceof Error ? err.message : String(err);
               get().socket?.send({ type: 'snapshot.result', requestId, error: message });

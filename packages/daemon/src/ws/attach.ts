@@ -14,6 +14,7 @@ export interface WsDeps {
   token: string;
   hub: WsHub;
   logger: Logger;
+  maxPayloadBytes?: number;
   onClientFrame?: (roomId: string, socket: WebSocket, frame: unknown) => void;
 }
 
@@ -31,8 +32,15 @@ function reject(socket: Duplex, status: number, reason: string): void {
   socket.destroy();
 }
 
+export const DEFAULT_WS_MAX_PAYLOAD_BYTES = 16 * 1024 * 1024;
+
+function isPayloadOverflow(err: unknown): boolean {
+  return err instanceof RangeError && /max payload/i.test(err.message);
+}
+
 export function attachWebSocket(deps: WsDeps): WebSocketServer {
-  const wss = new WebSocketServer({ noServer: true, maxPayload: 1024 * 1024 });
+  const maxPayload = deps.maxPayloadBytes ?? DEFAULT_WS_MAX_PAYLOAD_BYTES;
+  const wss = new WebSocketServer({ noServer: true, maxPayload });
 
   deps.server.on('upgrade', (req: IncomingMessage, socket: Duplex, head: Buffer) => {
     const url = new URL(req.url ?? '/', 'http://127.0.0.1');
@@ -73,10 +81,12 @@ export function attachWebSocket(deps: WsDeps): WebSocketServer {
           return;
         }
         if (frame.type === 'snapshot.result') {
+          if (frame.uploaded) return;
           deps.hub.resolveSnapshot(
             frame.requestId,
             { base64: frame.png, mime: frame.mime, width: frame.width, height: frame.height },
             frame.error,
+            frame.code,
           );
           return;
         }
@@ -87,7 +97,15 @@ export function attachWebSocket(deps: WsDeps): WebSocketServer {
         deps.hub.remove(client);
         deps.logger.debug({ event: 'ws.close', roomId });
       });
-      ws.on('error', (err) => deps.logger.warn({ event: 'ws.error', roomId, err: String(err) }));
+      ws.on('error', (err) =>
+        deps.logger.warn({
+          event: 'ws.error',
+          roomId,
+          code: isPayloadOverflow(err) ? 'E_WS_PAYLOAD' : 'E_WS_SOCKET',
+          limit: maxPayload,
+          err: String(err),
+        }),
+      );
     });
   });
 

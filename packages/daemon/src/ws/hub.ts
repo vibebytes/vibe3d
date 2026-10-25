@@ -1,5 +1,6 @@
+import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
-import type { CameraState } from '@vibebyte/vibe3d-protocol';
+import { AppError, type CameraState } from '@vibebyte/vibe3d-protocol';
 import type { OverlayKind, ShadingMode } from '../context';
 import { type ServerFrame, encodeFrame } from './protocol';
 
@@ -38,6 +39,11 @@ const MAX_BUFFER_BYTES = 4 * 1024 * 1024;
 
 export class WsHub {
   private readonly rooms = new Map<string, Set<HubClient>>();
+  private readonly maxSnapshotBytes: number;
+
+  constructor(opts: { maxSnapshotBytes?: number } = {}) {
+    this.maxSnapshotBytes = opts.maxSnapshotBytes ?? 16 * 1024 * 1024 - 256 * 1024;
+  }
   private readonly waiters = new Map<
     string,
     {
@@ -118,13 +124,37 @@ export class WsHub {
     });
   }
 
+  resolveSnapshotUpload(
+    requestId: string,
+    upload: { bytes: Uint8Array; mime?: string; width?: number; height?: number },
+  ): boolean {
+    const waiter = this.waiters.get(requestId);
+    if (!waiter) return false;
+    this.resolveSnapshot(requestId, {
+      base64: Buffer.from(upload.bytes).toString('base64'),
+      mime: upload.mime,
+      width: upload.width,
+      height: upload.height,
+    });
+    return true;
+  }
+
   resolveSnapshot(
     requestId: string,
     capture?: { base64?: string; mime?: string; width?: number; height?: number },
     error?: string,
+    code?: string,
   ): void {
     const waiter = this.waiters.get(requestId);
     if (!waiter) return;
+    if (code === 'E_SNAPSHOT_TOO_LARGE') {
+      this.waiters.delete(requestId);
+      clearTimeout(waiter.timer);
+      waiter.reject(
+        new AppError('E_PAYLOAD_TOO_LARGE', 'editor 快照超出上限：请降低画幅、质量或改用透明档', { code }),
+      );
+      return;
+    }
     const failure = error ?? (capture?.base64 ? undefined : 'editor 快照失败');
     if (failure) {
       waiter.index += 1;
@@ -148,7 +178,11 @@ export class WsHub {
     const target = waiter.candidates[waiter.index];
     if (!target) return;
     target.socket.send(
-      encodeFrame({ type: 'event', event: 'snapshot.request', data: { requestId, ...opts } }),
+      encodeFrame({
+        type: 'event',
+        event: 'snapshot.request',
+        data: { requestId, maxBytes: this.maxSnapshotBytes, ...opts },
+      }),
     );
   }
 

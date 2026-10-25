@@ -44,7 +44,7 @@ async function main(): Promise<void> {
 
   const release = config.persist ? acquireLock(config.home) : () => undefined;
   const blobs = new BlobStore(dirs.blobs);
-  const hub = new WsHub();
+  const hub = new WsHub({ maxSnapshotBytes: config.wsMaxPayloadBytes - 256 * 1024 });
 
   const rooms = new RoomManager({
     maxRooms: config.maxRooms,
@@ -110,7 +110,15 @@ async function main(): Promise<void> {
     exportsDir: dirs.exports,
   });
 
-  const app = createApp({ config, ctx, blobs, logger, editorDir: EDITOR_DIST, exportsDir: dirs.exports });
+  const app = createApp({
+    config,
+    ctx,
+    blobs,
+    logger,
+    editorDir: EDITOR_DIST,
+    exportsDir: dirs.exports,
+    hub,
+  });
   const jobSweep = setInterval(() => {
     jobStore.sweep();
     void sweepExports(dirs.exports)
@@ -153,7 +161,14 @@ async function main(): Promise<void> {
         }),
         { mode: 0o600 },
       );
-      wss = attachWebSocket({ server, ctx, token: config.token, hub, logger });
+      wss = attachWebSocket({
+        server,
+        ctx,
+        token: config.token,
+        hub,
+        logger,
+        maxPayloadBytes: config.wsMaxPayloadBytes,
+      });
       logger.info({
         event: 'listening',
         port,

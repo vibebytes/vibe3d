@@ -2,6 +2,29 @@ import { AppError } from '@vibebyte/vibe3d-protocol';
 import type { RenderInput, Renderer, Snapshot, SnapshotOptions } from '../context';
 import type { WsHub } from '../ws/hub';
 
+export const DEFAULT_SNAPSHOT_TIMEOUT_MS = 5_000;
+
+const MEGAPIXEL = 1_000_000;
+const PER_MEGAPIXEL_MS = 2_000;
+const MAX_SNAPSHOT_TIMEOUT_MS = 30_000;
+const MAX_SNAPSHOT_PIXELS = 4_000_000;
+
+export function snapshotAreaPixels(width = 1280, height = 720, pixelRatio = 1): number {
+  const ratio = Number.isFinite(pixelRatio) && pixelRatio > 0 ? pixelRatio : 1;
+  return Math.min(MAX_SNAPSHOT_PIXELS, Math.round(width * height * ratio * ratio));
+}
+
+export function snapshotTimeoutMs(
+  areaPixels: number,
+  opts: { baseMs?: number; perMegapixelMs?: number; capMs?: number } = {},
+): number {
+  const base = opts.baseMs ?? DEFAULT_SNAPSHOT_TIMEOUT_MS;
+  const per = opts.perMegapixelMs ?? PER_MEGAPIXEL_MS;
+  const cap = opts.capMs ?? MAX_SNAPSHOT_TIMEOUT_MS;
+  const area = Number.isFinite(areaPixels) && areaPixels > 0 ? areaPixels : 0;
+  return Math.min(cap, Math.round(base + (area / MEGAPIXEL) * per));
+}
+
 function pngSize(base64: string): { width: number; height: number } | null {
   const bytes = Buffer.from(base64.slice(0, 64), 'base64');
   if (bytes.length < 24 || bytes.readUInt32BE(0) !== 0x89504e47) return null;
@@ -28,6 +51,8 @@ export class EditorRenderer implements Renderer {
     const settleMs = opts.settleMs ?? 0;
     if (settleMs > 0) await new Promise((resolve) => setTimeout(resolve, settleMs));
     const format = opts.format ?? 'png';
+    const area = snapshotAreaPixels(opts.width, opts.height, opts.quality?.pixelRatio);
+    const budgetMs = Math.max(this.timeoutMs, snapshotTimeoutMs(area));
     let shot: { base64: string; mime?: string; width?: number; height?: number };
     try {
       shot = await this.hub.requestSnapshot(
@@ -44,9 +69,10 @@ export class EditorRenderer implements Renderer {
           highlight: opts.highlight,
           isolate: opts.isolate,
         },
-        this.timeoutMs + settleMs,
+        budgetMs + settleMs,
       );
     } catch (err) {
+      if (err instanceof AppError) throw err;
       throw new AppError('E_RENDER_UNAVAILABLE', `editor 快照失败：${String(err)}`);
     }
     const size =
