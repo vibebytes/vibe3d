@@ -31,7 +31,7 @@ export const transformPatchSchema = z.object({
   s: z.tuple([nonZeroScale, nonZeroScale, nonZeroScale]).optional(),
 });
 
-const segments = z.number().int().min(3).max(128);
+const segments = z.number().int().min(3).max(128).default(32);
 
 export const bakedGeometrySchema = z.object({
   type: z.literal('baked'),
@@ -151,6 +151,8 @@ export const materialSchema = z.object({
   doubleSided: z.boolean(),
   map: materialMapSchema.optional(),
 });
+
+export const materialPatchSchema = materialSchema.partial().extend({ color: rgba.optional() });
 
 export const assetImageSchema = z.object({
   width: z.number().int().min(0),

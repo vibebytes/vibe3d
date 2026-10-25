@@ -159,10 +159,73 @@ describe('material.create', () => {
     expect(doc.materials[body.result.materialId].roughness).toBe(0.42);
   });
 
-  it('rejects an unknown preset', async () => {
+  it('maps an unknown preset instead of rejecting it', async () => {
     const h = makeHarness();
     const { roomId } = await roomWithBox(h);
     const { body } = await call(h, 'material.create', { roomId, preset: 'lava' }, roomId);
-    expect(body.error).toBeDefined();
+    expect(body.error).toBeUndefined();
+    expect(body.result.preset).toBe('concrete');
+    expect(body.result.presetNote).toContain('lava');
+  });
+
+  it('accepts matte-white and returns a light material', async () => {
+    const h = makeHarness();
+    const { roomId } = await roomWithBox(h);
+    const { body } = await call(h, 'material.create', { roomId, preset: 'matte-white' }, roomId);
+    expect(body.error).toBeUndefined();
+    expect(body.result.preset).toBe('concrete');
+    const doc = (await call(h, 'scene.get', { roomId }, roomId)).body.result.doc;
+    expect(doc.materials[body.result.materialId].baseColor[0]).toBeGreaterThan(0.8);
+  });
+});
+
+describe('material.patch color alias', () => {
+  it('writes baseColor when the caller says color', async () => {
+    const h = makeHarness();
+    const { roomId, materialId } = await roomWithBox(h);
+    const { body } = await call(
+      h,
+      'material.patch',
+      { roomId, materialId, patch: { color: [1, 0, 0, 1] } },
+      roomId,
+    );
+    expect(body.error).toBeUndefined();
+    const after = (await call(h, 'scene.get', { roomId }, roomId)).body.result.doc.materials[materialId];
+    expect(after.baseColor).toEqual([1, 0, 0, 1]);
+    expect(after).not.toHaveProperty('color');
+  });
+});
+
+describe('node.create without material', () => {
+  it('creates a default material instead of failing', async () => {
+    const h = makeHarness();
+    const room = await call(h, 'room.create', { name: '无材质' });
+    const roomId = room.body.result.roomId;
+    const { body } = await call(
+      h,
+      'ops.apply',
+      {
+        roomId,
+        ops: [
+          {
+            op: 'node.create',
+            node: {
+              kind: 'mesh',
+              name: 'box',
+              parent: null,
+              visible: true,
+              geometry: { type: 'box', size: [1, 1, 1] },
+              transform: { p: [0, 0.5, 0], r: [0, 0, 0], s: [1, 1, 1] },
+            },
+          },
+        ],
+      },
+      roomId,
+    );
+    expect(body.error).toBeUndefined();
+    expect(body.result.warnings.join(' ')).toContain('默认材质');
+    const doc = (await call(h, 'scene.get', { roomId }, roomId)).body.result.doc;
+    const nodeId = body.result.assigned[0].id;
+    expect(doc.materials[doc.nodes[nodeId].material]).toBeDefined();
   });
 });

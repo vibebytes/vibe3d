@@ -135,13 +135,16 @@ describe('validateDoc 资产引用（G1）', () => {
     expect(code(() => validateDoc(doc))).toBe('E_ASSET_TYPE');
   });
 
-  it('env.hdri 必须是 HDRI 资产', () => {
+  it('env.hdri 接受任意图片资产（含等距柱状 png）', () => {
     const doc = cubeDoc();
     doc.env.hdri = SHA_A;
     doc.assets[SHA_A] = imageAsset(SHA_A);
-    expect(code(() => validateDoc(doc))).toBe('E_ASSET_TYPE');
+    expect(() => validateDoc(doc)).not.toThrow();
     doc.assets[SHA_A] = imageAsset(SHA_A, true);
     expect(() => validateDoc(doc)).not.toThrow();
+    doc.assets[SHA_A] = { ...imageAsset(SHA_A), kind: 'gltf' };
+    expect(code(() => validateDoc(doc))).toBe('E_ASSET_TYPE');
+    doc.assets[SHA_A] = imageAsset(SHA_A);
     delete doc.env.hdri;
     expect(() => validateDoc(doc)).not.toThrow();
   });

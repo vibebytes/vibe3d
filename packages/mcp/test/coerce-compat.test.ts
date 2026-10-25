@@ -76,3 +76,34 @@ describe('default filling', () => {
     expect(node.visible).toBe(true);
   });
 });
+
+describe('host stringified scalars', () => {
+  it('accepts the string false for env.set fog', () => {
+    const data = ok<{ fog?: unknown }>(parse('env.set', { roomId: 'r_0000000a', fog: 'false' }));
+    expect(data.fog).toBe(false);
+  });
+
+  it('accepts the string null for env.set fog', () => {
+    const data = ok<{ fog?: unknown }>(parse('env.set', { roomId: 'r_0000000a', fog: 'null' }));
+    expect(data.fog).toBeNull();
+  });
+
+  it('accepts the string true for a boolean capability flag', () => {
+    const data = ok<{ transparent?: boolean }>(
+      parse('render.snapshot', { roomId: 'r_0000000a', transparent: 'true' }),
+    );
+    expect(data.transparent).toBe(true);
+  });
+
+  it('coerces stringified booleans and nulls inside apply_ops patches', () => {
+    const data = ok<{ ops: Array<{ node?: Record<string, unknown>; patch?: Record<string, unknown> }> }>(
+      parse('ops.apply', {
+        roomId: 'r_0000000a',
+        ops: [
+          { op: 'node.update', id: 'n_0000000a', patch: { visible: 'false', tags: 'null' } },
+        ],
+      }),
+    );
+    expect(data.ops[0]!.patch).toMatchObject({ visible: false, tags: null });
+  });
+});

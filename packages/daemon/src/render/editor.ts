@@ -53,7 +53,13 @@ export class EditorRenderer implements Renderer {
     const format = opts.format ?? 'png';
     const area = snapshotAreaPixels(opts.width, opts.height, opts.quality?.pixelRatio);
     const budgetMs = Math.max(this.timeoutMs, snapshotTimeoutMs(area));
-    let shot: { base64: string; mime?: string; width?: number; height?: number };
+    let shot: {
+      base64: string;
+      mime?: string;
+      width?: number;
+      height?: number;
+      meta?: Snapshot['meta'];
+    };
     try {
       shot = await this.hub.requestSnapshot(
         input.roomId,
@@ -68,6 +74,7 @@ export class EditorRenderer implements Renderer {
           overlay: opts.overlay,
           highlight: opts.highlight,
           isolate: opts.isolate,
+          fog: opts.fog,
         },
         budgetMs + settleMs,
       );
@@ -79,7 +86,12 @@ export class EditorRenderer implements Renderer {
       shot.width && shot.height
         ? { width: shot.width, height: shot.height }
         : (pngSize(shot.base64) ?? { width: opts.width ?? 1280, height: opts.height ?? 720 });
-    return { mime: shot.mime ?? `image/${format}`, base64: shot.base64, ...size };
+    return {
+      mime: shot.mime ?? `image/${format}`,
+      base64: shot.base64,
+      ...size,
+      ...(shot.meta ? { meta: shot.meta } : {}),
+    };
   }
 
   async exportGlb(): Promise<{ jobId: string; url: string; bytes: number }> {

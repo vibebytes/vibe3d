@@ -1,6 +1,7 @@
 import type { IncomingMessage, Server } from 'node:http';
 import type { Duplex } from 'node:stream';
 import { AppError, PROTOCOL_VERSION, isRoomId } from '@vibebyte/vibe3d-protocol';
+import { parseShotMeta } from '@vibebyte/vibe3d-scene';
 import { type WebSocket, WebSocketServer } from 'ws';
 import type { DispatchContext } from '../context';
 import { TOKEN_COOKIE, tokenMatches } from '../http/middleware';
@@ -33,6 +34,17 @@ function reject(socket: Duplex, status: number, reason: string): void {
 }
 
 export const DEFAULT_WS_MAX_PAYLOAD_BYTES = 16 * 1024 * 1024;
+const CLIENT_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+
+function readClientId(url: URL): string | undefined {
+  const raw = url.searchParams.get('clientId') ?? '';
+  return CLIENT_ID_PATTERN.test(raw) ? raw : undefined;
+}
+
+function readHeadless(url: URL): boolean {
+  const raw = url.searchParams.get('headless');
+  return raw === '1' || raw === 'true';
+}
 
 function isPayloadOverflow(err: unknown): boolean {
   return err instanceof RangeError && /max payload/i.test(err.message);
@@ -61,7 +73,10 @@ export function attachWebSocket(deps: WsDeps): WebSocketServer {
     }
 
     wss.handleUpgrade(req, socket, head, (ws) => {
-      const client = deps.hub.add(roomId, ws);
+      const client = deps.hub.add(roomId, ws, {
+        clientId: readClientId(url),
+        headless: readHeadless(url),
+      });
       ws.send(
         encodeFrame({
           type: 'hello',
@@ -74,8 +89,10 @@ export function attachWebSocket(deps: WsDeps): WebSocketServer {
       deps.logger.debug({ event: 'ws.open', roomId });
 
       ws.on('message', (raw) => {
+        deps.hub.touch(client);
         const frame = decodeClientFrame(raw.toString());
         if (!frame) return;
+        if (frame.type === 'pong') return;
         if (frame.type === 'ping') {
           ws.send(encodeFrame({ type: 'pong', t: frame.t ?? Date.now() }));
           return;
@@ -84,7 +101,13 @@ export function attachWebSocket(deps: WsDeps): WebSocketServer {
           if (frame.uploaded) return;
           deps.hub.resolveSnapshot(
             frame.requestId,
-            { base64: frame.png, mime: frame.mime, width: frame.width, height: frame.height },
+            {
+              base64: frame.png,
+              mime: frame.mime,
+              width: frame.width,
+              height: frame.height,
+              meta: parseShotMeta(frame.meta) ?? undefined,
+            },
             frame.error,
             frame.code,
           );

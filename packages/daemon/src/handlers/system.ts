@@ -29,6 +29,8 @@ export const systemHandlers: HandlersFor<Keys> = {
         snapshotTimeoutMs: MAX_SNAPSHOT_TIMEOUT_MS,
         wsPayloadBytes: DEFAULT_WS_MAX_PAYLOAD_BYTES,
       },
+      schemaUrl: '/api/mcp/schema',
+      repairStatsUrl: '/api/mcp/repair-stats',
       notes,
     };
   },

@@ -27,6 +27,7 @@ import {
   pickNode,
   queryNodes,
   relativeTransform,
+  resolveMaterialPreset,
   sceneStats,
   subtreeIds,
   validateScene,
@@ -658,12 +659,13 @@ export const sceneHandlers: HandlersFor<Keys> = {
 
   'env.set': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    const { roomId: _roomId, hdriSrc, policy, ...env } = p;
+    const { roomId: _roomId, hdriSrc, policy, fog, ...rest } = p;
+    const env = { ...rest, ...(fog === undefined ? {} : { fog: fog === false ? null : fog }) };
     const ops: Op[] = [];
     if (hdriSrc) {
-      const { meta } = await ctx.ingest(hdriSrc, policy);
-      if (meta.kind !== 'image' || !meta.image?.hdri) {
-        throw new AppError('E_ASSET_TYPE', `hdriSrc 只接受 .hdr / .exr：${meta.name}`, {
+      const { meta } = await ctx.ingest(hdriSrc, policy, { hdri: true });
+      if (meta.kind !== 'image') {
+        throw new AppError('E_ASSET_TYPE', `hdriSrc 只接受图片：${meta.name}`, {
           sha: meta.sha,
         });
       }
@@ -678,10 +680,18 @@ export const sceneHandlers: HandlersFor<Keys> = {
   'material.create': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     const materialId = makeMaterialId();
+    const resolved = resolveMaterialPreset(p.preset, p.params);
     const result = await room.run(() =>
-      room.apply([{ op: 'material.create', id: materialId, preset: p.preset, params: p.params }]),
+      room.apply([
+        { op: 'material.create', id: materialId, preset: resolved.preset, params: resolved.params },
+      ]),
     );
-    return { revision: result.revision, materialId };
+    return {
+      revision: result.revision,
+      materialId,
+      preset: resolved.preset,
+      ...(resolved.note ? { presetNote: resolved.note } : {}),
+    };
   },
 
   'material.patch': async (p, ctx) => {

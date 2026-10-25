@@ -8,18 +8,19 @@ export interface ImageInfo {
 
 const truncated = (ext: string) => new AppError('E_ASSET_FORMAT', `${ext} 内容截断，无法读取尺寸`, { ext });
 
-export function readImageInfo(bytes: Buffer, ext: string): ImageInfo {
+export function readImageInfo(bytes: Buffer, ext: string, opts: { hdri?: boolean } = {}): ImageInfo {
+  const equirect = opts.hdri === true;
   switch (ext) {
     case '.png':
-      return { ...pngSize(bytes), hdri: false };
+      return { ...pngSize(bytes), hdri: equirect };
     case '.jpg':
     case '.jpeg':
-      return { ...jpegSize(bytes), hdri: false };
+      return { ...jpegSize(bytes), hdri: equirect };
     case '.webp':
-      return { ...webpSize(bytes), hdri: false };
+      return { ...webpSize(bytes), hdri: equirect };
     case '.ktx2':
       if (bytes.length < 28) throw truncated(ext);
-      return { width: bytes.readUInt32LE(20), height: bytes.readUInt32LE(24), hdri: false };
+      return { width: bytes.readUInt32LE(20), height: bytes.readUInt32LE(24), hdri: equirect };
     case '.hdr':
     case '.exr':
       return { width: 0, height: 0, hdri: true };

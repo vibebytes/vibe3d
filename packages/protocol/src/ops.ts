@@ -18,7 +18,7 @@ import {
   lightSpecSchema,
   mapTransformSchema,
   materialIdSchema,
-  materialPresetSchema,
+  materialPatchSchema,
   materialSchema,
   nodeIdSchema,
   nodeRefSchema,
@@ -69,10 +69,10 @@ export const opSchema = z.discriminatedUnion('op', [
   z.object({
     op: z.literal('material.create'),
     id: materialIdSchema,
-    preset: materialPresetSchema,
+    preset: z.string().min(1).max(60).optional(),
     params: materialSchema.partial().optional(),
   }),
-  z.object({ op: z.literal('material.patch'), id: materialIdSchema, patch: materialSchema.partial() }),
+  z.object({ op: z.literal('material.patch'), id: materialIdSchema, patch: materialPatchSchema }),
   z.object({ op: z.literal('material.map'), id: materialIdSchema, map: mapTransformSchema.partial() }),
   z.object({
     op: z.literal('env.set'),

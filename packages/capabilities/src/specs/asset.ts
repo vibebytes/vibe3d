@@ -59,7 +59,8 @@ export const assetOps = {
     errors: ['E_ASSET_FORMAT', 'E_ASSET_EXTERNAL_REFS'] as const,
   },
   'asset.put': {
-    title: '上传贴图 / HDRI / glb 模型并注册进房间资产表',
+    title:
+      '上传贴图 / HDRI / glb 模型并注册进房间资产表（kind=hdri 也接受等距柱状 png、jpg）',
     input: z.object({
       roomId,
       src: z.string().min(1),

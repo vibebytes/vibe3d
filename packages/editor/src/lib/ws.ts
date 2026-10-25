@@ -1,5 +1,22 @@
 import { token } from './rpc';
 
+const CLIENT_ID_KEY = 'vibe3d.clientId';
+
+function readClientId(): string {
+  const fresh = () => Math.random().toString(36).slice(2, 12);
+  try {
+    const existing = window.sessionStorage.getItem(CLIENT_ID_KEY);
+    if (existing) return existing;
+    const next = fresh();
+    window.sessionStorage.setItem(CLIENT_ID_KEY, next);
+    return next;
+  } catch {
+    return fresh();
+  }
+}
+
+const CLIENT_ID = readClientId();
+
 export interface RoomEvent {
   event: string;
   data: Record<string, unknown>;
@@ -17,7 +34,11 @@ export function connectRoom(
 ): RoomSocket {
   const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   const t = token();
-  const url = `${proto}//${window.location.host}/r/${roomId}/ws${t ? `?t=${encodeURIComponent(t)}` : ''}`;
+  const params = new URLSearchParams();
+  if (t) params.set('t', t);
+  params.set('clientId', CLIENT_ID);
+  if (new URLSearchParams(window.location.search).get('headless') === '1') params.set('headless', '1');
+  const url = `${proto}//${window.location.host}/r/${roomId}/ws?${params.toString()}`;
   let closed = false;
   let timer: number | undefined;
   let socket: WebSocket | undefined;
@@ -32,6 +53,10 @@ export function connectRoom(
           event?: string;
           data?: Record<string, unknown>;
         };
+        if (frame.type === 'ping') {
+          socket?.send(JSON.stringify({ type: 'pong', t: Date.now() }));
+          return;
+        }
         if (frame.type === 'event' && frame.event) onEvent({ event: frame.event, data: frame.data ?? {} });
       } catch {
         /* ignore malformed frames */

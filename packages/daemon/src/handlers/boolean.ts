@@ -81,14 +81,49 @@ function scaleOf(t: Transform): [number, number, number] {
   return [Math.abs(t.s[0]), Math.abs(t.s[1]), Math.abs(t.s[2])];
 }
 
-function boxNode(node: SceneNode): { size: [number, number, number]; mat: Mat3 } {
-  if (node.kind !== 'mesh' || node.geometry.type !== 'box') {
-    throw new AppError('E_UNSUPPORTED', `布尔只接受未烘焙的 box 节点：${node.name}`, {
+const MIN_EXTENT = 0.01;
+
+function geometryAabb(node: SceneNode): [number, number, number] | null {
+  if (node.kind !== 'mesh') return null;
+  const g = node.geometry;
+  if (g.type === 'box') return g.size;
+  if (g.type === 'sphere') return [g.radius * 2, g.radius * 2, g.radius * 2];
+  if (g.type === 'cylinder') {
+    const r = Math.max(g.radiusTop, g.radiusBottom) * 2;
+    return [r, g.height, r];
+  }
+  if (g.type === 'plane') return [g.width, g.height, MIN_EXTENT];
+  return [
+    Math.max(g.bbox.max[0] - g.bbox.min[0], MIN_EXTENT),
+    Math.max(g.bbox.max[1] - g.bbox.min[1], MIN_EXTENT),
+    Math.max(g.bbox.max[2] - g.bbox.min[2], MIN_EXTENT),
+  ];
+}
+
+function boxNode(
+  node: SceneNode,
+  force: boolean,
+): { size: [number, number, number]; mat: Mat3; approximated: boolean } {
+  const mat = rotMat(node.transform.r);
+  if (node.kind === 'mesh' && node.geometry.type === 'box') {
+    return { size: node.geometry.size, mat, approximated: false };
+  }
+  const size = geometryAabb(node);
+  if (!size) {
+    throw new AppError('E_UNSUPPORTED', `布尔不支持 ${node.kind} 节点：${node.name}`, {
       nodeId: node.id,
       kind: node.kind,
+      hint: '先把目标换成 mesh（box / sphere / cylinder / plane / baked）再执行',
     });
   }
-  return { size: node.geometry.size, mat: rotMat(node.transform.r) };
+  if (!force) {
+    throw new AppError('E_UNSUPPORTED', `布尔只对原生 box 精确：${node.name} 是 ${node.kind === 'mesh' ? node.geometry.type : node.kind}`, {
+      nodeId: node.id,
+      kind: node.kind,
+      hint: '包围盒近似请传 force:true；要精确请把目标改成 box 或改用 mesh 原生几何',
+    });
+  }
+  return { size, mat, approximated: true };
 }
 
 export const booleanHandlers: HandlersFor<Keys> = {
@@ -100,8 +135,9 @@ export const booleanHandlers: HandlersFor<Keys> = {
     const tool = room.doc.nodes[p.tool];
     if (!tool) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.tool} 不存在`);
 
-    const t = boxNode(target);
-    const c = boxNode(tool);
+    const force = p.force ?? false;
+    const t = boxNode(target, force);
+    const c = boxNode(tool, force);
     const tRot = t.mat;
     const tScale = scaleOf(target.transform);
     const toolScale = scaleOf(tool.transform);
@@ -150,6 +186,7 @@ export const booleanHandlers: HandlersFor<Keys> = {
       nodeId: target.id,
       tris: boxesTris(boxes),
       boxes: boxes.length,
+      approximated: t.approximated || c.approximated,
     };
   },
 };

@@ -124,18 +124,18 @@ export const assetHandlers: HandlersFor<Keys> = {
     const { meta } = await ctx.ingest(
       p.src,
       p.policy,
-      kind === 'model' ? { maxBytes: MAX_MODEL_BYTES } : undefined,
+      kind === 'model' ? { maxBytes: MAX_MODEL_BYTES } : kind === 'hdri' ? { hdri: true } : undefined,
     );
     if (kind === 'model' && meta.kind !== 'gltf') {
       throw new AppError('E_ASSET_TYPE', `kind=model 只接受 glTF/GLB：${meta.name}`, { sha: meta.sha });
     }
     if (kind === 'hdri' && !(meta.kind === 'image' && meta.image?.hdri)) {
-      throw new AppError('E_ASSET_TYPE', `kind=hdri 只接受 .hdr / .exr：${meta.name}`, {
+      throw new AppError('E_ASSET_TYPE', `kind=hdri 只接受 .hdr / .exr / 等距柱状 png、jpg：${meta.name}`, {
         sha: meta.sha,
       });
     }
     if (kind === 'image' && (meta.kind !== 'image' || meta.image?.hdri)) {
-      throw new AppError('E_ASSET_TYPE', 'kind=image 只接受普通贴图，HDRI 请用 kind=hdri', {
+      throw new AppError('E_ASSET_TYPE', 'kind=image 只接受普通贴图，等距柱状全景请用 kind=hdri', {
         sha: meta.sha,
       });
     }

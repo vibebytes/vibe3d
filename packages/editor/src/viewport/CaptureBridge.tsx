@@ -1,21 +1,25 @@
 import { useThree } from '@react-three/fiber';
 import type { CameraState } from '@vibebyte/vibe3d-protocol';
-import type { QualityPreset } from '@vibebyte/vibe3d-scene';
+import type { FogMode, QualityPreset, ShotMeta } from '@vibebyte/vibe3d-scene';
+import { shotMetaOf } from '@vibebyte/vibe3d-scene';
 import { useEffect } from 'react';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 import { useDoc } from '../stores/doc';
 import { useSelection } from '../stores/selection';
 import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
-import { applyFxAt } from '../three/fx';
+import { applyFxAt, fogSettings } from '../three/fx';
 import { applyIdMaterials } from '../three/id-pass-materials';
 import { missingModelIds } from '../three/model-ready';
 import { alphaRendererCache, alphaRendererOptions } from './alpha-cache';
+import { applyCaptureFog, captureFogPlan, subjectSphere } from './capture-fog';
 import { addOverlays, applyHighlight, applyIsolate, applyShading, shadingNeedsShadows } from './capture-look';
 import type { OverlayKind, ShadingMode } from './capture-look';
 import { applyShadowResolution, qualityOf, resolveCaptureSize } from './capture-quality';
+import { scheduleReadyFlag } from './ready-flag';
 
 export type { OverlayKind, ShadingMode } from './capture-look';
+export type { FogMode } from '@vibebyte/vibe3d-scene';
 
 export interface CaptureOptions {
   width?: number;
@@ -29,6 +33,7 @@ export interface CaptureOptions {
   highlight?: string[];
   isolate?: string[];
   quality?: QualityPreset;
+  fog?: FogMode;
 }
 
 export interface CaptureResult {
@@ -36,6 +41,7 @@ export interface CaptureResult {
   mime: string;
   width: number;
   height: number;
+  meta: ShotMeta;
 }
 
 export interface IdPassOptions {
@@ -81,6 +87,14 @@ function exportRoot(scene: THREE.Scene, nodeIds?: string[] | null): THREE.Object
     if (!wanted.has(String(child.userData.nodeId ?? ''))) clone.remove(child);
   }
   return clone;
+}
+
+function subjectCenter(scene: THREE.Scene): [number, number, number] {
+  const root = scene.getObjectByName('vibe3d-export') ?? scene;
+  const box = new THREE.Box3().setFromObject(root);
+  if (box.isEmpty()) return [0, 0, 0];
+  const center = box.getCenter(new THREE.Vector3());
+  return [center.x, center.y, center.z];
 }
 
 function pendingModels(root: THREE.Object3D, nodeIds?: string[] | null): string[] {
@@ -164,6 +178,36 @@ function captureFrame(
     perspective.updateProjectionMatrix();
   };
 
+  const fogMode = opts.fog ?? 'doc';
+  const docFog = fogSettings(doc?.env?.fog, doc?.env?.background);
+  const bg = doc?.env?.background ?? [0.043, 0.059, 0.078];
+  const target = opts.camera?.target ?? subjectCenter(scene);
+  const fallbackColor = new THREE.Color(bg[0] ?? 0, bg[1] ?? 0, bg[2] ?? 0).getHex();
+  const distance = Math.hypot(
+    camera.position.x - target[0],
+    camera.position.y - target[1],
+    camera.position.z - target[2],
+  );
+  const fogPlan = captureFogPlan({
+    mode: fogMode,
+    docFog,
+    fallbackColor,
+    distance,
+    radius: subjectSphere(scene).radius,
+    shading: opts.shading,
+  });
+  const restoreFog = applyCaptureFog(scene, fogPlan);
+  const meta = shotMetaOf({
+    fog: fogPlan ?? docFog,
+    fallbackColor,
+    shading: opts.shading,
+    mode: fogMode,
+    camera: {
+      position: [camera.position.x, camera.position.y, camera.position.z],
+      target: [target[0], target[1], target[2]],
+    },
+  });
+
   const restoreShading = applyShading(scene, opts.shading);
   const scope = opts.isolate?.length ? opts.isolate : opts.highlight;
   const clearOverlays = addOverlays(scene, opts.overlay, scope);
@@ -203,6 +247,7 @@ function captureFrame(
       restoreLook();
       restoreAspect();
       restoreCamera();
+      restoreFog();
     }
   } else {
     const prevRatio = gl.getPixelRatio();
@@ -216,6 +261,7 @@ function captureFrame(
       restoreLook();
       restoreAspect();
       restoreCamera();
+      restoreFog();
       gl.setPixelRatio(prevRatio);
       gl.setSize(viewport.width, viewport.height);
     }
@@ -225,6 +271,7 @@ function captureFrame(
     mime,
     width,
     height,
+    meta,
   };
 }
 
@@ -347,13 +394,8 @@ export function CaptureBridge({ roomId, headless = false }: { roomId: string; he
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: re-flag readiness after each doc revision
   useEffect(() => {
-    const raf = requestAnimationFrame(() => {
-      window.__vibe3dReady = true;
-    });
-    return () => {
-      cancelAnimationFrame(raf);
-      Reflect.deleteProperty(window, '__vibe3dReady');
-    };
+    window.__vibe3dRevision = revision;
+    return scheduleReadyFlag(window);
   }, [revision]);
 
   return null;

@@ -46,7 +46,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "op 的具名参数（snake_case）。省略 params 时取其顶层字段：{ op: \"create\", kind: \"mesh\", name: \"cube\" }"
+          "description": "必填字段：use{room_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -108,7 +108,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "op 的具名参数（snake_case）。省略 params 时取其顶层字段：{ op: \"create\", kind: \"mesh\", name: \"cube\" }"
+          "description": "必填字段：import{doc} restore{checkpoint_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         }
       },
       "required": [
@@ -159,7 +159,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "op 的具名参数（snake_case）。省略 params 时取其顶层字段：{ op: \"create\", kind: \"mesh\", name: \"cube\" }"
+          "description": "必填字段：create{kind} update{node_id,patch} delete{node_id} clone{node_id} get{node_id} reparent{node_id,parent} array{node_id,count} attach{node_id,target_id,face} group{ids,name} merge{node_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         }
       },
       "required": [
@@ -172,8 +172,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
     name: "vibe3d_material",
     title: "材质：按预设建 / 局部改 / 贴图与 UV / 批量指派",
     ops: [
-      { op: "create", capability: "material.create", title: "按语义预设创建材质" },
-      { op: "patch", capability: "material.patch", title: "局部更新材质字段" },
+      { op: "create", capability: "material.create", title: "按语义预设创建材质（preset 也接受别名：white/matte/steel/moss/glass…，无法识别时回退 concrete 并在 warnings 说明）" },
+      { op: "patch", capability: "material.patch", title: "局部更新材质字段：baseColor / metalness / roughness / emissive / emissiveIntensity / opacity / doubleSided / map；color 是 baseColor 的别名" },
       { op: "map", capability: "material.map", title: "设置贴图与 UV 平铺" },
       { op: "assign", capability: "material.assign", title: "批量换材质：ids 或 filter 二选一，仅作用于 mesh" },
     ],
@@ -194,7 +194,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "op 的具名参数（snake_case）。省略 params 时取其顶层字段：{ op: \"create\", kind: \"mesh\", name: \"cube\" }"
+          "description": "必填字段：patch{material_id,patch} map{material_id} assign{material_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         }
       },
       "required": [
@@ -208,7 +208,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
     title: "舞台与环境：预设/曝光/后处理/三渲二；雾、背景、环境光、HDRI",
     ops: [
       { op: "set", capability: "stage.set", title: "换舞台：预设、曝光、后处理与三渲二" },
-      { op: "env", capability: "env.set", title: "设置环境：雾、背景与环境光；hdriSrc 一步上传并挂上 HDRI" },
+      { op: "env", capability: "env.set", title: "设置环境：雾、背景与环境光；fog 传 false 或 null 关雾；hdriSrc 接受 .hdr / .exr / 等距柱状 png、jpg" },
     ],
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
@@ -225,7 +225,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "op 的具名参数（snake_case）。省略 params 时取其顶层字段：{ op: \"create\", kind: \"mesh\", name: \"cube\" }"
+          "description": "必填字段：set{stage}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         }
       },
       "required": [
@@ -258,7 +258,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "op 的具名参数（snake_case）。省略 params 时取其顶层字段：{ op: \"create\", kind: \"mesh\", name: \"cube\" }"
+          "description": "必填字段：define{node_id,clip} play{node_id} clear{node_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         }
       },
       "required": [
@@ -289,7 +289,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "op 的具名参数（snake_case）。省略 params 时取其顶层字段：{ op: \"create\", kind: \"mesh\", name: \"cube\" }"
+          "description": "必填字段：create{type} delete{fx_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         }
       },
       "required": [
@@ -302,7 +302,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
     name: "vibe3d_mesh",
     title: "网格构造：布尔 / 管体扫掠 / 背板扫掠 / 文字图片贴花",
     ops: [
-      { op: "boolean", capability: "mesh.boolean", title: "布尔：轴对齐 box 的 subtract / union / intersect，结果烘焙成单节点几何" },
+      { op: "boolean", capability: "mesh.boolean", title: "布尔：按轴对齐包围盒做 subtract / union / intersect（原生 box 精确，其它几何需 force 近似）" },
       { op: "tube", capability: "mesh.tube", title: "管体：沿点序列扫掠圆管（Catmull-Rom + 平行传输标架），单节点 baked 几何" },
       { op: "backdrop", capability: "mesh.backdrop", title: "背板：地面→四分之一弧→立墙的无缝扫掠曲面，法线两端连续，单节点 baked 几何" },
       { op: "decal", capability: "decal.create", title: "文字 / 图片贴花：真字形（canvas 生成，无需字体文件）或图片贴到平面上" },
@@ -324,7 +324,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "op 的具名参数（snake_case）。省略 params 时取其顶层字段：{ op: \"create\", kind: \"mesh\", name: \"cube\" }"
+          "description": "必填字段：boolean{target,tool} tube{points,radius}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         }
       },
       "required": [
@@ -338,7 +338,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
     title: "资产：解析 glTF / 上传贴图模型 / 列表 / 删除",
     ops: [
       { op: "inspect", capability: "asset.inspect", title: "解析 glTF，返回尺寸、动画、蒙皮、外部引用" },
-      { op: "put", capability: "asset.put", title: "上传贴图 / HDRI / glb 模型并注册进房间资产表" },
+      { op: "put", capability: "asset.put", title: "上传贴图 / HDRI / glb 模型并注册进房间资产表（kind=hdri 也接受等距柱状 png、jpg）" },
       { op: "list", capability: "asset.list", title: "列出房间资产、引用计数与引用方" },
       { op: "delete", capability: "asset.delete", title: "移除未被引用的资产" },
     ],
@@ -359,7 +359,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "op 的具名参数（snake_case）。省略 params 时取其顶层字段：{ op: \"create\", kind: \"mesh\", name: \"cube\" }"
+          "description": "必填字段：inspect{src} put{src} delete{sha}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         }
       },
       "required": [
@@ -392,7 +392,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "op 的具名参数（snake_case）。省略 params 时取其顶层字段：{ op: \"create\", kind: \"mesh\", name: \"cube\" }"
+          "description": "必填字段：save{name} delete{name}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         }
       },
       "required": [
@@ -431,7 +431,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "op 的具名参数（snake_case）。省略 params 时取其顶层字段：{ op: \"create\", kind: \"mesh\", name: \"cube\" }"
+          "description": "必填字段：node{node_id} sequence{from,to,fps}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         }
       },
       "required": [
@@ -444,7 +444,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
     name: "vibe3d_export_glb",
     title: "导出 GLB（任务制，用 vibe3d_job 查进度）",
     ops: [
-      { op: "glb", capability: "export.glb", title: "把场景导出为 GLB，返回任务 ID" },
+      { op: "glb", capability: "export.glb", title: "把场景导出为 GLB，返回 jobId；用 vibe3d_job.get 轮询到 state=done 后取产物" },
     ],
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
@@ -456,7 +456,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
           "items": {
             "type": "string",
             "pattern": "^n_[a-z0-9]{8}$"
-          }
+          },
+          "description": "只导出这些节点（含子树）；省略则导出整场景"
         },
         "include": {
           "type": "array",
@@ -467,7 +468,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
               "lights"
             ]
           },
-          "maxItems": 2
+          "maxItems": 2,
+          "description": "额外带上相机 / 灯光；默认不带"
         }
       },
       "additionalProperties": false
@@ -497,7 +499,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "op 的具名参数（snake_case）。省略 params 时取其顶层字段：{ op: \"create\", kind: \"mesh\", name: \"cube\" }"
+          "description": "必填字段：get{job_id} cancel{job_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         }
       },
       "required": [
@@ -519,13 +521,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
       "properties": {
         "focus": {
           "type": "string",
-          "pattern": "^n_[a-z0-9]{8}$"
+          "pattern": "^n_[a-z0-9]{8}$",
+          "description": "打开后选中并聚焦到该节点"
         },
         "reuse": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "复用已开的同房间编辑页；false 强制新开一个"
         },
         "open": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "true（默认）直接弹窗；false 只返回 url 不弹"
         },
         "room_id": {
           "type": "string",
@@ -963,13 +968,13 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "segments": {
                                     "type": "integer",
                                     "minimum": 3,
-                                    "maximum": 128
+                                    "maximum": 128,
+                                    "default": 32
                                   }
                                 },
                                 "required": [
                                   "type",
-                                  "radius",
-                                  "segments"
+                                  "radius"
                                 ],
                                 "additionalProperties": false
                               },
@@ -999,13 +1004,13 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "segments": {
                                     "type": "integer",
                                     "minimum": 3,
-                                    "maximum": 128
+                                    "maximum": 128,
+                                    "default": 32
                                   }
                                 },
                                 "required": [
                                   "type",
-                                  "height",
-                                  "segments"
+                                  "height"
                                 ],
                                 "additionalProperties": false
                               },
@@ -1162,8 +1167,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                           "visible",
                           "transform",
                           "kind",
-                          "geometry",
-                          "material"
+                          "geometry"
                         ],
                         "additionalProperties": false
                       },
@@ -1878,13 +1882,13 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                               "segments": {
                                 "type": "integer",
                                 "minimum": 3,
-                                "maximum": 128
+                                "maximum": 128,
+                                "default": 32
                               }
                             },
                             "required": [
                               "type",
-                              "radius",
-                              "segments"
+                              "radius"
                             ],
                             "additionalProperties": false
                           },
@@ -1914,13 +1918,13 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                               "segments": {
                                 "type": "integer",
                                 "minimum": 3,
-                                "maximum": 128
+                                "maximum": 128,
+                                "default": 32
                               }
                             },
                             "required": [
                               "type",
-                              "height",
-                              "segments"
+                              "height"
                             ],
                             "additionalProperties": false
                           },
@@ -2480,14 +2484,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                   },
                   "preset": {
                     "type": "string",
-                    "enum": [
-                      "concrete",
-                      "rust",
-                      "wet_moss",
-                      "toon",
-                      "water",
-                      "glass"
-                    ]
+                    "minLength": 1,
+                    "maxLength": 60
                   },
                   "params": {
                     "type": "object",
@@ -2621,8 +2619,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                 },
                 "required": [
                   "op",
-                  "id",
-                  "preset"
+                  "id"
                 ],
                 "additionalProperties": false
               },
@@ -2762,6 +2759,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                             "additionalProperties": false
                           }
                         ]
+                      },
+                      "color": {
+                        "type": "array",
+                        "minItems": 4,
+                        "maxItems": 4,
+                        "items": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
                       }
                     },
                     "additionalProperties": false
@@ -4253,13 +4260,13 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "segments": {
                                           "type": "integer",
                                           "minimum": 3,
-                                          "maximum": 128
+                                          "maximum": 128,
+                                          "default": 32
                                         }
                                       },
                                       "required": [
                                         "type",
-                                        "radius",
-                                        "segments"
+                                        "radius"
                                       ],
                                       "additionalProperties": false
                                     },
@@ -4289,13 +4296,13 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "segments": {
                                           "type": "integer",
                                           "minimum": 3,
-                                          "maximum": 128
+                                          "maximum": 128,
+                                          "default": 32
                                         }
                                       },
                                       "required": [
                                         "type",
-                                        "height",
-                                        "segments"
+                                        "height"
                                       ],
                                       "additionalProperties": false
                                     },

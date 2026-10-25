@@ -140,6 +140,19 @@ export async function startDaemon(opts: ConnectOptions = {}): Promise<RunRecord>
   throw new Vibe3DError('E_TIMEOUT', 'daemon 启动超时');
 }
 
+export async function probeRemoteHome(url: string, budgetMs = 1500): Promise<string | undefined> {
+  try {
+    const res = await fetch(`${url.replace(/\/+$/, '')}/health`, {
+      signal: AbortSignal.timeout(budgetMs),
+    });
+    if (!res.ok) return undefined;
+    const body = (await res.json()) as { home?: unknown };
+    return typeof body.home === 'string' && body.home.length > 0 ? body.home : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function connect(opts: ConnectOptions = {}): Promise<RunRecord & { client: RpcClient }> {
   if (opts.url) {
     const token = opts.token ?? process.env.VIBE3D_TOKEN;
@@ -148,7 +161,7 @@ export async function connect(opts: ConnectOptions = {}): Promise<RunRecord & { 
       pid: 0,
       port: Number(new URL(opts.url).port || 80),
       host: new URL(opts.url).hostname,
-      home: opts.home ?? defaultHome(),
+      home: opts.home ?? (await probeRemoteHome(opts.url)) ?? defaultHome(),
       mode: 'remote',
       token,
       version: 'unknown',

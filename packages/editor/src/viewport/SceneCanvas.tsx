@@ -23,6 +23,7 @@ import { assetUrl } from '../lib/rpc';
 import { useSelection } from '../stores/selection';
 import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
 import { buildMesh, disposeMesh } from '../three/build';
+import { createViewportEnvMap } from '../three/env-map-view';
 import { applyFxAt, buildFxObject, disposeFxObject, fogSettings } from '../three/fx';
 import { animationClips, cloneGltfScene, gltfLoader } from '../three/gltf';
 import { type LightPlan, lightPlan } from '../three/lights';
@@ -187,9 +188,45 @@ function Fog({ doc }: { doc: SceneDoc }) {
   return <fog attach="fog" args={[settings.color, settings.near, settings.far]} />;
 }
 
-function Backdrop({ env }: { env: SceneDoc['env'] }) {
+function EnvironmentMap({ doc }: { doc: SceneDoc }) {
   const scene = useThree((s) => s.scene);
+  const gl = useThree((s) => s.gl);
+  const envMap = useMemo(() => createViewportEnvMap(gl), [gl]);
+  const sha = doc.env.hdri;
+  const asset = sha ? doc.assets[sha] : undefined;
+  const name = asset?.name;
+
+  useEffect(() => () => envMap.dispose(), [envMap]);
+
   useEffect(() => {
+    if (!sha || !name) {
+      scene.environment = null;
+      return;
+    }
+    let live = true;
+    envMap
+      .get(sha, assetUrl(sha), name)
+      .then((texture) => {
+        if (!live) return;
+        scene.environment = texture;
+        scene.background = texture;
+      })
+      .catch((error) => console.warn('[vibe3d] env map failed to load', sha, error));
+    return () => {
+      live = false;
+      scene.environment = null;
+    };
+  }, [scene, envMap, sha, name]);
+
+  return null;
+}
+
+function Backdrop({ doc }: { doc: SceneDoc }) {
+  const scene = useThree((s) => s.scene);
+  const env = doc.env;
+  const hasEnvMap = Boolean(env.hdri && doc.assets[env.hdri]);
+  useEffect(() => {
+    if (hasEnvMap) return;
     const plan = backdropPlan(env);
     let texture: THREE.DataTexture | undefined;
     if (plan.kind === 'gradient') {
@@ -204,7 +241,7 @@ function Backdrop({ env }: { env: SceneDoc['env'] }) {
       if (scene.background === texture) scene.background = null;
       texture?.dispose();
     };
-  }, [env, scene]);
+  }, [env, scene, hasEnvMap]);
   return null;
 }
 
@@ -320,7 +357,8 @@ export function SceneCanvas({
         camera={{ position: doc.camera.p, fov: doc.camera.fov, near: 0.05, far: 500 }}
         gl={canvasGlOptions({ headless })}
       >
-        <Backdrop env={doc.env} />
+        <Backdrop doc={doc} />
+        <EnvironmentMap doc={doc} />
         <Fog doc={doc} />
         <StageLights doc={doc} />
         <StageEffects doc={doc} headless={headless} />

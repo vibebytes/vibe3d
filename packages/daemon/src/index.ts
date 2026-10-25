@@ -19,6 +19,7 @@ import { createRenderer } from './render';
 import { RoomManager } from './rooms/manager';
 import { createApp } from './server';
 import { attachWebSocket } from './ws/attach';
+import { createHeartbeat } from './ws/heartbeat';
 import { WsHub } from './ws/hub';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -128,6 +129,12 @@ async function main(): Promise<void> {
       .catch((err: unknown) => logger.warn({ event: 'exports.gc.failed', err: String(err) }));
   }, 60_000);
   jobSweep.unref();
+  const heartbeat = createHeartbeat({
+    hub,
+    onEvict: (count) =>
+      logger.warn({ event: 'ws.heartbeat.evict', count }, '清理无心跳的编辑器连接'),
+  });
+  heartbeat.start();
   const server = serve({ fetch: app.fetch, hostname: config.host, port: config.port }) as Server;
   server.once('error', (err: Error) => {
     logger.error(
@@ -190,6 +197,7 @@ async function main(): Promise<void> {
     closing = true;
     logger.info({ event: 'shutdown', signal });
     clearInterval(jobSweep);
+    heartbeat.stop();
     wss?.close();
     await Promise.race([
       ctx.renderer?.close?.() ?? Promise.resolve(),

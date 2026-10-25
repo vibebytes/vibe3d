@@ -1,5 +1,5 @@
 import type { AssetMeta, CameraState, GltfReport, SceneDoc } from '@vibebyte/vibe3d-protocol';
-import type { QualityPreset } from '@vibebyte/vibe3d-scene';
+import type { FogMode, QualityPreset, ShotMeta } from '@vibebyte/vibe3d-scene';
 import type { JobQueue } from './jobs/queue';
 import type { JobStore } from './jobs/store';
 import type { RoomManager } from './rooms/manager';
@@ -23,6 +23,7 @@ export interface SnapshotOptions {
   highlight?: string[];
   isolate?: string[];
   quality?: QualityPreset;
+  fog?: FogMode;
 }
 
 export interface Snapshot {
@@ -30,6 +31,7 @@ export interface Snapshot {
   base64: string;
   width: number;
   height: number;
+  meta?: ShotMeta;
 }
 
 export interface IdPassOptions {
@@ -56,6 +58,8 @@ export interface Renderer {
   readonly name: string;
   readonly ready: boolean;
   available?(roomId: string): boolean;
+  warm?(roomId: string): Promise<void>;
+  drop?(roomId: string): Promise<void>;
   snapshot(input: RenderInput, opts: SnapshotOptions): Promise<Snapshot>;
   idPass?(input: RenderInput, opts: IdPassOptions): Promise<IdPassShot>;
   exportGlb(
@@ -87,7 +91,11 @@ export interface DispatchContext {
   jobs?: Jobs;
   exportsDir?: string;
   signExport?: (file: string) => string;
-  ingest: (src: string, policy?: AssetPolicy, opts?: { maxBytes?: number }) => Promise<IngestResult>;
+  ingest: (
+    src: string,
+    policy?: AssetPolicy,
+    opts?: { maxBytes?: number; hdri?: boolean },
+  ) => Promise<IngestResult>;
   inspect: (
     src: string,
     policy?: AssetPolicy,

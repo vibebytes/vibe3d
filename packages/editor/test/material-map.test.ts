@@ -1,7 +1,7 @@
 import type { Material } from '@vibebyte/vibe3d-protocol';
 import * as THREE from 'three';
 import { describe, expect, it } from 'vitest';
-import { toStandardMaterial, toToonMaterial } from '../src/three/materials';
+import { type MapTextureLoader, toStandardMaterial, toToonMaterial } from '../src/three/materials';
 
 const BASE: Material = {
   baseColor: [0.8, 0.8, 0.8, 1],
@@ -13,7 +13,11 @@ const BASE: Material = {
   doubleSided: false,
 };
 
-const loader = () => new THREE.Texture();
+const loader: MapTextureLoader = (_sha, onLoad) => {
+  const texture = new THREE.Texture();
+  onLoad?.(texture);
+  return texture;
+};
 
 describe('toStandardMaterial map', () => {
   it('loads the map and applies nested uv', () => {

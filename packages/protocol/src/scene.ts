@@ -105,7 +105,11 @@ export const sceneNodeSchema = z.discriminatedUnion('kind', [
 
 export const newNodeSchema = z.discriminatedUnion('kind', [
   groupNodeSchema.extend({ id: nodeIdSchema.optional(), parent: nodeRefSchema.nullable() }),
-  meshNodeSchema.extend({ id: nodeIdSchema.optional(), parent: nodeRefSchema.nullable() }),
+  meshNodeSchema.extend({
+    id: nodeIdSchema.optional(),
+    parent: nodeRefSchema.nullable(),
+    material: materialIdSchema.optional(),
+  }),
   lightNodeSchema.extend({ id: nodeIdSchema.optional(), parent: nodeRefSchema.nullable() }),
   modelNodeSchema.extend({ id: nodeIdSchema.optional(), parent: nodeRefSchema.nullable() }),
 ]);

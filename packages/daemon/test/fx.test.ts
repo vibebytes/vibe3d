@@ -82,4 +82,15 @@ describe('env.set fog', () => {
     const off = await call(h, 'scene.get', { roomId }, roomId);
     expect(off.body.result.doc.env.fog).toBeUndefined();
   });
+
+  it('accepts fog: false as an explicit off switch', async () => {
+    const h = makeHarness();
+    const { roomId } = await roomWithBox(h);
+    await call(h, 'env.set', { roomId, fog: { color: [0.1, 0.2, 0.3, 1], near: 8, far: 6 } }, roomId);
+    const { body } = await call(h, 'env.set', { roomId, fog: false }, roomId);
+    expect(body.error).toBeUndefined();
+    expect(body.result.env.fog).toBeUndefined();
+    const after = await call(h, 'scene.get', { roomId }, roomId);
+    expect(after.body.result.doc.env.fog).toBeUndefined();
+  });
 });

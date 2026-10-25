@@ -18,6 +18,7 @@ export interface IngestDeps {
 
 export interface IngestOptions {
   maxBytes?: number;
+  hdri?: boolean;
 }
 
 interface Loaded {
@@ -31,8 +32,19 @@ interface Loaded {
 const MAX_REDIRECTS = 3;
 const FETCH_TIMEOUT_MS = 15_000;
 
-function settle(bytes: Buffer, name: string, mime?: string | null, maxBytes?: number): Loaded {
-  const info = classifyUpload({ filename: name, mime: mime ?? undefined, bytes, maxBytes });
+function settle(
+  bytes: Buffer,
+  name: string,
+  mime?: string | null,
+  opts: IngestOptions = {},
+): Loaded {
+  const info = classifyUpload({
+    filename: name,
+    mime: mime ?? undefined,
+    bytes,
+    maxBytes: opts.maxBytes,
+    hdri: opts.hdri,
+  });
   return { bytes, name, mime: info.mime, kind: info.kind, image: info.image };
 }
 
@@ -183,7 +195,7 @@ export function createIngest({
     opts: IngestOptions = {},
   ): Promise<Loaded> => {
     const loaded = await read(src, policy, opts.maxBytes ?? MAX_HDRI_BYTES);
-    return settle(loaded.bytes, loaded.name, loaded.mime, opts.maxBytes);
+    return settle(loaded.bytes, loaded.name, loaded.mime, opts);
   };
 
   const inspect = async (src: string, policy: AssetPolicy = 'local') => {

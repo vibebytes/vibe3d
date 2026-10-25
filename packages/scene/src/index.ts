@@ -96,11 +96,24 @@ export {
 export { bakeGeometry, type BakedMesh } from './bake';
 export { mergeGroup, type MergeOptions, type MergePlan } from './merge';
 export {
+  autoFogRange,
+  parseShotMeta,
+  shotMetaOf,
+  shotWarning,
+  type FogMode,
+  type FogReport,
+  type ShotCamera,
+  type ShotMeta,
+  type ShotMetaInput,
+} from './shot-meta';
+export {
   MATERIAL_PRESETS,
   applyUv,
   isMaterialPreset,
   normalizeMap,
   presetMaterial,
+  resolveMaterialPreset,
   uvMatrix,
   type MaterialPreset,
+  type PresetResolution,
 } from './material';

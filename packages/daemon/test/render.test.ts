@@ -12,6 +12,12 @@ const state = vi.hoisted(() => ({
   evalQueue: [] as unknown[],
   navFailures: 0,
   launches: 0,
+  pages: 0,
+  navigations: 0,
+  readyProbes: 0,
+  stallFirstPage: false,
+  targets: 0,
+  closedTargets: [] as string[],
 }));
 
 vi.mock('../src/render/chrome', () => ({
@@ -33,18 +39,35 @@ vi.mock('../src/render/cdp', () => {
   }
   class Cdp {
     isClosed = false;
+    id = 0;
     static async connect(): Promise<Cdp> {
-      return new Cdp();
+      const cdp = new Cdp();
+      cdp.id = ++state.pages;
+      return cdp;
     }
-    async send(method: string): Promise<unknown> {
-      if (method === 'Target.createTarget') return { targetId: 't1' };
-      if (method === 'Target.attachToTarget') return { sessionId: 's1' };
-      if (method === 'Runtime.evaluate')
+    async send(method: string, params?: Record<string, unknown>): Promise<unknown> {
+      if (method === 'Target.createTarget') return { targetId: `t${++state.targets}` };
+      if (method === 'Target.attachToTarget') return { sessionId: `s${state.targets}` };
+      if (method === 'Target.closeTarget') {
+        state.closedTargets.push(String(params?.targetId));
+        return {};
+      }
+      if (method === 'Runtime.evaluate') {
+        const expr = String(params?.expression ?? '');
+        if (expr.includes('__vibe3dReady')) state.readyProbes++;
+        if (state.stallFirstPage && this.id === 1 && expr.includes('__vibe3dReady')) {
+          return { result: { value: { ready: false } } };
+        }
         return state.evalQueue.shift() ?? { result: { value: { ready: true } } };
+      }
       if (method === 'Page.captureScreenshot') return state.shot === undefined ? {} : { data: state.shot };
-      if (method === 'Page.navigate' && state.navFailures > 0) {
-        state.navFailures--;
-        throw new CdpError('lost', 'connect');
+      if (method === 'Page.navigate') {
+        state.navigations++;
+        if (state.navFailures > 0) {
+          state.navFailures--;
+          throw new CdpError('lost', 'connect');
+        }
+        return {};
       }
       return {};
     }
@@ -241,6 +264,162 @@ describe('ChromiumRenderer', () => {
     const r = make(h);
     await expect(r.snapshot(input, { settleMs: 0 })).rejects.toMatchObject({ code: 'E_RENDER_UNAVAILABLE' });
     state.shot = 'AAA';
+  });
+
+  it('页面迟迟不就绪时重建浏览器并重试一次', async () => {
+    state.executable = '/fake/chrome';
+    state.shot = png(4, 4);
+    state.evalQueue = [];
+    state.launches = 0;
+    state.pages = 0;
+    state.stallFirstPage = true;
+    const h = makeHarness();
+    const r = createRenderer({
+      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      hub: { count: () => 0 } as unknown as WsHub,
+      logger: h.logger,
+      baseUrl: () => 'http://127.0.0.1:1',
+      exportsDir: h.dirs.exports,
+      readyTimeoutMs: 60,
+    })!;
+    await expect(r.snapshot(input, { settleMs: 0, width: 4, height: 4 })).resolves.toMatchObject({
+      width: 4,
+      height: 4,
+    });
+    expect(state.launches).toBe(2);
+    state.stallFirstPage = false;
+    await r.close?.();
+  });
+
+  it('同一房间再次快照复用已就绪页面，不重复导航', async () => {
+    state.executable = '/fake/chrome';
+    state.shot = png(6, 6);
+    state.evalQueue = [];
+    state.navigations = 0;
+    const h = makeHarness();
+    const r = createRenderer({
+      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      hub: { count: () => 0 } as unknown as WsHub,
+      logger: h.logger,
+      baseUrl: () => 'http://127.0.0.1:1',
+      exportsDir: h.dirs.exports,
+    })!;
+    await r.snapshot(input, { settleMs: 0, width: 6, height: 6 });
+    await r.snapshot(input, { settleMs: 0, width: 6, height: 6 });
+    expect(state.navigations).toBe(1);
+    await r.snapshot({ ...input, roomId: 'r_bbbbbbbb' }, { settleMs: 0, width: 6, height: 6 });
+    expect(state.navigations).toBe(2);
+    await r.close?.();
+  });
+
+  it('跨房间往返：旧房间页面常驻，回到旧房间不重复导航', async () => {
+    state.executable = '/fake/chrome';
+    state.shot = png(6, 6);
+    state.evalQueue = [];
+    state.navigations = 0;
+    const h = makeHarness();
+    const r = createRenderer({
+      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      hub: { count: () => 0 } as unknown as WsHub,
+      logger: h.logger,
+      baseUrl: () => 'http://127.0.0.1:1',
+      exportsDir: h.dirs.exports,
+    })!;
+    await r.snapshot(input, { settleMs: 0, width: 6, height: 6 });
+    await r.snapshot({ ...input, roomId: 'r_bbbbbbbb' }, { settleMs: 0, width: 6, height: 6 });
+    expect(state.navigations).toBe(2);
+    await r.snapshot(input, { settleMs: 0, width: 6, height: 6 });
+    expect(state.navigations).toBe(2);
+    await r.close?.();
+  });
+
+  it('页面缓存超过上限时关闭最久未用的房间页面', async () => {
+    state.executable = '/fake/chrome';
+    state.shot = png(6, 6);
+    state.evalQueue = [];
+    state.navigations = 0;
+    state.targets = 0;
+    state.closedTargets = [];
+    const h = makeHarness();
+    const r = createRenderer({
+      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      hub: { count: () => 0 } as unknown as WsHub,
+      logger: h.logger,
+      baseUrl: () => 'http://127.0.0.1:1',
+      exportsDir: h.dirs.exports,
+      maxPages: 2,
+    })!;
+    for (const roomId of ['r_a1a1a1a1', 'r_b1b1b1b1', 'r_c1c1c1c1']) {
+      await r.snapshot({ ...input, roomId }, { settleMs: 0, width: 6, height: 6 });
+    }
+    expect(state.closedTargets).toEqual(['t1']);
+    await r.close?.();
+  });
+
+  it('warm 预热房间：预热后首次快照不再导航', async () => {
+    state.executable = '/fake/chrome';
+    state.shot = png(6, 6);
+    state.evalQueue = [];
+    state.navigations = 0;
+    const h = makeHarness();
+    const r = createRenderer({
+      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      hub: { count: () => 0 } as unknown as WsHub,
+      logger: h.logger,
+      baseUrl: () => 'http://127.0.0.1:1',
+      exportsDir: h.dirs.exports,
+    })!;
+    await r.warm?.('r_cccccccc');
+    expect(state.navigations).toBe(1);
+    await r.snapshot({ ...input, roomId: 'r_cccccccc' }, { settleMs: 0, width: 6, height: 6 });
+    expect(state.navigations).toBe(1);
+    await r.close?.();
+  });
+
+  it('drop 释放房间页面：再次快照需要重新导航', async () => {
+    state.executable = '/fake/chrome';
+    state.shot = png(6, 6);
+    state.evalQueue = [];
+    state.navigations = 0;
+    const h = makeHarness();
+    const r = createRenderer({
+      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      hub: { count: () => 0 } as unknown as WsHub,
+      logger: h.logger,
+      baseUrl: () => 'http://127.0.0.1:1',
+      exportsDir: h.dirs.exports,
+    })!;
+    await r.snapshot({ ...input, roomId: 'r_d1d1d1d1' }, { settleMs: 0, width: 6, height: 6 });
+    expect(state.navigations).toBe(1);
+    await r.drop?.('r_d1d1d1d1');
+    await r.snapshot({ ...input, roomId: 'r_d1d1d1d1' }, { settleMs: 0, width: 6, height: 6 });
+    expect(state.navigations).toBe(2);
+    await r.close?.();
+  });
+
+  it('页面 revision 落后时继续等 WS 追平再出图', async () => {
+    state.executable = '/fake/chrome';
+    state.shot = png(8, 8);
+    state.readyProbes = 0;
+    state.evalQueue = [
+      { result: { value: { ready: true, revision: 3 } } },
+      { result: { value: { ready: true, revision: 7 } } },
+    ];
+    const h = makeHarness();
+    const r = createRenderer({
+      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      hub: { count: () => 0 } as unknown as WsHub,
+      logger: h.logger,
+      baseUrl: () => 'http://127.0.0.1:1',
+      exportsDir: h.dirs.exports,
+    })!;
+    await r.snapshot({ roomId: 'r_aaaaaaaa', doc: { revision: 7 } } as never, {
+      settleMs: 0,
+      width: 8,
+      height: 8,
+    });
+    expect(state.readyProbes).toBe(2);
+    await r.close?.();
   });
 });
 

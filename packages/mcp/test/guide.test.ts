@@ -13,8 +13,9 @@ describe('K1 工具描述分组', () => {
     }
   });
 
-  it('多 op 工具在描述里直接列出 op 与必填字段', () => {
-    expect(byName('vibe3d_node')?.description).toMatch(/op: .*create\{kind\}/);
+  it('多 op 工具在描述里直接列出 op，必填指向 params 描述', () => {
+    expect(byName('vibe3d_node')?.description).toMatch(/op: .*create/);
+    expect(byName('vibe3d_node')?.description).toContain('必填见 params 描述');
     expect(byName('vibe3d_scene')?.description).toContain('vibe3d_help');
   });
 

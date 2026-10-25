@@ -12,19 +12,24 @@ import { dispatch, hello } from '../dispatch';
 import type { Logger } from '../logger';
 import { toRpcFailure } from './errors';
 import { EXPORT_FILE_RE, exportMime, verifyExportSig } from './export-url';
+import { loadMcpSchema } from './mcp-schema';
+import { REPAIR_STATS_FILE, loadRepairStats } from './repair-stats';
 import { TOKEN_COOKIE, bodyLimit, requireBearer, requireSurfaceToken, tokenMatches } from './middleware';
 import { rateLimiter } from './ratelimit';
+import { SHOT_META_HEADER, parseShotMetaHeader } from './shot-meta';
 import type { WsHub } from '../ws/hub';
 
 export interface RouteDeps {
   ctx: DispatchContext;
   token: string;
+  home: string;
   blobs: BlobStore;
   logger: Logger;
   editorDir: string;
   exportsDir: string;
   limits: { rate: number; burst: number };
   hub?: WsHub;
+  mcpSchemaFile?: string;
 }
 
 interface Envelope {
@@ -127,8 +132,54 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
       protocolVersion: hello(ctx).protocolVersion,
       rooms: ctx.rooms.size,
       renderer: ctx.renderer?.name ?? 'none',
+      schemaUrl: '/api/mcp/schema',
+      repairStatsUrl: '/api/mcp/repair-stats',
+      home: deps.home,
     }),
   );
+
+  app.get('/api/mcp/schema', async (c) => {
+    if (!deps.mcpSchemaFile) {
+      return writeJson(
+        { error: { code: 'E_SCHEMA_MISSING', message: '未配置 MCP schema 快照路径' } },
+        404,
+      );
+    }
+    const loaded = await loadMcpSchema(deps.mcpSchemaFile);
+    if (!loaded.ok) {
+      return writeJson({ error: { code: loaded.code, message: loaded.message } }, loaded.code === 'E_SCHEMA_MISSING' ? 404 : 500);
+    }
+    const expand = ['1', 'true', 'yes', 'help', 'ops'].includes(String(c.req.query('expand') ?? ''));
+    const pretty = c.req.query('pretty') !== '0';
+    const body = expand ? loaded.snapshot : { tools: loaded.tools };
+    return new Response(JSON.stringify(body, null, pretty ? 2 : 0), {
+      status: 200,
+      headers: {
+        ...JSON_TYPE,
+        'cache-control': 'no-store',
+        'x-schema-tools': String(loaded.tools.length),
+        'x-schema-bytes': String(loaded.bytes),
+        ...(loaded.generatedAt ? { 'x-schema-generated-at': loaded.generatedAt } : {}),
+        ...(loaded.stale ? { 'x-schema-stale': '1' } : {}),
+      },
+    });
+  });
+
+  app.get('/api/mcp/repair-stats', async (c) => {
+    const { doc, corrupt } = await loadRepairStats(join(deps.home, REPAIR_STATS_FILE));
+    const pretty = c.req.query('pretty') !== '0';
+    return new Response(JSON.stringify(doc, null, pretty ? 2 : 0), {
+      status: 200,
+      headers: {
+        ...JSON_TYPE,
+        'cache-control': 'no-store',
+        'x-repair-tools': String(doc.tools.length),
+        'x-repair-total': String(doc.total),
+        'x-repair-updated-at': doc.updatedAt,
+        ...(corrupt ? { 'x-repair-corrupt': '1' } : {}),
+      },
+    });
+  });
 
   app.post('/rpc', requireBearer(token), rateLimit, bodyLimit(8 * 1024 * 1024), rpc('control', deps));
   app.post('/r/:roomId/rpc', requireBearer(token), rateLimit, bodyLimit(8 * 1024 * 1024), (c) =>
@@ -144,7 +195,8 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
     const bytes = new Uint8Array(await c.req.arrayBuffer());
     if (bytes.length === 0) throw new AppError('E_INVALID_PARAMS', '快照内容为空');
     const mime = c.req.header('content-type') ?? 'image/png';
-    if (!hub.resolveSnapshotUpload(requestId, { bytes, mime })) {
+    const meta = parseShotMetaHeader(c.req.header(SHOT_META_HEADER));
+    if (!hub.resolveSnapshotUpload(requestId, { bytes, mime, meta })) {
       throw new AppError('E_INVALID_PARAMS', '快照请求已过期');
     }
     deps.logger.debug({ event: 'snapshot.upload', roomId, requestId, bytes: bytes.length });

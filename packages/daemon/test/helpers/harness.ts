@@ -35,7 +35,7 @@ export interface Harness {
 }
 
 export function makeHarness(
-  opts: { maxRooms?: number; persist?: boolean; hub?: WsHub } = {},
+  opts: { maxRooms?: number; persist?: boolean; hub?: WsHub; mcpSchemaFile?: string } = {},
 ): Harness {
   const root = mkdtempSync(join(tmpdir(), 'v3d-cov-'));
   const dirs = {
@@ -76,6 +76,7 @@ export function makeHarness(
     editorDir: dirs.editor,
     exportsDir: dirs.exports,
     hub: opts.hub,
+    mcpSchemaFile: opts.mcpSchemaFile,
   });
   return { root, dirs, config, ctx, rooms, blobs, logger, app, token };
 }

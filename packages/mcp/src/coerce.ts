@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 type Def = { typeName?: string; [key: string]: unknown };
-const defOf = (schema: z.ZodTypeAny): Def => (schema as unknown as { _def: Def })._def;
+export const defOf = (schema: z.ZodTypeAny): Def => (schema as unknown as { _def: Def })._def;
 
 const toCamel = (key: string): string => key.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
 
@@ -14,7 +14,7 @@ export function deepCamel(value: unknown): unknown {
   return out;
 }
 
-function unwrap(schema: z.ZodTypeAny): z.ZodTypeAny {
+export function unwrap(schema: z.ZodTypeAny): z.ZodTypeAny {
   let current = schema;
   for (let i = 0; i < 8; i += 1) {
     const def = defOf(current);
@@ -53,6 +53,11 @@ function arrayFromText(def: Def, text: string, depth: number): unknown[] | undef
     const nested = (parsed as Record<string, unknown>).ops;
     list = Array.isArray(nested) ? nested : [parsed];
   } else return undefined;
+  if (def.typeName === 'ZodTuple') {
+    const items = (def.items as z.ZodTypeAny[] | undefined) ?? [];
+    const rest = def.rest as z.ZodTypeAny | null | undefined;
+    return list.map((entry, index) => coerceValue(items[index] ?? rest ?? z.any(), entry, depth + 1));
+  }
   const item = def.type as z.ZodTypeAny | undefined;
   return item ? list.map((entry) => coerceValue(item, entry, depth + 1)) : list;
 }
@@ -69,6 +74,14 @@ const parseNumber = (text: string): number | undefined => {
   if (trimmed === '' || !/^-?\d+(\.\d+)?$/.test(trimmed)) return undefined;
   const value = Number(trimmed);
   return Number.isFinite(value) ? value : undefined;
+};
+
+const parseScalarText = (text: string): unknown => {
+  const lower = text.trim().toLowerCase();
+  if (lower === 'true') return true;
+  if (lower === 'false') return false;
+  if (lower === 'null' || lower === 'none') return null;
+  return undefined;
 };
 
 const DEFAULTS: Record<string, unknown> = {
@@ -132,6 +145,9 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number): unkno
   }
 
   if (typeof value === 'string') {
+    const scalar = parseScalarText(value);
+    if (scalar !== undefined && (schema.safeParse(scalar).success || inner.safeParse(scalar).success))
+      return scalar;
     if (def.typeName === 'ZodBoolean') {
       const bool = parseBoolean(value);
       if (bool !== undefined && inner.safeParse(bool).success) return bool;
@@ -140,9 +156,9 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number): unkno
       const num = parseNumber(value);
       if (num !== undefined && inner.safeParse(num).success) return num;
     }
-    if (def.typeName === 'ZodArray') {
+    if (def.typeName === 'ZodArray' || def.typeName === 'ZodTuple') {
       const fromText = arrayFromText(def, value, depth);
-      if (fromText !== undefined) return fromText;
+      if (fromText !== undefined) return coerceValue(inner, fromText, depth + 1);
     }
     const parsed = parseJsonish(value);
     if (parsed !== undefined) {
@@ -169,10 +185,19 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number): unkno
   if (def.typeName === 'ZodUnion' || def.typeName === 'ZodDiscriminatedUnion') {
     const raw = def.options as unknown;
     const options = raw instanceof Map ? [...raw.values()] : Array.isArray(raw) ? raw : [];
+    let best: unknown;
+    let bestIssues = Number.POSITIVE_INFINITY;
     for (const option of options as z.ZodTypeAny[]) {
       const next = coerceValue(option, value, depth + 1);
-      if (option.safeParse(next).success) return next;
+      const parsed = option.safeParse(next);
+      if (parsed.success) return next;
+      const issues = parsed.error.issues.length;
+      if (issues < bestIssues) {
+        bestIssues = issues;
+        best = next;
+      }
     }
+    if (best !== undefined) return best;
   }
 
   if (def.typeName === 'ZodRecord' && def.valueType && value && typeof value === 'object') {
@@ -197,4 +222,16 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number): unkno
 
 export function coerceForSchema<T extends z.ZodTypeAny>(schema: T, value: unknown): unknown {
   return coerceValue(schema, value, 0);
+}
+
+const asPlainRecord = (value: unknown): Record<string, unknown> | undefined =>
+  value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+
+export function lenientRecord(value: unknown): Record<string, unknown> | undefined {
+  const record =
+    typeof value === 'string' ? asPlainRecord(parseJsonish(value)) : asPlainRecord(deepCamel(value));
+  if (!record) return undefined;
+  return asPlainRecord(record.params) ?? record;
 }

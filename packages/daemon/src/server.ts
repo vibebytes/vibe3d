@@ -1,3 +1,5 @@
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Hono } from 'hono';
 import type { BlobStore } from './assets/blobstore';
 import type { Config } from './config';
@@ -18,7 +20,12 @@ export interface AppDeps {
   editorDir: string;
   exportsDir: string;
   hub?: WsHub;
+  mcpSchemaFile?: string;
 }
+
+const here = dirname(fileURLToPath(import.meta.url));
+export const DEFAULT_MCP_SCHEMA_FILE =
+  process.env.VIBE3D_MCP_SCHEMA ?? join(here, '../../mcp/dist/schema.json');
 
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -45,6 +52,8 @@ export function createApp(deps: AppDeps): Hono {
     exportsDir: deps.exportsDir,
     limits: { rate: deps.config.rateLimit, burst: deps.config.rateBurst },
     hub: deps.hub,
+    mcpSchemaFile: deps.mcpSchemaFile ?? DEFAULT_MCP_SCHEMA_FILE,
+    home: deps.config.home,
   };
   mountRoutes(app, routes);
 

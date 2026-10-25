@@ -18,6 +18,7 @@ import { SceneTree } from '../scene/SceneTree';
 import { useDoc } from '../stores/doc';
 import { useSelection } from '../stores/selection';
 import { useUi } from '../stores/ui';
+import { setMapErrorHandler } from '../three/materials';
 import { CaptureBridge } from '../viewport/CaptureBridge';
 import { EmptyViewport } from '../viewport/EmptyViewport';
 import { SceneCanvas } from '../viewport/SceneCanvas';
@@ -57,6 +58,14 @@ export function EditorPage() {
   const { items, push, dismiss } = useToasts();
   const importer = useModelImport(push);
   const [confirm, setConfirm] = useState<{ id: string; name: string } | null>(null);
+
+  useEffect(() => {
+    setMapErrorHandler((sha, err) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      push('error', `贴图加载失败 ${sha.slice(0, 8)}: ${msg}`);
+    });
+    return () => setMapErrorHandler(null);
+  }, [push]);
 
   useEffect(() => {
     if (roomId) void load(roomId);

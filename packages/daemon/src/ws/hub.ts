@@ -1,6 +1,7 @@
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import { AppError, type CameraState } from '@vibebyte/vibe3d-protocol';
+import type { FogMode, ShotMeta } from '@vibebyte/vibe3d-scene';
 import type { OverlayKind, ShadingMode } from '../context';
 import { type ServerFrame, encodeFrame } from './protocol';
 
@@ -13,6 +14,14 @@ export interface SocketLike {
 export interface HubClient {
   socket: SocketLike;
   roomId: string;
+  clientId?: string;
+  headless: boolean;
+  lastSeen: number;
+}
+
+export interface HubAddOptions {
+  clientId?: string;
+  headless?: boolean;
 }
 
 export interface SnapshotRequest {
@@ -26,6 +35,7 @@ export interface SnapshotRequest {
   overlay?: OverlayKind[];
   highlight?: string[];
   isolate?: string[];
+  fog?: FogMode;
 }
 
 export interface SnapshotCapture {
@@ -33,6 +43,7 @@ export interface SnapshotCapture {
   mime?: string;
   width?: number;
   height?: number;
+  meta?: ShotMeta;
 }
 
 const MAX_BUFFER_BYTES = 4 * 1024 * 1024;
@@ -56,16 +67,54 @@ export class WsHub {
     }
   >();
 
-  add(roomId: string, socket: SocketLike): HubClient {
-    const client: HubClient = { socket, roomId };
+  add(roomId: string, socket: SocketLike, opts: HubAddOptions = {}): HubClient {
+    const client: HubClient = {
+      socket,
+      roomId,
+      headless: opts.headless === true,
+      lastSeen: Date.now(),
+      ...(opts.clientId ? { clientId: opts.clientId } : {}),
+    };
     let set = this.rooms.get(roomId);
     if (!set) {
       set = new Set();
       this.rooms.set(roomId, set);
     }
+    if (client.clientId) {
+      for (const other of set) {
+        if (other.clientId !== client.clientId) continue;
+        set.delete(other);
+        other.socket.close(1000, 'replaced');
+      }
+    }
     set.add(client);
     this.presence(roomId);
     return client;
+  }
+
+  touch(client: HubClient, at = Date.now()): void {
+    client.lastSeen = at;
+  }
+
+  pingAll(): void {
+    for (const set of this.rooms.values()) {
+      for (const client of set) client.socket.send(encodeFrame({ type: 'ping' }));
+    }
+  }
+
+  sweep(idleMs: number, now = Date.now()): number {
+    let evicted = 0;
+    for (const [roomId, set] of this.rooms) {
+      for (const client of [...set]) {
+        if (now - client.lastSeen <= idleMs) continue;
+        set.delete(client);
+        evicted += 1;
+        client.socket.close(1000, 'idle');
+      }
+      if (set.size === 0) this.rooms.delete(roomId);
+      else if (evicted > 0) this.presence(roomId);
+    }
+    return evicted;
   }
 
   remove(client: HubClient): void {
@@ -77,6 +126,12 @@ export class WsHub {
   }
 
   count(roomId: string): number {
+    let n = 0;
+    for (const client of this.rooms.get(roomId) ?? []) if (!client.headless) n += 1;
+    return n;
+  }
+
+  countAll(roomId: string): number {
     return this.rooms.get(roomId)?.size ?? 0;
   }
 
@@ -126,7 +181,7 @@ export class WsHub {
 
   resolveSnapshotUpload(
     requestId: string,
-    upload: { bytes: Uint8Array; mime?: string; width?: number; height?: number },
+    upload: { bytes: Uint8Array; mime?: string; width?: number; height?: number; meta?: ShotMeta },
   ): boolean {
     const waiter = this.waiters.get(requestId);
     if (!waiter) return false;
@@ -135,13 +190,14 @@ export class WsHub {
       mime: upload.mime,
       width: upload.width,
       height: upload.height,
+      meta: upload.meta,
     });
     return true;
   }
 
   resolveSnapshot(
     requestId: string,
-    capture?: { base64?: string; mime?: string; width?: number; height?: number },
+    capture?: { base64?: string; mime?: string; width?: number; height?: number; meta?: ShotMeta },
     error?: string,
     code?: string,
   ): void {

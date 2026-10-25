@@ -1,4 +1,19 @@
+import type { ShotMeta } from '@vibebyte/vibe3d-scene';
 import { daemonUrl, token } from './rpc';
+
+export const SHOT_META_HEADER = 'x-vibe3d-shot-meta';
+
+function toBase64Url(text: string): string {
+  const bytes = new TextEncoder().encode(text);
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
+}
+
+export function shotMetaHeader(meta?: ShotMeta | null): Record<string, string> {
+  if (!meta) return {};
+  return { [SHOT_META_HEADER]: toBase64Url(JSON.stringify(meta)) };
+}
 
 export function base64ToBytes(base64: string): Uint8Array {
   const bin = atob(base64);
@@ -23,12 +38,14 @@ export async function uploadSnapshot(
   requestId: string,
   bytes: Uint8Array,
   mime: string,
+  meta?: ShotMeta | null,
 ): Promise<number> {
   const res = await fetch(daemonUrl(`/r/${roomId}/snapshot/${requestId}`), {
     method: 'POST',
     headers: {
       'content-type': mime,
       ...(token() ? { authorization: `Bearer ${token()}` } : {}),
+      ...shotMetaHeader(meta),
     },
     body: bytes,
   });

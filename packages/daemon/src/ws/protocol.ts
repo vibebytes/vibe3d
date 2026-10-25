@@ -21,11 +21,13 @@ export const serverFrameSchema = z.discriminatedUnion('type', [
     data: z.record(z.unknown()),
   }),
   z.object({ type: z.literal('overflow'), revision: z.number().int() }),
+  z.object({ type: z.literal('ping') }),
   z.object({ type: z.literal('pong'), t: z.number() }),
 ]);
 
 export const clientFrameSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('ping'), t: z.number().optional() }),
+  z.object({ type: z.literal('pong'), t: z.number().optional() }),
   z.object({
     type: z.literal('snapshot.result'),
     requestId: z.string(),
@@ -37,6 +39,7 @@ export const clientFrameSchema = z.discriminatedUnion('type', [
     uploaded: z.boolean().optional(),
     code: z.string().optional(),
     error: z.string().optional(),
+    meta: z.record(z.unknown()).optional(),
   }),
   z.object({ type: z.literal('selection.changed'), ids: z.array(z.string()) }),
 ]);

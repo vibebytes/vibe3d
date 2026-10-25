@@ -9,7 +9,7 @@ import {
   type SceneNode,
 } from '@vibebyte/vibe3d-protocol';
 import { frameCamera, miniatureCamera } from './frame';
-import { normalizeMap, presetMaterial } from './material';
+import { normalizeMap, presetMaterial, resolveMaterialPreset } from './material';
 import { sceneStats } from './stats';
 import { subtreeIds } from './subtree';
 import { DEFAULT_LIMITS, type Limits, validateDoc } from './validate';
@@ -52,6 +52,13 @@ const DEFAULT_MATERIAL: Material = {
 };
 
 const clone = <T>(v: T): T => structuredClone(v);
+
+type MaterialPatchInput = Partial<Material> & { color?: Material['baseColor'] };
+
+const normalizeMaterialPatch = (patch: MaterialPatchInput): Partial<Material> => {
+  const { color, ...rest } = patch;
+  return color !== undefined && rest.baseColor === undefined ? { ...rest, baseColor: color } : rest;
+};
 
 type Dict = Record<string, unknown>;
 
@@ -109,7 +116,19 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
           id,
         });
       if (node.parent && !doc.nodes[node.parent]) fail('父节点不存在', { id: node.parent });
-      doc.nodes[id] = clone(node) as SceneNode;
+      let next = node as SceneNode;
+      if (node.kind === 'mesh' && node.material === undefined) {
+        const created = !doc.materials[DEFAULT_MATERIAL_ID];
+        if (created) doc.materials[DEFAULT_MATERIAL_ID] = clone(DEFAULT_MATERIAL);
+        next = { ...node, material: DEFAULT_MATERIAL_ID } as SceneNode;
+        warnings.push(`节点「${node.name}」未给 material，已挂共享默认材质 ${DEFAULT_MATERIAL_ID}`);
+        if (created) inverse.push({ op: 'material.delete', id: DEFAULT_MATERIAL_ID, force: true });
+      } else if (node.kind === 'mesh' && node.material !== undefined && !doc.materials[node.material]) {
+        fail('材质引用不存在；先建材质（vibe3d_create_material）或省略 material 由服务端补默认材质', {
+          material: node.material,
+        });
+      }
+      doc.nodes[id] = clone(next);
       if (!node.parent) doc.roots.push(id);
       inverse.push({ op: 'node.delete', id, cascade: true });
       return;
@@ -274,14 +293,17 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
         fail('材质已存在；新建材质请用 vibe3d_create_material（服务端生成 id），或换一个 m_ + 8 位 id', {
           id: op.id,
         });
-      doc.materials[op.id] = presetMaterial(op.preset, op.params);
+      const resolved = resolveMaterialPreset(op.preset, op.params);
+      doc.materials[op.id] = presetMaterial(resolved.preset, resolved.params);
+      if (resolved.note) warnings.push(resolved.note);
       inverse.push({ op: 'material.delete', id: op.id });
       return;
     }
     case 'material.patch': {
       const previous = doc.materials[op.id];
       if (!previous) failWith('E_MATERIAL_NOT_FOUND', '材质不存在', { material: op.id });
-      doc.materials[op.id] = { ...clone(previous), ...op.patch };
+      const patch = normalizeMaterialPatch(op.patch);
+      doc.materials[op.id] = { ...clone(previous), ...patch };
       inverse.push({ op: 'material.patch', id: op.id, patch: clone(previous) });
       return;
     }

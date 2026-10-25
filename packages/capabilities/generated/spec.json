@@ -1084,13 +1084,13 @@
                                 "segments": {
                                   "type": "integer",
                                   "minimum": 3,
-                                  "maximum": 128
+                                  "maximum": 128,
+                                  "default": 32
                                 }
                               },
                               "required": [
                                 "type",
-                                "radius",
-                                "segments"
+                                "radius"
                               ],
                               "additionalProperties": false
                             },
@@ -1120,13 +1120,13 @@
                                 "segments": {
                                   "type": "integer",
                                   "minimum": 3,
-                                  "maximum": 128
+                                  "maximum": 128,
+                                  "default": 32
                                 }
                               },
                               "required": [
                                 "type",
-                                "height",
-                                "segments"
+                                "height"
                               ],
                               "additionalProperties": false
                             },
@@ -5320,7 +5320,8 @@
           },
           "id": {
             "type": "string",
-            "pattern": "^n_[a-z0-9]{8}$"
+            "pattern": "^n_[a-z0-9]{8}$",
+            "description": "节点 id（等价 node_id/nodeId，n_ 开头）"
           },
           "count": {
             "type": "integer",
@@ -5486,7 +5487,8 @@
           },
           "id": {
             "type": "string",
-            "pattern": "^n_[a-z0-9]{8}$"
+            "pattern": "^n_[a-z0-9]{8}$",
+            "description": "节点 id（等价 node_id/nodeId，n_ 开头）"
           },
           "targetId": {
             "type": "string",
@@ -5787,7 +5789,8 @@
           },
           "id": {
             "type": "string",
-            "pattern": "^n_[a-z0-9]{8}$"
+            "pattern": "^n_[a-z0-9]{8}$",
+            "description": "节点 id（等价 node_id/nodeId，n_ 开头）"
           },
           "parent": {
             "anyOf": [
@@ -6447,13 +6450,13 @@
                                     "segments": {
                                       "type": "integer",
                                       "minimum": 3,
-                                      "maximum": 128
+                                      "maximum": 128,
+                                      "default": 32
                                     }
                                   },
                                   "required": [
                                     "type",
-                                    "radius",
-                                    "segments"
+                                    "radius"
                                   ],
                                   "additionalProperties": false
                                 },
@@ -6483,13 +6486,13 @@
                                     "segments": {
                                       "type": "integer",
                                       "minimum": 3,
-                                      "maximum": 128
+                                      "maximum": 128,
+                                      "default": 32
                                     }
                                   },
                                   "required": [
                                     "type",
-                                    "height",
-                                    "segments"
+                                    "height"
                                   ],
                                   "additionalProperties": false
                                 },
@@ -6696,8 +6699,7 @@
                             "visible",
                             "transform",
                             "kind",
-                            "geometry",
-                            "material"
+                            "geometry"
                           ],
                           "additionalProperties": false
                         },
@@ -7560,13 +7562,13 @@
                                 "segments": {
                                   "type": "integer",
                                   "minimum": 3,
-                                  "maximum": 128
+                                  "maximum": 128,
+                                  "default": 32
                                 }
                               },
                               "required": [
                                 "type",
-                                "radius",
-                                "segments"
+                                "radius"
                               ],
                               "additionalProperties": false
                             },
@@ -7596,13 +7598,13 @@
                                 "segments": {
                                   "type": "integer",
                                   "minimum": 3,
-                                  "maximum": 128
+                                  "maximum": 128,
+                                  "default": 32
                                 }
                               },
                               "required": [
                                 "type",
-                                "height",
-                                "segments"
+                                "height"
                               ],
                               "additionalProperties": false
                             },
@@ -8263,14 +8265,8 @@
                     },
                     "preset": {
                       "type": "string",
-                      "enum": [
-                        "concrete",
-                        "rust",
-                        "wet_moss",
-                        "toon",
-                        "water",
-                        "glass"
-                      ]
+                      "minLength": 1,
+                      "maxLength": 60
                     },
                     "params": {
                       "type": "object",
@@ -8455,8 +8451,7 @@
                   },
                   "required": [
                     "op",
-                    "id",
-                    "preset"
+                    "id"
                   ],
                   "additionalProperties": false
                 },
@@ -8645,6 +8640,33 @@
                                 "sha"
                               ],
                               "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "color": {
+                          "type": "array",
+                          "minItems": 4,
+                          "maxItems": 4,
+                          "items": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             }
                           ]
                         }
@@ -10409,13 +10431,13 @@
                                           "segments": {
                                             "type": "integer",
                                             "minimum": 3,
-                                            "maximum": 128
+                                            "maximum": 128,
+                                            "default": 32
                                           }
                                         },
                                         "required": [
                                           "type",
-                                          "radius",
-                                          "segments"
+                                          "radius"
                                         ],
                                         "additionalProperties": false
                                       },
@@ -10445,13 +10467,13 @@
                                           "segments": {
                                             "type": "integer",
                                             "minimum": 3,
-                                            "maximum": 128
+                                            "maximum": 128,
+                                            "default": 32
                                           }
                                         },
                                         "required": [
                                           "type",
-                                          "height",
-                                          "segments"
+                                          "height"
                                         ],
                                         "additionalProperties": false
                                       },
@@ -12786,13 +12808,13 @@
                                     "segments": {
                                       "type": "integer",
                                       "minimum": 3,
-                                      "maximum": 128
+                                      "maximum": 128,
+                                      "default": 32
                                     }
                                   },
                                   "required": [
                                     "type",
-                                    "radius",
-                                    "segments"
+                                    "radius"
                                   ],
                                   "additionalProperties": false
                                 },
@@ -12822,13 +12844,13 @@
                                     "segments": {
                                       "type": "integer",
                                       "minimum": 3,
-                                      "maximum": 128
+                                      "maximum": 128,
+                                      "default": 32
                                     }
                                   },
                                   "required": [
                                     "type",
-                                    "height",
-                                    "segments"
+                                    "height"
                                   ],
                                   "additionalProperties": false
                                 },
@@ -13035,8 +13057,7 @@
                             "visible",
                             "transform",
                             "kind",
-                            "geometry",
-                            "material"
+                            "geometry"
                           ],
                           "additionalProperties": false
                         },
@@ -13899,13 +13920,13 @@
                                 "segments": {
                                   "type": "integer",
                                   "minimum": 3,
-                                  "maximum": 128
+                                  "maximum": 128,
+                                  "default": 32
                                 }
                               },
                               "required": [
                                 "type",
-                                "radius",
-                                "segments"
+                                "radius"
                               ],
                               "additionalProperties": false
                             },
@@ -13935,13 +13956,13 @@
                                 "segments": {
                                   "type": "integer",
                                   "minimum": 3,
-                                  "maximum": 128
+                                  "maximum": 128,
+                                  "default": 32
                                 }
                               },
                               "required": [
                                 "type",
-                                "height",
-                                "segments"
+                                "height"
                               ],
                               "additionalProperties": false
                             },
@@ -14602,14 +14623,8 @@
                     },
                     "preset": {
                       "type": "string",
-                      "enum": [
-                        "concrete",
-                        "rust",
-                        "wet_moss",
-                        "toon",
-                        "water",
-                        "glass"
-                      ]
+                      "minLength": 1,
+                      "maxLength": 60
                     },
                     "params": {
                       "type": "object",
@@ -14794,8 +14809,7 @@
                   },
                   "required": [
                     "op",
-                    "id",
-                    "preset"
+                    "id"
                   ],
                   "additionalProperties": false
                 },
@@ -14984,6 +14998,33 @@
                                 "sha"
                               ],
                               "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "color": {
+                          "type": "array",
+                          "minItems": 4,
+                          "maxItems": 4,
+                          "items": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             }
                           ]
                         }
@@ -16748,13 +16789,13 @@
                                           "segments": {
                                             "type": "integer",
                                             "minimum": 3,
-                                            "maximum": 128
+                                            "maximum": 128,
+                                            "default": 32
                                           }
                                         },
                                         "required": [
                                           "type",
-                                          "radius",
-                                          "segments"
+                                          "radius"
                                         ],
                                         "additionalProperties": false
                                       },
@@ -16784,13 +16825,13 @@
                                           "segments": {
                                             "type": "integer",
                                             "minimum": 3,
-                                            "maximum": 128
+                                            "maximum": 128,
+                                            "default": 32
                                           }
                                         },
                                         "required": [
                                           "type",
-                                          "height",
-                                          "segments"
+                                          "height"
                                         ],
                                         "additionalProperties": false
                                       },
@@ -20632,7 +20673,7 @@
     },
     {
       "name": "material.create",
-      "title": "按语义预设创建材质",
+      "title": "按语义预设创建材质（preset 也接受别名：white/matte/steel/moss/glass…，无法识别时回退 concrete 并在 warnings 说明）",
       "wire": "scene.apply",
       "scope": "room",
       "mutating": true,
@@ -20662,14 +20703,9 @@
           },
           "preset": {
             "type": "string",
-            "enum": [
-              "concrete",
-              "rust",
-              "wet_moss",
-              "toon",
-              "water",
-              "glass"
-            ]
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "语义预设，推荐：concrete | rust | wet_moss | toon | water | glass；可选，缺省为浅灰 concrete"
           },
           "params": {
             "type": "object",
@@ -20853,8 +20889,7 @@
           }
         },
         "required": [
-          "roomId",
-          "preset"
+          "roomId"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -20869,6 +20904,20 @@
           "materialId": {
             "type": "string",
             "pattern": "^m_[a-z0-9]{8}$"
+          },
+          "preset": {
+            "type": "string",
+            "enum": [
+              "concrete",
+              "rust",
+              "wet_moss",
+              "toon",
+              "water",
+              "glass"
+            ]
+          },
+          "presetNote": {
+            "type": "string"
           }
         },
         "required": [
@@ -20881,7 +20930,7 @@
     },
     {
       "name": "material.patch",
-      "title": "局部更新材质字段",
+      "title": "局部更新材质字段：baseColor / metalness / roughness / emissive / emissiveIntensity / opacity / doubleSided / map；color 是 baseColor 的别名",
       "wire": "scene.apply",
       "scope": "room",
       "mutating": true,
@@ -21089,6 +21138,33 @@
                     "additionalProperties": false
                   }
                 ]
+              },
+              "color": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": [
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                ]
               }
             },
             "additionalProperties": false
@@ -21221,7 +21297,7 @@
     },
     {
       "name": "env.set",
-      "title": "设置环境：雾、背景与环境光；hdriSrc 一步上传并挂上 HDRI",
+      "title": "设置环境：雾、背景与环境光；fog 传 false 或 null 关雾；hdriSrc 接受 .hdr / .exr / 等距柱状 png、jpg",
       "wire": "scene.apply",
       "scope": "room",
       "mutating": true,
@@ -21316,52 +21392,60 @@
           "fog": {
             "anyOf": [
               {
-                "type": "object",
-                "properties": {
-                  "color": {
-                    "type": "array",
-                    "minItems": 4,
-                    "maxItems": 4,
-                    "items": [
-                      {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "color": {
+                        "type": "array",
+                        "minItems": 4,
+                        "maxItems": 4,
+                        "items": [
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        ]
                       },
-                      {
+                      "near": {
                         "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
+                        "minimum": 0
                       },
-                      {
+                      "far": {
                         "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
-                      },
-                      {
-                        "type": "number",
-                        "minimum": 0,
-                        "maximum": 1
+                        "minimum": 0
                       }
-                    ]
+                    },
+                    "required": [
+                      "near",
+                      "far"
+                    ],
+                    "additionalProperties": false
                   },
-                  "near": {
-                    "type": "number",
-                    "minimum": 0
-                  },
-                  "far": {
-                    "type": "number",
-                    "minimum": 0
+                  {
+                    "type": "null"
                   }
-                },
-                "required": [
-                  "near",
-                  "far"
-                ],
-                "additionalProperties": false
+                ]
               },
               {
-                "type": "null"
+                "type": "boolean",
+                "const": false
               }
             ]
           },
@@ -22312,13 +22396,13 @@
                                     "segments": {
                                       "type": "integer",
                                       "minimum": 3,
-                                      "maximum": 128
+                                      "maximum": 128,
+                                      "default": 32
                                     }
                                   },
                                   "required": [
                                     "type",
-                                    "radius",
-                                    "segments"
+                                    "radius"
                                   ],
                                   "additionalProperties": false
                                 },
@@ -22348,13 +22432,13 @@
                                     "segments": {
                                       "type": "integer",
                                       "minimum": 3,
-                                      "maximum": 128
+                                      "maximum": 128,
+                                      "default": 32
                                     }
                                   },
                                   "required": [
                                     "type",
-                                    "height",
-                                    "segments"
+                                    "height"
                                   ],
                                   "additionalProperties": false
                                 },
@@ -22561,8 +22645,7 @@
                             "visible",
                             "transform",
                             "kind",
-                            "geometry",
-                            "material"
+                            "geometry"
                           ],
                           "additionalProperties": false
                         },
@@ -23425,13 +23508,13 @@
                                 "segments": {
                                   "type": "integer",
                                   "minimum": 3,
-                                  "maximum": 128
+                                  "maximum": 128,
+                                  "default": 32
                                 }
                               },
                               "required": [
                                 "type",
-                                "radius",
-                                "segments"
+                                "radius"
                               ],
                               "additionalProperties": false
                             },
@@ -23461,13 +23544,13 @@
                                 "segments": {
                                   "type": "integer",
                                   "minimum": 3,
-                                  "maximum": 128
+                                  "maximum": 128,
+                                  "default": 32
                                 }
                               },
                               "required": [
                                 "type",
-                                "height",
-                                "segments"
+                                "height"
                               ],
                               "additionalProperties": false
                             },
@@ -24128,14 +24211,8 @@
                     },
                     "preset": {
                       "type": "string",
-                      "enum": [
-                        "concrete",
-                        "rust",
-                        "wet_moss",
-                        "toon",
-                        "water",
-                        "glass"
-                      ]
+                      "minLength": 1,
+                      "maxLength": 60
                     },
                     "params": {
                       "type": "object",
@@ -24320,8 +24397,7 @@
                   },
                   "required": [
                     "op",
-                    "id",
-                    "preset"
+                    "id"
                   ],
                   "additionalProperties": false
                 },
@@ -24510,6 +24586,33 @@
                                 "sha"
                               ],
                               "additionalProperties": false
+                            }
+                          ]
+                        },
+                        "color": {
+                          "type": "array",
+                          "minItems": 4,
+                          "maxItems": 4,
+                          "items": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
                             }
                           ]
                         }
@@ -26274,13 +26377,13 @@
                                           "segments": {
                                             "type": "integer",
                                             "minimum": 3,
-                                            "maximum": 128
+                                            "maximum": 128,
+                                            "default": 32
                                           }
                                         },
                                         "required": [
                                           "type",
-                                          "radius",
-                                          "segments"
+                                          "radius"
                                         ],
                                         "additionalProperties": false
                                       },
@@ -26310,13 +26413,13 @@
                                           "segments": {
                                             "type": "integer",
                                             "minimum": 3,
-                                            "maximum": 128
+                                            "maximum": 128,
+                                            "default": 32
                                           }
                                         },
                                         "required": [
                                           "type",
-                                          "height",
-                                          "segments"
+                                          "height"
                                         ],
                                         "additionalProperties": false
                                       },
@@ -28769,13 +28872,13 @@
                                 "segments": {
                                   "type": "integer",
                                   "minimum": 3,
-                                  "maximum": 128
+                                  "maximum": 128,
+                                  "default": 32
                                 }
                               },
                               "required": [
                                 "type",
-                                "radius",
-                                "segments"
+                                "radius"
                               ],
                               "additionalProperties": false
                             },
@@ -28805,13 +28908,13 @@
                                 "segments": {
                                   "type": "integer",
                                   "minimum": 3,
-                                  "maximum": 128
+                                  "maximum": 128,
+                                  "default": 32
                                 }
                               },
                               "required": [
                                 "type",
-                                "height",
-                                "segments"
+                                "height"
                               ],
                               "additionalProperties": false
                             },
@@ -31129,13 +31232,13 @@
                                 "segments": {
                                   "type": "integer",
                                   "minimum": 3,
-                                  "maximum": 128
+                                  "maximum": 128,
+                                  "default": 32
                                 }
                               },
                               "required": [
                                 "type",
-                                "radius",
-                                "segments"
+                                "radius"
                               ],
                               "additionalProperties": false
                             },
@@ -31165,13 +31268,13 @@
                                 "segments": {
                                   "type": "integer",
                                   "minimum": 3,
-                                  "maximum": 128
+                                  "maximum": 128,
+                                  "default": 32
                                 }
                               },
                               "required": [
                                 "type",
-                                "height",
-                                "segments"
+                                "height"
                               ],
                               "additionalProperties": false
                             },
@@ -33420,7 +33523,7 @@
     },
     {
       "name": "mesh.boolean",
-      "title": "布尔：轴对齐 box 的 subtract / union / intersect，结果烘焙成单节点几何",
+      "title": "布尔：按轴对齐包围盒做 subtract / union / intersect（原生 box 精确，其它几何需 force 近似）",
       "wire": "mesh.boolean",
       "scope": "room",
       "mutating": true,
@@ -33452,11 +33555,13 @@
           },
           "target": {
             "type": "string",
-            "pattern": "^n_[a-z0-9]{8}$"
+            "pattern": "^n_[a-z0-9]{8}$",
+            "description": "被切的目标节点"
           },
           "tool": {
             "type": "string",
-            "pattern": "^n_[a-z0-9]{8}$"
+            "pattern": "^n_[a-z0-9]{8}$",
+            "description": "刀具体节点"
           },
           "op": {
             "type": "string",
@@ -33469,6 +33574,10 @@
           },
           "deleteTool": {
             "type": "boolean"
+          },
+          "force": {
+            "type": "boolean",
+            "description": "目标/刀具不是原生 box 时，true 表示按几何包围盒近似执行；默认 false 直接报 E_UNSUPPORTED"
           }
         },
         "required": [
@@ -33497,13 +33606,18 @@
           "boxes": {
             "type": "integer",
             "minimum": 0
+          },
+          "approximated": {
+            "type": "boolean",
+            "description": "true 表示结果是包围盒近似，不是精确 CSG"
           }
         },
         "required": [
           "revision",
           "nodeId",
           "tris",
-          "boxes"
+          "boxes",
+          "approximated"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -34400,7 +34514,7 @@
     },
     {
       "name": "asset.put",
-      "title": "上传贴图 / HDRI / glb 模型并注册进房间资产表",
+      "title": "上传贴图 / HDRI / glb 模型并注册进房间资产表（kind=hdri 也接受等距柱状 png、jpg）",
       "wire": "asset.put",
       "scope": "room",
       "mutating": true,
@@ -35899,6 +36013,14 @@
               "standard",
               "high"
             ]
+          },
+          "fog": {
+            "type": "string",
+            "enum": [
+              "doc",
+              "off",
+              "auto"
+            ]
           }
         },
         "required": [
@@ -35961,6 +36083,119 @@
               "supersample"
             ],
             "additionalProperties": false
+          },
+          "fog": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "color": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "near": {
+                    "type": "number"
+                  },
+                  "far": {
+                    "type": "number"
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "doc",
+                      "off",
+                      "auto"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "shading",
+                      "option"
+                    ]
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "color",
+                  "near",
+                  "far",
+                  "mode"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "distanceToTarget": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warning": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "camera": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "position": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "target": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "position",
+                  "target"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -35969,7 +36204,11 @@
           "base64",
           "width",
           "height",
-          "quality"
+          "quality",
+          "fog",
+          "distanceToTarget",
+          "warning",
+          "camera"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -36111,6 +36350,14 @@
               "draft",
               "standard",
               "high"
+            ]
+          },
+          "fog": {
+            "type": "string",
+            "enum": [
+              "doc",
+              "off",
+              "auto"
             ]
           }
         },
@@ -36260,6 +36507,70 @@
                     "zoom"
                   ],
                   "additionalProperties": false
+                },
+                "fog": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "color": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "near": {
+                          "type": "number"
+                        },
+                        "far": {
+                          "type": "number"
+                        },
+                        "mode": {
+                          "type": "string",
+                          "enum": [
+                            "doc",
+                            "off",
+                            "auto"
+                          ]
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "shading",
+                            "option"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "enabled",
+                        "color",
+                        "near",
+                        "far",
+                        "mode"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "distanceToTarget": {
+                  "anyOf": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "warning": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 }
               },
               "required": [
@@ -36269,7 +36580,10 @@
                 "base64",
                 "width",
                 "height",
-                "camera"
+                "camera",
+                "fog",
+                "distanceToTarget",
+                "warning"
               ],
               "additionalProperties": false
             }
@@ -36509,6 +36823,14 @@
               "standard",
               "high"
             ]
+          },
+          "fog": {
+            "type": "string",
+            "enum": [
+              "doc",
+              "off",
+              "auto"
+            ]
           }
         },
         "required": [
@@ -36679,6 +37001,70 @@
               "supersample"
             ],
             "additionalProperties": false
+          },
+          "fog": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "color": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "near": {
+                    "type": "number"
+                  },
+                  "far": {
+                    "type": "number"
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "doc",
+                      "off",
+                      "auto"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "shading",
+                      "option"
+                    ]
+                  }
+                },
+                "required": [
+                  "enabled",
+                  "color",
+                  "near",
+                  "far",
+                  "mode"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "distanceToTarget": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warning": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -36690,7 +37076,10 @@
           "width",
           "height",
           "camera",
-          "quality"
+          "quality",
+          "fog",
+          "distanceToTarget",
+          "warning"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -37345,7 +37734,7 @@
     },
     {
       "name": "export.glb",
-      "title": "把场景导出为 GLB，返回任务 ID",
+      "title": "把场景导出为 GLB，返回 jobId；用 vibe3d_job.get 轮询到 state=done 后取产物",
       "wire": "export.glb",
       "scope": "room",
       "mutating": false,
@@ -37381,7 +37770,8 @@
             "items": {
               "type": "string",
               "pattern": "^n_[a-z0-9]{8}$"
-            }
+            },
+            "description": "只导出这些节点（含子树）；省略则导出整场景"
           },
           "include": {
             "type": "array",
@@ -37392,7 +37782,8 @@
                 "lights"
               ]
             },
-            "maxItems": 2
+            "maxItems": 2,
+            "description": "额外带上相机 / 灯光；默认不带"
           }
         },
         "required": [
@@ -37834,13 +38225,16 @@
           },
           "focus": {
             "type": "string",
-            "pattern": "^n_[a-z0-9]{8}$"
+            "pattern": "^n_[a-z0-9]{8}$",
+            "description": "打开后选中并聚焦到该节点"
           },
           "reuse": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "复用已开的同房间编辑页；false 强制新开一个"
           },
           "open": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "true（默认）直接弹窗；false 只返回 url 不弹"
           }
         },
         "required": [

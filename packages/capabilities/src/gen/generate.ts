@@ -181,6 +181,27 @@ export function buildCli(): string {
   );
 }
 
+/** mcp 可见的必填字段（room 作用域的 roomId 已被过滤，mcpInputSchema 已 snake 化） */
+function requiredOf(capability: string): string[] {
+  const schema = mcpInputSchema(specOf(capability)) as { required?: string[] };
+  return schema.required ?? [];
+}
+
+/** node.* 的 id 统一显示成 node_id（服务端 repair 已双向兼容 id ↔ node_id） */
+const displayField = (capability: string, field: string): string =>
+  capability.startsWith('node.') && field === 'id' ? 'node_id' : field;
+
+/** 该工具自己的必填表：只列有必填的 op，create{kind} get{node_id}… */
+export function opParamTable(group: ToolGroup): string {
+  const rows = group.ops
+    .map(([op, capability]) => {
+      const required = requiredOf(capability).map((field) => displayField(capability, field));
+      return required.length > 0 ? `${op}{${required.join(',')}}` : '';
+    })
+    .filter(Boolean);
+  return rows.length > 0 ? rows.join(' ') : '无';
+}
+
 /** 多 op 工具的统一信封：{ op, params }，参数细节交给 vibe3d_help，避免把 N 份 schema 塞进工具表 */
 function envelopeSchema(group: ToolGroup): Record<string, unknown> {
   const properties: Record<string, unknown> = {
@@ -191,7 +212,7 @@ function envelopeSchema(group: ToolGroup): Record<string, unknown> {
     },
     params: {
       type: 'object',
-      description: 'op 的具名参数（snake_case）。省略 params 时取其顶层字段：{ op: "create", kind: "mesh", name: "cube" }',
+      description: `必填字段：${opParamTable(group)}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段`,
     },
   };
   if (group.ops.some(([, capability]) => specOf(capability).mcp?.roomArg)) {

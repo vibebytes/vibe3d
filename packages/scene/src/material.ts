@@ -79,6 +79,112 @@ export function presetMaterial(preset: MaterialPreset, params?: Partial<Material
   };
 }
 
+export interface PresetResolution {
+  preset: MaterialPreset;
+  params: Partial<Material>;
+  note?: string;
+}
+
+const PRESET_ALIASES: Record<string, MaterialPreset> = {
+  matte: 'concrete',
+  matt: 'concrete',
+  white: 'concrete',
+  plaster: 'concrete',
+  clay: 'concrete',
+  cement: 'concrete',
+  stone: 'concrete',
+  grey: 'concrete',
+  gray: 'concrete',
+  plain: 'concrete',
+  default: 'concrete',
+  metal: 'concrete',
+  steel: 'concrete',
+  iron: 'concrete',
+  chrome: 'concrete',
+  aluminium: 'concrete',
+  aluminum: 'concrete',
+  brass: 'concrete',
+  copper: 'concrete',
+  rusted: 'rust',
+  corroded: 'rust',
+  moss: 'wet_moss',
+  grass: 'wet_moss',
+  foliage: 'wet_moss',
+  cartoon: 'toon',
+  flat: 'toon',
+  anime: 'toon',
+  liquid: 'water',
+  sea: 'water',
+  ocean: 'water',
+  lake: 'water',
+  window: 'glass',
+  transparent: 'glass',
+  acrylic: 'glass',
+};
+
+const METAL_PARAMS: Partial<Material> = {
+  baseColor: [0.68, 0.7, 0.74, 1],
+  metalness: 0.85,
+  roughness: 0.3,
+};
+const LIGHT_PARAMS: Partial<Material> = {
+  baseColor: [0.92, 0.93, 0.94, 1],
+  metalness: 0.02,
+  roughness: 0.6,
+};
+const NEUTRAL_PARAMS: Partial<Material> = {
+  baseColor: [0.86, 0.87, 0.89, 1],
+  metalness: 0.05,
+  roughness: 0.75,
+};
+
+const METAL_TOKENS = new Set(['metal', 'steel', 'iron', 'chrome', 'aluminium', 'aluminum', 'brass', 'copper']);
+const LIGHT_TOKENS = new Set(['white', 'matte', 'matt', 'light', 'bright', 'plaster', 'clay', 'paper']);
+
+export function resolveMaterialPreset(raw?: string, params?: Partial<Material>): PresetResolution {
+  const original = (raw ?? '').trim();
+  const key = original
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  const given = params ?? {};
+  if (!key) {
+    return {
+      preset: 'concrete',
+      params: { ...NEUTRAL_PARAMS, ...given },
+      note: '未指定 preset，已按浅灰混凝土（concrete）创建',
+    };
+  }
+  if (isMaterialPreset(key)) return { preset: key, params: given };
+
+  const tokens = key.split('_').filter(Boolean);
+  const flat = tokens.join('');
+  const alias = PRESET_ALIASES[flat] ?? tokens.map((token) => PRESET_ALIASES[token]).find(Boolean);
+  if (alias) {
+    const metal = tokens.some((t) => METAL_TOKENS.has(t));
+    const light = !metal && alias === 'concrete' && tokens.some((t) => LIGHT_TOKENS.has(t));
+    const derived: Partial<Material> = metal ? METAL_PARAMS : light ? LIGHT_PARAMS : {};
+    const flavour = metal ? '金属质感的 ' : light ? '浅色的 ' : '';
+    return {
+      preset: alias,
+      params: { ...derived, ...given },
+      note: `preset「${original}」不是预设名，已按${flavour}${alias}创建`,
+    };
+  }
+  if (tokens.some((token) => METAL_TOKENS.has(token))) {
+    return {
+      preset: 'concrete',
+      params: { ...METAL_PARAMS, ...given },
+      note: `preset「${original}」不是预设名，已按金属质感的 concrete 创建`,
+    };
+  }
+  return {
+    preset: 'concrete',
+    params: { ...NEUTRAL_PARAMS, ...given },
+    note: `preset「${original}」不是预设名，已回退 concrete（可用：${MATERIAL_PRESETS.join(' | ')}）`,
+  };
+}
+
 export type NormalizedMap = Omit<MapTransform, 'uv'>;
 
 export function normalizeMap(map: MaterialMap | undefined): NormalizedMap | undefined {

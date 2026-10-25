@@ -34,6 +34,7 @@ export interface UploadInput {
   mime?: string;
   bytes: Buffer;
   maxBytes?: number;
+  hdri?: boolean;
 }
 
 export interface UploadInfo {
@@ -50,7 +51,7 @@ export function limitForExt(ext: UploadExt): number {
   return MAX_IMAGE_BYTES;
 }
 
-export function classifyUpload({ filename, mime = '', bytes, maxBytes }: UploadInput): UploadInfo {
+export function classifyUpload({ filename, mime = '', bytes, maxBytes, hdri }: UploadInput): UploadInfo {
   const ext = extname(filename).toLowerCase();
   if (!isAllowedExt(ext)) {
     throw new AppError('E_ASSET_TYPE', `不支持的扩展名「${ext || '无'}」`, {
@@ -82,7 +83,7 @@ export function classifyUpload({ filename, mime = '', bytes, maxBytes }: UploadI
   const kind: UploadKind = HDRI_EXT.has(ext) || canonical.startsWith('image/') ? 'image' : 'gltf';
   if (kind === 'gltf') return { kind, ext, name: filename, mime: canonical };
 
-  const image = readImageInfo(bytes, ext);
+  const image = readImageInfo(bytes, ext, { hdri });
   const overflow = image.width > MAX_IMAGE_DIM || image.height > MAX_IMAGE_DIM;
   if (overflow) {
     throw new AppError('E_UNSUPPORTED', `图片尺寸超过 ${MAX_IMAGE_DIM}px 上限`, {

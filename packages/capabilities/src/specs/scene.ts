@@ -9,6 +9,7 @@ import {
   lightSpecSchema,
   mapTransformSchema,
   materialIdSchema,
+  materialPatchSchema,
   materialPresetSchema,
   materialSchema,
   modelAnimSchema,
@@ -316,7 +317,7 @@ export const sceneOps = {
       '阵列：linear 沿 offset 复制、radial 绕 center 成环、grid 按 cols 铺网格，均支持 jitter 与 rotateStep',
     input: z.object({
       roomId,
-      id: nodeIdSchema,
+      id: nodeIdSchema.describe('节点 id（等价 node_id/nodeId，n_ 开头）'),
       count: z.number().int().min(1).max(200),
       mode: z.enum(['linear', 'radial', 'grid']).optional(),
       offset: vec3.optional(),
@@ -343,7 +344,7 @@ export const sceneOps = {
     title: '吸附：按目标包围盒的面对齐，可用 corner 贴角、gap 留缝，世界位置写回节点 TRS',
     input: z.object({
       roomId,
-      id: nodeIdSchema,
+      id: nodeIdSchema.describe('节点 id（等价 node_id/nodeId，n_ 开头）'),
       targetId: nodeIdSchema,
       face: z.enum(['top', 'bottom', 'left', 'right', 'front', 'back']),
       corner: z.enum(['min-min', 'min-max', 'max-min', 'max-max']).optional(),
@@ -405,7 +406,7 @@ export const sceneOps = {
     title: '改挂父级：默认保持世界位置与朝向（TRS 可表达范围内）',
     input: z.object({
       roomId,
-      id: nodeIdSchema,
+      id: nodeIdSchema.describe('节点 id（等价 node_id/nodeId，n_ 开头）'),
       parent: nodeIdSchema.nullable(),
       index: z.number().int().min(0).optional(),
       keepWorld: z.boolean().optional(),
@@ -642,13 +643,22 @@ export const sceneOps = {
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'material.create': {
-    title: '按语义预设创建材质',
+    title: '按语义预设创建材质（preset 也接受别名：white/matte/steel/moss/glass…，无法识别时回退 concrete 并在 warnings 说明）',
     input: z.object({
       roomId,
-      preset: materialPresetSchema,
+      preset: z
+        .string()
+        .min(1)
+        .max(60)
+        .optional()
+        .describe(`语义预设，推荐：${materialPresetSchema.options.join(' | ')}；可选，缺省为浅灰 concrete`),
       params: materialSchema.partial().optional(),
     }),
-    output: revisionOut.extend({ materialId: materialIdSchema }),
+    output: revisionOut.extend({
+      materialId: materialIdSchema,
+      preset: materialPresetSchema.optional(),
+      presetNote: z.string().optional(),
+    }),
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.apply' as const,
@@ -656,8 +666,9 @@ export const sceneOps = {
     errors: ['E_INVALID_PARAMS', 'E_LIMIT_EXCEEDED', 'E_ROOM_NOT_FOUND'] as const,
   },
   'material.patch': {
-    title: '局部更新材质字段',
-    input: z.object({ roomId, materialId: materialIdSchema, patch: materialSchema.partial() }),
+    title:
+      '局部更新材质字段：baseColor / metalness / roughness / emissive / emissiveIntensity / opacity / doubleSided / map；color 是 baseColor 的别名',
+    input: z.object({ roomId, materialId: materialIdSchema, patch: materialPatchSchema }),
     output: revisionOut.extend({ materialId: materialIdSchema }),
     scope: 'room' as const,
     mutating: true,
@@ -683,7 +694,7 @@ export const sceneOps = {
     errors: ['E_INVALID_PARAMS', 'E_MATERIAL_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'env.set': {
-    title: '设置环境：雾、背景与环境光；hdriSrc 一步上传并挂上 HDRI',
+    title: '设置环境：雾、背景与环境光；fog 传 false 或 null 关雾；hdriSrc 接受 .hdr / .exr / 等距柱状 png、jpg',
     input: envSchema.partial().extend({
       roomId,
       hdri: z
@@ -691,7 +702,7 @@ export const sceneOps = {
         .regex(/^[0-9a-f]{64}$/)
         .nullable()
         .optional(),
-      fog: fogSchema.nullable().optional(),
+      fog: fogSchema.nullable().or(z.literal(false)).optional(),
       hdriSrc: z.string().min(1).optional(),
       policy: z.enum(['strict', 'local', 'allow']).optional(),
     }),
@@ -899,19 +910,24 @@ export const sceneOps = {
     errors: ['E_INVALID_PARAMS', 'E_ASSET_MISSING', 'E_ROOM_NOT_FOUND'] as const,
   },
   'mesh.boolean': {
-    title: '布尔：轴对齐 box 的 subtract / union / intersect，结果烘焙成单节点几何',
+    title: '布尔：按轴对齐包围盒做 subtract / union / intersect（原生 box 精确，其它几何需 force 近似）',
     input: z.object({
       roomId,
-      target: nodeIdSchema,
-      tool: nodeIdSchema,
+      target: nodeIdSchema.describe('被切的目标节点'),
+      tool: nodeIdSchema.describe('刀具体节点'),
       op: z.enum(['subtract', 'union', 'intersect']).default('subtract'),
       deleteTool: z.boolean().optional(),
+      force: z
+        .boolean()
+        .optional()
+        .describe('目标/刀具不是原生 box 时，true 表示按几何包围盒近似执行；默认 false 直接报 E_UNSUPPORTED'),
     }),
     output: z.object({
       revision: z.number().int().min(0),
       nodeId: nodeIdSchema,
       tris: z.number().int().min(0),
       boxes: z.number().int().min(0),
+      approximated: z.boolean().describe('true 表示结果是包围盒近似，不是精确 CSG'),
     }),
     scope: 'room' as const,
     mutating: true,

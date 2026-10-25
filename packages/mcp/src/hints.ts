@@ -1,4 +1,5 @@
 import type { z } from 'zod';
+import { OP_NAMES } from './presentation';
 
 const ID_HINTS: Record<string, string> = {
   'invalid material id':
@@ -13,12 +14,119 @@ const ID_HINTS: Record<string, string> = {
 
 const COLOUR_KEYS = new Set(['color', 'background', 'ambient', 'baseColor', 'emissive']);
 
+const FIELD_SHAPES: Record<string, string> = {
+  fog: 'fog 是对象 {near, far, color?}（near<far，米制）；关雾传 false 或 null',
+  geometry:
+    'geometry 按 type 给字段：box{size:[x,y,z]} / sphere{radius} / cylinder{radius,height} 或 {radiusTop,radiusBottom,height} / plane{width,height}；legacy vibe3d_node create 用平铺的 shape+size',
+  material:
+    'material 可省略（服务端挂默认材质 m_00000000）；给了就必须是已存在的材质 id（m_ + 8 位），可先 vibe3d_material {op:"create", preset} 建',
+  transform: 'transform 是对象 {p:[x,y,z], r:[x,y,z], s:[x,y,z]}（弧度）',
+  size: 'size 是数组 [x,y,z]（米）',
+};
+
+const WRAPPER_OPS: Record<string, string> = {
+  node: 'node.create',
+  env: 'env.set',
+  stage: 'stage.set',
+  camera: 'camera.set',
+  fx: 'fx.create',
+  asset: 'asset.register',
+};
+
+const nestingHint = (field: string, opName: string | undefined): string => {
+  const sample = opName ?? WRAPPER_OPS[field] ?? field;
+  return `；${sample} 的载荷要包在 ${field} 里、不能平铺在 op 顶层：{op:"${sample}", ${field}:{…}}（apply_ops 用法见 vibe3d_help {tool:"vibe3d_apply_ops"}）`;
+};
+
+const editDistance = (a: string, b: string): number => {
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i += 1) {
+    let last = prev[0];
+    prev[0] = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const keep = prev[j];
+      prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, last + (a[i - 1] === b[j - 1] ? 0 : 1));
+      last = keep;
+    }
+  }
+  return prev[b.length];
+};
+
+const nearestOp = (given: string): string | undefined => {
+  let best: string | undefined;
+  let bestScore = Number.POSITIVE_INFINITY;
+  for (const op of OP_NAMES) {
+    const score = editDistance(given, op);
+    if (score < bestScore) {
+      best = op;
+      bestScore = score;
+    }
+  }
+  return best && bestScore / best.length <= 0.6 ? best : undefined;
+};
+
+const opNameHint = (given: string | undefined): string => {
+  const near = given ? nearestOp(given) : undefined;
+  const received = given ? `（收到 "${given}"）` : '';
+  const suggest = near ? `；最接近的是 ${near}` : '';
+  return `；op 不在合法清单里${received}${suggest}。共 ${OP_NAMES.length} 个合法 op（tools/list 的 ops.items.properties.op.enum 可见），契约用 vibe3d_help {tool:"vibe3d_apply_ops"}`;
+};
+
+const missingFieldsHint = (
+  opName: string,
+  field: string,
+  issues: ReadonlyArray<{ path: ReadonlyArray<string | number>; message: string }>,
+): string => {
+  const missing = issues
+    .filter(
+      (issue) =>
+        issue.path[0] === 'ops' &&
+        typeof issue.path[1] === 'number' &&
+        issue.path[2] === field &&
+        /required/i.test(issue.message),
+    )
+    .map((issue) => String(issue.path[3] ?? ''))
+    .filter(Boolean);
+  const list = missing.length > 0 ? `：${missing.join(', ')}` : '';
+  return `；${opName} 的 ${field} 载荷已就位，但缺必填字段${list}。字段契约见 vibe3d_help {tool:"vibe3d_apply_ops", op:"${opName}"}`;
+};
+
 export function paramHint(
   issues: ReadonlyArray<{ path: ReadonlyArray<string | number>; message: string }>,
+  opName?: string,
+  opItem?: Record<string, unknown>,
 ): string {
   for (const issue of issues) {
     const idHint = ID_HINTS[issue.message.trim()];
     if (idHint) return `；${idHint}`;
+    const [head, index, field] = issue.path;
+    if (head === 'ops' && typeof index === 'number' && field === 'op' && /Invalid discriminator/i.test(issue.message)) {
+      return opNameHint(opName);
+    }
+    if (
+      head === 'ops' &&
+      typeof index === 'number' &&
+      typeof field === 'string' &&
+      issue.path.length === 3 &&
+      WRAPPER_OPS[field] &&
+      /required/i.test(issue.message)
+    ) {
+      return opItem && field in opItem
+        ? missingFieldsHint(opName ?? WRAPPER_OPS[field], field, issues)
+        : nestingHint(field, opName);
+    }
+    if (
+      head === 'ops' &&
+      typeof index === 'number' &&
+      typeof field === 'string' &&
+      WRAPPER_OPS[field] &&
+      issue.path.length === 4 &&
+      /invalid input|expected/i.test(issue.message)
+    ) {
+      const inner = String(issue.path[3] ?? '');
+      const shapeNote = FIELD_SHAPES[inner] ? `${FIELD_SHAPES[inner]}。` : '';
+      return `；${shapeNote}${WRAPPER_OPS[field]} 的载荷要整体包在 ${field} 里、不能平铺在 op 顶层：{op:"${WRAPPER_OPS[field]}", ${field}:{kind, geometry, material, transform}}`;
+    }
     if (/Invalid discriminator value/.test(issue.message)) {
       return '；kind 必须是 group / mesh / light / model 之一；基础体直接用 vibe3d_create_node 更省事';
     }
@@ -26,6 +134,9 @@ export function paramHint(
     if (COLOUR_KEYS.has(last) && /at least 4/.test(issue.message)) {
       return '；颜色一律 [r,g,b,a]，0..1 四位（3 位会自动补 alpha=1；也接受 "#RRGGBB"）';
     }
+    const shape = FIELD_SHAPES[last];
+    if (shape && (/invalid input|required|expected/i.test(issue.message) || (last === 'size' && /at least 3/i.test(issue.message))))
+      return `；${shape}`;
   }
   return '';
 }
@@ -137,8 +248,30 @@ function objectExample(schema: z.ZodTypeAny): string | undefined {
   return `{${JSON.stringify(key)}: ${sampleFor(child)}}`;
 }
 
-const isRecord = (value: unknown): boolean =>
+const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
+
+export function opNameAt(
+  payload: Record<string, unknown>,
+  issues: ReadonlyArray<{ path: ReadonlyArray<string | number> }>,
+): string | undefined {
+  const index = issues.find((issue) => issue.path[0] === 'ops' && typeof issue.path[1] === 'number')?.path[1];
+  const ops = payload.ops;
+  if (typeof index !== 'number' || !Array.isArray(ops)) return undefined;
+  const op = (ops[index] as { op?: unknown } | undefined)?.op;
+  return typeof op === 'string' ? op : undefined;
+}
+
+export function opItemAt(
+  payload: Record<string, unknown>,
+  issues: ReadonlyArray<{ path: ReadonlyArray<string | number> }>,
+): Record<string, unknown> | undefined {
+  const index = issues.find((issue) => issue.path[0] === 'ops' && typeof issue.path[1] === 'number')?.path[1];
+  const ops = payload.ops;
+  if (typeof index !== 'number' || !Array.isArray(ops)) return undefined;
+  const item = ops[index];
+  return isRecord(item) ? item : undefined;
+}
 
 export function schemaHint(
   input: Record<string, unknown>,

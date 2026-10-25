@@ -10,6 +10,14 @@ const EMPTY_SCENE_HINT =
 
 type ListCursor = { updatedAt: string; roomId: string };
 
+const warmRoom = (
+  renderer: { ready: boolean; warm?: (roomId: string) => Promise<void> } | undefined,
+  roomId: string,
+): void => {
+  if (!renderer?.ready) return;
+  void renderer.warm?.(roomId);
+};
+
 const compareRoom = (a: ListCursor, b: ListCursor): number =>
   a.updatedAt === b.updatedAt ? a.roomId.localeCompare(b.roomId) : a.updatedAt > b.updatedAt ? -1 : 1;
 
@@ -202,6 +210,7 @@ export const roomHandlers: HandlersFor<Keys> = {
 
   'room.use': async (p, ctx) => {
     const meta = ctx.rooms.get(p.roomId).meta();
+    warmRoom(ctx.renderer, meta.roomId);
     return {
       roomId: meta.roomId,
       name: meta.name,
@@ -215,6 +224,7 @@ export const roomHandlers: HandlersFor<Keys> = {
   'room.get': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     const meta = room.meta();
+    warmRoom(ctx.renderer, room.id);
     ctx.thumbs?.ensure(ctx, room);
     const thumb = ctx.thumbs?.latest(room.id);
     return {
@@ -234,6 +244,7 @@ export const roomHandlers: HandlersFor<Keys> = {
     const room = ctx.rooms.get(p.roomId);
     const revision = room.revision;
     ctx.rooms.close(p.roomId, p.purge ?? false);
+    void ctx.renderer?.drop?.(p.roomId);
     return { revision, closed: true };
   },
 

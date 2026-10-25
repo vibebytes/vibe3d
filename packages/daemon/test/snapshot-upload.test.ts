@@ -86,6 +86,70 @@ describe('snapshot upload transport', () => {
     expect(frames.filter((f) => f.event === 'snapshot.request')).toHaveLength(1);
   });
 
+  it('carries shot meta from the upload header onto the resolved snapshot', async () => {
+    const hub = new WsHub();
+    const h = makeHarness({ hub });
+    const room = h.rooms.create({ name: 'snap-meta' });
+    const { frames, socket } = fakeSocket();
+    hub.add(room.id, socket);
+    const pending = hub.requestSnapshot(room.id, {}, 2000);
+    const requestId = requestIdOf(frames);
+    const meta = {
+      fog: { enabled: true, color: 0x112233, near: 4, far: 40, mode: 'doc' },
+      distanceToTarget: 12.5,
+      camera: { position: [0, 0, 12.5], target: [0, 0, 0] },
+    };
+    const res = await h.app.request(`/r/${room.id}/snapshot/${requestId}`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${h.token}`,
+        'content-type': 'image/png',
+        'x-vibe3d-shot-meta': Buffer.from(JSON.stringify(meta)).toString('base64url'),
+      },
+      body: PNG,
+    });
+    expect(res.status).toBe(200);
+    expect((await pending).meta).toEqual(meta);
+  });
+
+  it('rejects a malformed or oversized shot meta header', async () => {
+    const hub = new WsHub();
+    const h = makeHarness({ hub });
+    const room = h.rooms.create({ name: 'snap-meta-bad' });
+    const { frames, socket } = fakeSocket();
+    hub.add(room.id, socket);
+
+    const first = hub.requestSnapshot(room.id, {}, 2000);
+    const firstRejects = expect(first).rejects.toBeTruthy();
+    const firstId = requestIdOf(frames);
+    const bad = await h.app.request(`/r/${room.id}/snapshot/${firstId}`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${h.token}`,
+        'x-vibe3d-shot-meta': Buffer.from(JSON.stringify({ fog: null })).toString('base64url'),
+      },
+      body: PNG,
+    });
+    expect(bad.status).toBe(400);
+    const badBody = (await bad.json()) as any;
+    expect(badBody.error?.data?.code ?? badBody.error?.code).toBe('E_INVALID_PARAMS');
+    hub.resolveSnapshot(firstId, undefined, 'test teardown');
+
+    const second = hub.requestSnapshot(room.id, {}, 2000);
+    const secondRejects = expect(second).rejects.toBeTruthy();
+    const secondId = requestIdOf(frames);
+    const huge = 'A'.repeat(3000);
+    const over = await h.app.request(`/r/${room.id}/snapshot/${secondId}`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${h.token}`, 'x-vibe3d-shot-meta': huge },
+      body: PNG,
+    });
+    expect(over.status).toBe(400);
+    hub.resolveSnapshot(secondId, undefined, 'test teardown');
+    await firstRejects;
+    await secondRejects;
+  });
+
   it('rejects an unauthenticated upload', async () => {
     const h = makeHarness({ hub: new WsHub() });
     const room = h.rooms.create({ name: 'snap-upload-auth' });

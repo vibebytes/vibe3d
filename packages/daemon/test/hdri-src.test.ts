@@ -38,7 +38,7 @@ describe('env.set hdriSrc', () => {
     expect(codeOf(body)).toBe('E_ASSET_MISSING');
   });
 
-  it('rejects a non-HDRI image passed as hdriSrc', async () => {
+  it('accepts an equirectangular png and flags it as hdri', async () => {
     const h = makeHarness();
     const roomId = await newRoom(h);
     const dir = mkdtempSync(join(tmpdir(), 'v3d-hdri-'));
@@ -50,7 +50,8 @@ describe('env.set hdriSrc', () => {
     bytes.writeUInt32BE(4, 20);
     writeFileSync(png, bytes);
     const { body } = await call(h, 'env.set', { roomId, hdriSrc: png }, roomId);
-    expect(codeOf(body)).toBe('E_ASSET_TYPE');
+    expect(body.error).toBeUndefined();
+    expect(body.result.env.hdri).toBe(body.result.sha);
   });
 
   it('keeps other env fields when hdri is cleared', async () => {

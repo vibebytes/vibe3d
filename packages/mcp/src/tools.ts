@@ -9,12 +9,18 @@ import {
   toIssues,
 } from '@vibebyte/vibe3d-capabilities';
 import { type RoomHandle, type Studio, Vibe3DError } from '@vibebyte/vibe3d-client';
-import { coerceForSchema, deepCamel } from './coerce';
-import { paramHint, schemaHint } from './hints';
+import { appendFileSync } from 'node:fs';
+import { coerceForSchema, deepCamel, lenientRecord } from './coerce';
+import { opItemAt, opNameAt, paramHint, schemaHint } from './hints';
 import { describeTool, presentSchema } from './presentation';
+import { repairInput } from './repair';
+import { recordRepair } from './repair-stats';
 import { RoomSession } from './session';
 
 export type ToolDef = McpToolDoc;
+
+const TOOL_NAMES = MCP_TOOLS.map((tool) => tool.name as string);
+const ALL_OP_NAMES = [...new Set(MCP_TOOLS.flatMap((tool) => tool.ops.map((op) => op.op)))];
 
 export const HELP_TOOL = {
   name: 'vibe3d_help',
@@ -23,8 +29,8 @@ export const HELP_TOOL = {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
     type: 'object',
     properties: {
-      tool: { type: 'string', description: '如 vibe3d_node' },
-      op: { type: 'string', description: '如 create' },
+      tool: { type: 'string', enum: TOOL_NAMES, description: '工具名；省略则列出全部工具与 op' },
+      op: { type: 'string', enum: ALL_OP_NAMES, description: '该工具下的 op；省略则返回该工具全部 op' },
     },
     additionalProperties: false,
   },
@@ -64,10 +70,27 @@ interface Picked {
   input: Record<string, unknown>;
 }
 
-const asRecord = (value: unknown): Record<string, unknown> | undefined =>
-  value && typeof value === 'object' && !Array.isArray(value)
-    ? (deepCamel(value) as Record<string, unknown>)
-    : undefined;
+const asRecord = (value: unknown): Record<string, unknown> | undefined => lenientRecord(value);
+
+function unwrapWrapper(input: Record<string, unknown>, keys: string[]): Record<string, unknown> {
+  for (const key of keys) {
+    const inner = asRecord(input[key]);
+    if (!inner) continue;
+    const { [key]: _wrapped, ...rest } = input;
+    return { ...rest, ...inner };
+  }
+  return input;
+}
+
+const wrapperKeys = (tool: ToolDef, op: string): string[] => [op, tool.name.replace(/^vibe3d_/, '')];
+
+const IGNORED_KEYS = new Set(['op', 'params', 'roomId']);
+
+function droppedKeys(spec: unknown, payload: Record<string, unknown>): string[] {
+  const shape = (spec as { shape?: Record<string, unknown> }).shape;
+  if (!shape || typeof shape !== 'object') return [];
+  return Object.keys(payload).filter((key) => !(key in shape) && !IGNORED_KEYS.has(key));
+}
 
 function pickOp(tool: ToolDef, rawArgs: unknown, pinnedOp?: string): Picked | { error: string } {
   const raw = (rawArgs ?? {}) as Record<string, unknown>;
@@ -83,7 +106,11 @@ function pickOp(tool: ToolDef, rawArgs: unknown, pinnedOp?: string): Picked | { 
       return { error: `${tool.name} 只支持 op ${only.op}，收到 ${wanted}；直接传参数即可` };
     }
     const flat = given ? merged : (deepCamel(raw) as Record<string, unknown>);
-    return { capability: only.capability, op: only.op, input: flat };
+    return {
+      capability: only.capability,
+      op: only.op,
+      input: unwrapWrapper(flat, wrapperKeys(tool, only.op)),
+    };
   }
 
   const names = tool.ops.map((o) => o.op);
@@ -99,8 +126,15 @@ function pickOp(tool: ToolDef, rawArgs: unknown, pinnedOp?: string): Picked | { 
       error: `${tool.name} 没有 op「${wanted}」。可选：${names.join(' / ')}${near.length > 0 ? `；是否想用 ${near.join(' / ')}` : ''}`,
     };
   }
-  return { capability: hit.capability, op: hit.op, input: merged };
+  return {
+    capability: hit.capability,
+    op: hit.op,
+    input: unwrapWrapper(merged, wrapperKeys(tool, hit.op)),
+  };
 }
+
+export const ALIAS_NOTE =
+  '参数容错：id/node_id 可代替 nodeId，job_id 可代替 jobId，p/r/s 会并入 transform，缺省分量按 0/0/1 补齐；node.create 的字段可直接平铺在 op 上。';
 
 function helpText(rawArgs: unknown): string {
   const raw = (rawArgs ?? {}) as { tool?: unknown; op?: unknown };
@@ -120,6 +154,7 @@ function helpText(rawArgs: unknown): string {
   return JSON.stringify({
     tool: tool.name,
     title: tool.title,
+    note: ALIAS_NOTE,
     ops: entries.map((entry) => describeCapability(entry.capability)),
   });
 }
@@ -157,7 +192,119 @@ export function listTools(): Array<{
   ];
 }
 
+class CallTimeout extends Error {
+  constructor(
+    readonly capability: string,
+    readonly ms: number,
+    readonly elapsedMs: number,
+    readonly params: Record<string, unknown>,
+  ) {
+    super(`${capability} timed out after ${ms}ms`);
+    this.name = 'CallTimeout';
+  }
+}
+
+const DEFAULT_CALL_TIMEOUT_MS = 120_000;
+
+const callTimeoutMs = (): number => {
+  const raw = Number(process.env.VIBE3D_CALL_TIMEOUT_MS);
+  return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_CALL_TIMEOUT_MS;
+};
+
+async function withDeadline<T>(
+  work: Promise<T>,
+  capability: string,
+  params: Record<string, unknown>,
+): Promise<T> {
+  const ms = callTimeoutMs();
+  const startedAt = Date.now();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new CallTimeout(capability, ms, Date.now() - startedAt, params)),
+      ms,
+    );
+    timer.unref?.();
+  });
+  try {
+    return await Promise.race([work, deadline]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+interface NextStep {
+  tool: string;
+  params?: Record<string, unknown>;
+  why: string;
+}
+
+const halve = (value: unknown, fallback: number): number => {
+  const n = typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+  return Math.max(64, Math.round(n / 2));
+};
+
+function timeoutNextSteps(capability: string, params: Record<string, unknown>): NextStep[] {
+  const steps: NextStep[] = [];
+  if (capability === 'render.snapshot') {
+    steps.push({
+      tool: 'vibe3d_render_snapshot',
+      params: {
+        width: halve(params.width, 1280),
+        height: halve(params.height, 720),
+        ...(params.quality ? { quality: params.quality } : {}),
+      },
+      why: '分辨率减半重试：像素数降到 1/4，出图耗时通常同比例下降',
+    });
+  }
+  if (capability.startsWith('render.') || capability.startsWith('export.')) {
+    steps.push({
+      tool: 'vibe3d_job',
+      params: { op: 'list' },
+      why: '大图/多视角改用 job 异步：拿 job_id 轮询 vibe3d_job {op:"get"}，不会被单次调用超时打断',
+    });
+  }
+  steps.push({
+    tool: 'vibe3d_status',
+    why: '探活 daemon 与渲染器；连续超时说明渲染器卡住，重启 daemon 后重试',
+  });
+  return steps;
+}
+
+function echoParams(params: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(params)) {
+    if (key === 'base64' || key === 'doc') {
+      out[key] = '[omitted]';
+      continue;
+    }
+    if (typeof value === 'string') {
+      out[key] = value.length > 120 ? `${value.slice(0, 117)}...` : value;
+      continue;
+    }
+    if (Array.isArray(value) && value.length > 8) {
+      out[key] = { length: value.length, sample: value.slice(0, 3) };
+      continue;
+    }
+    out[key] = value;
+  }
+  return out;
+}
+
 function failure(err: unknown): ToolResult {
+  if (err instanceof CallTimeout) {
+    const payload = {
+      code: 'E_TIMEOUT',
+      message: `${err.capability} 超时：等了 ${err.elapsedMs}ms 仍未返回（预算 ${err.ms}ms，可用环境变量 VIBE3D_CALL_TIMEOUT_MS 调整）`,
+      hint: '按 next 里的顺序降级重试：先减分辨率 / 改 job 异步，再探活 daemon；不要原样重试同一个大请求',
+      timeoutMs: err.ms,
+      elapsedMs: err.elapsedMs,
+      params: echoParams(err.params),
+      next: timeoutNextSteps(err.capability, err.params),
+      retryable: true,
+    };
+    return { content: [{ type: 'text', text: JSON.stringify(payload) }], structuredContent: payload, isError: true };
+  }
   if (err instanceof Vibe3DError) {
     return {
       content: [{ type: 'text', text: JSON.stringify(err.toJSON()) }],
@@ -178,6 +325,12 @@ function receivedType(value: unknown): string {
   return typeof value;
 }
 
+function receivedSample(value: unknown): string {
+  if (typeof value === 'string') return JSON.stringify(value).slice(0, 40);
+  if (typeof value === 'object' && value !== null) return Array.isArray(value) ? 'array' : 'object';
+  return String(value);
+}
+
 function reportToolError(
   tool: string,
   issues: ReadonlyArray<{ path: ReadonlyArray<string | number>; message: string }>,
@@ -191,6 +344,7 @@ function reportToolError(
     code: 'E_INVALID_PARAMS',
     field,
     received: field ? receivedType(input[field]) : undefined,
+    sample: field ? receivedSample(input[field]) : undefined,
     reason: first?.message,
   };
   process.stderr.write(`${JSON.stringify(entry)}\n`);
@@ -228,17 +382,35 @@ export class ToolRuntime {
     try {
       const input = picked.input;
       if (viewOf(capability).scope === 'room') await this.resolveRoom(capability, input);
-      const params = spec.input.safeParse(coerceForSchema(spec.input, input));
+      const repaired = repairInput(spec.input, input);
+      if (repaired.fixes.length > 0) {
+        process.stderr.write(
+          `${JSON.stringify({ event: 'tool.repair', tool: name, capability, fixes: repaired.fixes })}\n`,
+        );
+        recordRepair({ tool: name, capability, fixes: repaired.fixes }, this.studio.home);
+      }
+      const payload = repaired.value as Record<string, unknown>;
+      const params = spec.input.safeParse(coerceForSchema(spec.input, payload));
       if (!params.success) {
-        reportToolError(name, params.error.issues, input);
+        reportToolError(name, params.error.issues, payload);
         throw new Vibe3DError(
           'E_INVALID_PARAMS',
-          `${capability} 参数校验失败：${describeIssues(params.error.issues)}${paramHint(params.error.issues)}${schemaHint(input, params.error.issues, spec.input)}`,
+          `${capability} 参数校验失败：${describeIssues(params.error.issues)}${paramHint(params.error.issues, opNameAt(payload, params.error.issues), opItemAt(payload, params.error.issues))}${schemaHint(payload, params.error.issues, spec.input)}`,
           { issues: toIssues(params.error.issues) },
         );
       }
       const data = params.data as Record<string, unknown>;
-      const result = await this.dispatch(capability, data);
+      const dropped = droppedKeys(spec.input, payload);
+      if (dropped.length > 0) {
+        process.stderr.write(
+          `${JSON.stringify({ event: 'tool.dropped', tool: name, capability, keys: dropped })}\n`,
+        );
+      }
+      const droppedNote =
+        dropped.length > 0
+          ? `⚠ 以下字段不属于 ${capability}，本次已忽略：${dropped.join(', ')}。参数平铺在顶层；形状用 vibe3d_help {tool:"${tool.name}", op:"${op}"} 查。`
+          : '';
+      const result = await withDeadline(this.dispatch(capability, data), capability, data);
       this.afterCall(capability, data, result);
       if (capability === 'render.snapshot') {
         const shot = result as {
@@ -260,6 +432,7 @@ export class ToolRuntime {
                 mime: shot.mime,
               }),
             },
+            ...(droppedNote ? [{ type: 'text' as const, text: droppedNote }] : []),
           ],
           structuredContent: {
             width: shot.width,
@@ -269,7 +442,9 @@ export class ToolRuntime {
           },
         };
       }
-      return { content: [{ type: 'text', text: JSON.stringify(result) }], structuredContent: result };
+      const content: Array<TextContent | ImageContent> = [{ type: 'text', text: JSON.stringify(result) }];
+      if (droppedNote) content.push({ type: 'text', text: droppedNote });
+      return { content, structuredContent: result };
     } catch (err) {
       return failure(err);
     }

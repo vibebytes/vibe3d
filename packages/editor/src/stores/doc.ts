@@ -21,6 +21,7 @@ import { type RoomSocket, connectRoom } from '../lib/ws';
 import type {
   CaptureOptions,
   CaptureResult,
+  FogMode,
   IdPassOptions,
   IdPassResult,
   OverlayKind,
@@ -31,6 +32,7 @@ import { useSelection } from './selection';
 import { parseSnapshotCamera } from './snapshot-camera';
 
 const SHADING_MODES: readonly ShadingMode[] = ['flat', 'wireframe', 'normals', 'material', 'rendered'];
+const FOG_MODES: readonly FogMode[] = ['doc', 'off', 'auto'];
 const OVERLAY_KINDS: readonly OverlayKind[] = [
   'grid',
   'axes',
@@ -53,6 +55,7 @@ declare global {
   interface Window {
     __vibe3dCapture?: (opts?: CaptureOptions) => CaptureResult | null;
     __vibe3dReady?: boolean;
+    __vibe3dRevision?: number;
     __vibe3dExport?: (nodeIds?: string[] | null) => Promise<string>;
     __vibe3dIdPass?: (opts: IdPassOptions) => IdPassResult;
     vibe3d?: {
@@ -164,6 +167,7 @@ export const useDoc = create<DocStore>((set, get) => ({
               return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
             };
             const shading = SHADING_MODES.find((mode) => mode === evt.data.shading);
+            const fog = FOG_MODES.find((mode) => mode === evt.data.fog);
             const overlay = Array.isArray(evt.data.overlay)
               ? evt.data.overlay.filter((k): k is OverlayKind => OVERLAY_KINDS.some((kind) => kind === k))
               : undefined;
@@ -183,6 +187,7 @@ export const useDoc = create<DocStore>((set, get) => ({
                 transparent: evt.data.transparent === true,
                 camera: parseSnapshotCamera(evt.data.camera),
                 shading,
+                fog,
                 overlay: overlay && overlay.length > 0 ? overlay : undefined,
                 highlight: highlight && highlight.length > 0 ? highlight : undefined,
                 isolate: isolate && isolate.length > 0 ? isolate : undefined,
@@ -216,7 +221,13 @@ export const useDoc = create<DocStore>((set, get) => ({
                 return;
               }
               const mime = shot.mime || (base.format === 'jpeg' ? 'image/jpeg' : 'image/png');
-              const bytes = await uploadSnapshot(roomId, requestId, base64ToBytes(shot.base64), mime);
+              const bytes = await uploadSnapshot(
+                roomId,
+                requestId,
+                base64ToBytes(shot.base64),
+                mime,
+                shot.meta,
+              );
               get().socket?.send({
                 type: 'snapshot.result',
                 requestId,
@@ -225,6 +236,7 @@ export const useDoc = create<DocStore>((set, get) => ({
                 width: shot.width,
                 height: shot.height,
                 bytes,
+                meta: shot.meta,
               });
             } catch (err) {
               const message = err instanceof Error ? err.message : String(err);

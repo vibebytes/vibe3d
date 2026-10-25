@@ -19,6 +19,7 @@ import { verifyGlbExport } from './verify-glb';
 interface PageSession {
   sessionId: string;
   targetId: string;
+  roomId: string;
 }
 
 export interface ChromiumOptions {
@@ -28,6 +29,9 @@ export interface ChromiumOptions {
   chromePath?: string;
   logger: Logger;
   navigateTimeoutMs?: number;
+  readyTimeoutMs?: number;
+  revisionGraceMs?: number;
+  maxPages?: number;
 }
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
@@ -38,7 +42,7 @@ export class ChromiumRenderer implements Renderer {
   private chrome?: ChromeHandle;
   private cdp?: Cdp;
   private booting?: Promise<Cdp>;
-  private page?: PageSession;
+  private pages: PageSession[] = [];
   private queue: Promise<unknown> = Promise.resolve();
   private lastErrorAt = 0;
   private noSandbox = /^(1|true|yes|on)$/i.test(process.env.VIBE3D_CHROME_NO_SANDBOX ?? '');
@@ -61,11 +65,20 @@ export class ChromiumRenderer implements Renderer {
     const format = opts.format ?? 'png';
     return this.serial(() =>
       this.withRecovery(async () => {
-        const page = await this.openPage(input.roomId, width, height);
+        const page = await this.openPage(input.roomId, width, height, input.doc?.revision);
         await sleep(opts.settleMs ?? 180);
         const captured = await this.cdp?.send<{
           result: {
-            value?: { base64?: string; mime?: string; width?: number; height?: number } | string | null;
+            value?:
+              | {
+                  base64?: string;
+                  mime?: string;
+                  width?: number;
+                  height?: number;
+                  meta?: Snapshot['meta'];
+                }
+              | string
+              | null;
           };
         }>(
           'Runtime.evaluate',
@@ -81,6 +94,7 @@ export class ChromiumRenderer implements Renderer {
               overlay: opts.overlay,
               highlight: opts.highlight,
               isolate: opts.isolate,
+              fog: opts.fog,
             })}) ?? null`,
             awaitPromise: true,
             returnByValue: true,
@@ -97,6 +111,7 @@ export class ChromiumRenderer implements Renderer {
             base64: value.base64,
             width: value.width ?? width,
             height: value.height ?? height,
+            ...(value.meta ? { meta: value.meta } : {}),
           };
         }
         const shot = await this.cdp?.send<{ data: string }>(
@@ -189,10 +204,15 @@ export class ChromiumRenderer implements Renderer {
     );
   }
 
-  private async withRecovery<T>(task: () => Promise<T>): Promise<T> {
+  private async withRecovery<T>(task: () => Promise<T>, attempt = 0): Promise<T> {
     try {
       return await task();
     } catch (err) {
+      if (attempt === 0 && err instanceof AppError && err.data?.recycle === true) {
+        this.opts.logger.warn({ event: 'renderer.recycle', reason: err.data.stage, err: String(err) });
+        await this.close();
+        return this.withRecovery(task, attempt + 1);
+      }
       const lost =
         err instanceof CdpError &&
         (err.method === 'close' || err.method === 'socket' || err.method === 'connect');
@@ -205,11 +225,17 @@ export class ChromiumRenderer implements Renderer {
   }
 
   async close(): Promise<void> {
+    const pages = this.pages;
+    this.pages = [];
+    if (this.cdp && !this.cdp.isClosed) {
+      for (const page of pages) {
+        await this.cdp.send('Target.closeTarget', { targetId: page.targetId }).catch(() => undefined);
+      }
+    }
     this.cdp?.close();
     await this.chrome?.close();
     this.cdp = undefined;
     this.chrome = undefined;
-    this.page = undefined;
   }
 
   private serial<T>(task: () => Promise<T>): Promise<T> {
@@ -262,32 +288,73 @@ export class ChromiumRenderer implements Renderer {
     }
   }
 
-  private async openPage(roomId: string, width: number, height: number): Promise<PageSession> {
+  private async openPage(
+    roomId: string,
+    width: number,
+    height: number,
+    expectedRevision?: number,
+  ): Promise<PageSession> {
     const cdp = await this.start();
-    if (!this.page) {
-      const { targetId } = await cdp.send<{ targetId: string }>('Target.createTarget', {
-        url: 'about:blank',
-      });
-      const { sessionId } = await cdp.send<{ sessionId: string }>('Target.attachToTarget', {
-        targetId,
-        flatten: true,
-      });
-      await cdp.send('Page.enable', {}, sessionId);
-      await cdp.send('Runtime.enable', {}, sessionId);
-      await cdp.send('Log.enable', {}, sessionId).catch(() => undefined);
-      this.watchPage(cdp, sessionId);
-      this.page = { targetId, sessionId };
-    }
-    const page = this.page;
+    const page = this.pages.find((p) => p.roomId === roomId) ?? (await this.createPage(cdp, roomId));
+    this.pages = [...this.pages.filter((p) => p !== page), page];
     await cdp.send(
       'Emulation.setDeviceMetricsOverride',
       { width, height, deviceScaleFactor: 1, mobile: false },
       page.sessionId,
     );
-    const url = `${this.opts.baseUrl()}/editor/r/${roomId}?headless=1&t=${encodeURIComponent(this.opts.token)}`;
-    await cdp.send('Page.navigate', { url }, page.sessionId, this.opts.navigateTimeoutMs ?? 20_000);
-    await this.waitReady(page.sessionId);
+    await cdp.send('Page.bringToFront', {}, page.sessionId).catch(() => undefined);
+    await this.waitReady(page.sessionId, expectedRevision);
+    await this.evictPages(cdp);
     return page;
+  }
+
+  async warm(roomId: string): Promise<void> {
+    if (!this.ready) return;
+    await this.serial(() =>
+      this.withRecovery(async () => {
+        const started = Date.now();
+        await this.openPage(roomId, 1280, 720);
+        this.opts.logger.debug({ event: 'renderer.warm', roomId, elapsedMs: Date.now() - started });
+      }),
+    ).catch((err) => {
+      this.opts.logger.warn({ event: 'renderer.warm_failed', roomId, err: String(err) });
+    });
+  }
+
+  async drop(roomId: string): Promise<void> {
+    const page = this.pages.find((p) => p.roomId === roomId);
+    if (!page) return;
+    this.pages = this.pages.filter((p) => p !== page);
+    if (this.cdp && !this.cdp.isClosed) {
+      await this.cdp.send('Target.closeTarget', { targetId: page.targetId }).catch(() => undefined);
+    }
+  }
+
+  private async createPage(cdp: Cdp, roomId: string): Promise<PageSession> {
+    const { targetId } = await cdp.send<{ targetId: string }>('Target.createTarget', {
+      url: 'about:blank',
+    });
+    const { sessionId } = await cdp.send<{ sessionId: string }>('Target.attachToTarget', {
+      targetId,
+      flatten: true,
+    });
+    await cdp.send('Page.enable', {}, sessionId);
+    await cdp.send('Runtime.enable', {}, sessionId);
+    await cdp.send('Log.enable', {}, sessionId).catch(() => undefined);
+    this.watchPage(cdp, sessionId);
+    const page: PageSession = { targetId, sessionId, roomId };
+    const url = `${this.opts.baseUrl()}/editor/r/${roomId}?headless=1&t=${encodeURIComponent(this.opts.token)}`;
+    await cdp.send('Page.navigate', { url }, sessionId, this.opts.navigateTimeoutMs ?? 20_000);
+    this.pages.push(page);
+    return page;
+  }
+
+  private async evictPages(cdp: Cdp): Promise<void> {
+    const limit = Math.max(1, this.opts.maxPages ?? 3);
+    for (const page of this.pages.slice(0, Math.max(0, this.pages.length - limit))) {
+      this.pages = this.pages.filter((p) => p !== page);
+      await cdp.send('Target.closeTarget', { targetId: page.targetId }).catch(() => undefined);
+    }
   }
 
   private get modeFile(): string {
@@ -360,22 +427,35 @@ export class ChromiumRenderer implements Renderer {
     }
   }
 
-  private async waitReady(sessionId: string): Promise<void> {
-    const deadline = Date.now() + (this.opts.navigateTimeoutMs ?? 20_000);
+  private async waitReady(sessionId: string, expectedRevision?: number): Promise<void> {
+    const budget = this.opts.readyTimeoutMs ?? 20_000;
+    const grace = this.opts.revisionGraceMs ?? 1500;
+    const deadline = Date.now() + budget;
     let last = '';
+    let readyAt = 0;
     while (Date.now() < deadline) {
-      const res = await this.cdp?.send<{ result: { value?: { ready: boolean; error?: string } } }>(
+      const res = await this.cdp?.send<{
+        result: { value?: { ready: boolean; revision?: number; error?: string } };
+      }>(
         'Runtime.evaluate',
         {
-          expression: `({ready: Boolean(window.__vibe3dReady), error: document.querySelector('[data-vibe3d-error]')?.getAttribute('data-vibe3d-error') ?? ''})`,
+          expression: `({ready: Boolean(window.__vibe3dReady), revision: Number(window.__vibe3dRevision ?? -1), error: document.querySelector('[data-vibe3d-error]')?.getAttribute('data-vibe3d-error') ?? ''})`,
           returnByValue: true,
         },
         sessionId,
       );
       const value = res?.result?.value;
       if (value?.error) throw new AppError('E_RENDER_UNAVAILABLE', `headless 页面报错：${value.error}`);
-      if (value?.ready) return;
       last = JSON.stringify(value ?? {});
+      if (value?.ready) {
+        const caughtUp =
+          expectedRevision === undefined ||
+          typeof value.revision !== 'number' ||
+          value.revision >= expectedRevision;
+        if (caughtUp) return;
+        readyAt ||= Date.now();
+        if (Date.now() - readyAt > grace) return;
+      }
       await sleep(60);
     }
     this.opts.logger.warn({
@@ -383,6 +463,9 @@ export class ChromiumRenderer implements Renderer {
       state: last,
       diag: await this.diagnose(sessionId),
     });
-    throw new AppError('E_RENDER_UNAVAILABLE', 'headless 页面在 20s 内未就绪');
+    throw new AppError('E_RENDER_UNAVAILABLE', `headless 页面在 ${Math.round(budget / 1000) || 1}s 内未就绪`, {
+      stage: 'ready_timeout',
+      recycle: true,
+    });
   }
 }

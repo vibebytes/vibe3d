@@ -142,6 +142,29 @@ describe('attachWebSocket', () => {
     await shutdown(c);
   });
 
+  it('passes shot meta from a websocket snapshot result frame', async () => {
+    const c = await connect(`/r/${room.id}/ws?t=${h.token}`);
+    await c.next((f) => f.type === 'hello');
+
+    const meta = {
+      fog: { enabled: false, color: 0x0b0f14, near: 0, far: 0, mode: 'doc' },
+      distanceToTarget: 7.5,
+      camera: { position: [0, 0, 7.5], target: [0, 0, 0] },
+    };
+    const pending = hub.requestSnapshot(room.id, {}, 2_000);
+    const request = await c.next((f) => f.type === 'event' && f.event === 'snapshot.request');
+    c.ws.send(
+      JSON.stringify({
+        type: 'snapshot.result',
+        requestId: request.data.requestId,
+        png: 'data:image/png;base64,AAA',
+        meta,
+      }),
+    );
+    await expect(pending).resolves.toMatchObject({ meta });
+    await shutdown(c);
+  });
+
   it('forwards client frames and drops malformed ones', async () => {
     const c = await connect(`/r/${room.id}/ws?t=${h.token}`);
     await c.next((f) => f.type === 'hello');
@@ -159,5 +182,39 @@ describe('attachWebSocket', () => {
     expect(hub.count(room.id)).toBeGreaterThan(0);
     await shutdown(c);
     expect(hub.count(room.id)).toBe(0);
+  });
+
+  it('replaces the old socket when the same clientId reconnects', async () => {
+    const first = await connect(`/r/${room.id}/ws?t=${h.token}&clientId=tab-1`);
+    await first.next((f) => f.type === 'hello');
+    const closed = new Promise<void>((resolve) => first.ws.on('close', () => resolve()));
+
+    const second = await connect(`/r/${room.id}/ws?t=${h.token}&clientId=tab-1`);
+    const hello = await second.next((f) => f.type === 'hello');
+    expect(hello.editors).toBe(1);
+    await closed;
+    expect(hub.countAll(room.id)).toBe(1);
+    await shutdown(second);
+  });
+
+  it('does not count headless pages as editors', async () => {
+    const c = await connect(`/r/${room.id}/ws?t=${h.token}&clientId=render-1&headless=1`);
+    const hello = await c.next((f) => f.type === 'hello');
+    expect(hello.editors).toBe(0);
+    expect(hub.countAll(room.id)).toBe(1);
+    await shutdown(c);
+  });
+
+  it('answers a server ping with pong and stays connected', async () => {
+    const c = await connect(`/r/${room.id}/ws?t=${h.token}&clientId=tab-2`);
+    await c.next((f) => f.type === 'hello');
+    const before = seenFrames.length;
+    hub.pingAll();
+    await c.next((f) => f.type === 'ping');
+    c.ws.send(JSON.stringify({ type: 'pong', t: Date.now() }));
+    await new Promise((r) => setTimeout(r, 60));
+    expect(c.ws.readyState).toBe(WebSocket.OPEN);
+    expect(seenFrames.length).toBe(before);
+    await shutdown(c);
   });
 });

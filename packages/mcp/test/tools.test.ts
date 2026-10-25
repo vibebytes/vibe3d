@@ -228,3 +228,45 @@ describe('ToolRuntime 会话绑定', () => {
     expect(String(jsonOf(result).message)).toContain('ops');
   });
 });
+
+describe('legacy 工具的同名包装与忽略字段', () => {
+  it('vibe3d_stage env 接受 {env:{…}} 包装，按平铺参数下发', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const result = await runtime.call('vibe3d_stage', { op: 'env', env: { background: [0.1, 0.2, 0.3, 1] } });
+    expect(result.isError).toBeFalsy();
+    const params = (calls.at(-1) as Call).params as Record<string, unknown>;
+    expect(params.background).toEqual([0.1, 0.2, 0.3, 1]);
+    expect(params.env).toBeUndefined();
+  });
+
+  it('vibe3d_node create 接受 {node:{…}} 包装', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const result = await runtime.call('vibe3d_node', { op: 'create', node: { kind: 'mesh', shape: 'box', size: [1, 2, 1] } });
+    expect(result.isError).toBeFalsy();
+    const params = (calls.at(-1) as Call).params as Record<string, unknown>;
+    expect(params.kind).toBe('mesh');
+    expect(params.size).toEqual([1, 2, 1]);
+    expect(params.node).toBeUndefined();
+  });
+
+  it('拼错的字段会回一条 warning，而不是静默丢弃', async () => {
+    const { studio } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const result = await runtime.call('vibe3d_stage', { op: 'env', backgound: [0.1, 0.2, 0.3, 1] });
+    expect(result.isError).toBeFalsy();
+    expect(result.content).toHaveLength(2);
+    const note = result.content[1] as { text: string };
+    expect(note.text).toContain('backgound');
+    expect(note.text).toContain('已忽略');
+  });
+
+  it('合法调用不带 warning', async () => {
+    const { studio } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const result = await runtime.call('vibe3d_stage', { op: 'env', background: [0.1, 0.2, 0.3, 1] });
+    expect(result.isError).toBeFalsy();
+    expect(result.content).toHaveLength(1);
+  });
+});

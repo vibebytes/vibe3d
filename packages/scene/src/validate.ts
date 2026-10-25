@@ -56,8 +56,8 @@ export function validateDoc(doc: SceneDoc, limits: Limits = DEFAULT_LIMITS): voi
 
   if (doc.env.hdri) {
     const asset = doc.assets[doc.env.hdri];
-    if (!asset || asset.kind !== 'image' || !asset.image?.hdri) {
-      fail('环境贴图必须是 HDRI 资产', { sha: doc.env.hdri }, 'E_ASSET_TYPE');
+    if (!asset || asset.kind !== 'image') {
+      fail('环境贴图必须是图片资产', { sha: doc.env.hdri }, 'E_ASSET_TYPE');
     }
   }
 

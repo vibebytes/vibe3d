@@ -10,8 +10,16 @@ import {
   fitsIdPass,
   frameTarget,
   resolveQuality,
+  shotWarning,
 } from '@vibebyte/vibe3d-scene';
-import type { DispatchContext, OverlayKind, Renderer, ShadingMode, SnapshotOptions } from '../context';
+import type {
+  DispatchContext,
+  OverlayKind,
+  Renderer,
+  ShadingMode,
+  Snapshot,
+  SnapshotOptions,
+} from '../context';
 import { signExportUrl } from '../http/export-url';
 import { type JobError, toView } from '../jobs/store';
 import { decodeShot, hexOf, pixelAt, regionStats } from '../render/pick';
@@ -77,6 +85,7 @@ interface ImageParams {
   highlight?: string[];
   isolate?: string[];
   quality?: string;
+  fog?: 'doc' | 'off' | 'auto';
 }
 
 function hasDocAnimation(doc: SceneDoc): boolean {
@@ -100,6 +109,17 @@ function imageOptions(p: ImageParams, doc?: SceneDoc, quality?: QualityPreset): 
     highlight: p.highlight?.length ? [...new Set(p.highlight)] : undefined,
     isolate: p.isolate?.length ? [...new Set(p.isolate)] : undefined,
     quality: quality ?? resolveQuality(p.quality),
+    fog: p.fog ?? 'doc',
+  };
+}
+
+function presentShot(shot: Snapshot) {
+  const meta = shot.meta ?? null;
+  return {
+    fog: meta?.fog ?? null,
+    distanceToTarget: meta?.distanceToTarget ?? null,
+    camera: meta?.camera ?? null,
+    warning: shotWarning(meta),
   };
 }
 
@@ -119,6 +139,7 @@ export const renderHandlers: HandlersFor<Keys> = {
       width: shot.width,
       height: shot.height,
       quality,
+      ...presentShot(shot),
     };
   },
 
@@ -156,6 +177,7 @@ export const renderHandlers: HandlersFor<Keys> = {
           base64: shot.base64,
           width: shot.width,
           height: shot.height,
+          ...presentShot(shot),
           camera: framed.camera,
         });
       } catch (err) {
@@ -210,6 +232,7 @@ export const renderHandlers: HandlersFor<Keys> = {
       base64: shot.base64,
       width: shot.width,
       height: shot.height,
+      ...presentShot(shot),
       camera: framed.camera,
       quality,
     };

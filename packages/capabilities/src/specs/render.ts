@@ -22,6 +22,28 @@ export const overlayKind = z.enum([
 
 export const qualityLevel = z.enum(['draft', 'standard', 'high']);
 
+export const fogMode = z.enum(['doc', 'off', 'auto']);
+
+const shotCamera = z.object({
+  position: z.tuple([z.number(), z.number(), z.number()]),
+  target: z.tuple([z.number(), z.number(), z.number()]),
+});
+
+const fogReport = z.object({
+  enabled: z.boolean(),
+  color: z.number().int().min(0),
+  near: z.number().finite(),
+  far: z.number().finite(),
+  mode: fogMode,
+  reason: z.enum(['shading', 'option']).optional(),
+});
+
+const shotReport = {
+  fog: fogReport.nullable(),
+  distanceToTarget: z.number().finite().nullable(),
+  warning: z.string().nullable(),
+};
+
 export const qualityPreset = z.object({
   level: qualityLevel,
   pixelRatio: z.number().positive(),
@@ -42,6 +64,7 @@ const imageOpts = {
   highlight: z.array(nodeIdSchema).max(200).optional(),
   isolate: z.array(nodeIdSchema).max(200).optional(),
   quality: qualityLevel.optional(),
+  fog: fogMode.optional(),
 };
 
 const pickImageOpts = {
@@ -154,6 +177,8 @@ export const renderOps = {
       width: z.number().int(),
       height: z.number().int(),
       quality: qualityPreset,
+      ...shotReport,
+      camera: shotCamera.nullable(),
     }),
     scope: 'room' as const,
     mutating: false,
@@ -187,6 +212,7 @@ export const renderOps = {
           width: z.number().int(),
           height: z.number().int(),
           camera: cameraStateSchema,
+          ...shotReport,
         }),
       ),
       partial: z.boolean(),
@@ -225,6 +251,7 @@ export const renderOps = {
       height: z.number().int(),
       camera: cameraStateSchema,
       quality: qualityPreset,
+      ...shotReport,
     }),
     scope: 'room' as const,
     mutating: false,
@@ -366,14 +393,18 @@ export const renderOps = {
     ] as const,
   },
   'export.glb': {
-    title: '把场景导出为 GLB，返回任务 ID',
+    title: '把场景导出为 GLB，返回 jobId；用 vibe3d_job.get 轮询到 state=done 后取产物',
     input: z.object({
       roomId,
-      nodeIds: z.array(nodeIdSchema).optional(),
+      nodeIds: z
+        .array(nodeIdSchema)
+        .optional()
+        .describe('只导出这些节点（含子树）；省略则导出整场景'),
       include: z
         .array(z.enum(['cameras', 'lights']))
         .max(2)
-        .optional(),
+        .optional()
+        .describe('额外带上相机 / 灯光；默认不带'),
     }),
     output: z.object({
       jobId: z.string().min(1),
@@ -423,9 +454,9 @@ export const renderOps = {
       '在本地浏览器打开房间编辑器（默认直接弹出窗口；open:false 只回链接）；省略 room_id 时用会话绑定（未绑定自动建房）',
     input: z.object({
       roomId,
-      focus: nodeIdSchema.optional(),
-      reuse: z.boolean().optional(),
-      open: z.boolean().optional(),
+      focus: nodeIdSchema.optional().describe('打开后选中并聚焦到该节点'),
+      reuse: z.boolean().optional().describe('复用已开的同房间编辑页；false 强制新开一个'),
+      open: z.boolean().optional().describe('true（默认）直接弹窗；false 只返回 url 不弹'),
     }),
     output: z.object({
       url: z.string(),

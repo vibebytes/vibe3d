@@ -68,6 +68,14 @@ export class AutoRenderer implements Renderer {
   close(): Promise<void> {
     return this.chromium.close?.() ?? Promise.resolve();
   }
+
+  warm(roomId: string): Promise<void> {
+    return this.chromium.warm(roomId);
+  }
+
+  drop(roomId: string): Promise<void> {
+    return this.chromium.drop(roomId);
+  }
 }
 
 export interface RendererDeps {
@@ -76,6 +84,8 @@ export interface RendererDeps {
   logger: Logger;
   baseUrl: () => string;
   exportsDir: string;
+  readyTimeoutMs?: number;
+  maxPages?: number;
 }
 
 export function createRenderer(deps: RendererDeps): Renderer | undefined {
@@ -89,6 +99,8 @@ export function createRenderer(deps: RendererDeps): Renderer | undefined {
     chromePath: config.chromePath,
     logger,
     navigateTimeoutMs: config.renderTimeoutMs,
+    readyTimeoutMs: deps.readyTimeoutMs ?? (Number(process.env.VIBE3D_READY_TIMEOUT_MS) || 20_000),
+    maxPages: deps.maxPages ?? (Number(process.env.VIBE3D_RENDER_PAGES) || 3),
   });
   if (config.renderer === 'chromium') return chromium;
 
