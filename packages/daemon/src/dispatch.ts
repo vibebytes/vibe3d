@@ -16,6 +16,7 @@ import { editorUrl } from './handlers/editor-url';
 import { renderHandlers } from './handlers/render';
 import { roomHandlers } from './handlers/room';
 import { sceneHandlers } from './handlers/scene';
+import { systemHandlers } from './handlers/system';
 import { tubeHandlers } from './handlers/tube';
 
 type AnyHandler = (p: never, ctx: DispatchContext) => Promise<unknown>;
@@ -87,6 +88,7 @@ function autoOpenEditor(name: CapabilityName, params: unknown, result: unknown, 
 }
 
 const HANDLERS = {
+  ...systemHandlers,
   ...roomHandlers,
   ...sceneHandlers,
   ...checkpointHandlers,

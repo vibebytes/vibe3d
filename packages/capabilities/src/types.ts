@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 export const WIRE_METHODS = [
   'hello',
+  'system.status',
   'room.create',
   'room.list',
   'room.use',

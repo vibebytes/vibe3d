@@ -3,6 +3,101 @@
   "package": "@vibebyte/vibe3d-capabilities",
   "capabilities": [
     {
+      "name": "system.status",
+      "title": "能力探测：渲染器是否就绪、能否出 id-pass、快照与载荷上限；先查再调渲染工具",
+      "wire": "system.status",
+      "scope": "daemon",
+      "mutating": false,
+      "hostCoupled": false,
+      "errors": [],
+      "mcp": {
+        "tool": "vibe3d_status",
+        "annotations": {
+          "readOnlyHint": true
+        },
+        "roomArg": false
+      },
+      "cli": {
+        "command": "status",
+        "args": ""
+      },
+      "input": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "daemonVersion": {
+            "type": "string"
+          },
+          "protocolVersion": {
+            "type": "string"
+          },
+          "renderer": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "ready": {
+                "type": "boolean"
+              },
+              "idPass": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "name",
+              "ready",
+              "idPass"
+            ],
+            "additionalProperties": false
+          },
+          "limits": {
+            "type": "object",
+            "properties": {
+              "snapshotMaxPixels": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "snapshotTimeoutMs": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "wsPayloadBytes": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "snapshotMaxPixels",
+              "snapshotTimeoutMs",
+              "wsPayloadBytes"
+            ],
+            "additionalProperties": false
+          },
+          "notes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "daemonVersion",
+          "protocolVersion",
+          "renderer",
+          "limits",
+          "notes"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
       "name": "room.create",
       "title": "创建房间：分配 roomId 与文档；下次写操作会自动开窗，无需预先调用 vibe3d_open_editor",
       "wire": "room.create",

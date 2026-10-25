@@ -6,8 +6,8 @@ export const DEFAULT_SNAPSHOT_TIMEOUT_MS = 5_000;
 
 const MEGAPIXEL = 1_000_000;
 const PER_MEGAPIXEL_MS = 2_000;
-const MAX_SNAPSHOT_TIMEOUT_MS = 30_000;
-const MAX_SNAPSHOT_PIXELS = 4_000_000;
+export const MAX_SNAPSHOT_TIMEOUT_MS = 30_000;
+export const MAX_SNAPSHOT_PIXELS = 4_000_000;
 
 export function snapshotAreaPixels(width = 1280, height = 720, pixelRatio = 1): number {
   const ratio = Number.isFinite(pixelRatio) && pixelRatio > 0 ? pixelRatio : 1;

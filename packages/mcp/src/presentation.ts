@@ -20,6 +20,10 @@ const EXTRA: Record<string, string> = {
   vibe3d_create_fx: 'id 由服务端生成；不要复用已有 id，换特效请新建。',
   vibe3d_set_environment: '设置背景 / 环境光 / 雾。颜色一律 [r,g,b,a]，0..1 四位（3 位会自动补 alpha=1）。',
   vibe3d_create_decal: "文字或图片贴花；color / background 用 [r,g,b,a] 或 '#RRGGBB'，fontSize 8-512。",
+  vibe3d_status:
+    '返回 renderer{name,ready,idPass}、快照上限（像素/超时）与 WS 载荷上限。渲染工具报 E_RENDER_UNAVAILABLE 前先看这里。',
+  vibe3d_render_snapshot: '前提：有在线 editor 页面或已启用离屏渲染；不确定先调 vibe3d_status。',
+  vibe3d_render_id_pass: '前提：渲染器支持 id-pass；不确定先调 vibe3d_status，不支持则改用 render_snapshot。',
 };
 
 const LOOSE: Record<string, unknown> = {

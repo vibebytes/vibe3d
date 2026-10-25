@@ -3,6 +3,7 @@ import type { z } from 'zod';
 import { CAPABILITIES } from '../src/registry';
 
 export type CapabilityName =
+  | "system.status"
   | "room.create"
   | "room.list"
   | "room.use"
@@ -72,6 +73,7 @@ export type CapabilityName =
   | "editor.open";
 
 export type InputOf<N extends CapabilityName> = {
+  "system.status": z.infer<(typeof CAPABILITIES)["system.status"]['input']>;
   "room.create": z.infer<(typeof CAPABILITIES)["room.create"]['input']>;
   "room.list": z.infer<(typeof CAPABILITIES)["room.list"]['input']>;
   "room.use": z.infer<(typeof CAPABILITIES)["room.use"]['input']>;
@@ -142,6 +144,7 @@ export type InputOf<N extends CapabilityName> = {
 }[N];
 
 export type OutputOf<N extends CapabilityName> = {
+  "system.status": z.infer<(typeof CAPABILITIES)["system.status"]['output']>;
   "room.create": z.infer<(typeof CAPABILITIES)["room.create"]['output']>;
   "room.list": z.infer<(typeof CAPABILITIES)["room.list"]['output']>;
   "room.use": z.infer<(typeof CAPABILITIES)["room.use"]['output']>;
