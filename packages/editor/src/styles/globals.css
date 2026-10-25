@@ -47,6 +47,10 @@ body,
   color: var(--color-base-content);
 }
 
+/* Component styles live in the components layer so Tailwind utilities (e.g.
+   `hidden`, `md:flex`) can override them; unlayered rules always beat utilities. */
+@layer components {
+
 .num {
   font-variant-numeric: tabular-nums;
 }
@@ -532,4 +536,6 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
 }
