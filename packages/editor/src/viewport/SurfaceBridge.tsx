@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import { installSurfaceHandshake } from '../lib/surface-handshake';
 import type { SurfaceCapability } from '../lib/surface-handshake';
-import { setToken } from '../lib/rpc';
-import { useSurface } from '../stores/surface';
+import { applyGrant } from '../lib/surface-grant';
 
 /** Capabilities this editor actually implements; the host rejects anything it did not declare. */
 const CAPABILITIES: readonly SurfaceCapability[] = ['tool.call'];
@@ -13,17 +12,13 @@ const CAPABILITIES: readonly SurfaceCapability[] = ['tool.call'];
  */
 export function SurfaceBridge() {
   useEffect(() => {
-    const setGrant = useSurface.getState().setGrant;
     console.info('[surface] mount', { href: window.location.href, embedded: window.parent !== window });
     return installSurfaceHandshake({
       win: window,
       capabilities: CAPABILITIES,
       onGrant: (grant) => {
         console.info('[surface] grant', { surfaceId: grant.surfaceId, toolScope: grant.toolScope });
-        setToken(grant.token);
-        setGrant(grant);
-        // The room socket may have connected before the token arrived; reconnect so it carries one.
-        window.dispatchEvent(new CustomEvent('vibe3d:token'));
+        applyGrant(grant);
       },
     });
   }, []);
