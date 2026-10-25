@@ -33,7 +33,8 @@ const round3 = (value: number): number => Math.round(value * 1000) / 1000;
 export function shotMetaOf(input: ShotMetaInput): ShotMeta {
   const mode = input.mode ?? 'doc';
   const off = mode === 'off';
-  const shadeOff = typeof input.shading === 'string' && input.shading.length > 0 && input.shading !== 'rendered';
+  const shadeOff =
+    typeof input.shading === 'string' && input.shading.length > 0 && input.shading !== 'rendered';
   const enabled = Boolean(input.fog) && !off && !shadeOff;
   const fog: FogReport = {
     enabled,
@@ -67,6 +68,14 @@ export function autoFogRange(distance: number, radius: number, strength = 1): { 
   const r = Number.isFinite(radius) ? Math.max(0, radius) : 0;
   const near = Math.max(0.05, round3(d - r * 0.5 * strength));
   const far = Math.max(round3(near + 0.5), round3(d + r * 3 * strength));
+  return { near, far };
+}
+
+export function autoClipRange(distance: number, radius: number): { near: number; far: number } {
+  const d = Number.isFinite(distance) ? Math.max(0, distance) : 0;
+  const r = Number.isFinite(radius) ? Math.max(0, radius) : 0;
+  const near = Math.max(0.01, round3(d - r * 3));
+  const far = Math.max(round3(near + 1), round3(d + r * 6));
   return { near, far };
 }
 

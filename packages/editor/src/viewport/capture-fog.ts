@@ -1,4 +1,4 @@
-import { autoFogRange, type FogMode } from '@vibebyte/vibe3d-scene';
+import { type FogMode, autoFogRange } from '@vibebyte/vibe3d-scene';
 import * as THREE from 'three';
 import type { FogSettings } from '../three/fx';
 
@@ -28,6 +28,21 @@ export function applyCaptureFog(scene: THREE.Scene, plan: FogSettings | null): (
   scene.fog = plan ? new THREE.Fog(plan.color, plan.near, plan.far) : null;
   return () => {
     scene.fog = prev;
+  };
+}
+
+export function applyClipRange(
+  camera: THREE.PerspectiveCamera,
+  range: { near: number; far: number },
+): () => void {
+  const prev = { near: camera.near, far: camera.far };
+  camera.near = Math.max(0.001, Math.min(prev.near, range.near));
+  camera.far = Math.max(prev.far, range.far);
+  camera.updateProjectionMatrix();
+  return () => {
+    camera.near = prev.near;
+    camera.far = prev.far;
+    camera.updateProjectionMatrix();
   };
 }
 

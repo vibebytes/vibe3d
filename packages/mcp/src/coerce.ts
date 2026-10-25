@@ -171,8 +171,11 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number): unkno
     const items = def.items as z.ZodTypeAny[];
     const rest = def.rest as z.ZodTypeAny | null | undefined;
     const out = value.map((item, index) => coerceValue(items[index] ?? rest ?? z.any(), item, depth + 1));
-    if (items.length === 4 && out.length === 3 && out.every((item) => typeof item === 'number')) {
-      return [...out, 1];
+    if (items.length === 4 && out.every((item) => typeof item === 'number')) {
+      const full = out.length === 3 ? [...out, 1] : out;
+      const byte = full.map((item) => (item > 1 ? Math.round((item / 255) * 1e6) / 1e6 : item));
+      if (byte.some((item, index) => item !== full[index]) && inner.safeParse(byte).success) return byte;
+      return full;
     }
     return out;
   }

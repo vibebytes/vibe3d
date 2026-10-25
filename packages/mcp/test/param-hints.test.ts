@@ -93,6 +93,30 @@ describe('field shape hints', () => {
     expect(hint).toContain('vibe3d_create_material');
   });
 
+  it('prefers the material id hint over the generic nesting rule', () => {
+    const hint = paramHint(
+      [
+        { path: ['ops', 0, 'node', 'parent'], message: 'Invalid input' },
+        { path: ['ops', 1, 'node', 'material'], message: 'invalid material id' },
+        { path: ['ops', 2, 'node', 'geometry'], message: 'Invalid input' },
+      ],
+      'node.create',
+    );
+    expect(hint).toContain('m_');
+    expect(hint).not.toContain('不能平铺');
+  });
+
+  it('echoes the offending op even when it only lives inside params', () => {
+    const hint = paramHint(
+      [{ path: ['ops', 0, 'op'], message: 'Invalid discriminator value' }],
+      undefined,
+      undefined,
+      { op: 'apply_ops', params: { ops: [{ op: 'node_create', node: { kind: 'mesh' } }] } },
+    );
+    expect(hint).toContain('node_create');
+    expect(hint).toContain('node.create');
+  });
+
   it('explains a size array that is too short', () => {
     const hint = paramHint([
       { path: ['size'], message: 'Array must contain at least 3 element(s), inclusive' },
@@ -100,7 +124,13 @@ describe('field shape hints', () => {
     expect(hint).toContain('[x,y,z]');
   });
 
-  it('repeats the nesting rule when a flat payload leaves node half-built', () => {
+  it('explains the nesting rule when the wrapper object is missing entirely', () => {
+    const hint = paramHint([{ path: ['ops', 0, 'node'], message: 'Required' }], 'node.create');
+    expect(hint).toContain('包在 node 里');
+    expect(hint).toContain('node.create');
+  });
+
+  it('prefers the concrete field contract over the nesting rule when node is present', () => {
     const hint = paramHint(
       [
         { path: ['ops', 0, 'node', 'parent'], message: 'Invalid input' },
@@ -109,8 +139,7 @@ describe('field shape hints', () => {
       ],
       'node.create',
     );
-    expect(hint).toContain('包在 node 里');
-    expect(hint).toContain('node.create');
+    expect(hint).not.toContain('包在 node 里');
   });
 });
 

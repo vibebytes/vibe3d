@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { repairInput } from '../src/repair';
 
 const specInput = (capability: string): Parameters<typeof repairInput>[0] =>
-  (CAPABILITIES as Record<string, { input: Parameters<typeof repairInput>[0] }>)[capability].input;
+  (CAPABILITIES as Record<string, { input: Parameters<typeof repairInput>[0] }>)[capability]!.input;
 
 describe('node id vocabulary', () => {
   it('accepts node_id on the ops whose wire field is still id', () => {

@@ -1,3 +1,4 @@
+import { appendFileSync } from 'node:fs';
 import {
   CAPABILITIES,
   type CapabilityName,
@@ -6,10 +7,11 @@ import {
   type McpToolDoc,
   describeCapability,
   describeIssues,
+  mergedFieldDocs,
+  opExample,
   toIssues,
 } from '@vibebyte/vibe3d-capabilities';
 import { type RoomHandle, type Studio, Vibe3DError } from '@vibebyte/vibe3d-client';
-import { appendFileSync } from 'node:fs';
 import { coerceForSchema, deepCamel, lenientRecord } from './coerce';
 import { opItemAt, opNameAt, paramHint, schemaHint } from './hints';
 import { describeTool, presentSchema } from './presentation';
@@ -24,7 +26,8 @@ const ALL_OP_NAMES = [...new Set(MCP_TOOLS.flatMap((tool) => tool.ops.map((op) =
 
 export const HELP_TOOL = {
   name: 'vibe3d_help',
-  title: '查参数契约：给 tool(+op) 返回该 op 的参数字段/必填/枚举/错误码与示例；不给 tool 则列出全部工具与 op',
+  title:
+    '查参数契约：给 tool(+op) 返回该 op 的参数字段/必填/枚举/错误码与示例；不给 tool 则列出全部工具与 op',
   inputSchema: {
     $schema: 'https://json-schema.org/draft/2020-12/schema',
     type: 'object',
@@ -97,15 +100,58 @@ function pickOp(tool: ToolDef, rawArgs: unknown, pinnedOp?: string): Picked | { 
   const given = asRecord(raw.params);
   const top = Object.fromEntries(Object.entries(raw).filter(([k]) => k !== 'op' && k !== 'params'));
   const merged = { ...(given ?? {}), ...(deepCamel(top) as Record<string, unknown>) };
-  const wanted = (typeof raw.op === 'string' && raw.op) || pinnedOp;
+  const names = tool.ops.map((o) => o.op);
+  const norm = (value: string): string =>
+    value
+      .replace(/([a-z0-9])([A-Z])/g, '$1.$2')
+      .toLowerCase()
+      .split(/[.\s_-]+/)
+      .filter(Boolean)
+      .sort()
+      .join('.');
+  const resolve = (value: unknown): string | undefined => {
+    if (typeof value !== 'string' || !value) return undefined;
+    const hit = names.find((name) => name === value) ?? names.find((name) => norm(name) === norm(value));
+    if (hit) return hit;
+    const tails = names.filter((name) => name.split('.').pop() === value.trim().toLowerCase());
+    return tails.length === 1 ? tails[0] : undefined;
+  };
+  const alias =
+    typeof raw.op === 'string' && raw.op
+      ? { key: 'op', value: raw.op }
+      : typeof given?.op === 'string' && given.op
+        ? { key: 'op', value: given.op }
+        : typeof raw.action === 'string' && raw.action
+          ? { key: 'action', value: raw.action }
+          : typeof raw.type === 'string' && raw.type
+            ? { key: 'type', value: raw.type }
+            : undefined;
+  const asked = alias?.value ?? pinnedOp;
+  const wanted = asked ? (resolve(asked) ?? asked) : undefined;
+  const consumed = alias && alias.key !== 'op' && resolve(alias.value) ? alias.key : undefined;
+  const stripAlias = (input: Record<string, unknown>): Record<string, unknown> => {
+    if (!consumed || (given && consumed in given)) return input;
+    const { [consumed]: _dropped, ...rest } = input;
+    return rest;
+  };
+  const hasId = merged.nodeId !== undefined || merged.id !== undefined || raw.nodeId !== undefined;
+  const inferred =
+    !wanted && names.includes('create') && names.includes('update')
+      ? hasId
+        ? 'update'
+        : 'kind' in merged
+          ? 'create'
+          : undefined
+      : undefined;
+  const chosen = wanted ?? inferred;
 
   if (tool.ops.length === 1) {
     const only = tool.ops[0];
     if (!only) return { error: `${tool.name} 没有可调用的 op` };
-    if (wanted && wanted !== only.op) {
-      return { error: `${tool.name} 只支持 op ${only.op}，收到 ${wanted}；直接传参数即可` };
+    if (chosen && chosen !== only.op) {
+      return { error: `${tool.name} 只支持 op ${only.op}，收到 ${chosen}；直接传参数即可` };
     }
-    const flat = given ? merged : (deepCamel(raw) as Record<string, unknown>);
+    const flat = stripAlias(given ? merged : (deepCamel(raw) as Record<string, unknown>));
     return {
       capability: only.capability,
       op: only.op,
@@ -113,23 +159,22 @@ function pickOp(tool: ToolDef, rawArgs: unknown, pinnedOp?: string): Picked | { 
     };
   }
 
-  const names = tool.ops.map((o) => o.op);
-  if (!wanted) {
+  if (!chosen) {
     return {
       error: `${tool.name} 需要 op 字段（可选：${names.join(' / ')}）。形如 {"op":"${names[0]}","params":{...}}；字段细节用 vibe3d_help {tool:"${tool.name}", op}`,
     };
   }
-  const hit = tool.ops.find((o) => o.op === wanted);
+  const hit = tool.ops.find((o) => o.op === chosen || o.capability === chosen);
   if (!hit) {
-    const near = names.filter((n) => n.includes(wanted) || wanted.includes(n));
+    const near = names.filter((n) => n.includes(chosen) || chosen.includes(n));
     return {
-      error: `${tool.name} 没有 op「${wanted}」。可选：${names.join(' / ')}${near.length > 0 ? `；是否想用 ${near.join(' / ')}` : ''}`,
+      error: `${tool.name} 没有 op「${chosen}」。可选：${names.join(' / ')}${near.length > 0 ? `；是否想用 ${near.join(' / ')}` : ''}`,
     };
   }
   return {
     capability: hit.capability,
     op: hit.op,
-    input: unwrapWrapper(merged, wrapperKeys(tool, hit.op)),
+    input: unwrapWrapper(stripAlias(merged), wrapperKeys(tool, hit.op)),
   };
 }
 
@@ -147,16 +192,45 @@ function helpText(rawArgs: unknown): string {
     return JSON.stringify({ error: `未知 tool：${raw.tool}`, tools: index.map((t) => t.tool) });
   }
   const op = typeof raw.op === 'string' && raw.op ? raw.op : undefined;
-  const entries = op ? tool.ops.filter((o) => o.op === op) : tool.ops;
+  const direct = op ? tool.ops.filter((o) => o.op === op) : tool.ops;
+  const entries = direct.length > 0 || !op ? direct : tool.ops.filter((o) => o.capability === op);
   if (entries.length === 0) {
-    return JSON.stringify({ error: `${tool.name} 没有 op「${op}」`, ops: tool.ops.map((o) => o.op) });
+    const member = op ? opContractFields(op) : {};
+    if (op && member.fields) {
+      return JSON.stringify({
+        tool: tool.name,
+        op,
+        usage: '这是 ops[] 数组里的一项；整包形如 {"op":"apply","ops":[<这一项>]}',
+        note: ALIAS_NOTE,
+        ...member,
+      });
+    }
+    return JSON.stringify({
+      error: `${tool.name} 没有 op「${op}」；短名如 ${tool.ops[0]?.op ?? 'create'}，全名如 ${tool.ops[0]?.capability ?? 'node.create'} 都接受`,
+      ops: tool.ops.map((o) => o.op),
+    });
   }
+  const only = entries[0];
   return JSON.stringify({
     tool: tool.name,
     title: tool.title,
     note: ALIAS_NOTE,
     ops: entries.map((entry) => describeCapability(entry.capability)),
+    ...(entries.length === 1 && only ? opContractFields(only.capability) : {}),
   });
+}
+
+function opContractFields(op: string): Record<string, unknown> {
+  const docs = mergedFieldDocs(op);
+  if (docs.length === 0) return {};
+  const example = opExample(op);
+  return {
+    fields: docs.map(
+      (doc) =>
+        `${doc.path}：${doc.type}，${doc.required ? '必填' : '可选'}${doc.description ? ` — ${doc.description}` : ''}`,
+    ),
+    ...(example ? { example } : {}),
+  };
 }
 
 export function helpResult(rawArgs: unknown): ToolResult {
@@ -220,10 +294,7 @@ async function withDeadline<T>(
   const startedAt = Date.now();
   let timer: ReturnType<typeof setTimeout> | undefined;
   const deadline = new Promise<never>((_, reject) => {
-    timer = setTimeout(
-      () => reject(new CallTimeout(capability, ms, Date.now() - startedAt, params)),
-      ms,
-    );
+    timer = setTimeout(() => reject(new CallTimeout(capability, ms, Date.now() - startedAt, params)), ms);
     timer.unref?.();
   });
   try {
@@ -303,7 +374,11 @@ function failure(err: unknown): ToolResult {
       next: timeoutNextSteps(err.capability, err.params),
       retryable: true,
     };
-    return { content: [{ type: 'text', text: JSON.stringify(payload) }], structuredContent: payload, isError: true };
+    return {
+      content: [{ type: 'text', text: JSON.stringify(payload) }],
+      structuredContent: payload,
+      isError: true,
+    };
   }
   if (err instanceof Vibe3DError) {
     return {
@@ -395,7 +470,7 @@ export class ToolRuntime {
         reportToolError(name, params.error.issues, payload);
         throw new Vibe3DError(
           'E_INVALID_PARAMS',
-          `${capability} 参数校验失败：${describeIssues(params.error.issues)}${paramHint(params.error.issues, opNameAt(payload, params.error.issues), opItemAt(payload, params.error.issues))}${schemaHint(payload, params.error.issues, spec.input)}`,
+          `${capability} 参数校验失败：${describeIssues(params.error.issues)}${paramHint(params.error.issues, opNameAt(payload, params.error.issues), opItemAt(payload, params.error.issues), payload)}${schemaHint(payload, params.error.issues, spec.input)}`,
           { issues: toIssues(params.error.issues) },
         );
       }

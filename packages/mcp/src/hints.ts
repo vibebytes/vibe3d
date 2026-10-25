@@ -1,3 +1,4 @@
+import { describeOpField, opExample, opFieldDoc } from '@vibebyte/vibe3d-capabilities';
 import type { z } from 'zod';
 import { OP_NAMES } from './presentation';
 
@@ -24,6 +25,13 @@ const FIELD_SHAPES: Record<string, string> = {
   size: 'size 是数组 [x,y,z]（米）',
 };
 
+const shapeFor = (path: ReadonlyArray<string | number>): string | undefined => {
+  const leaf = String(path[path.length - 1] ?? '');
+  const parent = String(path[path.length - 2] ?? '');
+  if (parent === 'geometry' && leaf === 'type') return FIELD_SHAPES.geometry;
+  return FIELD_SHAPES[leaf];
+};
+
 const WRAPPER_OPS: Record<string, string> = {
   node: 'node.create',
   env: 'env.set',
@@ -39,20 +47,32 @@ const nestingHint = (field: string, opName: string | undefined): string => {
 };
 
 const editDistance = (a: string, b: string): number => {
-  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  const prev = Array.from({ length: b.length + 1 }, (_, i) => i);
   for (let i = 1; i <= a.length; i += 1) {
-    let last = prev[0];
+    let last = prev[0] ?? 0;
     prev[0] = i;
     for (let j = 1; j <= b.length; j += 1) {
-      const keep = prev[j];
-      prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, last + (a[i - 1] === b[j - 1] ? 0 : 1));
+      const keep = prev[j] ?? 0;
+      prev[j] = Math.min((prev[j] ?? 0) + 1, (prev[j - 1] ?? 0) + 1, last + (a[i - 1] === b[j - 1] ? 0 : 1));
       last = keep;
     }
   }
-  return prev[b.length];
+  return prev[b.length] ?? 0;
 };
 
+const canonicalOp = (value: string): string =>
+  value
+    .replace(/([a-z0-9])([A-Z])/g, '$1.$2')
+    .toLowerCase()
+    .split(/[.\s_-]+/)
+    .filter(Boolean)
+    .sort()
+    .join('.');
+
 const nearestOp = (given: string): string | undefined => {
+  const canon = canonicalOp(given);
+  const same = OP_NAMES.find((op) => canonicalOp(op) === canon);
+  if (same) return same;
   let best: string | undefined;
   let bestScore = Number.POSITIVE_INFINITY;
   for (const op of OP_NAMES) {
@@ -62,13 +82,20 @@ const nearestOp = (given: string): string | undefined => {
       bestScore = score;
     }
   }
-  return best && bestScore / best.length <= 0.6 ? best : undefined;
+  if (best && bestScore / best.length <= 0.6) return best;
+  const tail = OP_NAMES.filter((op) => op.split('.').pop() === given.trim().toLowerCase());
+  return tail.length === 1 ? tail[0] : undefined;
 };
 
 const opNameHint = (given: string | undefined): string => {
   const near = given ? nearestOp(given) : undefined;
   const received = given ? `（收到 "${given}"）` : '';
-  const suggest = near ? `；最接近的是 ${near}` : '';
+  const tails = given ? OP_NAMES.filter((op) => op.split('.').pop() === given.trim().toLowerCase()) : [];
+  const suggest = near
+    ? `；最接近的是 ${near}`
+    : tails.length > 1
+      ? `；「${given}」对应多个 op：${tails.join(' / ')}，请写全名`
+      : '';
   return `；op 不在合法清单里${received}${suggest}。共 ${OP_NAMES.length} 个合法 op（tools/list 的 ops.items.properties.op.enum 可见），契约用 vibe3d_help {tool:"vibe3d_apply_ops"}`;
 };
 
@@ -95,25 +122,62 @@ export function paramHint(
   issues: ReadonlyArray<{ path: ReadonlyArray<string | number>; message: string }>,
   opName?: string,
   opItem?: Record<string, unknown>,
+  rawArgs?: unknown,
 ): string {
+  const firstIndex = issues.find((issue) => issue.path[0] === 'ops' && typeof issue.path[1] === 'number')
+    ?.path[1];
+  const given = opName ?? findGivenOp(rawArgs, typeof firstIndex === 'number' ? firstIndex : undefined);
+  const candidates: Array<{ score: number; text: string }> = [];
+  const perOp = new Map<number, number>();
+  const leafOps = new Set<number>();
+  for (const issue of issues) {
+    if (issue.path[0] === 'ops' && typeof issue.path[1] === 'number') {
+      perOp.set(issue.path[1], (perOp.get(issue.path[1]) ?? 0) + 1);
+      if (issue.path.length >= 4 && shapeFor(issue.path)) leafOps.add(issue.path[1]);
+    }
+  }
   for (const issue of issues) {
     const idHint = ID_HINTS[issue.message.trim()];
-    if (idHint) return `；${idHint}`;
+    if (idHint) {
+      candidates.push({ score: 100, text: `；${idHint}` });
+      continue;
+    }
     const [head, index, field] = issue.path;
-    if (head === 'ops' && typeof index === 'number' && field === 'op' && /Invalid discriminator/i.test(issue.message)) {
-      return opNameHint(opName);
+    const leafShape = shapeFor(issue.path);
+    if (
+      head === 'ops' &&
+      typeof index === 'number' &&
+      typeof field === 'string' &&
+      issue.path.length >= 4 &&
+      leafShape
+    ) {
+      const nested = opItem !== undefined && field in opItem;
+      const base = /^required$/i.test(issue.message) ? 70 : leafShape === FIELD_SHAPES.geometry ? 90 : 80;
+      candidates.push({ score: nested ? Math.min(base, 40) : base, text: `；${leafShape}` });
+    }
+    if (
+      head === 'ops' &&
+      typeof index === 'number' &&
+      field === 'op' &&
+      /Invalid discriminator/i.test(issue.message)
+    ) {
+      candidates.push({ score: 70, text: opNameHint(given) });
+      continue;
     }
     if (
       head === 'ops' &&
       typeof index === 'number' &&
       typeof field === 'string' &&
-      issue.path.length === 3 &&
       WRAPPER_OPS[field] &&
       /required/i.test(issue.message)
     ) {
-      return opItem && field in opItem
-        ? missingFieldsHint(opName ?? WRAPPER_OPS[field], field, issues)
-        : nestingHint(field, opName);
+      const wrapped = opItem !== undefined && field in opItem;
+      if (wrapped) {
+        candidates.push({ score: 60, text: missingFieldsHint(given ?? WRAPPER_OPS[field], field, issues) });
+      } else if (!leafOps.has(index)) {
+        candidates.push({ score: (perOp.get(index) ?? 0) >= 2 ? 95 : 50, text: nestingHint(field, given) });
+      }
+      continue;
     }
     if (
       head === 'ops' &&
@@ -123,22 +187,67 @@ export function paramHint(
       issue.path.length === 4 &&
       /invalid input|expected/i.test(issue.message)
     ) {
+      const scattered =
+        (perOp.get(index) ?? 0) >= 2 && !(opItem !== undefined && field in opItem) && !leafOps.has(index);
+      if (scattered) {
+        candidates.push({ score: 95, text: nestingHint(field, given) });
+        continue;
+      }
       const inner = String(issue.path[3] ?? '');
       const shapeNote = FIELD_SHAPES[inner] ? `${FIELD_SHAPES[inner]}。` : '';
-      return `；${shapeNote}${WRAPPER_OPS[field]} 的载荷要整体包在 ${field} 里、不能平铺在 op 顶层：{op:"${WRAPPER_OPS[field]}", ${field}:{kind, geometry, material, transform}}`;
+      if (!shapeNote && opItem !== undefined && field in opItem) continue;
+      candidates.push({
+        score: shapeNote ? 80 : 40,
+        text: `；${shapeNote}${WRAPPER_OPS[field]} 的载荷要整体包在 ${field} 里、不能平铺在 op 顶层：{op:"${WRAPPER_OPS[field]}", ${field}:{kind, geometry, material, transform}}`,
+      });
+      continue;
     }
     if (/Invalid discriminator value/.test(issue.message)) {
-      return '；kind 必须是 group / mesh / light / model 之一；基础体直接用 vibe3d_create_node 更省事';
+      const leaf = String(issue.path[issue.path.length - 1] ?? '');
+      const parent = String(issue.path[issue.path.length - 2] ?? '');
+      const text =
+        leaf === 'type' && parent === 'geometry'
+          ? FIELD_SHAPES.geometry
+          : leaf === 'kind'
+            ? 'node.kind 取 group / mesh / light / model；只给 geometry 时可省略（服务端按 geometry 推断为 mesh）'
+            : 'kind 必须是 group / mesh / light / model 之一；基础体直接用 vibe3d_create_node 更省事';
+      candidates.push({ score: 60, text: `；${text}` });
+      continue;
     }
     const last = String(issue.path[issue.path.length - 1] ?? '');
     if (COLOUR_KEYS.has(last) && /at least 4/.test(issue.message)) {
-      return '；颜色一律 [r,g,b,a]，0..1 四位（3 位会自动补 alpha=1；也接受 "#RRGGBB"）';
+      candidates.push({
+        score: 90,
+        text: '；颜色一律 [r,g,b,a]，0..1 四位（3 位会自动补 alpha=1；也接受 "#RRGGBB"）',
+      });
+      continue;
     }
     const shape = FIELD_SHAPES[last];
-    if (shape && (/invalid input|required|expected/i.test(issue.message) || (last === 'size' && /at least 3/i.test(issue.message))))
-      return `；${shape}`;
+    if (
+      shape &&
+      (/invalid input|required|expected/i.test(issue.message) ||
+        (last === 'size' && /at least 3/i.test(issue.message)))
+    ) {
+      candidates.push({ score: 80, text: `；${shape}` });
+    }
+    if (head === 'ops' && typeof index === 'number' && typeof field === 'string' && given) {
+      const doc = opFieldDoc(given, issue.path.slice(2).map(String));
+      if (doc) candidates.push({ score: 45, text: `；${describeOpField(doc)}` });
+    }
   }
-  return '';
+  candidates.sort((a, b) => b.score - a.score);
+  const best = candidates[0];
+  if (!best && given) {
+    const example = opExample(given);
+    return example
+      ? `；${given} 的字段契约用 vibe3d_help {tool:"vibe3d_apply_ops", op:"${given}"}；最小合法示例 ${example}`
+      : '';
+  }
+  if (best && given && /必填/.test(best.text) && !best.text.includes('示例')) {
+    const example = opExample(given);
+    return example ? `${best.text}；最小合法示例 ${example}` : best.text;
+  }
+  return best?.text ?? '';
 }
 
 type Def = { typeName?: string; [key: string]: unknown };
@@ -250,6 +359,36 @@ function objectExample(schema: z.ZodTypeAny): string | undefined {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const opListOf = (args: unknown): unknown[] | undefined => {
+  if (!isRecord(args)) return undefined;
+  if (Array.isArray(args.ops)) return args.ops;
+  const params = args.params;
+  if (isRecord(params) && Array.isArray(params.ops)) return params.ops;
+  return undefined;
+};
+
+export function findGivenOp(rawArgs: unknown, index?: number): string | undefined {
+  const items = opListOf(rawArgs);
+  if (!items) return undefined;
+  const nameOf = (item: unknown): string | undefined => {
+    if (!isRecord(item)) return undefined;
+    for (const key of ['op', 'type', 'action', 'opName', 'kind']) {
+      const value = item[key];
+      if (typeof value === 'string' && value) return value;
+    }
+    return undefined;
+  };
+  if (typeof index === 'number') {
+    const hit = nameOf(items[index]);
+    if (hit) return hit;
+  }
+  for (const item of items) {
+    const hit = nameOf(item);
+    if (hit) return hit;
+  }
+  return undefined;
+}
 
 export function opNameAt(
   payload: Record<string, unknown>,

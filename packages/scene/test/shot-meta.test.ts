@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { autoFogRange, parseShotMeta, shotMetaOf, shotWarning } from '../src/shot-meta';
+import { autoClipRange, autoFogRange, parseShotMeta, shotMetaOf, shotWarning } from '../src/shot-meta';
 
-const CAMERA = { position: [0, 0, 10] as [number, number, number], target: [0, 0, 0] as [number, number, number] };
+const CAMERA = {
+  position: [0, 0, 10] as [number, number, number],
+  target: [0, 0, 0] as [number, number, number],
+};
 
 describe('shot meta', () => {
   it('reports doc fog with near/far and the real camera distance', () => {
@@ -71,22 +74,38 @@ describe('shot warning', () => {
   const base = { color: 0, near: 4, far: 40, mode: 'doc' as const };
 
   it('warns when the subject sits at or beyond the fog far plane', () => {
-    const meta = shotMetaOf({ fog: base, fallbackColor: 0, camera: { position: [0, 0, 40], target: [0, 0, 0] } });
+    const meta = shotMetaOf({
+      fog: base,
+      fallbackColor: 0,
+      camera: { position: [0, 0, 40], target: [0, 0, 0] },
+    });
     expect(shotWarning(meta)).toContain('雾远端');
   });
 
   it('warns when the subject sits inside the fog near plane', () => {
-    const meta = shotMetaOf({ fog: base, fallbackColor: 0, camera: { position: [0, 0, 3], target: [0, 0, 0] } });
+    const meta = shotMetaOf({
+      fog: base,
+      fallbackColor: 0,
+      camera: { position: [0, 0, 3], target: [0, 0, 0] },
+    });
     expect(shotWarning(meta)).toContain('雾近端');
   });
 
   it('stays quiet when the subject is between near and far', () => {
-    const meta = shotMetaOf({ fog: base, fallbackColor: 0, camera: { position: [0, 0, 20], target: [0, 0, 0] } });
+    const meta = shotMetaOf({
+      fog: base,
+      fallbackColor: 0,
+      camera: { position: [0, 0, 20], target: [0, 0, 0] },
+    });
     expect(shotWarning(meta)).toBeNull();
   });
 
   it('stays quiet when fog is disabled or meta is missing', () => {
-    const meta = shotMetaOf({ fog: null, fallbackColor: 0, camera: { position: [0, 0, 400], target: [0, 0, 0] } });
+    const meta = shotMetaOf({
+      fog: null,
+      fallbackColor: 0,
+      camera: { position: [0, 0, 400], target: [0, 0, 0] },
+    });
     expect(shotWarning(meta)).toBeNull();
     expect(shotWarning(null)).toBeNull();
   });
@@ -107,8 +126,25 @@ describe('parse shot meta', () => {
     expect(parseShotMeta({})).toBeNull();
     expect(parseShotMeta({ fog: { enabled: true }, distanceToTarget: 1, camera: CAMERA })).toBeNull();
     expect(
-      parseShotMeta({ fog: { enabled: true, color: 0, near: 4, far: 40, mode: 'doc' }, distanceToTarget: -1, camera: CAMERA }),
+      parseShotMeta({
+        fog: { enabled: true, color: 0, near: 4, far: 40, mode: 'doc' },
+        distanceToTarget: -1,
+        camera: CAMERA,
+      }),
     ).toBeNull();
+  });
+});
+
+describe('auto clip range', () => {
+  it('covers a subject far beyond the default far plane', () => {
+    const { far } = autoClipRange(4000, 500);
+    expect(far).toBeGreaterThan(4500);
+  });
+
+  it('never puts near above the subject and stays positive', () => {
+    const { near, far } = autoClipRange(0, 0);
+    expect(near).toBeGreaterThan(0);
+    expect(far).toBeGreaterThan(near);
   });
 });
 

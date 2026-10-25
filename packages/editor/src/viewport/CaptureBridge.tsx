@@ -1,7 +1,7 @@
 import { useThree } from '@react-three/fiber';
 import type { CameraState } from '@vibebyte/vibe3d-protocol';
 import type { FogMode, QualityPreset, ShotMeta } from '@vibebyte/vibe3d-scene';
-import { shotMetaOf } from '@vibebyte/vibe3d-scene';
+import { autoClipRange, shotMetaOf } from '@vibebyte/vibe3d-scene';
 import { useEffect } from 'react';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
@@ -12,7 +12,7 @@ import { applyFxAt, fogSettings } from '../three/fx';
 import { applyIdMaterials } from '../three/id-pass-materials';
 import { missingModelIds } from '../three/model-ready';
 import { alphaRendererCache, alphaRendererOptions } from './alpha-cache';
-import { applyCaptureFog, captureFogPlan, subjectSphere } from './capture-fog';
+import { applyCaptureFog, applyClipRange, captureFogPlan, subjectSphere } from './capture-fog';
 import { addOverlays, applyHighlight, applyIsolate, applyShading, shadingNeedsShadows } from './capture-look';
 import type { OverlayKind, ShadingMode } from './capture-look';
 import { applyShadowResolution, qualityOf, resolveCaptureSize } from './capture-quality';
@@ -197,6 +197,8 @@ function captureFrame(
     shading: opts.shading,
   });
   const restoreFog = applyCaptureFog(scene, fogPlan);
+  const clip = autoClipRange(distance, subjectSphere(scene).radius);
+  const restoreClip = applyClipRange(perspective, clip);
   const meta = shotMetaOf({
     fog: fogPlan ?? docFog,
     fallbackColor,
@@ -248,6 +250,7 @@ function captureFrame(
       restoreAspect();
       restoreCamera();
       restoreFog();
+      restoreClip();
     }
   } else {
     const prevRatio = gl.getPixelRatio();
@@ -262,6 +265,7 @@ function captureFrame(
       restoreAspect();
       restoreCamera();
       restoreFog();
+      restoreClip();
       gl.setPixelRatio(prevRatio);
       gl.setSize(viewport.width, viewport.height);
     }

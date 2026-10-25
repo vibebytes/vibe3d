@@ -251,6 +251,19 @@ describe('legacy 工具的同名包装与忽略字段', () => {
     expect(params.node).toBeUndefined();
   });
 
+  it('vibe3d_node 也接受全名 op（node.create）', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const result = await runtime.call('vibe3d_node', {
+      op: 'node.create',
+      node: { kind: 'mesh', shape: 'box', size: [1, 2, 1] },
+    });
+    expect(result.isError).toBeFalsy();
+    const params = (calls.at(-1) as Call).params as Record<string, unknown>;
+    expect(params.kind).toBe('mesh');
+    expect(params.node).toBeUndefined();
+  });
+
   it('拼错的字段会回一条 warning，而不是静默丢弃', async () => {
     const { studio } = fakeStudio();
     const runtime = new ToolRuntime(studio, 'r_0000000c');

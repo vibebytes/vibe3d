@@ -96,6 +96,7 @@ export {
 export { bakeGeometry, type BakedMesh } from './bake';
 export { mergeGroup, type MergeOptions, type MergePlan } from './merge';
 export {
+  autoClipRange,
   autoFogRange,
   parseShotMeta,
   shotMetaOf,
