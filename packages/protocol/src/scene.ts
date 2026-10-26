@@ -77,6 +77,7 @@ const nodeBase = {
   visible: z.boolean(),
   transform: transformSchema,
   clip: clipSchema.optional(),
+  clips: z.array(clipSchema).max(8).optional(),
   tags: tagsSchema.optional(),
 };
 

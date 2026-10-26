@@ -19,9 +19,11 @@ import {
   arrayPlacements,
   attachDelta,
   checkBudget,
+  clipChannelOf,
   frameTarget,
   mergeGroup,
   nodeBounds,
+  nodeClipsOf,
   nodeOwnBounds,
   nodeView,
   pickNode,
@@ -58,8 +60,10 @@ type Keys =
   | 'scene.pick'
   | 'stage.set'
   | 'animation.play'
+  | 'animation.stop'
   | 'animation.define'
   | 'animation.clear'
+  | 'animation.pose'
   | 'fx.create'
   | 'fx.delete'
   | 'env.set'
@@ -611,6 +615,12 @@ export const sceneHandlers: HandlersFor<Keys> = {
     return { revision: result.revision };
   },
 
+  'animation.stop': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const result = await room.run(() => room.apply([{ op: 'animation.stop', target: p.nodeId }]));
+    return { revision: result.revision };
+  },
+
   'animation.define': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     if (!room.doc.nodes[p.nodeId]) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.nodeId} 不存在`);
@@ -625,11 +635,28 @@ export const sceneHandlers: HandlersFor<Keys> = {
     const room = ctx.rooms.get(p.roomId);
     if (!room.doc.nodes[p.nodeId]) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.nodeId} 不存在`);
     const ids = p.applyTo === 'subtree' ? subtreeIds(room.doc, p.nodeId) : [p.nodeId];
-    const appliedTo = ids.filter((id) => room.doc.nodes[id]?.clip !== undefined);
+    const appliedTo = ids.filter((id) => {
+      const node = room.doc.nodes[id];
+      if (!node) return false;
+      if (!p.channel) return nodeClipsOf(node).length > 0;
+      return nodeClipsOf(node).some((clip) => clipChannelOf(clip) === p.channel);
+    });
     const result = await room.run(() =>
-      room.apply([{ op: 'animation.clear', target: p.nodeId, applyTo: p.applyTo }]),
+      room.apply([{ op: 'animation.clear', target: p.nodeId, applyTo: p.applyTo, channel: p.channel }]),
     );
     return { revision: result.revision, cleared: appliedTo.length > 0, appliedTo };
+  },
+
+  'animation.pose': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    for (const target of p.targets) {
+      if (!room.doc.nodes[target.nodeId])
+        throw new AppError('E_NODE_NOT_FOUND', `节点 ${target.nodeId} 不存在`);
+    }
+    const result = await room.run(() =>
+      room.apply([{ op: 'animation.pose', targets: p.targets.map((t) => ({ nodeId: t.nodeId, clip: t.clip })) }]),
+    );
+    return { revision: result.revision, appliedTo: p.targets.map((t) => t.nodeId) };
   },
 
   'fx.create': async (p, ctx) => {

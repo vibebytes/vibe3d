@@ -10,7 +10,7 @@ const OPS = arms.map((arm) => String(arm.shape.op?._def.value));
 
 describe('op field docs', () => {
   it('covers every op with field docs', () => {
-    expect(OPS).toHaveLength(23);
+    expect(OPS).toHaveLength(24);
     for (const op of OPS) {
       const docs = opFieldDocs(op);
       expect(docs.length, `${op} has no field docs`).toBeGreaterThan(0);

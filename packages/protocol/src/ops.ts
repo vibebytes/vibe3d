@@ -50,6 +50,7 @@ const nodePatchSchema = z.object({
   material: materialIdSchema.optional(),
   sha: shaSchema.optional(),
   clip: clipSchema.nullable().optional(),
+  clips: z.array(clipSchema).max(8).nullable().optional(),
   tags: tagsSchema.nullable().optional(),
   decal: decalSchema.nullable().optional(),
 });
@@ -101,6 +102,14 @@ export const opSchema = z.discriminatedUnion('op', [
     op: z.literal('animation.clear'),
     target: nodeIdSchema,
     applyTo: z.enum(['node', 'subtree']).optional(),
+    channel: z.enum(['px', 'py', 'pz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz']).optional(),
+  }),
+  z.object({
+    op: z.literal('animation.pose'),
+    targets: z
+      .array(z.object({ nodeId: nodeIdSchema, clip: clipSchema }))
+      .min(1)
+      .max(64),
   }),
   z.object({ op: z.literal('fx.create'), fx: fxSchema }),
   z.object({ op: z.literal('fx.delete'), id: fxIdSchema }),

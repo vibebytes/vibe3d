@@ -19,6 +19,24 @@ const PRESETS: Record<MaterialPreset, Material> = {
     opacity: 1,
     doubleSided: false,
   },
+  clay: {
+    baseColor: [0.78, 0.62, 0.5, 1],
+    metalness: 0,
+    roughness: 0.88,
+    emissive: [0, 0, 0],
+    emissiveIntensity: 0,
+    opacity: 1,
+    doubleSided: false,
+  },
+  porcelain: {
+    baseColor: [0.94, 0.94, 0.95, 1],
+    metalness: 0.02,
+    roughness: 0.22,
+    emissive: [0, 0, 0],
+    emissiveIntensity: 0,
+    opacity: 1,
+    doubleSided: false,
+  },
   rust: {
     baseColor: [0.42, 0.18, 0.08, 1],
     metalness: 0.15,
@@ -90,7 +108,6 @@ const PRESET_ALIASES: Record<string, MaterialPreset> = {
   matt: 'concrete',
   white: 'concrete',
   plaster: 'concrete',
-  clay: 'concrete',
   cement: 'concrete',
   stone: 'concrete',
   grey: 'concrete',
@@ -120,6 +137,9 @@ const PRESET_ALIASES: Record<string, MaterialPreset> = {
   window: 'glass',
   transparent: 'glass',
   acrylic: 'glass',
+  ceramic: 'porcelain',
+  glaze: 'porcelain',
+  enamel: 'porcelain',
 };
 
 const METAL_PARAMS: Partial<Material> = {
@@ -139,7 +159,7 @@ const NEUTRAL_PARAMS: Partial<Material> = {
 };
 
 const METAL_TOKENS = new Set(['metal', 'steel', 'iron', 'chrome', 'aluminium', 'aluminum', 'brass', 'copper']);
-const LIGHT_TOKENS = new Set(['white', 'matte', 'matt', 'light', 'bright', 'plaster', 'clay', 'paper']);
+const LIGHT_TOKENS = new Set(['white', 'matte', 'matt', 'light', 'bright', 'plaster', 'paper']);
 
 export function resolveMaterialPreset(raw?: string, params?: Partial<Material>): PresetResolution {
   const original = (raw ?? '').trim();
@@ -159,6 +179,14 @@ export function resolveMaterialPreset(raw?: string, params?: Partial<Material>):
 
   const tokens = key.split('_').filter(Boolean);
   const flat = tokens.join('');
+  const direct = tokens.find((token) => isMaterialPreset(token));
+  if (direct) {
+    return {
+      preset: direct,
+      params: given,
+      note: `preset「${original}」按预设 ${direct} 创建`,
+    };
+  }
   const alias = PRESET_ALIASES[flat] ?? tokens.map((token) => PRESET_ALIASES[token]).find(Boolean);
   if (alias) {
     const metal = tokens.some((t) => METAL_TOKENS.has(t));

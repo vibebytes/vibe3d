@@ -114,6 +114,8 @@ const BOOLEAN_DEFAULTS: Record<string, boolean> = {
 };
 
 function arrayCount(def: Def): number {
+  const minLen = (def.minLength as { value?: number } | undefined)?.value;
+  if (typeof minLen === 'number') return Math.max(0, Math.min(Math.ceil(minLen), 3));
   const checks = checksOf(def);
   const min = checks.find((check) => check.kind === 'min');
   if (min && typeof min.value === 'number') return Math.max(0, Math.min(Math.ceil(min.value), 3));
@@ -123,7 +125,7 @@ function arrayCount(def: Def): number {
 }
 
 function sample(schema: z.ZodTypeAny, depth: number, key?: string): unknown {
-  if (depth > 6) return null;
+  if (depth > 9) return null;
   const def = defOf(unwrap(schema));
   switch (def.typeName) {
     case 'ZodLiteral':

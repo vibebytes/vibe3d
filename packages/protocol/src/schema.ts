@@ -107,7 +107,16 @@ export function legacyGeometryNotes(input: { ops?: ReadonlyArray<unknown> }): st
   return notes;
 }
 
-export const materialPresetSchema = z.enum(['concrete', 'rust', 'wet_moss', 'toon', 'water', 'glass']);
+export const materialPresetSchema = z.enum([
+  'concrete',
+  'clay',
+  'porcelain',
+  'rust',
+  'wet_moss',
+  'toon',
+  'water',
+  'glass',
+]);
 
 export const mapTransformSchema = z.object({
   sha: shaSchema,

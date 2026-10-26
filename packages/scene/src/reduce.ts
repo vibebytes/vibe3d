@@ -1,5 +1,6 @@
 import {
   AppError,
+  type ClipSpec,
   type MapTransform,
   type Material,
   type ModelAnim,
@@ -8,6 +9,7 @@ import {
   type SceneDoc,
   type SceneNode,
 } from '@vibebyte/vibe3d-protocol';
+import { clipChannelOf, nodeClipsOf } from './anim';
 import { frameCamera, miniatureCamera } from './frame';
 import { normalizeMap, presetMaterial, resolveMaterialPreset } from './material';
 import { sceneStats } from './stats';
@@ -52,6 +54,36 @@ const DEFAULT_MATERIAL: Material = {
 };
 
 const clone = <T>(v: T): T => structuredClone(v);
+
+const MAX_CLIPS = 8;
+
+type ClipCarrier = { clips?: ClipSpec[]; clip?: ClipSpec };
+
+function setNodeClips(node: ClipCarrier, clips: ClipSpec[]): void {
+  if (clips.length === 0) {
+    Reflect.deleteProperty(node, 'clips');
+    Reflect.deleteProperty(node, 'clip');
+    return;
+  }
+  node.clips = clips;
+  node.clip = clips[clips.length - 1];
+}
+
+function upsertNodeClip(node: SceneNode, clip: ClipSpec): ClipSpec[] | null {
+  const existing = nodeClipsOf(node);
+  const channel = clipChannelOf(clip);
+  if (existing.some((c) => clipChannelOf(c) === channel)) {
+    return existing.map((c) => (clipChannelOf(c) === channel ? clone(clip) : c));
+  }
+  if (existing.length >= MAX_CLIPS) {
+    throw new AppError(
+      'E_LIMIT_EXCEEDED',
+      `程序化 clip 上限 ${MAX_CLIPS} 条/节点；同通道 define 会替换，不同通道请先 animation.clear 或减少轨道`,
+      { limit: MAX_CLIPS, id: node.id },
+    );
+  }
+  return [...existing, clone(clip)];
+}
 
 type MaterialPatchInput = Partial<Material> & { color?: Material['baseColor'] };
 
@@ -196,6 +228,11 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
         old.clip = node.clip ? clone(node.clip) : null;
         if (patch.clip === null) Reflect.deleteProperty(node, 'clip');
         else node.clip = clone(patch.clip);
+      }
+      if (patch.clips !== undefined) {
+        old.clips = node.clips ? clone(node.clips) : null;
+        old.clip = node.clip ? clone(node.clip) : null;
+        setNodeClips(node, patch.clips === null ? [] : clone(patch.clips));
       }
       if (patch.tags !== undefined) {
         old.tags = node.tags ? [...node.tags] : null;
@@ -367,7 +404,12 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
     }
     case 'animation.play': {
       const node = doc.nodes[op.target] ?? fail('节点不存在', { id: op.target });
-      if (node.kind !== 'model') fail('只有 model 节点可以播放动画', { id: op.target });
+      if (node.kind !== 'model') {
+        if (nodeClipsOf(node).length > 0) return;
+        fail('该节点没有动画：程序化 clip 无需 play，直接 render.snapshot at=<秒> 采样；只有导入模型(GPU动画)需要 play', {
+          id: op.target,
+        });
+      }
       const report = doc.assets[node.sha]?.gltf ?? fail('模型资产缺少 gltf 报告', { sha: node.sha });
       const clip = op.clip ?? report.animations[0]?.name;
       if (!clip) fail('资产没有动画', { sha: node.sha });
@@ -387,7 +429,12 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
     }
     case 'animation.stop': {
       const node = doc.nodes[op.target] ?? fail('节点不存在', { id: op.target });
-      if (node.kind !== 'model') fail('只有 model 节点有动画', { id: op.target });
+      if (node.kind !== 'model') {
+        if (nodeClipsOf(node).length > 0) return;
+        fail('该节点没有动画：程序化 clip 由渲染 at 采样，无需 stop；只有导入模型(GPU动画)需要 stop', {
+          id: op.target,
+        });
+      }
       const previous: ModelAnim | null = node.anim ? clone(node.anim) : null;
       node.anim = { ...(previous ?? { speed: 1 }), playing: false };
       inverse.push({ op: 'node.update', id: op.target, patch: { anim: previous } });
@@ -397,9 +444,12 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       const ids = op.applyTo === 'subtree' ? subtree(doc, op.target) : [op.target];
       for (const id of ids) {
         const node = doc.nodes[id] ?? fail('节点不存在', { id });
-        const previous = node.clip ? clone(node.clip) : null;
-        node.clip = clone(op.clip);
-        inverse.push({ op: 'node.update', id, patch: { clip: previous } });
+        const next = upsertNodeClip(node, op.clip);
+        if (next === null) continue;
+        const previousClips = nodeClipsOf(node);
+        const previousClip = node.clip ? clone(node.clip) : null;
+        setNodeClips(node, next);
+        inverse.push({ op: 'node.update', id, patch: { clips: previousClips, clip: previousClip } });
       }
       return;
     }
@@ -407,10 +457,25 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       const ids = op.applyTo === 'subtree' ? subtree(doc, op.target) : [op.target];
       for (const id of ids) {
         const node = doc.nodes[id] ?? fail('节点不存在', { id });
-        if (!node.clip) continue;
-        const previous = clone(node.clip);
-        Reflect.deleteProperty(node, 'clip');
-        inverse.push({ op: 'animation.define', target: id, clip: previous });
+        const existing = nodeClipsOf(node);
+        if (existing.length === 0) continue;
+        const kept = op.channel ? existing.filter((c) => clipChannelOf(c) !== op.channel) : [];
+        const previousClips = existing;
+        const previousClip = node.clip ? clone(node.clip) : null;
+        setNodeClips(node, kept.map((c) => clone(c)));
+        inverse.push({ op: 'node.update', id, patch: { clips: previousClips, clip: previousClip } });
+      }
+      return;
+    }
+    case 'animation.pose': {
+      for (const target of op.targets) {
+        const node = doc.nodes[target.nodeId] ?? fail('节点不存在', { id: target.nodeId });
+        const next = upsertNodeClip(node, target.clip);
+        if (next === null) continue;
+        const previousClips = nodeClipsOf(node);
+        const previousClip = node.clip ? clone(node.clip) : null;
+        setNodeClips(node, next);
+        inverse.push({ op: 'node.update', id: target.nodeId, patch: { clips: previousClips, clip: previousClip } });
       }
       return;
     }

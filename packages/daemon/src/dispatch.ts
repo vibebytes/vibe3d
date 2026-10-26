@@ -33,6 +33,7 @@ const VISUAL_MUTATIONS = new Set<CapabilityName>([
   'stage.set',
   'camera.set',
   'animation.play',
+  'animation.stop',
   'scene.undo',
   'scene.redo',
   'scene.import',

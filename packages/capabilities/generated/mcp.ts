@@ -236,11 +236,13 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
   },
   {
     name: "vibe3d_animation",
-    title: "程序化动画：定义轨道 / 播放 / 清除",
+    title: "程序化动画：定义轨道 / 播放 / 停止 / 清除 / 批量摆姿势",
     ops: [
       { op: "define", capability: "animation.define", title: "定义程序化动画：位移 / 旋转 / 缩放轨道" },
       { op: "play", capability: "animation.play", title: "播放模型动画，默认取首条 clip" },
+      { op: "stop", capability: "animation.stop", title: "停止模型动画；程序化 clip 节点为幂等空操作" },
       { op: "clear", capability: "animation.clear", title: "清除节点上的程序化动画" },
+      { op: "pose", capability: "animation.pose", title: "一次性摆姿势：批量写入多个节点的 keyframes 姿态" },
     ],
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
@@ -252,13 +254,15 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
           "enum": [
             "define",
             "play",
-            "clear"
+            "stop",
+            "clear",
+            "pose"
           ],
           "description": "animation 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
-          "description": "必填字段：define{node_id,clip} play{node_id} clear{node_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "必填字段：define{node_id,clip} play{node_id} stop{node_id} clear{node_id} pose{targets}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         }
       },
       "required": [
@@ -729,6 +733,105 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                             ],
                             "additionalProperties": false
                           },
+                          "clips": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "sway",
+                                    "ripple",
+                                    "float",
+                                    "flicker",
+                                    "spin",
+                                    "keyframes"
+                                  ]
+                                },
+                                "channel": {
+                                  "type": "string",
+                                  "enum": [
+                                    "px",
+                                    "py",
+                                    "pz",
+                                    "rx",
+                                    "ry",
+                                    "rz",
+                                    "sx",
+                                    "sy",
+                                    "sz"
+                                  ]
+                                },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
+                                "amplitude": {
+                                  "type": "number"
+                                },
+                                "frequency": {
+                                  "type": "number"
+                                },
+                                "phase": {
+                                  "type": "number"
+                                },
+                                "speed": {
+                                  "type": "number"
+                                },
+                                "loop": {
+                                  "type": "boolean"
+                                },
+                                "duration": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                },
+                                "keys": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "t": {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      "v": {
+                                        "type": "number"
+                                      },
+                                      "ease": {
+                                        "type": "string",
+                                        "enum": [
+                                          "linear",
+                                          "easeIn",
+                                          "easeOut",
+                                          "easeInOut"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "t",
+                                      "v"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "maxItems": 8
+                          },
                           "tags": {
                             "type": "array",
                             "items": {
@@ -915,6 +1018,105 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                               "type"
                             ],
                             "additionalProperties": false
+                          },
+                          "clips": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "sway",
+                                    "ripple",
+                                    "float",
+                                    "flicker",
+                                    "spin",
+                                    "keyframes"
+                                  ]
+                                },
+                                "channel": {
+                                  "type": "string",
+                                  "enum": [
+                                    "px",
+                                    "py",
+                                    "pz",
+                                    "rx",
+                                    "ry",
+                                    "rz",
+                                    "sx",
+                                    "sy",
+                                    "sz"
+                                  ]
+                                },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
+                                "amplitude": {
+                                  "type": "number"
+                                },
+                                "frequency": {
+                                  "type": "number"
+                                },
+                                "phase": {
+                                  "type": "number"
+                                },
+                                "speed": {
+                                  "type": "number"
+                                },
+                                "loop": {
+                                  "type": "boolean"
+                                },
+                                "duration": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                },
+                                "keys": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "t": {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      "v": {
+                                        "type": "number"
+                                      },
+                                      "ease": {
+                                        "type": "string",
+                                        "enum": [
+                                          "linear",
+                                          "easeIn",
+                                          "easeOut",
+                                          "easeInOut"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "t",
+                                      "v"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "maxItems": 8
                           },
                           "tags": {
                             "type": "array",
@@ -1335,6 +1537,105 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                             ],
                             "additionalProperties": false
                           },
+                          "clips": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "sway",
+                                    "ripple",
+                                    "float",
+                                    "flicker",
+                                    "spin",
+                                    "keyframes"
+                                  ]
+                                },
+                                "channel": {
+                                  "type": "string",
+                                  "enum": [
+                                    "px",
+                                    "py",
+                                    "pz",
+                                    "rx",
+                                    "ry",
+                                    "rz",
+                                    "sx",
+                                    "sy",
+                                    "sz"
+                                  ]
+                                },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
+                                "amplitude": {
+                                  "type": "number"
+                                },
+                                "frequency": {
+                                  "type": "number"
+                                },
+                                "phase": {
+                                  "type": "number"
+                                },
+                                "speed": {
+                                  "type": "number"
+                                },
+                                "loop": {
+                                  "type": "boolean"
+                                },
+                                "duration": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                },
+                                "keys": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "t": {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      "v": {
+                                        "type": "number"
+                                      },
+                                      "ease": {
+                                        "type": "string",
+                                        "enum": [
+                                          "linear",
+                                          "easeIn",
+                                          "easeOut",
+                                          "easeInOut"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "t",
+                                      "v"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "maxItems": 8
+                          },
                           "tags": {
                             "type": "array",
                             "items": {
@@ -1594,6 +1895,105 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                               "type"
                             ],
                             "additionalProperties": false
+                          },
+                          "clips": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "sway",
+                                    "ripple",
+                                    "float",
+                                    "flicker",
+                                    "spin",
+                                    "keyframes"
+                                  ]
+                                },
+                                "channel": {
+                                  "type": "string",
+                                  "enum": [
+                                    "px",
+                                    "py",
+                                    "pz",
+                                    "rx",
+                                    "ry",
+                                    "rz",
+                                    "sx",
+                                    "sy",
+                                    "sz"
+                                  ]
+                                },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
+                                "amplitude": {
+                                  "type": "number"
+                                },
+                                "frequency": {
+                                  "type": "number"
+                                },
+                                "phase": {
+                                  "type": "number"
+                                },
+                                "speed": {
+                                  "type": "number"
+                                },
+                                "loop": {
+                                  "type": "boolean"
+                                },
+                                "duration": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                },
+                                "keys": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "t": {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      "v": {
+                                        "type": "number"
+                                      },
+                                      "ease": {
+                                        "type": "string",
+                                        "enum": [
+                                          "linear",
+                                          "easeIn",
+                                          "easeOut",
+                                          "easeInOut"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "t",
+                                      "v"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "maxItems": 8
                           },
                           "tags": {
                             "type": "array",
@@ -2123,6 +2523,112 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                               "type"
                             ],
                             "additionalProperties": false
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "clips": {
+                        "anyOf": [
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "sway",
+                                    "ripple",
+                                    "float",
+                                    "flicker",
+                                    "spin",
+                                    "keyframes"
+                                  ]
+                                },
+                                "channel": {
+                                  "type": "string",
+                                  "enum": [
+                                    "px",
+                                    "py",
+                                    "pz",
+                                    "rx",
+                                    "ry",
+                                    "rz",
+                                    "sx",
+                                    "sy",
+                                    "sz"
+                                  ]
+                                },
+                                "axis": {
+                                  "type": "string",
+                                  "enum": [
+                                    "x",
+                                    "y",
+                                    "z"
+                                  ]
+                                },
+                                "amplitude": {
+                                  "type": "number"
+                                },
+                                "frequency": {
+                                  "type": "number"
+                                },
+                                "phase": {
+                                  "type": "number"
+                                },
+                                "speed": {
+                                  "type": "number"
+                                },
+                                "loop": {
+                                  "type": "boolean"
+                                },
+                                "duration": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0
+                                },
+                                "gust": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                },
+                                "keys": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "t": {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      "v": {
+                                        "type": "number"
+                                      },
+                                      "ease": {
+                                        "type": "string",
+                                        "enum": [
+                                          "linear",
+                                          "easeIn",
+                                          "easeOut",
+                                          "easeInOut"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "t",
+                                      "v"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "type"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "maxItems": 8
                           },
                           {
                             "type": "null"
@@ -3349,11 +3855,153 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                       "node",
                       "subtree"
                     ]
+                  },
+                  "channel": {
+                    "type": "string",
+                    "enum": [
+                      "px",
+                      "py",
+                      "pz",
+                      "rx",
+                      "ry",
+                      "rz",
+                      "sx",
+                      "sy",
+                      "sz"
+                    ]
                   }
                 },
                 "required": [
                   "op",
                   "target"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "type": "string",
+                    "const": "animation.pose"
+                  },
+                  "targets": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "node_id": {
+                          "type": "string",
+                          "pattern": "^n_[a-z0-9]{8}$"
+                        },
+                        "clip": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "sway",
+                                "ripple",
+                                "float",
+                                "flicker",
+                                "spin",
+                                "keyframes"
+                              ]
+                            },
+                            "channel": {
+                              "type": "string",
+                              "enum": [
+                                "px",
+                                "py",
+                                "pz",
+                                "rx",
+                                "ry",
+                                "rz",
+                                "sx",
+                                "sy",
+                                "sz"
+                              ]
+                            },
+                            "axis": {
+                              "type": "string",
+                              "enum": [
+                                "x",
+                                "y",
+                                "z"
+                              ]
+                            },
+                            "amplitude": {
+                              "type": "number"
+                            },
+                            "frequency": {
+                              "type": "number"
+                            },
+                            "phase": {
+                              "type": "number"
+                            },
+                            "speed": {
+                              "type": "number"
+                            },
+                            "loop": {
+                              "type": "boolean"
+                            },
+                            "duration": {
+                              "type": "number",
+                              "exclusiveMinimum": 0
+                            },
+                            "gust": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            "keys": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "t": {
+                                    "type": "number",
+                                    "minimum": 0
+                                  },
+                                  "v": {
+                                    "type": "number"
+                                  },
+                                  "ease": {
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "easeIn",
+                                      "easeOut",
+                                      "easeInOut"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "t",
+                                  "v"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "node_id",
+                        "clip"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "maxItems": 64
+                  }
+                },
+                "required": [
+                  "op",
+                  "targets"
                 ],
                 "additionalProperties": false
               },
@@ -4028,6 +4676,105 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   ],
                                   "additionalProperties": false
                                 },
+                                "clips": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "enum": [
+                                          "sway",
+                                          "ripple",
+                                          "float",
+                                          "flicker",
+                                          "spin",
+                                          "keyframes"
+                                        ]
+                                      },
+                                      "channel": {
+                                        "type": "string",
+                                        "enum": [
+                                          "px",
+                                          "py",
+                                          "pz",
+                                          "rx",
+                                          "ry",
+                                          "rz",
+                                          "sx",
+                                          "sy",
+                                          "sz"
+                                        ]
+                                      },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
+                                      "amplitude": {
+                                        "type": "number"
+                                      },
+                                      "frequency": {
+                                        "type": "number"
+                                      },
+                                      "phase": {
+                                        "type": "number"
+                                      },
+                                      "speed": {
+                                        "type": "number"
+                                      },
+                                      "loop": {
+                                        "type": "boolean"
+                                      },
+                                      "duration": {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      },
+                                      "keys": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "t": {
+                                              "type": "number",
+                                              "minimum": 0
+                                            },
+                                            "v": {
+                                              "type": "number"
+                                            },
+                                            "ease": {
+                                              "type": "string",
+                                              "enum": [
+                                                "linear",
+                                                "easeIn",
+                                                "easeOut",
+                                                "easeInOut"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "t",
+                                            "v"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "maxItems": 8
+                                },
                                 "tags": {
                                   "type": "array",
                                   "items": {
@@ -4207,6 +4954,105 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "type"
                                   ],
                                   "additionalProperties": false
+                                },
+                                "clips": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "enum": [
+                                          "sway",
+                                          "ripple",
+                                          "float",
+                                          "flicker",
+                                          "spin",
+                                          "keyframes"
+                                        ]
+                                      },
+                                      "channel": {
+                                        "type": "string",
+                                        "enum": [
+                                          "px",
+                                          "py",
+                                          "pz",
+                                          "rx",
+                                          "ry",
+                                          "rz",
+                                          "sx",
+                                          "sy",
+                                          "sz"
+                                        ]
+                                      },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
+                                      "amplitude": {
+                                        "type": "number"
+                                      },
+                                      "frequency": {
+                                        "type": "number"
+                                      },
+                                      "phase": {
+                                        "type": "number"
+                                      },
+                                      "speed": {
+                                        "type": "number"
+                                      },
+                                      "loop": {
+                                        "type": "boolean"
+                                      },
+                                      "duration": {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      },
+                                      "keys": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "t": {
+                                              "type": "number",
+                                              "minimum": 0
+                                            },
+                                            "v": {
+                                              "type": "number"
+                                            },
+                                            "ease": {
+                                              "type": "string",
+                                              "enum": [
+                                                "linear",
+                                                "easeIn",
+                                                "easeOut",
+                                                "easeInOut"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "t",
+                                            "v"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "maxItems": 8
                                 },
                                 "tags": {
                                   "type": "array",
@@ -4621,6 +5467,105 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   ],
                                   "additionalProperties": false
                                 },
+                                "clips": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "enum": [
+                                          "sway",
+                                          "ripple",
+                                          "float",
+                                          "flicker",
+                                          "spin",
+                                          "keyframes"
+                                        ]
+                                      },
+                                      "channel": {
+                                        "type": "string",
+                                        "enum": [
+                                          "px",
+                                          "py",
+                                          "pz",
+                                          "rx",
+                                          "ry",
+                                          "rz",
+                                          "sx",
+                                          "sy",
+                                          "sz"
+                                        ]
+                                      },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
+                                      "amplitude": {
+                                        "type": "number"
+                                      },
+                                      "frequency": {
+                                        "type": "number"
+                                      },
+                                      "phase": {
+                                        "type": "number"
+                                      },
+                                      "speed": {
+                                        "type": "number"
+                                      },
+                                      "loop": {
+                                        "type": "boolean"
+                                      },
+                                      "duration": {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      },
+                                      "keys": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "t": {
+                                              "type": "number",
+                                              "minimum": 0
+                                            },
+                                            "v": {
+                                              "type": "number"
+                                            },
+                                            "ease": {
+                                              "type": "string",
+                                              "enum": [
+                                                "linear",
+                                                "easeIn",
+                                                "easeOut",
+                                                "easeInOut"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "t",
+                                            "v"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "maxItems": 8
+                                },
                                 "tags": {
                                   "type": "array",
                                   "items": {
@@ -4873,6 +5818,105 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "type"
                                   ],
                                   "additionalProperties": false
+                                },
+                                "clips": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "type": {
+                                        "type": "string",
+                                        "enum": [
+                                          "sway",
+                                          "ripple",
+                                          "float",
+                                          "flicker",
+                                          "spin",
+                                          "keyframes"
+                                        ]
+                                      },
+                                      "channel": {
+                                        "type": "string",
+                                        "enum": [
+                                          "px",
+                                          "py",
+                                          "pz",
+                                          "rx",
+                                          "ry",
+                                          "rz",
+                                          "sx",
+                                          "sy",
+                                          "sz"
+                                        ]
+                                      },
+                                      "axis": {
+                                        "type": "string",
+                                        "enum": [
+                                          "x",
+                                          "y",
+                                          "z"
+                                        ]
+                                      },
+                                      "amplitude": {
+                                        "type": "number"
+                                      },
+                                      "frequency": {
+                                        "type": "number"
+                                      },
+                                      "phase": {
+                                        "type": "number"
+                                      },
+                                      "speed": {
+                                        "type": "number"
+                                      },
+                                      "loop": {
+                                        "type": "boolean"
+                                      },
+                                      "duration": {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                      },
+                                      "gust": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 1
+                                      },
+                                      "keys": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "t": {
+                                              "type": "number",
+                                              "minimum": 0
+                                            },
+                                            "v": {
+                                              "type": "number"
+                                            },
+                                            "ease": {
+                                              "type": "string",
+                                              "enum": [
+                                                "linear",
+                                                "easeIn",
+                                                "easeOut",
+                                                "easeInOut"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "t",
+                                            "v"
+                                          ],
+                                          "additionalProperties": false
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "type"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "maxItems": 8
                                 },
                                 "tags": {
                                   "type": "array",
@@ -5817,7 +6861,9 @@ export const MCP_LEGACY_ALIASES: Readonly<Record<string, { tool: string; op: str
   "vibe3d_set_environment": { tool: "vibe3d_stage", op: "env" },
   "vibe3d_define_animation": { tool: "vibe3d_animation", op: "define" },
   "vibe3d_play_animation": { tool: "vibe3d_animation", op: "play" },
+  "vibe3d_stop_animation": { tool: "vibe3d_animation", op: "stop" },
   "vibe3d_clear_animation": { tool: "vibe3d_animation", op: "clear" },
+  "vibe3d_pose_animation": { tool: "vibe3d_animation", op: "pose" },
   "vibe3d_create_fx": { tool: "vibe3d_fx", op: "create" },
   "vibe3d_delete_fx": { tool: "vibe3d_fx", op: "delete" },
   "vibe3d_boolean_mesh": { tool: "vibe3d_mesh", op: "boolean" },

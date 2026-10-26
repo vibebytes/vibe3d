@@ -73,11 +73,13 @@ export const TOOL_GROUP_TABLE: readonly ToolGroup[] = [
   },
   {
     tool: 'vibe3d_animation',
-    title: '程序化动画：定义轨道 / 播放 / 清除',
+    title: '程序化动画：定义轨道 / 播放 / 停止 / 清除 / 批量摆姿势',
     ops: [
       ['define', 'animation.define', 'define_animation'],
       ['play', 'animation.play', 'play_animation'],
+      ['stop', 'animation.stop', 'stop_animation'],
       ['clear', 'animation.clear', 'clear_animation'],
+      ['pose', 'animation.pose', 'pose_animation'],
     ],
   },
   {

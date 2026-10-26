@@ -81,10 +81,7 @@ export function sampleClip(clip: ClipSpec, t: number): number {
 }
 
 export function applyClipTransform(base: Transform, clip: ClipSpec, t: number): Transform {
-  const channel =
-    clip.type === 'sway' && clip.axis
-      ? (`r${clip.axis}` as Channel)
-      : (clip.channel ?? DEFAULT_CHANNEL[clip.type]);
+  const channel = clipChannelOf(clip);
   const value = sampleClip(clip, t);
   const p: [number, number, number] = [...base.p];
   const r: [number, number, number] = [...base.r];
@@ -95,4 +92,24 @@ export function applyClipTransform(base: Transform, clip: ClipSpec, t: number): 
   else if (channel[0] === 'r') r[index] += value;
   else s[index] *= 1 + value;
   return { p, r, s };
+}
+
+export function clipChannelOf(clip: ClipSpec): Channel {
+  return clip.type === 'sway' && clip.axis
+    ? (`r${clip.axis}` as Channel)
+    : (clip.channel ?? DEFAULT_CHANNEL[clip.type]);
+}
+
+type ClipCarrier = { clip?: ClipSpec; clips?: ClipSpec[] };
+
+export function nodeClipsOf(node: ClipCarrier | undefined): ClipSpec[] {
+  if (!node) return [];
+  if (node.clips !== undefined) return node.clips;
+  return node.clip ? [node.clip] : [];
+}
+
+export function applyNodeClips(base: Transform, clips: ClipSpec[], t: number): Transform {
+  let out = base;
+  for (const clip of clips) out = applyClipTransform(out, clip, t);
+  return out;
 }

@@ -1,7 +1,8 @@
 import { assetOps } from './specs/asset';
+import { animOps } from './specs/anim';
 import { renderOps } from './specs/render';
 import { roomCreate } from './specs/room';
-import { sceneOps } from './specs/scene';
+import { sceneIoOps, sceneOps } from './specs/scene';
 import { systemOps } from './specs/system';
 import { defineCapabilities } from './types';
 
@@ -9,6 +10,8 @@ const all = {
   ...systemOps,
   ...roomCreate,
   ...sceneOps,
+  ...animOps,
+  ...sceneIoOps,
   ...assetOps,
   ...renderOps,
 };
@@ -16,6 +19,8 @@ const all = {
 export const CAPABILITIES: typeof systemOps &
   typeof roomCreate &
   typeof sceneOps &
+  typeof animOps &
+  typeof sceneIoOps &
   typeof assetOps &
   typeof renderOps = defineCapabilities(all);
 

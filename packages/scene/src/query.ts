@@ -1,11 +1,13 @@
 import type {
   AssetMeta,
+  ClipSpec,
   LightSpec,
   Material,
   ModelAnim,
   SceneDoc,
   SceneNode,
 } from '@vibebyte/vibe3d-protocol';
+import { nodeClipsOf } from './anim';
 import { nodeBounds } from './frame';
 
 type Vec3 = [number, number, number];
@@ -53,6 +55,7 @@ export interface NodeView extends NodeBrief {
   light?: LightSpec;
   anim?: ModelAnim;
   asset?: AssetMeta;
+  clips?: ClipSpec[];
 }
 
 export interface QueryResult {
@@ -80,7 +83,7 @@ function materialIdOf(node: SceneNode): string | undefined {
 }
 
 function hasAnim(node: SceneNode): boolean {
-  return node.kind === 'model' && Boolean(node.anim);
+  return (node.kind === 'model' && Boolean(node.anim)) || nodeClipsOf(node).length > 0;
 }
 
 function intersects(box: Bounds, filter: { min: Vec3; max: Vec3 }): boolean {
@@ -171,6 +174,8 @@ export function nodeView(doc: SceneDoc, id: string): NodeView | null {
     hasAnim: hasAnim(node),
   };
   if (node.tags !== undefined) view.tags = [...node.tags];
+  const clips = nodeClipsOf(node);
+  if (clips.length > 0) view.clips = clips;
   if (node.kind === 'mesh') {
     view.materialId = node.material;
     view.material = doc.materials[node.material];
