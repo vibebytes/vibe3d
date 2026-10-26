@@ -1,4 +1,5 @@
 import type { ClipSpec, SceneDoc, SceneNode } from '@vibebyte/vibe3d-protocol';
+import { nodeClipsOf } from '@vibebyte/vibe3d-scene';
 import { useState } from 'react';
 import { useDoc } from '../stores/doc';
 import { NumberField, Section, SelectField, ToggleRow } from './fields';
@@ -48,7 +49,8 @@ export function FxPanel({ doc, node }: { doc: SceneDoc; node: SceneNode | null }
   const clearAnimation = useDoc((s) => s.clearAnimation);
   const createFx = useDoc((s) => s.createFx);
   const deleteFx = useDoc((s) => s.deleteFx);
-  const clip = (node as { clip?: ClipSpec } | null)?.clip;
+  const clips = nodeClipsOf(node ?? undefined);
+  const clip = clips[clips.length - 1];
   const [draft, setDraft] = useState<Draft>(() => draftOf(clip));
 
   const apply = (next: Draft) => {
@@ -64,7 +66,7 @@ export function FxPanel({ doc, node }: { doc: SceneDoc; node: SceneNode | null }
           <>
             <ToggleRow
               label="启用动画"
-              checked={Boolean(clip)}
+              checked={clips.length > 0}
               onChange={(on) => {
                 if (!node) return;
                 if (on) void defineAnimation(node.id, { ...draft });

@@ -1,5 +1,5 @@
 import type { ClipSpec, ModelAnim, SceneDoc } from '@vibebyte/vibe3d-protocol';
-import { applyClipTransform } from '@vibebyte/vibe3d-scene';
+import { applyNodeClips, nodeClipsOf } from '@vibebyte/vibe3d-scene';
 import * as THREE from 'three';
 
 interface Entry {
@@ -126,10 +126,11 @@ interface BaseTransform {
   s: [number, number, number];
 }
 
-export function clipsOf(doc: Pick<SceneDoc, 'nodes'>): Record<string, ClipSpec> {
-  const out: Record<string, ClipSpec> = {};
+export function clipsOf(doc: Pick<SceneDoc, 'nodes'>): Record<string, ClipSpec[]> {
+  const out: Record<string, ClipSpec[]> = {};
   for (const [id, node] of Object.entries(doc.nodes ?? {})) {
-    if (node?.clip) out[id] = node.clip;
+    const clips = nodeClipsOf(node);
+    if (clips.length > 0) out[id] = clips;
   }
   return out;
 }
@@ -158,16 +159,16 @@ export function clipBasesOf(doc: Pick<SceneDoc, 'nodes'>): Record<string, BaseTr
 
 export function applyProceduralClips(
   root: THREE.Object3D,
-  clips: Record<string, ClipSpec>,
+  clips: Record<string, ClipSpec[]>,
   time: number,
   bases?: Record<string, BaseTransform>,
 ): void {
   root.traverse((obj) => {
     const nodeId = obj.userData.nodeId as string | undefined;
     if (!nodeId || !obj.userData.ownsTransform) return;
-    const clip = clips[nodeId];
+    const nodeClips = clips[nodeId];
     const declared = bases?.[nodeId];
-    if (!clip) {
+    if (!nodeClips || nodeClips.length === 0) {
       const base = declared ?? (BASES.has(obj) ? baseOf(obj) : undefined);
       if (!base) return;
       obj.position.set(...base.p);
@@ -177,7 +178,7 @@ export function applyProceduralClips(
       return;
     }
     const base = declared ?? baseOf(obj);
-    const out = applyClipTransform({ p: base.p, r: base.r, s: base.s }, clip, time);
+    const out = applyNodeClips({ p: base.p, r: base.r, s: base.s }, nodeClips, time);
     obj.position.set(out.p[0], out.p[1], out.p[2]);
     obj.rotation.set(out.r[0], out.r[1], out.r[2]);
     obj.scale.set(out.s[0], out.s[1], out.s[2]);
