@@ -2,7 +2,7 @@ import { createInterface } from 'node:readline';
 import { isVibe3DError } from '@vibebyte/vibe3d-client';
 import { getPrompt, listPrompts } from './guide';
 import type { ToolResult, ToolRuntime } from './tools';
-import { HELP_TOOL, helpResult, listTools } from './tools';
+import { HELP_TOOL, callTimeoutMs, helpResult, listTools } from './tools';
 
 const SUPPORTED = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const SERVER_INFO = { name: 'vibe3d', version: '0.1.0', title: 'vibe3d 3D 场景' };
@@ -95,28 +95,62 @@ export function createServer(deps: ServerDeps) {
     if (req.method === 'tools/call') {
       const name = String(req.params?.name ?? '');
       const args = req.params?.arguments ?? {};
+      const startedAt = Date.now();
+      const task = (async (): Promise<ToolResult> => {
+        if (name === HELP_TOOL.name) return helpResult(args);
+        const runtime = await deps.runtime();
+        return runtime.call(name, args);
+      })();
+      task.catch(() => {});
+      const budget = callTimeoutMs() + 30_000;
+      let watchTimer: ReturnType<typeof setTimeout> | undefined;
+      const watchdog = new Promise<never>((_, reject) => {
+        watchTimer = setTimeout(() => reject(new Error('mcp-watchdog')), budget);
+        watchTimer.unref?.();
+      });
       let result: ToolResult;
       try {
-        if (name === HELP_TOOL.name) {
-          result = helpResult(args);
-        } else {
-          const runtime = await deps.runtime();
-          result = await runtime.call(name, args);
-        }
+        result = await Promise.race([task, watchdog]);
       } catch (err) {
-        if (deps.onRuntimeError && isConnectionError(err)) deps.onRuntimeError(err);
-        result = {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify({
-                code: isVibe3DError(err) ? err.code : 'E_NO_DAEMON',
-                message: err instanceof Error ? err.message : String(err),
-              }),
-            },
-          ],
-          isError: true,
-        };
+        if (err instanceof Error && err.message === 'mcp-watchdog') {
+          process.stderr.write(
+            `${JSON.stringify({ event: 'mcp.watchdog', tool: name, budgetMs: budget })}\n`,
+          );
+          result = {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  code: 'E_TIMEOUT',
+                  message: `tools/call 总兜底超时：${name} 超过 ${budget}ms 无响应，已放弃本次响应。请重试；若连续超时，查 ~/.vibe3d/daemon.log 并重启 daemon。`,
+                }),
+              },
+            ],
+            isError: true,
+          };
+        } else {
+          if (deps.onRuntimeError && isConnectionError(err)) deps.onRuntimeError(err);
+          result = {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  code: isVibe3DError(err) ? err.code : 'E_NO_DAEMON',
+                  message: err instanceof Error ? err.message : String(err),
+                }),
+              },
+            ],
+            isError: true,
+          };
+        }
+      } finally {
+        if (watchTimer) clearTimeout(watchTimer);
+      }
+      const elapsed = Date.now() - startedAt;
+      if (elapsed > 5_000) {
+        process.stderr.write(
+          `${JSON.stringify({ event: 'mcp.slow', tool: name, elapsedMs: elapsed })}\n`,
+        );
       }
       reply(req.id, result);
       return;

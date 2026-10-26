@@ -11,7 +11,7 @@ import {
   opExample,
   toIssues,
 } from '@vibebyte/vibe3d-capabilities';
-import { type RoomHandle, type Studio, Vibe3DError } from '@vibebyte/vibe3d-client';
+import { type CallOptions, type RoomHandle, type Studio, Vibe3DError } from '@vibebyte/vibe3d-client';
 import { coerceForSchema, deepCamel, lenientRecord } from './coerce';
 import { opItemAt, opNameAt, paramHint, schemaHint } from './hints';
 import { describeTool, presentSchema } from './presentation';
@@ -301,7 +301,7 @@ class CallTimeout extends Error {
 
 const DEFAULT_CALL_TIMEOUT_MS = 120_000;
 
-const callTimeoutMs = (): number => {
+export const callTimeoutMs = (): number => {
   const raw = Number(process.env.VIBE3D_CALL_TIMEOUT_MS);
   return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_CALL_TIMEOUT_MS;
 };
@@ -310,12 +310,16 @@ async function withDeadline<T>(
   work: Promise<T>,
   capability: string,
   params: Record<string, unknown>,
+  onCancel?: (reason: string) => void,
 ): Promise<T> {
   const ms = callTimeoutMs();
   const startedAt = Date.now();
   let timer: ReturnType<typeof setTimeout> | undefined;
   const deadline = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new CallTimeout(capability, ms, Date.now() - startedAt, params)), ms);
+    timer = setTimeout(() => {
+      onCancel?.(`deadline ${ms}ms exceeded`);
+      reject(new CallTimeout(capability, ms, Date.now() - startedAt, params));
+    }, ms);
     timer.unref?.();
   });
   try {
@@ -536,7 +540,13 @@ export class ToolRuntime {
         dropped.length > 0
           ? `⚠ 以下字段不属于 ${capability}，本次已忽略：${dropped.join(', ')}。参数平铺在顶层；形状用 vibe3d_help {tool:"${tool.name}", op:"${op}"} 查。`
           : '';
-      const result = await withDeadline(this.dispatch(capability, data), capability, data);
+      const abort = new AbortController();
+      const result = await withDeadline(
+        this.dispatch(capability, data, abort.signal),
+        capability,
+        data,
+        (reason) => abort.abort(new Error(reason)),
+      );
       this.afterCall(capability, data, result);
       if (capability === 'render.snapshot') {
         const shot = result as {
@@ -633,15 +643,20 @@ export class ToolRuntime {
     }
   }
 
-  private async dispatch(capability: CapabilityName, params: Record<string, unknown>): Promise<unknown> {
+  private async dispatch(
+    capability: CapabilityName,
+    params: Record<string, unknown>,
+    signal?: AbortSignal,
+  ): Promise<unknown> {
     if (viewOf(capability).scope === 'daemon') {
-      return this.studio.client.call(capability, params);
+      return this.studio.client.call(capability, params, { signal });
     }
     const room = this.studio.room(String(params.roomId)) as RoomHandle;
     const { roomId: _ignored, ...rest } = params;
-    return (room.invoke as (method: CapabilityName, input: Record<string, unknown>) => Promise<unknown>)(
+    return (room.invoke as (method: CapabilityName, input: Record<string, unknown>, opts?: CallOptions) => Promise<unknown>)(
       capability,
       rest,
+      { signal },
     );
   }
 }
