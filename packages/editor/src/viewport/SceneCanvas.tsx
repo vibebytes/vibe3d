@@ -21,6 +21,7 @@ import * as THREE from 'three';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import { viewportFogPlan } from '@vibebyte/vibe3d-scene';
 import { assetUrl } from '../lib/rpc';
+import { usePlayback } from '../stores/playback';
 import { useSelection } from '../stores/selection';
 import { subjectSphere } from './capture-fog';
 import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
@@ -269,9 +270,16 @@ function Backdrop({ doc }: { doc: SceneDoc }) {
   return null;
 }
 
+function PlaybackDriver() {
+  useFrame((_, delta) => {
+    usePlayback.getState().advance(Math.min(delta, 0.1));
+  }, -1);
+  return null;
+}
+
 function AnimationDriver({ enabled }: { enabled: boolean }) {
   useFrame((_, delta) => {
-    if (enabled) animations.update(delta);
+    if (enabled && usePlayback.getState().playing) animations.update(delta);
   });
   return null;
 }
@@ -282,9 +290,9 @@ function ClipDriver({ doc, enabled }: { doc: SceneDoc; enabled: boolean }) {
   const clips = useMemo(() => clipsOf({ nodes }), [nodes]);
   const bases = useMemo(() => clipBasesOf({ nodes }), [nodes]);
   const active = Object.keys(clips).length > 0;
-  useFrame((state) => {
+  useFrame(() => {
     if (!enabled || !active) return;
-    applyProceduralClips(scene, clips, state.clock.elapsedTime, bases);
+    applyProceduralClips(scene, clips, usePlayback.getState().time, bases);
   });
   return null;
 }
@@ -303,10 +311,10 @@ function FxLayer({ doc, enabled }: { doc: SceneDoc; enabled: boolean }) {
     }
     for (const spec of fx) group.add(buildFxObject(spec));
   }, [key]);
-  useFrame((state) => {
+  useFrame(() => {
     if (!enabled) return;
     const group = groupRef.current;
-    if (group && fx.length > 0) applyFxAt(group, fx, state.clock.elapsedTime);
+    if (group && fx.length > 0) applyFxAt(group, fx, usePlayback.getState().time);
   });
   return <group ref={groupRef} name="vibe3d-fx" />;
 }
@@ -391,6 +399,7 @@ export function SceneCanvas({
         <ViewportFog doc={doc} />
         <StageLights doc={doc} />
         <StageEffects doc={doc} headless={headless} />
+        <PlaybackDriver />
         <AnimationDriver enabled={!headless} />
         <ClipDriver doc={doc} enabled={!headless} />
         <FxLayer doc={doc} enabled={!headless} />

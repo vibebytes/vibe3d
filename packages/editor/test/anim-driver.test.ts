@@ -17,8 +17,8 @@ describe('applyProceduralClips', () => {
     const b = obj('n_bbbbbbbb');
     const root = new THREE.Object3D();
     root.add(a, b);
-    const clips: Record<string, ClipSpec> = {
-      n_aaaaaaaa: { type: 'float', channel: 'py', amplitude: 2, frequency: 0.25 },
+    const clips: Record<string, ClipSpec[]> = {
+      n_aaaaaaaa: [{ type: 'float', channel: 'py', amplitude: 2, frequency: 0.25 }],
     };
     applyProceduralClips(root, clips, 1);
     expect(a.position.y).toBeCloseTo(2);
@@ -56,8 +56,8 @@ describe('applyProceduralClips', () => {
     const a = obj('n_aaaaaaaa');
     const root = new THREE.Object3D();
     root.add(a);
-    const clips: Record<string, ClipSpec> = {
-      n_aaaaaaaa: { type: 'sway', amplitude: 0.3, frequency: 0.5 },
+    const clips: Record<string, ClipSpec[]> = {
+      n_aaaaaaaa: [{ type: 'sway', amplitude: 0.3, frequency: 0.5 }],
     };
     applyProceduralClips(root, clips, 0.4);
     const first = a.quaternion.z;
@@ -71,7 +71,7 @@ describe('applyProceduralClips', () => {
     root.add(a);
     applyProceduralClips(
       root,
-      { n_aaaaaaaa: { type: 'float', channel: 'py', amplitude: 3, frequency: 0.25 } },
+      { n_aaaaaaaa: [{ type: 'float', channel: 'py', amplitude: 3, frequency: 0.25 }] },
       1,
     );
     expect(a.position.y).toBeCloseTo(5);
@@ -88,7 +88,7 @@ describe('clipsOf', () => {
         n_bbbbbbbb: { id: 'n_bbbbbbbb' },
       },
     } as unknown as SceneDoc;
-    expect(clipsOf(doc)).toEqual({ n_aaaaaaaa: { type: 'sway', amplitude: 0.2 } });
+    expect(clipsOf(doc)).toEqual({ n_aaaaaaaa: [{ type: 'sway', amplitude: 0.2 }] });
   });
 
   it('returns an empty map for a doc without clips', () => {

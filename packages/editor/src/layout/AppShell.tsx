@@ -5,6 +5,7 @@ interface AppShellProps {
   sidePanel: ReactNode;
   inspector?: ReactNode;
   statusBar: ReactNode;
+  bottomBar?: ReactNode;
   banner?: ReactNode;
   panelOpen: boolean;
   onPanelOpenChange(open: boolean): void;
@@ -16,6 +17,7 @@ export function AppShell({
   sidePanel,
   inspector,
   statusBar,
+  bottomBar,
   banner,
   panelOpen,
   onPanelOpenChange,
@@ -48,6 +50,7 @@ export function AppShell({
           </aside>
         )}
       </div>
+      {bottomBar}
       {statusBar}
     </div>
   );

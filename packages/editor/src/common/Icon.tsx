@@ -40,6 +40,13 @@ const PATHS = {
     'M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 18.5v-13ZM9.5 3v18',
   arrow: 'M5 12h14M13 6l6 6-6 6',
   history: 'M3.5 12a8.5 8.5 0 1 1 2.5 6M3.5 12V7m0 5H8M12 7v5l3.5 2',
+  play: 'M8 5.2v13.6L19 12 8 5.2Z',
+  pause: 'M9 5v14M15 5v14',
+  skipStart: 'M6 5v14M19 5.5 8 12l11 6.5V5.5Z',
+  skipEnd: 'M18 5v14M5 5.5 16 12 5 18.5V5.5Z',
+  stepBack: 'M14.5 6 8 12l6.5 6V6Z',
+  stepForward: 'M9.5 6 16 12l-6.5 6V6Z',
+  loop: 'M17 3.5 20 6.5l-3 3M20 6.5H8a4.5 4.5 0 0 0 0 9h1M7 20.5l-3-3 3-3M4 17.5h12a4.5 4.5 0 0 0 0-9h-1',
 } as const;
 
 export type IconName = keyof typeof PATHS;

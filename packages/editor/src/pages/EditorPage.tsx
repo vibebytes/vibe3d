@@ -8,6 +8,7 @@ import { ImportOverlay } from '../common/ImportOverlay';
 import { SnapshotDialog } from '../common/SnapshotDialog';
 import { Toaster, useToasts } from '../common/Toaster';
 import { Inspector } from '../inspector/Inspector';
+import { PlaybackBar } from '../layout/PlaybackBar';
 import { TimelinePanel } from '../layout/TimelinePanel';
 import { AppShell } from '../layout/AppShell';
 import { SidePanel } from '../layout/SidePanel';
@@ -187,6 +188,7 @@ export function EditorPage() {
           </SidePanel>
         }
         inspector={<Inspector doc={doc} />}
+        bottomBar={<PlaybackBar />}
         statusBar={<StatusBar revision={doc.revision} nodes={nodes.length} />}
         banner={
           !online && status === 'ready' ? (

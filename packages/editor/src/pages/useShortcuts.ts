@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { usePlayback } from '../stores/playback';
 import { useDoc } from '../stores/doc';
 import { useSelection } from '../stores/selection';
 import { useUi } from '../stores/ui';
@@ -51,6 +52,16 @@ export function useShortcuts(enabled: boolean, handlers: ShortcutHandlers): void
         if (!sel.primary) return;
         e.preventDefault();
         ref.current.onDelete();
+        return;
+      }
+      if (e.key === ' ') {
+        e.preventDefault();
+        usePlayback.getState().toggle();
+        return;
+      }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        usePlayback.getState().step(e.key === 'ArrowLeft' ? -1 : 1);
         return;
       }
       if (e.key.toLowerCase() === 'f') {
