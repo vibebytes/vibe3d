@@ -80,7 +80,7 @@ function autoOpenEditor(name: CapabilityName, params: unknown, result: unknown, 
     log?.warn({ event: 'surface.autoopen', roomId, trigger: name, ok: false, err: err ? String(err) : undefined });
   };
   try {
-    void Promise.resolve(open(editorUrl(ctx, roomId)))
+    void Promise.resolve(open({ url: editorUrl(ctx, roomId), roomId }))
       .then((ok) => {
         state.set(roomId, ok ? 'opened' : 'failed');
         log?.info({ event: 'surface.autoopen', roomId, trigger: name, ok });

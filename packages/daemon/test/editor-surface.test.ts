@@ -36,8 +36,8 @@ describe('editor.open：真的把浏览器打开', () => {
     const h = makeHarness();
     const roomId = await room(h);
     const seen: string[] = [];
-    h.ctx.openExternal = (url) => {
-      seen.push(url);
+    h.ctx.openExternal = (open) => {
+      seen.push(open.url);
       return true;
     };
     const { body } = await call(h, 'editor.open', { roomId }, roomId);

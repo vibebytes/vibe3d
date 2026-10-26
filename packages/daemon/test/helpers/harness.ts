@@ -63,6 +63,7 @@ export function makeHarness(
   const ctx: DispatchContext = {
     rooms,
     baseUrl: 'http://127.0.0.1:0',
+    token,
     ingest,
     inspect,
     selection: () => [],

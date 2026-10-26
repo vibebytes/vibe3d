@@ -5,8 +5,8 @@ const tick = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 5
 
 function spy(h: Harness): string[] {
   const seen: string[] = [];
-  h.ctx.openExternal = async (url) => {
-    seen.push(url);
+  h.ctx.openExternal = async (open) => {
+    seen.push(open.url);
     return true;
   };
   return seen;

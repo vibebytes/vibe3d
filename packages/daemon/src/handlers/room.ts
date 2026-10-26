@@ -2,7 +2,7 @@ import { AppError, type Op, type SceneDoc, makeNodeId } from '@vibebyte/vibe3d-p
 import { applyOps } from '@vibebyte/vibe3d-scene';
 import { thumbUrl } from '../thumbs';
 import { assertAssetRefs } from './asset-refs';
-import { surfaceHint } from './editor-url';
+import { editorUrl, surfaceHint } from './editor-url';
 import type { HandlersFor } from './types';
 
 const EMPTY_SCENE_HINT =
@@ -174,6 +174,7 @@ export const roomHandlers: HandlersFor<Keys> = {
       roomId: room.id,
       name: room.name,
       url: `${ctx.baseUrl}/editor/r/${room.id}`,
+      openUrl: editorUrl(ctx, room.id),
       revision: room.revision,
     };
   },

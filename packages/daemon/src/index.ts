@@ -15,6 +15,7 @@ import { JobQueue, MAX_QUEUED } from './jobs/queue';
 import { JobStore, sweepExports } from './jobs/store';
 import { acquireLock } from './lock';
 import { createLogger } from './logger';
+import { notifyOpensOpener } from './notify';
 import { createRenderer } from './render';
 import { RoomManager } from './rooms/manager';
 import { createApp } from './server';
@@ -113,7 +114,11 @@ async function main(): Promise<void> {
     surfaces: (roomId) => hub.count(roomId),
     autoOpen: new Map(),
     logger,
-    ...(config.openEditor ? { openExternal: openInBrowser } : {}),
+    ...(config.notifyOpens
+      ? { openExternal: notifyOpensOpener(config.notifyOpens) }
+      : config.openEditor
+        ? { openExternal: (o) => openInBrowser(o.url) }
+        : {}),
   };
   ctx.renderer = createRenderer({
     config,

@@ -468,7 +468,7 @@ export const renderHandlers: HandlersFor<Keys> = {
     } else if (!ctx.openExternal) {
       hint = `只返回了链接，没有打开浏览器：当前 daemon 未启用自动开窗（--no-open-editor）；手动打开 ${url} 即可，或继续用 open:false 只取链接。`;
     } else {
-      opened = (await ctx.openExternal(url)) !== false;
+      opened = (await ctx.openExternal({ url, roomId: room.id })) !== false;
       ctx.autoOpen?.set(room.id, opened ? 'opened' : 'failed');
       if (!opened) hint = `自动打开浏览器失败（系统 opener 不可用），改动仍会实时推送：手动打开 ${url}。`;
     }

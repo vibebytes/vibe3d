@@ -103,7 +103,7 @@ export interface DispatchContext {
   ) => Promise<{ sha: string; cached: boolean; report: GltfReport }>;
   selection: (roomId: string) => string[];
   surfaces?: (roomId: string) => number;
-  openExternal?: (url: string) => boolean | Promise<boolean>;
+  openExternal?: (open: { url: string; roomId?: string }) => boolean | Promise<boolean>;
   thumbs?: ThumbsStore;
   autoOpen?: Map<string, AutoOpenState>;
   logger?: Logger;

@@ -35,6 +35,7 @@ export const configSchema = z.object({
     .max(64 * 1024 * 1024)
     .default(16 * 1024 * 1024),
   openEditor: z.boolean().default(true),
+  notifyOpens: z.string().optional(),
   logLevel: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
 });
 
@@ -101,6 +102,7 @@ export function parseConfig(argv: string[], env: NodeJS.ProcessEnv = process.env
             typeof flags['open-editor'] === 'string' ? flags['open-editor'] : env.VIBE3D_OPEN_EDITOR,
             true,
           ),
+    notifyOpens: flags['notify-opens'] ?? env.VIBE3D_NOTIFY_OPENS,
     logLevel: flags['log-level'] ?? env.VIBE3D_LOG_LEVEL,
   };
 

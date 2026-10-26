@@ -9,9 +9,10 @@ export const roomCreate = {
       template: z.enum(['empty', 'showroom', 'product']).optional(),
     }),
     output: z.object({
-      roomId: z.string().regex(/^r_[a-z0-9]{8}$/),
+      roomId,
       name: z.string(),
       url: z.string(),
+      openUrl: z.string(),
       revision: z.number().int().min(0),
     }),
     scope: 'daemon' as const,
