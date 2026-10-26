@@ -1,4 +1,5 @@
 import type { SceneDoc } from '@vibebyte/vibe3d-protocol';
+import { nodeClipsOf } from '@vibebyte/vibe3d-scene';
 import { useEffect, useMemo, useState } from 'react';
 import { useSelection } from '../stores/selection';
 import { CameraPanel } from './CameraPanel';
@@ -15,6 +16,7 @@ type TabId = 'node' | 'material' | 'light' | 'model' | 'fx' | 'stage' | 'camera'
 export function Inspector({ doc }: { doc: SceneDoc }) {
   const selected = useSelection((s) => s.primary);
   const node = (selected ? doc.nodes[selected] : null) ?? null;
+  const animated = node ? nodeClipsOf(node).length > 0 : false;
   const tabs = useMemo(() => {
     const list: { id: TabId; label: string }[] = [];
     if (node) list.push({ id: 'node', label: '节点' });
@@ -50,6 +52,9 @@ export function Inspector({ doc }: { doc: SceneDoc }) {
             onClick={() => setTab(t.id)}
           >
             {t.label}
+            {t.id === 'fx' && animated && (
+              <span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-primary align-middle" />
+            )}
           </button>
         ))}
       </div>

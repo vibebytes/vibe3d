@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { CommandPalette } from '../common/CommandPalette';
 import { ConfirmDialog } from '../common/ConfirmDialog';
@@ -74,6 +74,18 @@ export function EditorPage() {
       useSelection.getState().reset();
     };
   }, [roomId, load, dispose]);
+
+  const prevSelected = useRef<string | null>(null);
+  useEffect(() => {
+    setPanelOpen(true);
+  }, [setPanelOpen]);
+  useEffect(() => {
+    if (selected && !prevSelected.current && !panelOpen) {
+      setPanelOpen(true);
+      setTab('inspector');
+    }
+    prevSelected.current = selected;
+  }, [selected, panelOpen, setPanelOpen, setTab]);
 
   const nodes = useMemo(
     () => (doc ? Object.values(doc.nodes).map((n) => ({ id: n.id, name: n.name })) : []),
