@@ -388,6 +388,31 @@ function echoParams(params: Record<string, unknown>): Record<string, unknown> {
   return out;
 }
 
+/** Host-side card contract: a producer declares "this is what I created", the host renders one
+ * card and owns the click. A room is a scene whose open target is its own editor surface. */
+function artifactBlock(capability: CapabilityName, result: unknown): string | undefined {
+  if (capability !== 'room.create') return undefined;
+  const r = (result ?? {}) as { roomId?: unknown; name?: unknown; url?: unknown; openUrl?: unknown };
+  const roomId = typeof r.roomId === 'string' && r.roomId ? r.roomId : undefined;
+  const url = [r.openUrl, r.url].find((v): v is string => typeof v === 'string' && v.length > 0);
+  if (!roomId || !url) return undefined;
+  const title = typeof r.name === 'string' && r.name ? r.name : roomId;
+  const spec = {
+    kind: 'scene',
+    title,
+    meta: [roomId],
+    open: {
+      kind: 'surface',
+      extId: 'vibe3d',
+      surfaceId: 'vibe3d.editor',
+      url,
+      instanceKey: roomId,
+      roomId,
+    },
+  };
+  return `<fast-artifact>${JSON.stringify(spec)}</fast-artifact>`;
+}
+
 function failure(err: unknown): ToolResult {
   if (err instanceof CallTimeout) {
     const payload = {
@@ -550,8 +575,10 @@ export class ToolRuntime {
           structuredContent: meta,
         };
       }
+      const card = artifactBlock(capability, result);
       const content: Array<TextContent | ImageContent> = [
         { type: 'text', text: JSON.stringify(capability === 'editor.open' ? editorOpenView(result) : result) },
+        ...(card ? [{ type: 'text' as const, text: card }] : []),
       ];
       if (droppedNote) content.push({ type: 'text', text: droppedNote });
       return { content, structuredContent: result };
