@@ -312,7 +312,7 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
   });
 }
 
-async function serveEditor(c: Context, deps: RouteDeps, _roomId: RoomId | null): Promise<Response> {
+export async function serveEditor(c: Context, deps: RouteDeps, _roomId: RoomId | null): Promise<Response> {
   const index = join(deps.editorDir, 'index.html');
   try {
     await stat(index);
@@ -320,7 +320,9 @@ async function serveEditor(c: Context, deps: RouteDeps, _roomId: RoomId | null):
     throw new AppError('E_UNSUPPORTED', 'editor 未构建：请在 packages/editor 执行 pnpm build 后重试');
   }
   const html = await (await import('node:fs/promises')).readFile(index);
-  return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8' } });
+  return new Response(html, {
+    headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache' },
+  });
 }
 
 const MIME: Record<string, string> = {
@@ -373,9 +375,11 @@ export function serveEditorAsset(deps: RouteDeps, rel: string): Response {
   const target = clean && isFile(join(deps.editorDir, clean)) ? clean : 'index.html';
   const path = join(deps.editorDir, target);
   const ext = path.slice(path.lastIndexOf('.'));
+  const cacheControl =
+    ext === '.html' ? 'no-cache' : 'public, max-age=31536000, immutable';
   try {
     return new Response(createReadStream(path) as unknown as ReadableStream, {
-      headers: { 'content-type': MIME[ext] ?? 'application/octet-stream', ...SANDBOX_FRAME_HEADERS },
+      headers: { 'content-type': MIME[ext] ?? 'application/octet-stream', 'cache-control': cacheControl, ...SANDBOX_FRAME_HEADERS },
     });
   } catch {
     throw new AppError('E_ASSET_MISSING', `editor 静态文件不存在：${clean}`);

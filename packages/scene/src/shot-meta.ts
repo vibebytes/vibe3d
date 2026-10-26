@@ -71,6 +71,19 @@ export function autoFogRange(distance: number, radius: number, strength = 1): { 
   return { near, far };
 }
 
+export function viewportFogPlan(
+  doc: { color: number; near: number; far: number } | null | undefined,
+  distance: number,
+  radius: number,
+): { color: number; near: number; far: number; source: 'doc' | 'auto' } | null {
+  if (!doc) return null;
+  const d = Number.isFinite(distance) ? Math.max(0, distance) : 0;
+  const r = Number.isFinite(radius) ? Math.max(0, radius) : 0;
+  const near = Math.max(0.05, round3(doc.near));
+  const far = Math.max(round3(doc.far), round3(d + r * 3), round3(near + 0.5));
+  return { color: doc.color, near, far, source: far > doc.far ? 'auto' : 'doc' };
+}
+
 export function autoClipRange(distance: number, radius: number): { near: number; far: number } {
   const d = Number.isFinite(distance) ? Math.max(0, distance) : 0;
   const r = Number.isFinite(radius) ? Math.max(0, radius) : 0;

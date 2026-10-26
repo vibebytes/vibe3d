@@ -19,8 +19,10 @@ import {
 } from 'react';
 import * as THREE from 'three';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
+import { viewportFogPlan } from '@vibebyte/vibe3d-scene';
 import { assetUrl } from '../lib/rpc';
 import { useSelection } from '../stores/selection';
+import { subjectSphere } from './capture-fog';
 import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
 import { buildMesh, disposeMesh } from '../three/build';
 import { createViewportEnvMap } from '../three/env-map-view';
@@ -182,10 +184,32 @@ function StageEffects({ doc, headless }: { doc: SceneDoc; headless: boolean }) {
   return null;
 }
 
-function Fog({ doc }: { doc: SceneDoc }) {
+function ViewportFog({ doc }: { doc: SceneDoc }) {
+  const scene = useThree((s) => s.scene);
   const settings = fogSettings(doc.env.fog, doc.env.background);
-  if (!settings) return null;
-  return <fog attach="fog" args={[settings.color, settings.near, settings.far]} />;
+  const radiusRef = useRef(0);
+  useEffect(() => {
+    radiusRef.current = subjectSphere(scene).radius;
+  }, [scene, doc]);
+  useFrame(({ camera, controls }) => {
+    if (!settings) {
+      scene.fog = null;
+      return;
+    }
+    const target = (controls as unknown as { target?: THREE.Vector3 } | null)?.target;
+    const distance = target ? camera.position.distanceTo(target) : 0;
+    const plan = viewportFogPlan(settings, distance, radiusRef.current);
+    if (!plan) {
+      scene.fog = null;
+      return;
+    }
+    const fog = scene.fog instanceof THREE.Fog ? scene.fog : new THREE.Fog(0x000000, plan.near, plan.far);
+    fog.color.setHex(plan.color);
+    fog.near = plan.near;
+    fog.far = plan.far;
+    scene.fog = fog;
+  });
+  return null;
 }
 
 function EnvironmentMap({ doc }: { doc: SceneDoc }) {
@@ -320,6 +344,11 @@ function Picking({ enabled }: { enabled: boolean }) {
 function CameraRig({ doc }: { doc: SceneDoc }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
+  const scene = useThree((s) => s.scene);
+  useEffect(() => {
+    if (!controls.current) return;
+    controls.current.maxDistance = Math.max(200, subjectSphere(scene).radius * 40);
+  }, [scene, doc]);
   const [px, py, pz] = doc.camera.p;
   const [tx, ty, tz] = doc.camera.target;
   useEffect(() => {
@@ -359,7 +388,7 @@ export function SceneCanvas({
       >
         <Backdrop doc={doc} />
         <EnvironmentMap doc={doc} />
-        <Fog doc={doc} />
+        <ViewportFog doc={doc} />
         <StageLights doc={doc} />
         <StageEffects doc={doc} headless={headless} />
         <AnimationDriver enabled={!headless} />

@@ -98,6 +98,7 @@ export { mergeGroup, type MergeOptions, type MergePlan } from './merge';
 export {
   autoClipRange,
   autoFogRange,
+  viewportFogPlan,
   parseShotMeta,
   shotMetaOf,
   shotWarning,
