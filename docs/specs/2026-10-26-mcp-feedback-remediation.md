@@ -117,3 +117,28 @@
 - 第 2 批（1 天）：P0-1 读回 + P0-2 play 语义 + P0-3 多 clip（protocol/scene/daemon/editor 四点同步改）；
 - 第 3 批（1 天）：P0-4 pose + P1 容错 + help 示例；
 - 第 4 批（另开任务）：P1 相机动画、P2 材质预设、载荷治理（含 fast 侧协同）。
+
+## 九、补记：并行调用超时问题（2026-10-26 修复）
+
+**现象**：`vibe3d_help` 等并行工具调用偶发超时；客户端侧压测复现为 help 与渲染类调用并发时互相拖慢。
+
+**根因**（两条，均已修）：
+
+1. **Chromium 串行队列无界 + 跨页合流**：原 `chromium.ts` 的 `serial()` 对空 key 合流所有渲染任务，一个 120s 级渲染任务会把后续 help/status 级调用压在队尾，逐个超时。
+2. **MCP server 运行时无自愈**：daemon 重启或长渲染占线后，`Studio.connect` 的 memo 值坏掉后永不重建，后续所有调用持续报 `E_NO_DAEMON`，表现为"必须重启 agent 才能恢复"。
+
+**修复**：
+
+- `packages/daemon/src/render/serial-queue.ts`：新增 `SerialQueue`（并发上限 3、队深上限 3；满即抛 `E_RENDER_UNAVAILABLE(queue_full, retryable)`）替换原 Map 合流。
+- `packages/mcp/src/bootstrap.ts`：`createMemoRuntime` 失败自动清 memo；`prewarm` 前台预热 + 后台兜底。
+- `packages/mcp/src/server.ts`：连接类错误（`E_NETWORK / E_NO_DAEMON / E_UNAUTHORIZED / E_DAEMON_OUTDATED / E_PROTOCOL`）触发 `onRuntimeError` → 清 memo；错误响应携带真实 `code` 而非一律 `E_NO_DAEMON`。
+- `packages/mcp/src/index.ts`：接入 memo 自愈；`--autostart false` 时不预拉 daemon。
+- `fast/.../Vibe3dConfig.scala`：fast 宿主的 mcp 命令固定 `--autostart false`（daemon 生命周期归扩展管，MCP server 不抢启动权）。
+- `packages/client/test/timeout.test.ts`：`render.views` 分层超时期望 120s→110s（同步 `timeouts.ts` 早于 fast relay 120s 的设计）。
+
+**验证**：
+
+- vibe3d 仓：typecheck 0 错；`client/test/timeout.test.ts`、`mcp/test`（flags/runtime-heal/bootstrap/server-help/registry-parity）、`daemon/test/serial-queue.test.ts`、`protocol/test/timeouts.test.ts` 全绿（相关 28 文件 202 用例）；全量 1268/1269 后修 1 处断言期望全绿。
+- fast 仓：`extensions/vibe3d` `mvn test` 33/33（含新增 `Vibe3dConfigResolutionSpec`，`mcpCommand` 断言含 `--autostart false`；`Vibe3dShellSpec` 期望同步）。
+
+**遗留**：`repair.ts / repair-stats.ts / presentation.ts / tools.ts` 存在历史 biome format/lint 违例，与本次改动无关，留独立清理。

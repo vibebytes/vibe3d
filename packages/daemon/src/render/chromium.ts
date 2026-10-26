@@ -7,6 +7,7 @@ import { signExportUrl } from '../http/export-url';
 import type { Logger } from '../logger';
 import { Cdp, CdpError } from './cdp';
 import { type ChromeHandle, findChrome, launchChrome } from './chrome';
+import { SerialQueue } from './serial-queue';
 import { verifyGlbExport } from './verify-glb';
 
 interface PageSession {
@@ -36,7 +37,7 @@ export class ChromiumRenderer implements Renderer {
   private cdp?: Cdp;
   private booting?: Promise<Cdp>;
   private pages: PageSession[] = [];
-  private queues = new Map<string, Promise<unknown>>();
+  private queue = new SerialQueue(3);
   private lastErrorAt = 0;
   private noSandbox = /^(1|true|yes|on)$/i.test(process.env.VIBE3D_CHROME_NO_SANDBOX ?? '');
 
@@ -238,14 +239,7 @@ export class ChromiumRenderer implements Renderer {
   }
 
   private serial<T>(task: () => Promise<T>, key = ''): Promise<T> {
-    const prev = this.queues.get(key) ?? Promise.resolve();
-    const run = prev.then(task, task);
-    const tail = run.catch(() => undefined);
-    this.queues.set(key, tail);
-    void tail.then(() => {
-      if (this.queues.get(key) === tail) this.queues.delete(key);
-    });
-    return run;
+    return this.queue.run(task, key);
   }
 
   private async start(): Promise<Cdp> {

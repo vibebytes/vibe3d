@@ -1,11 +1,21 @@
-export function createMemoRuntime<T>(factory: () => Promise<T>): () => Promise<T> {
+export interface MemoRuntime<T> {
+  get(): Promise<T>;
+  reset(): void;
+}
+
+export function createMemoRuntime<T>(factory: () => Promise<T>): MemoRuntime<T> {
   let current: Promise<T> | undefined;
-  return () => {
-    current ??= factory().catch((err: unknown) => {
+  return {
+    get() {
+      current ??= factory().catch((err: unknown) => {
+        current = undefined;
+        throw err;
+      });
+      return current;
+    },
+    reset() {
       current = undefined;
-      throw err;
-    });
-    return current;
+    },
   };
 }
 

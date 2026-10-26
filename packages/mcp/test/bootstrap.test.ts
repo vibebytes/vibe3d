@@ -6,8 +6,8 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 0));
 describe('runtime memo', () => {
   it('并发调用只连接一次', async () => {
     const factory = vi.fn(async () => 'studio');
-    const get = createMemoRuntime(factory);
-    const [a, b] = await Promise.all([get(), get()]);
+    const memo = createMemoRuntime(factory);
+    const [a, b] = await Promise.all([memo.get(), memo.get()]);
     expect(a).toBe('studio');
     expect(b).toBe('studio');
     expect(factory).toHaveBeenCalledTimes(1);
@@ -18,9 +18,19 @@ describe('runtime memo', () => {
       .fn<() => Promise<string>>()
       .mockRejectedValueOnce(new Error('E_NO_DAEMON'))
       .mockResolvedValueOnce('studio');
-    const get = createMemoRuntime(factory);
-    await expect(get()).rejects.toThrow('E_NO_DAEMON');
-    await expect(get()).resolves.toBe('studio');
+    const memo = createMemoRuntime(factory);
+    await expect(memo.get()).rejects.toThrow('E_NO_DAEMON');
+    await expect(memo.get()).resolves.toBe('studio');
+    expect(factory).toHaveBeenCalledTimes(2);
+  });
+
+  it('reset 后下一次调用重新连接', async () => {
+    const factory = vi.fn(async () => ({ id: factory.mock.calls.length }));
+    const memo = createMemoRuntime(factory);
+    const first = await memo.get();
+    memo.reset();
+    const second = await memo.get();
+    expect(second).not.toBe(first);
     expect(factory).toHaveBeenCalledTimes(2);
   });
 });
@@ -28,11 +38,11 @@ describe('runtime memo', () => {
 describe('预热', () => {
   it('立即触发连接，不等首个 tools/call', async () => {
     const factory = vi.fn(async () => 'studio');
-    const get = createMemoRuntime(factory);
-    prewarm(get);
+    const memo = createMemoRuntime(factory);
+    prewarm(memo.get);
     await tick();
     expect(factory).toHaveBeenCalledTimes(1);
-    await get();
+    await memo.get();
     expect(factory).toHaveBeenCalledTimes(1);
   });
 
@@ -41,11 +51,11 @@ describe('预热', () => {
       .fn<() => Promise<string>>()
       .mockRejectedValueOnce(new Error('boot'))
       .mockResolvedValueOnce('studio');
-    const get = createMemoRuntime(factory);
+    const memo = createMemoRuntime(factory);
     const onError = vi.fn();
-    prewarm(get, onError);
+    prewarm(memo.get, onError);
     await tick();
     expect(onError).toHaveBeenCalledTimes(1);
-    await expect(get()).resolves.toBe('studio');
+    await expect(memo.get()).resolves.toBe('studio');
   });
 });

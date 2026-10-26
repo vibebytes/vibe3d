@@ -1,25 +1,9 @@
 #!/usr/bin/env node
 import { Studio, type StudioOptions } from '@vibebyte/vibe3d-client';
 import { createMemoRuntime, prewarm } from './bootstrap';
+import { parseFlags } from './flags';
 import { createServer } from './server';
 import { ToolRuntime } from './tools';
-
-function parseFlags(argv: string[]): Record<string, string | boolean> {
-  const flags: Record<string, string | boolean> = {};
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i] ?? '';
-    if (!arg.startsWith('--')) continue;
-    const key = arg.slice(2);
-    const next = argv[i + 1];
-    if (next && !next.startsWith('--')) {
-      flags[key] = next;
-      i++;
-    } else {
-      flags[key] = true;
-    }
-  }
-  return flags;
-}
 
 const flags = parseFlags(process.argv.slice(2));
 const opts: StudioOptions = {
@@ -30,7 +14,7 @@ const opts: StudioOptions = {
 };
 const legacyRoom = typeof flags.room === 'string' ? flags.room : undefined;
 
-const getRuntime = createMemoRuntime<ToolRuntime>(() =>
+const memo = createMemoRuntime<ToolRuntime>(() =>
   Studio.connect(opts).then((studio) => {
     process.stderr.write(
       `${JSON.stringify({ level: 'info', msg: 'vibe3d mcp 已连接 daemon', url: studio.url })}\n`,
@@ -39,11 +23,11 @@ const getRuntime = createMemoRuntime<ToolRuntime>(() =>
   }),
 );
 
-const server = createServer({ runtime: getRuntime });
+const server = createServer({ runtime: memo.get, onRuntimeError: () => memo.reset() });
 process.on('SIGTERM', () => process.exit(0));
 process.on('SIGINT', () => process.exit(0));
 server.start();
-prewarm(getRuntime, (err) => {
+prewarm(memo.get, (err) => {
   process.stderr.write(
     `${JSON.stringify({
       level: 'warn',

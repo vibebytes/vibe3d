@@ -32,7 +32,7 @@ describe('K4 分层超时', () => {
     vi.unstubAllGlobals();
   });
 
-  it('render.views 走 120s，scene.stats 走 30s', async () => {
+  it('render.views 走 110s，scene.stats 走 30s', async () => {
     vi.stubGlobal('fetch', hangingFetch());
     const client = new RpcClient({ url: 'http://daemon.test', token: 't' });
 
@@ -54,7 +54,7 @@ describe('K4 分层超时', () => {
     expect(slowDone).toBe(true);
     expect(slowErr).toBeInstanceOf(Vibe3DError);
     expect((slowErr as Vibe3DError).code).toBe('E_TIMEOUT');
-    expect((slowErr as Vibe3DError).data).toMatchObject({ method: 'render.views', timeoutMs: 120_000 });
+    expect((slowErr as Vibe3DError).data).toMatchObject({ method: 'render.views', timeoutMs: 110_000 });
 
     let fastDone = false;
     const fast = client.call('scene.stats', {}, { roomId: 'r_0000000a' }).then(

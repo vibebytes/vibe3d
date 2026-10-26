@@ -1,4 +1,5 @@
 import { createInterface } from 'node:readline';
+import { isVibe3DError } from '@vibebyte/vibe3d-client';
 import { getPrompt, listPrompts } from './guide';
 import type { ToolResult, ToolRuntime } from './tools';
 import { HELP_TOOL, helpResult, listTools } from './tools';
@@ -26,7 +27,20 @@ const METHODS_UNAVAILABLE: Record<string, unknown> = {
 
 export interface ServerDeps {
   runtime: () => Promise<ToolRuntime>;
+  onRuntimeError?: (err: unknown) => void;
   log?: (line: string) => void;
+}
+
+const CONNECTION_CODES = new Set<string>([
+  'E_NETWORK',
+  'E_NO_DAEMON',
+  'E_UNAUTHORIZED',
+  'E_DAEMON_OUTDATED',
+  'E_PROTOCOL',
+]);
+
+function isConnectionError(err: unknown): boolean {
+  return isVibe3DError(err) && CONNECTION_CODES.has(err.code);
 }
 
 export function createServer(deps: ServerDeps) {
@@ -53,7 +67,7 @@ export function createServer(deps: ServerDeps) {
           '参数约定：长度单位米，Y 轴向上；颜色一律 [r,g,b,a] 四位、0..1（缺 alpha 自动补 1，也接受 "#RRGGBB"）。\n' +
           'id 由服务端生成：node=n_、material=m_、fx=f_、room=r_ + 8 位小写字母数字；专用工具会返回 id，不要自己编。\n' +
           '逐条操作用专用工具（create_node / update_node / create_material / set_environment / create_fx）；vibe3d_apply_ops 只用于原子批量或需要引用新建 id 的依赖场景。\n' +
-          '任务剧本按需加载：prompts 里的 vibe3d.build / edit / render / verify / import / history，只在需要完整步骤时读，不要要求一次性返回全部工具 spec。'
+          '任务剧本按需加载：prompts 里的 vibe3d.build / edit / render / verify / import / history，只在需要完整步骤时读，不要要求一次性返回全部工具 spec。',
       });
       return;
     }
@@ -90,12 +104,13 @@ export function createServer(deps: ServerDeps) {
           result = await runtime.call(name, args);
         }
       } catch (err) {
+        if (deps.onRuntimeError && isConnectionError(err)) deps.onRuntimeError(err);
         result = {
           content: [
             {
               type: 'text',
               text: JSON.stringify({
-                code: 'E_NO_DAEMON',
+                code: isVibe3DError(err) ? err.code : 'E_NO_DAEMON',
                 message: err instanceof Error ? err.message : String(err),
               }),
             },
