@@ -126,3 +126,128 @@ describe('render.pick', () => {
     expect(codeOf(body)).toBe('E_RENDER_UNAVAILABLE');
   });
 });
+
+describe('render.pick V2-03：[[x,y]] 元组与 node_id / material_id 同帧归属', () => {
+  const COLOR = makePng(4, 4, () => [255, 0, 0, 255]).toString('base64');
+
+  const idRgba = (paint: (x: number, y: number) => [number, number, number]): Uint8Array => {
+    const rgba = new Uint8Array(4 * 4 * 4);
+    for (let y = 0; y < 4; y += 1) {
+      for (let x = 0; x < 4; x += 1) {
+        const at = (y * 4 + x) * 4;
+        const [r, g, b] = paint(x, y);
+        rgba[at] = r;
+        rgba[at + 1] = g;
+        rgba[at + 2] = b;
+        rgba[at + 3] = 255;
+      }
+    }
+    return rgba;
+  };
+
+  function fakeIdRenderer(rgba: Uint8Array, seen: Record<string, any>) {
+    return {
+      name: 'fake-id',
+      ready: true,
+      available: () => true,
+      snapshot: async (_input: unknown, opts: SnapshotOptions = {}) => {
+        seen.snapshot = opts;
+        return { mime: 'image/png', base64: COLOR, width: opts.width ?? 4, height: opts.height ?? 4 };
+      },
+      idPass: async (_input: unknown, opts: Record<string, any>) => {
+        seen.idPass = opts;
+        return { width: opts.width ?? 4, height: opts.height ?? 4, rgba };
+      },
+      exportGlb: async () => ({ jobId: 'j', url: '/exports/j.glb', bytes: 1 }),
+    } as unknown as DispatchContext['renderer'];
+  }
+
+  async function heroRoom(h: Harness): Promise<{ roomId: string; nodeId: string; materialId: string }> {
+    const roomId = await room(h);
+    const created = await call(
+      h,
+      'node.create',
+      { roomId, kind: 'mesh', shape: 'box', name: 'hero' },
+      roomId,
+    );
+    const nodeId = created.body.result.nodeId;
+    const view = await call(h, 'node.get', { roomId, nodeId }, roomId);
+    return { roomId, nodeId, materialId: view.body.result.materialId };
+  }
+
+  it('接受 [[x,y]] 元组，samples 带 node_id / material_id（与取色同一机位的 id pass）', async () => {
+    const h = makeHarness();
+    const { roomId, nodeId, materialId } = await heroRoom(h);
+    const seen: Record<string, any> = {};
+    h.ctx.renderer = fakeIdRenderer(
+      idRgba((x, y) => (x === 2 && y === 1 ? [0, 0, 1] : [0, 0, 0])),
+      seen,
+    );
+
+    const { body } = await call(
+      h,
+      'render.pick',
+      { roomId, points: [[2, 1], [0, 0]], camera: { fov: 45 }, width: 4, height: 4 },
+      roomId,
+    );
+    expect(body.error).toBeUndefined();
+    const s = body.result.samples;
+    expect(s).toHaveLength(2);
+    expect(s[0]).toMatchObject({
+      x: 2,
+      y: 1,
+      rgb: [255, 0, 0],
+      hex: '#ff0000',
+      alpha: 255,
+      node_id: nodeId,
+      material_id: materialId,
+    });
+    expect(s[1]).toMatchObject({ x: 0, y: 0, node_id: null, material_id: null });
+    expect(seen.idPass).toBeDefined();
+    expect(seen.idPass.width).toBe(4);
+    expect(seen.idPass.height).toBe(4);
+    expect(seen.idPass.camera).toEqual(seen.snapshot.camera);
+  });
+
+  it('对象形态与元组形态等价', async () => {
+    const h = makeHarness();
+    const { roomId, nodeId } = await heroRoom(h);
+    const seen: Record<string, any> = {};
+    h.ctx.renderer = fakeIdRenderer(
+      idRgba((x, y) => (x === 2 && y === 1 ? [0, 0, 1] : [0, 0, 0])),
+      seen,
+    );
+
+    const objects = await call(
+      h,
+      'render.pick',
+      { roomId, points: [{ x: 2, y: 1 }] },
+      roomId,
+    );
+    const tuples = await call(h, 'render.pick', { roomId, points: [[2, 1]] }, roomId);
+    expect(objects.body.error).toBeUndefined();
+    expect(tuples.body.error).toBeUndefined();
+    expect(objects.body.result.samples[0]).toEqual(tuples.body.result.samples[0]);
+    expect(tuples.body.result.samples[0].node_id).toBe(nodeId);
+  });
+
+  it('渲染器不支持 id pass 时 samples 不带 node_id（向后兼容）', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    h.ctx.renderer = fakeRenderer(COLOR);
+
+    const { body } = await call(h, 'render.pick', { roomId, points: [[0, 0]] }, roomId);
+    expect(body.error).toBeUndefined();
+    expect(body.result.samples[0]).toEqual({ x: 0, y: 0, rgb: [255, 0, 0], hex: '#ff0000', alpha: 255 });
+    expect('node_id' in body.result.samples[0]).toBe(false);
+  });
+
+  it('元组越界报 E_INVALID_PARAMS', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    h.ctx.renderer = fakeRenderer(COLOR);
+
+    const bad = await call(h, 'render.pick', { roomId, points: [[9999, 0]] }, roomId);
+    expect(codeOf(bad.body)).toBe('E_INVALID_PARAMS');
+  });
+});
