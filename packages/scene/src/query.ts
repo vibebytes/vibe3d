@@ -1,11 +1,13 @@
 import type {
   AssetMeta,
   ClipSpec,
+  Geometry,
   LightSpec,
   Material,
   ModelAnim,
   SceneDoc,
   SceneNode,
+  Transform,
 } from '@vibebyte/vibe3d-protocol';
 import { nodeClipsOf } from './anim';
 import { nodeBounds } from './frame';
@@ -44,14 +46,22 @@ export interface NodeBrief {
   parentId: string | null;
   childCount: number;
   worldBbox: Bounds | null;
+  transform: Transform;
   materialId?: string;
   hasAnim: boolean;
   tags?: string[];
 }
 
+const cloneTransform = (t: Transform): Transform => ({
+  p: [...t.p],
+  r: [...t.r],
+  s: [...t.s],
+});
+
 export interface NodeView extends NodeBrief {
   children: string[];
   material?: Material;
+  geometry?: Geometry;
   light?: LightSpec;
   anim?: ModelAnim;
   asset?: AssetMeta;
@@ -143,6 +153,7 @@ export function queryNodes(doc: SceneDoc, filter: NodeFilter = {}): QueryResult 
       parentId: node.parent,
       childCount: children.get(node.id)?.length ?? 0,
       worldBbox: box ? { min: [...box.min], max: [...box.max] } : null,
+      transform: cloneTransform(node.transform),
       ...(materialIdOf(node) === undefined ? {} : { materialId: materialIdOf(node) }),
       hasAnim: hasAnim(node),
       ...(node.tags === undefined ? {} : { tags: [...node.tags] }),
@@ -170,6 +181,7 @@ export function nodeView(doc: SceneDoc, id: string): NodeView | null {
     parentId: node.parent,
     childCount: children.length,
     worldBbox: box ? { min: [...box.min], max: [...box.max] } : null,
+    transform: cloneTransform(node.transform),
     children,
     hasAnim: hasAnim(node),
   };
@@ -179,6 +191,7 @@ export function nodeView(doc: SceneDoc, id: string): NodeView | null {
   if (node.kind === 'mesh') {
     view.materialId = node.material;
     view.material = doc.materials[node.material];
+    view.geometry = node.geometry;
   } else if (node.kind === 'light') {
     view.light = node.light;
   } else if (node.kind === 'model') {

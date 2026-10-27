@@ -307,7 +307,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
     title: "网格构造：布尔 / 管体扫掠 / 背板扫掠 / 文字图片贴花",
     ops: [
       { op: "boolean", capability: "mesh.boolean", title: "布尔：按轴对齐包围盒做 subtract / union / intersect（原生 box 精确，其它几何需 force 近似）" },
-      { op: "tube", capability: "mesh.tube", title: "管体：沿点序列扫掠圆管（Catmull-Rom + 平行传输标架），单节点 baked 几何" },
+      { op: "tube", capability: "mesh.tube", title: "管体：沿点序列扫掠圆管（Catmull-Rom + 平行传输标架），radius 可为逐点半径数组（与 points 等长），单节点 baked 几何" },
       { op: "backdrop", capability: "mesh.backdrop", title: "背板：地面→四分之一弧→立墙的无缝扫掠曲面，法线两端连续，单节点 baked 几何" },
       { op: "decal", capability: "decal.create", title: "文字 / 图片贴花：真字形（canvas 生成，无需字体文件）或图片贴到平面上" },
     ],
@@ -409,10 +409,10 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
     name: "vibe3d_render",
     title: "渲染：快照 / 多视角 / 单资产特写 / 像素取色 / ID 通道 / 序列帧",
     ops: [
-      { op: "snapshot", capability: "render.snapshot", title: "离屏渲染一张图，可选等待动画稳定" },
+      { op: "snapshot", capability: "render.snapshot", title: "离屏渲染一张图：camera 可临时覆盖取景（不落盘），roi 可回传裁剪小图" },
       { op: "views", capability: "render.views", title: "多视角出图：一次拿到 1–6 张带标签、可对照的截图" },
       { op: "node", capability: "render.node", title: "单资产特写：自动框选一个节点并怼近拍一张" },
-      { op: "pick", capability: "render.pick", title: "像素取色：给点给区域，直接量出颜色与直方图" },
+      { op: "pick", capability: "render.pick", title: "像素取色：给点给区域量颜色与直方图，roi 可同时回传裁剪小图" },
       { op: "id_pass", capability: "render.id-pass", title: "ID 通道：每个节点刷成唯一色，回传像素覆盖与可选索引掩码" },
       { op: "sequence", capability: "render.sequence", title: "按 from/to/fps 采样动画，输出 PNG 帧序列 + manifest（任务制，用 job.get 取进度）" },
     ],

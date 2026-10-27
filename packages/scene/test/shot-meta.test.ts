@@ -13,14 +13,26 @@ describe('shot meta', () => {
       fallbackColor: 0x0b0f14,
       camera: CAMERA,
     });
-    expect(meta.fog).toEqual({ enabled: true, color: 0x112233, near: 4, far: 40, mode: 'doc' });
+    expect(meta.fog).toEqual({
+      enabled: true,
+      color: [17 / 255, 34 / 255, 51 / 255],
+      near: 4,
+      far: 40,
+      mode: 'doc',
+    });
     expect(meta.distanceToTarget).toBe(10);
     expect(meta.camera).toEqual(CAMERA);
   });
 
   it('marks a room without fog as disabled and falls back to the background color', () => {
     const meta = shotMetaOf({ fog: null, fallbackColor: 0x0b0f14, camera: CAMERA });
-    expect(meta.fog).toEqual({ enabled: false, color: 0x0b0f14, near: 0, far: 0, mode: 'doc' });
+    expect(meta.fog).toEqual({
+      enabled: false,
+      color: [11 / 255, 15 / 255, 20 / 255],
+      near: 0,
+      far: 0,
+      mode: 'doc',
+    });
     expect(meta.fog.reason).toBeUndefined();
   });
 

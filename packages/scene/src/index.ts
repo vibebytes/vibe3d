@@ -102,6 +102,7 @@ export {
   parseShotMeta,
   shotMetaOf,
   shotWarning,
+  type FogColor,
   type FogMode,
   type FogReport,
   type ShotCamera,

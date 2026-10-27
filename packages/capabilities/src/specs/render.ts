@@ -1,4 +1,4 @@
-import { cameraNameSchema, cameraStateSchema, nodeIdSchema } from '@vibebyte/vibe3d-protocol';
+import { cameraNameSchema, cameraStateSchema, nodeIdSchema, rgb } from '@vibebyte/vibe3d-protocol';
 import { z } from 'zod';
 import { intIn, numIn, revisionOut, roomId } from './common';
 
@@ -29,9 +29,29 @@ const shotCamera = z.object({
   target: z.tuple([z.number(), z.number(), z.number()]),
 });
 
+const roiRect = z.object({
+  x: intIn(0, 4095),
+  y: intIn(0, 4095),
+  w: intIn(1, 4096),
+  h: intIn(1, 4096),
+});
+
+const cameraOverride = z.object({
+  position: z.tuple([z.number(), z.number(), z.number()]).optional(),
+  target: z.tuple([z.number(), z.number(), z.number()]).optional(),
+  fov: z.number().min(1).max(179).optional(),
+});
+
+const roiEcho = {
+  frame: z.object({ width: z.number().int(), height: z.number().int() }).optional(),
+  roi: z
+    .object({ x: z.number().int(), y: z.number().int(), w: z.number().int(), h: z.number().int() })
+    .optional(),
+};
+
 const fogReport = z.object({
   enabled: z.boolean(),
-  color: z.number().int().min(0),
+  color: rgb,
   near: z.number().finite(),
   far: z.number().finite(),
   mode: fogMode,
@@ -65,6 +85,7 @@ const imageOpts = {
   isolate: z.array(nodeIdSchema).max(200).optional(),
   quality: qualityLevel.optional(),
   fog: fogMode.optional(),
+  roi: roiRect.optional(),
 };
 
 const pickImageOpts = {
@@ -165,9 +186,10 @@ export const renderOps = {
     errors: ['E_CAMERA_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'render.snapshot': {
-    title: '离屏渲染一张图，可选等待动画稳定',
+    title: '离屏渲染一张图：camera 可临时覆盖取景（不落盘），roi 可回传裁剪小图',
     input: z.object({
       roomId,
+      camera: cameraOverride.optional(),
       ...imageOpts,
     }),
     output: z.object({
@@ -179,6 +201,7 @@ export const renderOps = {
       quality: qualityPreset,
       ...shotReport,
       camera: shotCamera.nullable(),
+      ...roiEcho,
     }),
     scope: 'room' as const,
     mutating: false,
@@ -213,6 +236,7 @@ export const renderOps = {
           height: z.number().int(),
           camera: cameraStateSchema,
           ...shotReport,
+          ...roiEcho,
         }),
       ),
       partial: z.boolean(),
@@ -252,6 +276,7 @@ export const renderOps = {
       camera: cameraStateSchema,
       quality: qualityPreset,
       ...shotReport,
+      ...roiEcho,
     }),
     scope: 'room' as const,
     mutating: false,
@@ -266,7 +291,7 @@ export const renderOps = {
     errors: ['E_RENDER_UNAVAILABLE', 'E_ROOM_NOT_FOUND', 'E_INVALID_PARAMS'] as const,
   },
   'render.pick': {
-    title: '像素取色：给点给区域，直接量出颜色与直方图',
+    title: '像素取色：给点给区域量颜色与直方图，roi 可同时回传裁剪小图',
     input: z.object({
       roomId,
       points: z
@@ -277,6 +302,7 @@ export const renderOps = {
       rect: z
         .object({ x: intIn(0, 4095), y: intIn(0, 4095), w: intIn(1, 4096), h: intIn(1, 4096) })
         .optional(),
+      roi: roiRect.optional(),
       topColors: intIn(1, 16).optional(),
       ...pickImageOpts,
     }),
@@ -284,6 +310,12 @@ export const renderOps = {
       revision: z.number().int().min(0),
       width: z.number().int(),
       height: z.number().int(),
+      mime: z.literal('image/png').optional(),
+      base64: z.string().optional(),
+      frame: z.object({ width: z.number().int(), height: z.number().int() }).optional(),
+      roi: z
+        .object({ x: z.number().int(), y: z.number().int(), w: z.number().int(), h: z.number().int() })
+        .optional(),
       samples: z.array(
         z.object({
           x: z.number().int(),
@@ -315,7 +347,7 @@ export const renderOps = {
     },
     cli: {
       command: 'render pick',
-      args: '<roomId> [--point 12,34] [--rect 0,0,200,100] [--size 1280x720] [--top-colors 5]',
+      args: '<roomId> [--point 12,34] [--rect 0,0,200,100] [--roi 0,0,200,100] [--size 1280x720] [--top-colors 5]',
     },
     errors: ['E_RENDER_UNAVAILABLE', 'E_ROOM_NOT_FOUND', 'E_INVALID_PARAMS'] as const,
   },

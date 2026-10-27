@@ -53,6 +53,17 @@ export function clampRect(img: PngImage, rect: Rect): Rect {
   return { x, y, w, h };
 }
 
+export function cropImage(img: PngImage, rect: Rect): PngImage {
+  const box = clampRect(img, rect);
+  const bpp = img.channels;
+  const data = Buffer.alloc(box.w * box.h * bpp);
+  for (let y = 0; y < box.h; y++) {
+    const src = ((box.y + y) * img.width + box.x) * bpp;
+    img.data.copy(data, y * box.w * bpp, src, src + box.w * bpp);
+  }
+  return { width: box.w, height: box.h, channels: img.channels, data };
+}
+
 export function regionStats(
   img: PngImage,
   rect: Rect,

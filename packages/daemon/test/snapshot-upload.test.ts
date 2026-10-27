@@ -95,7 +95,7 @@ describe('snapshot upload transport', () => {
     const pending = hub.requestSnapshot(room.id, {}, 2000);
     const requestId = requestIdOf(frames);
     const meta = {
-      fog: { enabled: true, color: 0x112233, near: 4, far: 40, mode: 'doc' },
+      fog: { enabled: true, color: [17 / 255, 34 / 255, 51 / 255], near: 4, far: 40, mode: 'doc' },
       distanceToTarget: 12.5,
       camera: { position: [0, 0, 12.5], target: [0, 0, 0] },
     };

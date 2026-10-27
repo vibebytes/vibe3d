@@ -6,7 +6,7 @@ import { makePng } from './helpers/png';
 const solidPng = makePng(40, 30, () => [200, 40, 40, 255]).toString('base64');
 
 const META = {
-  fog: { enabled: true, color: 0x112233, near: 4, far: 40, mode: 'doc' as const },
+  fog: { enabled: true, color: [17 / 255, 34 / 255, 51 / 255], near: 4, far: 40, mode: 'doc' as const },
   distanceToTarget: 10,
   camera: { position: [0, 0, 10] as [number, number, number], target: [0, 0, 0] as [number, number, number] },
 };

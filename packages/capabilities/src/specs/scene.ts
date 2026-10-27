@@ -6,6 +6,7 @@ import {
   fogSchema,
   fxIdSchema,
   fxSchema,
+  geometrySchema,
   lightSpecSchema,
   mapTransformSchema,
   materialIdSchema,
@@ -21,6 +22,7 @@ import {
   shaSchema,
   stageStateSchema,
   tagsSchema,
+  transformSchema,
   vec3,
 } from '@vibebyte/vibe3d-protocol';
 import { z } from 'zod';
@@ -66,6 +68,7 @@ const nodeBriefOut = z.object({
   parentId: nodeIdSchema.nullable(),
   childCount: z.number().int().min(0),
   worldBbox: boundsOut.nullable(),
+  transform: transformSchema,
   materialId: materialIdSchema.optional(),
   hasAnim: z.boolean(),
   tags: tagsSchema.optional(),
@@ -142,6 +145,7 @@ export const sceneOps = {
     output: nodeBriefOut.extend({
       children: z.array(nodeIdSchema),
       material: materialSchema.optional(),
+      geometry: geometrySchema.optional(),
       light: lightSpecSchema.optional(),
       anim: modelAnimSchema.optional(),
       asset: assetMetaSchema.optional(),
@@ -892,12 +896,15 @@ export const sceneIoOps = {
     ] as const,
   },
   'mesh.tube': {
-    title: '管体：沿点序列扫掠圆管（Catmull-Rom + 平行传输标架），单节点 baked 几何',
+    title: '管体：沿点序列扫掠圆管（Catmull-Rom + 平行传输标架），radius 可为逐点半径数组（与 points 等长），单节点 baked 几何',
     input: z.object({
       roomId,
       name: z.string().min(1).max(200).optional(),
       points: z.array(vec3).min(2).max(512),
-      radius: z.number().positive().max(50),
+      radius: z.union([
+        z.number().positive().max(50),
+        z.array(z.number().positive().max(50)).min(2).max(512),
+      ]),
       radiusEnd: z.number().positive().max(50).optional(),
       segments: z.number().int().min(1).max(512).optional(),
       radialSegments: z.number().int().min(3).max(64).optional(),

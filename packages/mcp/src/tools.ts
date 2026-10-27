@@ -110,10 +110,40 @@ const wrapperKeys = (tool: ToolDef, op: string): string[] => [op, tool.name.repl
 
 const IGNORED_KEYS = new Set(['op', 'params', 'roomId']);
 
-function droppedKeys(spec: unknown, payload: Record<string, unknown>): string[] {
-  const shape = (spec as { shape?: Record<string, unknown> }).shape;
-  if (!shape || typeof shape !== 'object') return [];
-  return Object.keys(payload).filter((key) => !(key in shape) && !IGNORED_KEYS.has(key));
+const unwrapSchema = (spec: unknown, hops = 4): unknown => {
+  let cur: unknown = spec;
+  for (let i = 0; i < hops; i += 1) {
+    if (cur && typeof cur === 'object' && 'shape' in cur && (cur as { shape: unknown }).shape) return cur;
+    const inner = cur as { unwrap?: () => unknown; removeDefault?: () => unknown } | null;
+    if (inner && typeof inner.unwrap === 'function') {
+      cur = inner.unwrap();
+      continue;
+    }
+    if (inner && typeof inner.removeDefault === 'function') {
+      cur = inner.removeDefault();
+      continue;
+    }
+    break;
+  }
+  return cur && typeof cur === 'object' && 'shape' in cur ? cur : undefined;
+};
+
+function droppedKeys(spec: unknown, payload: unknown, depth = 0): string[] {
+  if (depth > 3 || payload === null || typeof payload !== 'object' || Array.isArray(payload)) return [];
+  const unwrapped = unwrapSchema(spec);
+  const shape = (unwrapped as { shape?: Record<string, unknown> } | undefined)?.shape;
+  if (!shape) return [];
+  const dropped: string[] = [];
+  for (const [key, value] of Object.entries(payload)) {
+    if (!(key in shape)) {
+      if (!IGNORED_KEYS.has(key)) dropped.push(key);
+      continue;
+    }
+    for (const nested of droppedKeys(shape[key], value, depth + 1)) {
+      dropped.push(`${key}.${nested}`);
+    }
+  }
+  return dropped;
 }
 
 function pickOp(tool: ToolDef, rawArgs: unknown, pinnedOp?: string): Picked | { error: string } {

@@ -1,8 +1,10 @@
 export type FogMode = 'doc' | 'off' | 'auto';
 
+export type FogColor = [number, number, number];
+
 export interface FogReport {
   enabled: boolean;
-  color: number;
+  color: FogColor;
   near: number;
   far: number;
   mode: FogMode;
@@ -30,6 +32,12 @@ export interface ShotMetaInput {
 
 const round3 = (value: number): number => Math.round(value * 1000) / 1000;
 
+const rgbOf = (hex: number): FogColor => [
+  ((hex >> 16) & 255) / 255,
+  ((hex >> 8) & 255) / 255,
+  (hex & 255) / 255,
+];
+
 export function shotMetaOf(input: ShotMetaInput): ShotMeta {
   const mode = input.mode ?? 'doc';
   const off = mode === 'off';
@@ -38,7 +46,7 @@ export function shotMetaOf(input: ShotMetaInput): ShotMeta {
   const enabled = Boolean(input.fog) && !off && !shadeOff;
   const fog: FogReport = {
     enabled,
-    color: input.fog?.color ?? input.fallbackColor,
+    color: rgbOf(input.fog?.color ?? input.fallbackColor),
     near: input.fog?.near ?? 0,
     far: input.fog?.far ?? 0,
     mode,
@@ -104,7 +112,7 @@ export function parseShotMeta(value: unknown): ShotMeta | null {
   const camera = raw.camera as Record<string, unknown> | undefined;
   if (!fog || typeof fog !== 'object') return null;
   if (typeof fog.enabled !== 'boolean') return null;
-  if (typeof fog.color !== 'number' || !Number.isFinite(fog.color)) return null;
+  if (!isVec3(fog.color)) return null;
   if (typeof fog.near !== 'number' || !Number.isFinite(fog.near)) return null;
   if (typeof fog.far !== 'number' || !Number.isFinite(fog.far)) return null;
   if (fog.mode !== 'doc' && fog.mode !== 'off' && fog.mode !== 'auto') return null;

@@ -4,7 +4,7 @@ export type Vec3 = [number, number, number];
 
 export interface TubeSpec {
   points: Vec3[];
-  radius: number;
+  radius: number | number[];
   radiusEnd?: number;
   segments?: number;
   radialSegments?: number;
@@ -58,11 +58,39 @@ function crTangent(p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, t: number): Vec3 {
   return out;
 }
 
+function crScalar(r0: number, r1: number, r2: number, r3: number, t: number): number {
+  const t2 = t * t;
+  const t3 = t2 * t;
+  return (
+    0.5 *
+    (2 * r1 +
+      (-r0 + r2) * t +
+      (2 * r0 - 5 * r1 + 4 * r2 - r3) * t2 +
+      (-r0 + 3 * r1 - 3 * r2 + r3) * t3)
+  );
+}
+
 export function tubeMesh(spec: TubeSpec): TubeMesh {
   const pts = spec.points;
   const n = pts.length;
   if (n < 2) throw new AppError('E_INVALID_PARAMS', 'tube 至少需要 2 个点');
-  if (!(spec.radius > 0)) throw new AppError('E_INVALID_PARAMS', 'tube 的 radius 必须大于 0');
+  if (!Array.isArray(spec.radius) && !(spec.radius > 0))
+    throw new AppError('E_INVALID_PARAMS', 'tube 的 radius 必须大于 0');
+  const radii = Array.isArray(spec.radius) ? spec.radius : null;
+  if (radii) {
+    if (radii.length !== n)
+      throw new AppError(
+        'E_INVALID_PARAMS',
+        `tube 的 radius 数组长度 (${radii.length}) 必须与 points 数量 (${n}) 一致`,
+      );
+    if (radii.some((r) => !(r > 0)))
+      throw new AppError('E_INVALID_PARAMS', 'tube 的 radius 数组每项都必须大于 0');
+    if (spec.radiusEnd !== undefined)
+      throw new AppError(
+        'E_INVALID_PARAMS',
+        'tube 的 radiusEnd 只在 radius 为单值时可用；逐点收束请直接写 radius 数组的首尾值',
+      );
+  }
   const closed = spec.closed ?? false;
   if (closed && n < 3) throw new AppError('E_INVALID_PARAMS', 'closed tube 至少需要 3 个点');
 
@@ -73,11 +101,16 @@ export function tubeMesh(spec: TubeSpec): TubeMesh {
   const segments = Math.max(1, Math.round(spec.segments ?? 24));
   const radial = Math.max(3, Math.round(spec.radialSegments ?? 8));
   const ringCount = closed ? segments : segments + 1;
-  const radiusEnd = spec.radiusEnd ?? spec.radius;
+  const radiusStart = Array.isArray(spec.radius) ? 0 : spec.radius;
+  const radiusEnd = spec.radiusEnd ?? radiusStart;
 
   const at = (i: number): Vec3 => {
     const idx = closed ? ((i % n) + n) % n : Math.min(n - 1, Math.max(0, i));
     return pts[idx]!;
+  };
+  const radiusAt = (i: number): number => {
+    const idx = closed ? ((i % n) + n) % n : Math.min(n - 1, Math.max(0, i));
+    return radii![idx]!;
   };
 
   const ringPoints = (k: number): { center: Vec3; tangent: Vec3; radius: number } => {
@@ -86,8 +119,10 @@ export function tubeMesh(spec: TubeSpec): TubeMesh {
     const t = u - span;
     const center = crPoint(at(span - 1), at(span), at(span + 1), at(span + 2), t);
     const tangent = crTangent(at(span - 1), at(span), at(span + 1), at(span + 2), t);
-    const ratio = closed ? 0 : k / segments;
-    return { center, tangent, radius: spec.radius + (radiusEnd - spec.radius) * ratio };
+    const radius = radii
+      ? Math.max(1e-6, crScalar(radiusAt(span - 1), radiusAt(span), radiusAt(span + 1), radiusAt(span + 2), t))
+      : radiusStart + (radiusEnd - radiusStart) * (closed ? 0 : k / segments);
+    return { center, tangent, radius };
   };
 
   const positions: number[] = [];

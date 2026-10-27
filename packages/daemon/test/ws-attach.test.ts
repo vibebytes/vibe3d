@@ -147,7 +147,7 @@ describe('attachWebSocket', () => {
     await c.next((f) => f.type === 'hello');
 
     const meta = {
-      fog: { enabled: false, color: 0x0b0f14, near: 0, far: 0, mode: 'doc' },
+      fog: { enabled: false, color: [11 / 255, 15 / 255, 20 / 255], near: 0, far: 0, mode: 'doc' },
       distanceToTarget: 7.5,
       camera: { position: [0, 0, 7.5], target: [0, 0, 0] },
     };

@@ -14,6 +14,27 @@ process.on('unhandledRejection', (reason) => {
 process.stdout.on('error', (err) => {
   logEvent({ event: 'stdout.error', err: String(err) });
 });
+process.stdout.on('close', () => {
+  logEvent({ event: 'stdout.close' });
+});
+process.stdin.on('error', (err) => {
+  logEvent({ event: 'stdin.error', err: String(err) });
+});
+
+logEvent({
+  event: 'boot',
+  pid: process.pid,
+  ppid: process.ppid,
+  node: process.version,
+  entry: process.argv[1] ?? '',
+});
+
+for (const sig of ['SIGTERM', 'SIGINT', 'SIGHUP'] as const) {
+  process.on(sig, () => {
+    logEvent({ event: 'signal', sig });
+    process.exit(0);
+  });
+}
 
 const SUPPORTED = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const SERVER_INFO = { name: 'vibe3d', version: '0.1.0', title: 'vibe3d 3D 场景' };
@@ -52,6 +73,16 @@ const CONNECTION_CODES = new Set<string>([
 
 function isConnectionError(err: unknown): boolean {
   return isVibe3DError(err) && CONNECTION_CODES.has(err.code);
+}
+
+function summarizeArgs(args: unknown): string | undefined {
+  if (args === undefined || args === null) return undefined;
+  try {
+    const text = JSON.stringify(args);
+    return text.length > 200 ? `${text.slice(0, 200)}...` : text;
+  } catch {
+    return undefined;
+  }
 }
 
 export function createServer(deps: ServerDeps) {
@@ -178,6 +209,10 @@ export function createServer(deps: ServerDeps) {
   function start(): void {
     const rl = createInterface({ input: process.stdin, crlfDelay: Number.POSITIVE_INFINITY });
     const inflight = new Set<Promise<void>>();
+    const hb = setInterval(() => {
+      logEvent({ event: 'hb', rss: process.memoryUsage().rss, inflight: inflight.size });
+    }, 30_000);
+    hb.unref?.();
     rl.on('line', (line) => {
       const text = line.trim();
       if (!text) return;
@@ -189,13 +224,17 @@ export function createServer(deps: ServerDeps) {
         return;
       }
       const startedAt = Date.now();
-      logEvent({ event: 'req', id: req.id ?? null, method: req.method });
+      const callMeta =
+        req.method === 'tools/call'
+          ? { tool: String(req.params?.name ?? ''), args: summarizeArgs(req.params?.arguments) }
+          : {};
+      logEvent({ event: 'req', id: req.id ?? null, method: req.method, ...callMeta });
       const task = handle(req)
         .catch((err: unknown) => {
           fail(req.id ?? null, { code: -32603, message: err instanceof Error ? err.message : String(err) });
         })
         .finally(() => {
-          logEvent({ event: 'res', id: req.id ?? null, method: req.method, ms: Date.now() - startedAt });
+          logEvent({ event: 'res', id: req.id ?? null, method: req.method, ...callMeta, ms: Date.now() - startedAt });
         });
       inflight.add(task);
       void task.finally(() => inflight.delete(task));

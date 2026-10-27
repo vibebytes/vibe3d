@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { deflateRawSync } from 'node:zlib';
-import { AppError, type SceneDoc } from '@vibebyte/vibe3d-protocol';
+import { AppError, type CameraState, type SceneDoc } from '@vibebyte/vibe3d-protocol';
 import {
   type QualityPreset,
   type ViewName,
@@ -22,7 +22,8 @@ import type {
 } from '../context';
 import { signExportUrl } from '../http/export-url';
 import { type JobError, toView } from '../jobs/store';
-import { decodeShot, hexOf, pixelAt, regionStats } from '../render/pick';
+import { clampRect, cropImage, decodeShot, hexOf, pixelAt, regionStats } from '../render/pick';
+import { encodePng } from '../render/png';
 import { editorUrl } from './editor-url';
 import type { HandlersFor } from './types';
 
@@ -36,6 +37,53 @@ const VIEW_LABELS: Record<ViewName, string> = {
 };
 const DEFAULT_VIEWS: ViewName[] = ['three_quarter', 'front', 'top'];
 const DEFAULT_NODE_PADDING = 1.2;
+
+interface CameraOverrideInput {
+  position?: [number, number, number];
+  target?: [number, number, number];
+  fov?: number;
+}
+
+interface RoiInput {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+function cameraOverride(camera: CameraOverrideInput | undefined, doc: SceneDoc): CameraState | undefined {
+  if (!camera) return undefined;
+  const base = doc.camera;
+  return {
+    mode: base.mode,
+    p: camera.position ?? base.p,
+    target: camera.target ?? base.target,
+    fov: camera.fov ?? base.fov,
+    zoom: base.zoom,
+  };
+}
+
+function baseShot(shot: Snapshot) {
+  return { mime: shot.mime, base64: shot.base64, width: shot.width, height: shot.height };
+}
+
+function roiFields(shot: Snapshot, roi?: RoiInput) {
+  if (!roi) return {};
+  if (shot.mime !== 'image/png') {
+    throw new AppError('E_INVALID_PARAMS', 'roi 裁剪需要 PNG 截图：省略 format 或显式 format=png');
+  }
+  const img = decodeShot(shot.base64);
+  const box = clampRect(img, roi);
+  const crop = encodePng(cropImage(img, box));
+  return {
+    mime: 'image/png' as const,
+    base64: crop.toString('base64'),
+    width: box.w,
+    height: box.h,
+    frame: { width: img.width, height: img.height },
+    roi: box,
+  };
+}
 
 type Keys =
   | 'render.snapshot'
@@ -86,6 +134,8 @@ interface ImageParams {
   isolate?: string[];
   quality?: string;
   fog?: 'doc' | 'off' | 'auto';
+  camera?: CameraOverrideInput;
+  roi?: RoiInput;
 }
 
 function hasDocAnimation(doc: SceneDoc): boolean {
@@ -97,6 +147,7 @@ function hasDocAnimation(doc: SceneDoc): boolean {
 
 function imageOptions(p: ImageParams, doc?: SceneDoc, quality?: QualityPreset): SnapshotOptions {
   const at = p.at ?? (doc && hasDocAnimation(doc) ? 0 : undefined);
+  const camera = doc ? cameraOverride(p.camera, doc) : undefined;
   return {
     width: p.width,
     height: p.height,
@@ -110,16 +161,21 @@ function imageOptions(p: ImageParams, doc?: SceneDoc, quality?: QualityPreset): 
     isolate: p.isolate?.length ? [...new Set(p.isolate)] : undefined,
     quality: quality ?? resolveQuality(p.quality),
     fog: p.fog ?? 'doc',
+    ...(camera ? { camera } : {}),
   };
 }
 
-function presentShot(shot: Snapshot) {
+function presentShot(shot: Snapshot, quality?: QualityPreset) {
   const meta = shot.meta ?? null;
+  const notes = [shotWarning(meta)];
+  if (quality?.level === 'draft') {
+    notes.push('draft 档：低采样、无抗锯齿，仅供构图与取景确认，请勿据此判断材质与最终画质');
+  }
   return {
     fog: meta?.fog ?? null,
     distanceToTarget: meta?.distanceToTarget ?? null,
     camera: meta?.camera ?? null,
-    warning: shotWarning(meta),
+    warning: notes.filter(Boolean).join('；') || null,
   };
 }
 
@@ -139,7 +195,8 @@ export const renderHandlers: HandlersFor<Keys> = {
       width: shot.width,
       height: shot.height,
       quality,
-      ...presentShot(shot),
+      ...presentShot(shot, quality),
+      ...roiFields(shot, p.roi),
     };
   },
 
@@ -188,11 +245,9 @@ export const renderHandlers: HandlersFor<Keys> = {
         shots.push({
           view,
           label: VIEW_LABELS[view],
-          mime: shot.mime,
-          base64: shot.base64,
-          width: shot.width,
-          height: shot.height,
-          ...presentShot(shot),
+          ...baseShot(shot),
+          ...roiFields(shot, p.roi),
+          ...presentShot(shot, quality),
           camera: framed.camera,
         });
         continue;
@@ -244,13 +299,11 @@ export const renderHandlers: HandlersFor<Keys> = {
       revision: room.revision,
       nodeId: p.nodeId,
       target: framed.bounds,
-      mime: shot.mime,
-      base64: shot.base64,
-      width: shot.width,
-      height: shot.height,
-      ...presentShot(shot),
-      camera: framed.camera,
+      ...baseShot(shot),
+      ...roiFields(shot, p.roi),
       quality,
+      ...presentShot(shot, quality),
+      camera: framed.camera,
     };
   },
 
@@ -272,10 +325,16 @@ export const renderHandlers: HandlersFor<Keys> = {
       return { x: pt.x, y: pt.y, rgb, hex: hexOf(rgb), alpha };
     });
     const region = p.rect ? regionStats(img, p.rect, p.topColors ?? 5) : undefined;
+    const cropBox = p.roi ? clampRect(img, p.roi) : null;
+    const crop = cropBox ? encodePng(cropImage(img, cropBox)) : null;
     return {
       revision: room.revision,
-      width: img.width,
-      height: img.height,
+      width: cropBox ? cropBox.w : img.width,
+      height: cropBox ? cropBox.h : img.height,
+      ...(crop ? { mime: 'image/png' as const, base64: crop.toString('base64') } : {}),
+      ...(cropBox
+        ? { frame: { width: img.width, height: img.height }, roi: cropBox }
+        : {}),
       samples,
       ...(region ? { region } : {}),
     };

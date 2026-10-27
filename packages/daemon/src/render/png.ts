@@ -1,4 +1,4 @@
-import { inflateSync } from 'node:zlib';
+import { deflateRawSync, inflateSync } from 'node:zlib';
 
 export interface PngImage {
   width: number;
@@ -90,4 +90,50 @@ export function decodePng(input: Buffer | string): PngImage {
   const channels = colorType === 6 ? 4 : 3;
   const raw = inflateSync(Buffer.concat(idat));
   return { width, height, channels, data: unfilter(raw, width, height, channels) };
+}
+
+const CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+
+const crc32 = (buf: Buffer): number => {
+  let c = 0xffffffff;
+  for (const byte of buf) c = CRC_TABLE[(c ^ byte) & 0xff]! ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+};
+
+function chunk(type: string, body: Buffer): Buffer {
+  const head = Buffer.alloc(4);
+  head.writeUInt32BE(body.length);
+  const typeBuf = Buffer.from(type, 'ascii');
+  const crc = Buffer.alloc(4);
+  crc.writeUInt32BE(crc32(Buffer.concat([typeBuf, body])));
+  return Buffer.concat([head, typeBuf, body, crc]);
+}
+
+export function encodePng(img: PngImage): Buffer {
+  const bpp = img.channels;
+  const stride = img.width * bpp;
+  const raw = Buffer.alloc((stride + 1) * img.height);
+  for (let y = 0; y < img.height; y++) {
+    raw[y * (stride + 1)] = 0;
+    img.data.copy(raw, y * (stride + 1) + 1, y * stride, (y + 1) * stride);
+  }
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(img.width, 0);
+  ihdr.writeUInt32BE(img.height, 4);
+  ihdr[8] = 8;
+  ihdr[9] = bpp === 4 ? 6 : 2;
+  return Buffer.concat([
+    SIGNATURE,
+    chunk('IHDR', ihdr),
+    chunk('IDAT', deflateRawSync(raw)),
+    chunk('IEND', Buffer.alloc(0)),
+  ]);
 }

@@ -3900,6 +3900,65 @@
                     }
                   ]
                 },
+                "transform": {
+                  "type": "object",
+                  "properties": {
+                    "p": {
+                      "type": "array",
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "items": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "r": {
+                      "type": "array",
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "items": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "s": {
+                      "type": "array",
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "items": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "p",
+                    "r",
+                    "s"
+                  ],
+                  "additionalProperties": false
+                },
                 "materialId": {
                   "type": "string",
                   "pattern": "^m_[a-z0-9]{8}$"
@@ -3925,6 +3984,7 @@
                 "parentId",
                 "childCount",
                 "worldBbox",
+                "transform",
                 "hasAnim"
               ],
               "additionalProperties": false
@@ -4075,6 +4135,65 @@
                 "type": "null"
               }
             ]
+          },
+          "transform": {
+            "type": "object",
+            "properties": {
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "r": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "s": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "p",
+              "r",
+              "s"
+            ],
+            "additionalProperties": false
           },
           "materialId": {
             "type": "string",
@@ -4287,6 +4406,208 @@
               "doubleSided"
             ],
             "additionalProperties": false
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "box"
+                  },
+                  "size": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": [
+                      {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      },
+                      {
+                        "type": "number",
+                        "exclusiveMinimum": 0
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "type",
+                  "size"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "sphere"
+                  },
+                  "radius": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "segments": {
+                    "type": "integer",
+                    "minimum": 3,
+                    "maximum": 128,
+                    "default": 32
+                  }
+                },
+                "required": [
+                  "type",
+                  "radius"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "cylinder"
+                  },
+                  "radius": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "radiusTop": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "radiusBottom": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "height": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "segments": {
+                    "type": "integer",
+                    "minimum": 3,
+                    "maximum": 128,
+                    "default": 32
+                  }
+                },
+                "required": [
+                  "type",
+                  "height"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "plane"
+                  },
+                  "width": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "height": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "type",
+                  "width",
+                  "height"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "baked"
+                  },
+                  "positions": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "minItems": 9,
+                    "maxItems": 300000
+                  },
+                  "normals": {
+                    "type": "array",
+                    "items": {
+                      "type": "number"
+                    },
+                    "maxItems": 300000
+                  },
+                  "indices": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "minItems": 3,
+                    "maxItems": 300000
+                  },
+                  "bbox": {
+                    "type": "object",
+                    "properties": {
+                      "min": {
+                        "type": "array",
+                        "minItems": 3,
+                        "maxItems": 3,
+                        "items": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "max": {
+                        "type": "array",
+                        "minItems": 3,
+                        "maxItems": 3,
+                        "items": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "min",
+                      "max"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "required": [
+                  "type",
+                  "positions",
+                  "indices",
+                  "bbox"
+                ],
+                "additionalProperties": false
+              }
+            ]
           },
           "light": {
             "type": "object",
@@ -4739,6 +5060,7 @@
           "parentId",
           "childCount",
           "worldBbox",
+          "transform",
           "hasAnim",
           "children"
         ],
@@ -38283,7 +38605,7 @@
     },
     {
       "name": "mesh.tube",
-      "title": "管体：沿点序列扫掠圆管（Catmull-Rom + 平行传输标架），单节点 baked 几何",
+      "title": "管体：沿点序列扫掠圆管（Catmull-Rom + 平行传输标架），radius 可为逐点半径数组（与 points 等长），单节点 baked 几何",
       "wire": "mesh.tube",
       "scope": "room",
       "mutating": true,
@@ -38339,9 +38661,23 @@
             "maxItems": 512
           },
           "radius": {
-            "type": "number",
-            "exclusiveMinimum": 0,
-            "maximum": 50
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 50
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 50
+                },
+                "minItems": 2,
+                "maxItems": 512
+              }
+            ]
           },
           "radiusEnd": {
             "type": "number",
@@ -40561,7 +40897,7 @@
     },
     {
       "name": "render.snapshot",
-      "title": "离屏渲染一张图，可选等待动画稳定",
+      "title": "离屏渲染一张图：camera 可临时覆盖取景（不落盘），roi 可回传裁剪小图",
       "wire": "render.snapshot",
       "scope": "room",
       "mutating": false,
@@ -40590,6 +40926,49 @@
           "roomId": {
             "type": "string",
             "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "camera": {
+            "type": "object",
+            "properties": {
+              "position": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "target": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "fov": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 179
+              }
+            },
+            "additionalProperties": false
           },
           "width": {
             "type": "integer",
@@ -40679,6 +41058,38 @@
               "off",
               "auto"
             ]
+          },
+          "roi": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4095
+              },
+              "y": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4095
+              },
+              "w": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4096
+              },
+              "h": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4096
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "w",
+              "h"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -40751,8 +41162,26 @@
                     "type": "boolean"
                   },
                   "color": {
-                    "type": "integer",
-                    "minimum": 0
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    ]
                   },
                   "near": {
                     "type": "number"
@@ -40854,6 +41283,46 @@
                 "type": "null"
               }
             ]
+          },
+          "frame": {
+            "type": "object",
+            "properties": {
+              "width": {
+                "type": "integer"
+              },
+              "height": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "width",
+              "height"
+            ],
+            "additionalProperties": false
+          },
+          "roi": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer"
+              },
+              "y": {
+                "type": "integer"
+              },
+              "w": {
+                "type": "integer"
+              },
+              "h": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "w",
+              "h"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -41017,6 +41486,38 @@
               "off",
               "auto"
             ]
+          },
+          "roi": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4095
+              },
+              "y": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4095
+              },
+              "w": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4096
+              },
+              "h": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4096
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "w",
+              "h"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -41175,8 +41676,26 @@
                           "type": "boolean"
                         },
                         "color": {
-                          "type": "integer",
-                          "minimum": 0
+                          "type": "array",
+                          "minItems": 3,
+                          "maxItems": 3,
+                          "items": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
+                          ]
                         },
                         "near": {
                           "type": "number"
@@ -41229,6 +41748,46 @@
                     "string",
                     "null"
                   ]
+                },
+                "frame": {
+                  "type": "object",
+                  "properties": {
+                    "width": {
+                      "type": "integer"
+                    },
+                    "height": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "width",
+                    "height"
+                  ],
+                  "additionalProperties": false
+                },
+                "roi": {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "integer"
+                    },
+                    "y": {
+                      "type": "integer"
+                    },
+                    "w": {
+                      "type": "integer"
+                    },
+                    "h": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y",
+                    "w",
+                    "h"
+                  ],
+                  "additionalProperties": false
                 }
               },
               "required": [
@@ -41489,6 +42048,38 @@
               "off",
               "auto"
             ]
+          },
+          "roi": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4095
+              },
+              "y": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4095
+              },
+              "w": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4096
+              },
+              "h": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4096
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "w",
+              "h"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -41669,8 +42260,26 @@
                     "type": "boolean"
                   },
                   "color": {
-                    "type": "integer",
-                    "minimum": 0
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      }
+                    ]
                   },
                   "near": {
                     "type": "number"
@@ -41723,6 +42332,46 @@
               "string",
               "null"
             ]
+          },
+          "frame": {
+            "type": "object",
+            "properties": {
+              "width": {
+                "type": "integer"
+              },
+              "height": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "width",
+              "height"
+            ],
+            "additionalProperties": false
+          },
+          "roi": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer"
+              },
+              "y": {
+                "type": "integer"
+              },
+              "w": {
+                "type": "integer"
+              },
+              "h": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "w",
+              "h"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -41745,7 +42394,7 @@
     },
     {
       "name": "render.pick",
-      "title": "像素取色：给点给区域，直接量出颜色与直方图",
+      "title": "像素取色：给点给区域量颜色与直方图，roi 可同时回传裁剪小图",
       "wire": "render.pick",
       "scope": "room",
       "mutating": false,
@@ -41767,7 +42416,7 @@
       },
       "cli": {
         "command": "render pick",
-        "args": "<roomId> [--point 12,34] [--rect 0,0,200,100] [--size 1280x720] [--top-colors 5]"
+        "args": "<roomId> [--point 12,34] [--rect 0,0,200,100] [--roi 0,0,200,100] [--size 1280x720] [--top-colors 5]"
       },
       "input": {
         "type": "object",
@@ -41802,6 +42451,38 @@
             "maxItems": 32
           },
           "rect": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4095
+              },
+              "y": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4095
+              },
+              "w": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4096
+              },
+              "h": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 4096
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "w",
+              "h"
+            ],
+            "additionalProperties": false
+          },
+          "roi": {
             "type": "object",
             "properties": {
               "x": {
@@ -41923,6 +42604,53 @@
           },
           "height": {
             "type": "integer"
+          },
+          "mime": {
+            "type": "string",
+            "const": "image/png"
+          },
+          "base64": {
+            "type": "string"
+          },
+          "frame": {
+            "type": "object",
+            "properties": {
+              "width": {
+                "type": "integer"
+              },
+              "height": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "width",
+              "height"
+            ],
+            "additionalProperties": false
+          },
+          "roi": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "integer"
+              },
+              "y": {
+                "type": "integer"
+              },
+              "w": {
+                "type": "integer"
+              },
+              "h": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "x",
+              "y",
+              "w",
+              "h"
+            ],
+            "additionalProperties": false
           },
           "samples": {
             "type": "array",
