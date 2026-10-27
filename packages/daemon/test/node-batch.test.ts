@@ -144,3 +144,32 @@ describe('material.assign', () => {
     expect(back.body.result.materialId).not.toBe(materialId);
   });
 });
+
+describe('旋转增量以度为单位', () => {
+  it('transform_many rotate=[0,90,0] 落库为 π/2 弧度', async () => {
+    const h = makeHarness();
+    const { roomId, ids } = await roomWithBoxes(h);
+    const { body } = await call(h, 'node.transform_many', { roomId, ids, rotate: [0, 90, 0] }, roomId);
+    expect(body.error).toBeUndefined();
+    const doc = (await call(h, 'scene.export', { roomId }, roomId)).body.result.doc;
+    for (const id of ids) {
+      expect((doc.nodes[id].transform as any).r[1]).toBeCloseTo(Math.PI / 2, 6);
+    }
+  });
+
+  it('array rotateStep=[0,30,0] 每份递增 30°，落库为弧度', async () => {
+    const h = makeHarness();
+    const { roomId, ids } = await roomWithBoxes(h, 1);
+    const { body } = await call(
+      h,
+      'node.array',
+      { roomId, id: ids[0], count: 2, offset: [2, 0, 0], rotateStep: [0, 30, 0] },
+      roomId,
+    );
+    expect(body.error).toBeUndefined();
+    const doc = (await call(h, 'scene.export', { roomId }, roomId)).body.result.doc;
+    const ry = body.result.nodeIds.map((id: string) => (doc.nodes[id].transform as any).r[1]);
+    expect(ry[0]).toBeCloseTo(Math.PI / 6, 6);
+    expect(ry[1]).toBeCloseTo(Math.PI / 3, 6);
+  });
+});

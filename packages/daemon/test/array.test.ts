@@ -64,8 +64,8 @@ describe('node.array modes', () => {
     near(at(t, 0).p, [0, 0.5, -4]);
     near(at(t, 1).p, [-4, 0.5, 0]);
     near(at(t, 2).p, [0, 0.5, 4]);
-    near(at(t, 0).r, [0, 90, 0]);
-    near(at(t, 2).r, [0, 270, 0]);
+    near(at(t, 0).r, [0, Math.PI / 2, 0]);
+    near(at(t, 2).r, [0, (3 * Math.PI) / 2, 0]);
   });
 
   it('rejects a radial ring whose centre contradicts its radius', async () => {

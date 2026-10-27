@@ -38,8 +38,22 @@ const roiRect = z.object({
 
 const cameraOverride = z.object({
   position: z.tuple([z.number(), z.number(), z.number()]).optional(),
+  p: z.tuple([z.number(), z.number(), z.number()]).optional(),
   target: z.tuple([z.number(), z.number(), z.number()]).optional(),
   fov: z.number().min(1).max(179).optional(),
+});
+
+export const framingParam = z
+  .enum(['camera', 'scene'])
+  .default('camera')
+  .describe(
+    '取景来源：camera=尊重 doc 当前机位（默认，不自动取景）；scene=按场景 bbox 自动取景。显式传 camera 时优先于 framing。',
+  );
+
+const framingEcho = z.object({
+  source: z.enum(['camera', 'scene']),
+  center: z.tuple([z.number(), z.number(), z.number()]).optional(),
+  fov: z.number().optional(),
 });
 
 const roiEcho = {
@@ -186,10 +200,12 @@ export const renderOps = {
     errors: ['E_CAMERA_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'render.snapshot': {
-    title: '离屏渲染一张图：camera 可临时覆盖取景（不落盘），roi 可回传裁剪小图',
+    title:
+      '离屏渲染一张图：默认尊重 doc 当前机位（framing:"camera"）；framing:"scene" 按 bbox 自动取景；camera 可临时覆盖取景（不落盘）',
     input: z.object({
       roomId,
       camera: cameraOverride.optional(),
+      framing: framingParam,
       ...imageOpts,
     }),
     output: z.object({
@@ -201,6 +217,7 @@ export const renderOps = {
       quality: qualityPreset,
       ...shotReport,
       camera: shotCamera.nullable(),
+      framing: framingEcho.optional(),
       ...roiEcho,
     }),
     scope: 'room' as const,
@@ -352,12 +369,13 @@ export const renderOps = {
     errors: ['E_RENDER_UNAVAILABLE', 'E_ROOM_NOT_FOUND', 'E_INVALID_PARAMS'] as const,
   },
   'render.id-pass': {
-    title: 'ID 通道：每个节点刷成唯一色，回传像素覆盖与可选索引掩码',
+    title: 'ID 通道：每个节点刷成唯一色，回传像素覆盖与可选索引掩码（framing 语义与 snapshot 一致）',
     input: z.object({
       roomId,
       width: intIn(64, 4096).optional(),
       height: intIn(64, 4096).optional(),
-      camera: cameraStateSchema.optional(),
+      camera: cameraStateSchema.partial().optional(),
+      framing: framingParam,
       settleMs: intIn(0, 10_000).optional(),
       at: numIn(0, 3600).optional(),
       includeMask: z.boolean().optional(),

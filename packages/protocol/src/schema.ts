@@ -20,14 +20,14 @@ export const tagsSchema = z.array(tagSchema).max(16);
 const nonZeroScale = finite.refine((v) => v !== 0, 'scale axis must be non-zero');
 
 export const transformSchema = z.object({
-  p: vec3,
-  r: vec3,
-  s: z.tuple([nonZeroScale, nonZeroScale, nonZeroScale]),
+  p: vec3.describe('世界坐标位置'),
+  r: vec3.describe('欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]'),
+  s: z.tuple([nonZeroScale, nonZeroScale, nonZeroScale]).describe('各轴缩放因子，不可为 0'),
 });
 
 export const transformPatchSchema = z.object({
   p: vec3.optional(),
-  r: vec3.optional(),
+  r: vec3.describe('欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz）；绕 Z 转 30° 即 [0,0,0.5236]').optional(),
   s: z.tuple([nonZeroScale, nonZeroScale, nonZeroScale]).optional(),
 });
 
@@ -122,7 +122,7 @@ export const mapTransformSchema = z.object({
   sha: shaSchema,
   tiling: z.tuple([finite.positive(), finite.positive()]).optional(),
   offset: z.tuple([finite, finite]).optional(),
-  rotation: finite.optional(),
+  rotation: finite.describe('贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854').optional(),
   channel: z.union([z.literal(0), z.literal(1)]).optional(),
   uv: z
     .object({

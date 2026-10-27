@@ -685,7 +685,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "世界坐标位置"
                             },
                             "r": {
                               "type": "array",
@@ -701,7 +702,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -717,7 +719,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "各轴缩放因子，不可为 0"
                             }
                           },
                           "required": [
@@ -988,7 +991,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "世界坐标位置"
                             },
                             "r": {
                               "type": "array",
@@ -1004,7 +1008,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -1020,7 +1025,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "各轴缩放因子，不可为 0"
                             }
                           },
                           "required": [
@@ -1584,7 +1590,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "世界坐标位置"
                             },
                             "r": {
                               "type": "array",
@@ -1600,7 +1607,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -1616,7 +1624,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "各轴缩放因子，不可为 0"
                             }
                           },
                           "required": [
@@ -1993,7 +2002,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "世界坐标位置"
                             },
                             "r": {
                               "type": "array",
@@ -2009,7 +2019,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -2025,7 +2036,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "各轴缩放因子，不可为 0"
                             }
                           },
                           "required": [
@@ -2425,7 +2437,8 @@
                               ]
                             },
                             "rotation": {
-                              "type": "number"
+                              "type": "number",
+                              "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                             },
                             "channel": {
                               "type": "number",
@@ -3917,7 +3930,8 @@
                         {
                           "type": "number"
                         }
-                      ]
+                      ],
+                      "description": "世界坐标位置"
                     },
                     "r": {
                       "type": "array",
@@ -3933,7 +3947,8 @@
                         {
                           "type": "number"
                         }
-                      ]
+                      ],
+                      "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                     },
                     "s": {
                       "type": "array",
@@ -3949,7 +3964,8 @@
                         {
                           "type": "number"
                         }
-                      ]
+                      ],
+                      "description": "各轴缩放因子，不可为 0"
                     }
                   },
                   "required": [
@@ -4153,7 +4169,8 @@
                   {
                     "type": "number"
                   }
-                ]
+                ],
+                "description": "世界坐标位置"
               },
               "r": {
                 "type": "array",
@@ -4169,7 +4186,8 @@
                   {
                     "type": "number"
                   }
-                ]
+                ],
+                "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
               },
               "s": {
                 "type": "array",
@@ -4185,7 +4203,8 @@
                   {
                     "type": "number"
                   }
-                ]
+                ],
+                "description": "各轴缩放因子，不可为 0"
               }
             },
             "required": [
@@ -4334,7 +4353,8 @@
                         ]
                       },
                       "rotation": {
-                        "type": "number"
+                        "type": "number",
+                        "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                       },
                       "channel": {
                         "type": "number",
@@ -6060,7 +6080,8 @@
               {
                 "type": "number"
               }
-            ]
+            ],
+            "description": "旋转增量，单位度；[0,90,0] = 绕 Y 轴转 90°"
           },
           "scale": {
             "type": "array",
@@ -6202,7 +6223,8 @@
               {
                 "type": "number"
               }
-            ]
+            ],
+            "description": "每份旋转增量，单位度；[0,30,0] = 每份绕 Y 轴多转 30°"
           },
           "cols": {
             "type": "integer",
@@ -6214,7 +6236,8 @@
             "exclusiveMinimum": 0
           },
           "sweep": {
-            "type": "number"
+            "type": "number",
+            "description": "radial 总扫描角，单位度，默认 360（一整圈）"
           },
           "axis": {
             "type": "string",
@@ -6860,7 +6883,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "世界坐标位置"
                                 },
                                 "r": {
                                   "type": "array",
@@ -6876,7 +6900,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                 },
                                 "s": {
                                   "type": "array",
@@ -6892,7 +6917,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "各轴缩放因子，不可为 0"
                                 }
                               },
                               "required": [
@@ -7170,7 +7196,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "世界坐标位置"
                                 },
                                 "r": {
                                   "type": "array",
@@ -7186,7 +7213,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                 },
                                 "s": {
                                   "type": "array",
@@ -7202,7 +7230,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "各轴缩放因子，不可为 0"
                                 }
                               },
                               "required": [
@@ -7772,7 +7801,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "世界坐标位置"
                                 },
                                 "r": {
                                   "type": "array",
@@ -7788,7 +7818,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                 },
                                 "s": {
                                   "type": "array",
@@ -7804,7 +7835,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "各轴缩放因子，不可为 0"
                                 }
                               },
                               "required": [
@@ -8188,7 +8220,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "世界坐标位置"
                                 },
                                 "r": {
                                   "type": "array",
@@ -8204,7 +8237,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                 },
                                 "s": {
                                   "type": "array",
@@ -8220,7 +8254,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "各轴缩放因子，不可为 0"
                                 }
                               },
                               "required": [
@@ -8560,7 +8595,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -9472,7 +9508,8 @@
                                   ]
                                 },
                                 "rotation": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                                 },
                                 "channel": {
                                   "type": "number",
@@ -9706,7 +9743,8 @@
                                   ]
                                 },
                                 "rotation": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                                 },
                                 "channel": {
                                   "type": "number",
@@ -9904,7 +9942,8 @@
                                   ]
                                 },
                                 "rotation": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                                 },
                                 "channel": {
                                   "type": "number",
@@ -10050,7 +10089,8 @@
                           ]
                         },
                         "rotation": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                         },
                         "channel": {
                           "type": "number",
@@ -11492,7 +11532,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "世界坐标位置"
                                       },
                                       "r": {
                                         "type": "array",
@@ -11508,7 +11549,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                       },
                                       "s": {
                                         "type": "array",
@@ -11524,7 +11566,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "各轴缩放因子，不可为 0"
                                       }
                                     },
                                     "required": [
@@ -11795,7 +11838,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "世界坐标位置"
                                       },
                                       "r": {
                                         "type": "array",
@@ -11811,7 +11855,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                       },
                                       "s": {
                                         "type": "array",
@@ -11827,7 +11872,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "各轴缩放因子，不可为 0"
                                       }
                                     },
                                     "required": [
@@ -12391,7 +12437,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "世界坐标位置"
                                       },
                                       "r": {
                                         "type": "array",
@@ -12407,7 +12454,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                       },
                                       "s": {
                                         "type": "array",
@@ -12423,7 +12471,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "各轴缩放因子，不可为 0"
                                       }
                                     },
                                     "required": [
@@ -12800,7 +12849,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "世界坐标位置"
                                       },
                                       "r": {
                                         "type": "array",
@@ -12816,7 +12866,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                       },
                                       "s": {
                                         "type": "array",
@@ -12832,7 +12883,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "各轴缩放因子，不可为 0"
                                       }
                                     },
                                     "required": [
@@ -13232,7 +13284,8 @@
                                         ]
                                       },
                                       "rotation": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                                       },
                                       "channel": {
                                         "type": "number",
@@ -14258,7 +14311,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "世界坐标位置"
                                 },
                                 "r": {
                                   "type": "array",
@@ -14274,7 +14328,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                 },
                                 "s": {
                                   "type": "array",
@@ -14290,7 +14345,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "各轴缩放因子，不可为 0"
                                 }
                               },
                               "required": [
@@ -14568,7 +14624,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "世界坐标位置"
                                 },
                                 "r": {
                                   "type": "array",
@@ -14584,7 +14641,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                 },
                                 "s": {
                                   "type": "array",
@@ -14600,7 +14658,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "各轴缩放因子，不可为 0"
                                 }
                               },
                               "required": [
@@ -15170,7 +15229,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "世界坐标位置"
                                 },
                                 "r": {
                                   "type": "array",
@@ -15186,7 +15246,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                 },
                                 "s": {
                                   "type": "array",
@@ -15202,7 +15263,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "各轴缩放因子，不可为 0"
                                 }
                               },
                               "required": [
@@ -15586,7 +15648,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "世界坐标位置"
                                 },
                                 "r": {
                                   "type": "array",
@@ -15602,7 +15665,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                 },
                                 "s": {
                                   "type": "array",
@@ -15618,7 +15682,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "各轴缩放因子，不可为 0"
                                 }
                               },
                               "required": [
@@ -15958,7 +16023,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -16870,7 +16936,8 @@
                                   ]
                                 },
                                 "rotation": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                                 },
                                 "channel": {
                                   "type": "number",
@@ -17104,7 +17171,8 @@
                                   ]
                                 },
                                 "rotation": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                                 },
                                 "channel": {
                                   "type": "number",
@@ -17302,7 +17370,8 @@
                                   ]
                                 },
                                 "rotation": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                                 },
                                 "channel": {
                                   "type": "number",
@@ -17448,7 +17517,8 @@
                           ]
                         },
                         "rotation": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                         },
                         "channel": {
                           "type": "number",
@@ -18890,7 +18960,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "世界坐标位置"
                                       },
                                       "r": {
                                         "type": "array",
@@ -18906,7 +18977,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                       },
                                       "s": {
                                         "type": "array",
@@ -18922,7 +18994,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "各轴缩放因子，不可为 0"
                                       }
                                     },
                                     "required": [
@@ -19193,7 +19266,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "世界坐标位置"
                                       },
                                       "r": {
                                         "type": "array",
@@ -19209,7 +19283,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                       },
                                       "s": {
                                         "type": "array",
@@ -19225,7 +19300,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "各轴缩放因子，不可为 0"
                                       }
                                     },
                                     "required": [
@@ -19789,7 +19865,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "世界坐标位置"
                                       },
                                       "r": {
                                         "type": "array",
@@ -19805,7 +19882,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                       },
                                       "s": {
                                         "type": "array",
@@ -19821,7 +19899,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "各轴缩放因子，不可为 0"
                                       }
                                     },
                                     "required": [
@@ -20198,7 +20277,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "世界坐标位置"
                                       },
                                       "r": {
                                         "type": "array",
@@ -20214,7 +20294,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                       },
                                       "s": {
                                         "type": "array",
@@ -20230,7 +20311,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "各轴缩放因子，不可为 0"
                                       }
                                     },
                                     "required": [
@@ -20630,7 +20712,8 @@
                                         ]
                                       },
                                       "rotation": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                                       },
                                       "channel": {
                                         "type": "number",
@@ -21853,7 +21936,8 @@
                         ]
                       },
                       "rotation": {
-                        "type": "number"
+                        "type": "number",
+                        "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                       },
                       "channel": {
                         "type": "number",
@@ -22064,7 +22148,8 @@
                   {
                     "type": "number"
                   }
-                ]
+                ],
+                "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
               },
               "s": {
                 "type": "array",
@@ -22208,7 +22293,8 @@
                       {
                         "type": "number"
                       }
-                    ]
+                    ],
+                    "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                   },
                   "s": {
                     "type": "array",
@@ -22569,7 +22655,8 @@
                   {
                     "type": "number"
                   }
-                ]
+                ],
+                "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
               },
               "s": {
                 "type": "array",
@@ -23394,7 +23481,8 @@
                         ]
                       },
                       "rotation": {
-                        "type": "number"
+                        "type": "number",
+                        "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                       },
                       "channel": {
                         "type": "number",
@@ -23651,7 +23739,8 @@
                         ]
                       },
                       "rotation": {
-                        "type": "number"
+                        "type": "number",
+                        "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                       },
                       "channel": {
                         "type": "number",
@@ -23838,7 +23927,8 @@
             ]
           },
           "rotation": {
-            "type": "number"
+            "type": "number",
+            "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
           }
         },
         "required": [
@@ -24559,7 +24649,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "世界坐标位置"
                                 },
                                 "r": {
                                   "type": "array",
@@ -24575,7 +24666,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                 },
                                 "s": {
                                   "type": "array",
@@ -24591,7 +24683,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "各轴缩放因子，不可为 0"
                                 }
                               },
                               "required": [
@@ -24869,7 +24962,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "世界坐标位置"
                                 },
                                 "r": {
                                   "type": "array",
@@ -24885,7 +24979,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                 },
                                 "s": {
                                   "type": "array",
@@ -24901,7 +24996,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "各轴缩放因子，不可为 0"
                                 }
                               },
                               "required": [
@@ -25471,7 +25567,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "世界坐标位置"
                                 },
                                 "r": {
                                   "type": "array",
@@ -25487,7 +25584,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                 },
                                 "s": {
                                   "type": "array",
@@ -25503,7 +25601,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "各轴缩放因子，不可为 0"
                                 }
                               },
                               "required": [
@@ -25887,7 +25986,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "世界坐标位置"
                                 },
                                 "r": {
                                   "type": "array",
@@ -25903,7 +26003,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                 },
                                 "s": {
                                   "type": "array",
@@ -25919,7 +26020,8 @@
                                     {
                                       "type": "number"
                                     }
-                                  ]
+                                  ],
+                                  "description": "各轴缩放因子，不可为 0"
                                 }
                               },
                               "required": [
@@ -26259,7 +26361,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -27171,7 +27274,8 @@
                                   ]
                                 },
                                 "rotation": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                                 },
                                 "channel": {
                                   "type": "number",
@@ -27405,7 +27509,8 @@
                                   ]
                                 },
                                 "rotation": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                                 },
                                 "channel": {
                                   "type": "number",
@@ -27603,7 +27708,8 @@
                                   ]
                                 },
                                 "rotation": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                                 },
                                 "channel": {
                                   "type": "number",
@@ -27749,7 +27855,8 @@
                           ]
                         },
                         "rotation": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                         },
                         "channel": {
                           "type": "number",
@@ -29191,7 +29298,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "世界坐标位置"
                                       },
                                       "r": {
                                         "type": "array",
@@ -29207,7 +29315,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                       },
                                       "s": {
                                         "type": "array",
@@ -29223,7 +29332,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "各轴缩放因子，不可为 0"
                                       }
                                     },
                                     "required": [
@@ -29494,7 +29604,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "世界坐标位置"
                                       },
                                       "r": {
                                         "type": "array",
@@ -29510,7 +29621,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                       },
                                       "s": {
                                         "type": "array",
@@ -29526,7 +29638,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "各轴缩放因子，不可为 0"
                                       }
                                     },
                                     "required": [
@@ -30090,7 +30203,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "世界坐标位置"
                                       },
                                       "r": {
                                         "type": "array",
@@ -30106,7 +30220,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                       },
                                       "s": {
                                         "type": "array",
@@ -30122,7 +30237,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "各轴缩放因子，不可为 0"
                                       }
                                     },
                                     "required": [
@@ -30499,7 +30615,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "世界坐标位置"
                                       },
                                       "r": {
                                         "type": "array",
@@ -30515,7 +30632,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                                       },
                                       "s": {
                                         "type": "array",
@@ -30531,7 +30649,8 @@
                                           {
                                             "type": "number"
                                           }
-                                        ]
+                                        ],
+                                        "description": "各轴缩放因子，不可为 0"
                                       }
                                     },
                                     "required": [
@@ -30931,7 +31050,8 @@
                                         ]
                                       },
                                       "rotation": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                                       },
                                       "channel": {
                                         "type": "number",
@@ -32657,7 +32777,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "世界坐标位置"
                             },
                             "r": {
                               "type": "array",
@@ -32673,7 +32794,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -32689,7 +32811,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "各轴缩放因子，不可为 0"
                             }
                           },
                           "required": [
@@ -32960,7 +33083,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "世界坐标位置"
                             },
                             "r": {
                               "type": "array",
@@ -32976,7 +33100,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -32992,7 +33117,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "各轴缩放因子，不可为 0"
                             }
                           },
                           "required": [
@@ -33556,7 +33682,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "世界坐标位置"
                             },
                             "r": {
                               "type": "array",
@@ -33572,7 +33699,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -33588,7 +33716,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "各轴缩放因子，不可为 0"
                             }
                           },
                           "required": [
@@ -33965,7 +34094,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "世界坐标位置"
                             },
                             "r": {
                               "type": "array",
@@ -33981,7 +34111,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -33997,7 +34128,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "各轴缩放因子，不可为 0"
                             }
                           },
                           "required": [
@@ -34397,7 +34529,8 @@
                               ]
                             },
                             "rotation": {
-                              "type": "number"
+                              "type": "number",
+                              "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                             },
                             "channel": {
                               "type": "number",
@@ -35413,7 +35546,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "世界坐标位置"
                             },
                             "r": {
                               "type": "array",
@@ -35429,7 +35563,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -35445,7 +35580,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "各轴缩放因子，不可为 0"
                             }
                           },
                           "required": [
@@ -35716,7 +35852,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "世界坐标位置"
                             },
                             "r": {
                               "type": "array",
@@ -35732,7 +35869,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -35748,7 +35886,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "各轴缩放因子，不可为 0"
                             }
                           },
                           "required": [
@@ -36312,7 +36451,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "世界坐标位置"
                             },
                             "r": {
                               "type": "array",
@@ -36328,7 +36468,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -36344,7 +36485,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "各轴缩放因子，不可为 0"
                             }
                           },
                           "required": [
@@ -36721,7 +36863,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "世界坐标位置"
                             },
                             "r": {
                               "type": "array",
@@ -36737,7 +36880,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
                             },
                             "s": {
                               "type": "array",
@@ -36753,7 +36897,8 @@
                                 {
                                   "type": "number"
                                 }
-                              ]
+                              ],
+                              "description": "各轴缩放因子，不可为 0"
                             }
                           },
                           "required": [
@@ -37153,7 +37298,8 @@
                               ]
                             },
                             "rotation": {
-                              "type": "number"
+                              "type": "number",
+                              "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
                             },
                             "channel": {
                               "type": "number",
@@ -38730,7 +38876,8 @@
                   {
                     "type": "number"
                   }
-                ]
+                ],
+                "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
               },
               "s": {
                 "type": "array",
@@ -38904,7 +39051,8 @@
                   {
                     "type": "number"
                   }
-                ]
+                ],
+                "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
               },
               "s": {
                 "type": "array",
@@ -39072,7 +39220,8 @@
                   {
                     "type": "number"
                   }
-                ]
+                ],
+                "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
               },
               "s": {
                 "type": "array",
@@ -40897,7 +41046,7 @@
     },
     {
       "name": "render.snapshot",
-      "title": "离屏渲染一张图：camera 可临时覆盖取景（不落盘），roi 可回传裁剪小图",
+      "title": "离屏渲染一张图：默认尊重 doc 当前机位（framing:\"camera\"）；framing:\"scene\" 按 bbox 自动取景；camera 可临时覆盖取景（不落盘）",
       "wire": "render.snapshot",
       "scope": "room",
       "mutating": false,
@@ -40946,6 +41095,22 @@
                   }
                 ]
               },
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
               "target": {
                 "type": "array",
                 "minItems": 3,
@@ -40969,6 +41134,15 @@
               }
             },
             "additionalProperties": false
+          },
+          "framing": {
+            "type": "string",
+            "enum": [
+              "camera",
+              "scene"
+            ],
+            "default": "camera",
+            "description": "取景来源：camera=尊重 doc 当前机位（默认，不自动取景）；scene=按场景 bbox 自动取景。显式传 camera 时优先于 framing。"
           },
           "width": {
             "type": "integer",
@@ -41283,6 +41457,41 @@
                 "type": "null"
               }
             ]
+          },
+          "framing": {
+            "type": "object",
+            "properties": {
+              "source": {
+                "type": "string",
+                "enum": [
+                  "camera",
+                  "scene"
+                ]
+              },
+              "center": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "fov": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "source"
+            ],
+            "additionalProperties": false
           },
           "frame": {
             "type": "object",
@@ -42780,7 +42989,7 @@
     },
     {
       "name": "render.id-pass",
-      "title": "ID 通道：每个节点刷成唯一色，回传像素覆盖与可选索引掩码",
+      "title": "ID 通道：每个节点刷成唯一色，回传像素覆盖与可选索引掩码（framing 语义与 snapshot 一致）",
       "wire": "render.id-pass",
       "scope": "room",
       "mutating": false,
@@ -42873,14 +43082,16 @@
                 "exclusiveMinimum": 0
               }
             },
-            "required": [
-              "mode",
-              "p",
-              "target",
-              "fov",
-              "zoom"
-            ],
             "additionalProperties": false
+          },
+          "framing": {
+            "type": "string",
+            "enum": [
+              "camera",
+              "scene"
+            ],
+            "default": "camera",
+            "description": "取景来源：camera=尊重 doc 当前机位（默认，不自动取景）；scene=按场景 bbox 自动取景。显式传 camera 时优先于 framing。"
           },
           "settleMs": {
             "type": "integer",

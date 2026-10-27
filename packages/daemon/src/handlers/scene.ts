@@ -158,13 +158,16 @@ function uniqueName(doc: SceneDoc, parent: string | null, base: string, taken: S
 
 type Vec = [number, number, number];
 
+const RAD = Math.PI / 180;
+
+// delta.rotate 的两个来源（transform_many 入参、array placement）都以「度」为单位；transform.r 存弧度
 function applyDelta(t: Transform, delta: { translate?: Vec; rotate?: Vec; scale?: Vec }): Transform {
   const [sx, sy, sz] = delta.scale ?? [1, 1, 1];
   const [dx, dy, dz] = delta.translate ?? [0, 0, 0];
   const [rx, ry, rz] = delta.rotate ?? [0, 0, 0];
   return {
     p: [t.p[0] + dx, t.p[1] + dy, t.p[2] + dz],
-    r: [t.r[0] + rx, t.r[1] + ry, t.r[2] + rz],
+    r: [t.r[0] + rx * RAD, t.r[1] + ry * RAD, t.r[2] + rz * RAD],
     s: [t.s[0] * sx, t.s[1] * sy, t.s[2] * sz],
   };
 }

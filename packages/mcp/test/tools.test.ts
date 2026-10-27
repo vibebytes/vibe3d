@@ -366,7 +366,8 @@ describe('legacy 工具的同名包装与忽略字段', () => {
     expect(result.content).toHaveLength(2);
     const note = result.content[1] as { text: string };
     expect(note.text).toContain('backgound');
-    expect(note.text).toContain('已忽略');
+    expect(note.text).toContain('未采用');
+    expect(note.text).toContain('vibe3d_help');
   });
 
   it('合法调用不带 warning', async () => {

@@ -576,7 +576,7 @@ export class ToolRuntime {
       }
       const droppedNote =
         dropped.length > 0
-          ? `⚠ 以下字段不属于 ${capability}，本次已忽略：${dropped.join(', ')}。参数平铺在顶层；形状用 vibe3d_help {tool:"${tool.name}", op:"${op}"} 查。`
+          ? `⚠ 以下字段不属于 ${capability}，本次未采用（结果按其余参数与 doc 当前机位执行）：${dropped.join(', ')}。参数平铺在顶层；正确键名用 vibe3d_help {tool:"${tool.name}", op:"${op}"} 查。`
           : '';
       const abort = new AbortController();
       const result = await withDeadline(

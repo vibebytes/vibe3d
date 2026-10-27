@@ -8,6 +8,7 @@ import {
   buildIdLegend,
   decodeIdMask,
   fitsIdPass,
+  frameCamera,
   frameTarget,
   resolveQuality,
   shotWarning,
@@ -40,6 +41,7 @@ const DEFAULT_NODE_PADDING = 1.2;
 
 interface CameraOverrideInput {
   position?: [number, number, number];
+  p?: [number, number, number];
   target?: [number, number, number];
   fov?: number;
 }
@@ -56,7 +58,7 @@ function cameraOverride(camera: CameraOverrideInput | undefined, doc: SceneDoc):
   const base = doc.camera;
   return {
     mode: base.mode,
-    p: camera.position ?? base.p,
+    p: camera.position ?? camera.p ?? base.p,
     target: camera.target ?? base.target,
     fov: camera.fov ?? base.fov,
     zoom: base.zoom,
@@ -135,6 +137,7 @@ interface ImageParams {
   quality?: string;
   fog?: 'doc' | 'off' | 'auto';
   camera?: CameraOverrideInput;
+  framing?: 'camera' | 'scene';
   roi?: RoiInput;
 }
 
@@ -145,9 +148,18 @@ function hasDocAnimation(doc: SceneDoc): boolean {
   return false;
 }
 
+function resolveFraming(p: ImageParams, doc: SceneDoc): CameraOverrideInput | undefined {
+  if (p.camera) return p.camera;
+  if (p.framing === 'scene') {
+    const cam = frameCamera(doc, 'fit');
+    return { position: cam.p, target: cam.target, fov: cam.fov };
+  }
+  return undefined;
+}
+
 function imageOptions(p: ImageParams, doc?: SceneDoc, quality?: QualityPreset): SnapshotOptions {
   const at = p.at ?? (doc && hasDocAnimation(doc) ? 0 : undefined);
-  const camera = doc ? cameraOverride(p.camera, doc) : undefined;
+  const camera = doc ? cameraOverride(resolveFraming(p, doc), doc) : undefined;
   return {
     width: p.width,
     height: p.height,
@@ -179,6 +191,12 @@ function presentShot(shot: Snapshot, quality?: QualityPreset) {
   };
 }
 
+function framingEchoOf(p: ImageParams, doc: SceneDoc): { source: 'camera' | 'scene'; center?: [number, number, number]; fov?: number } {
+  if (p.camera || p.framing !== 'scene') return { source: 'camera' };
+  const cam = frameCamera(doc, 'fit');
+  return { source: 'scene', center: cam.target, fov: cam.fov };
+}
+
 export const renderHandlers: HandlersFor<Keys> = {
   'render.snapshot': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
@@ -195,6 +213,7 @@ export const renderHandlers: HandlersFor<Keys> = {
       width: shot.width,
       height: shot.height,
       quality,
+      framing: framingEchoOf(p, room.doc),
       ...presentShot(shot, quality),
       ...roiFields(shot, p.roi),
     };
@@ -365,7 +384,7 @@ export const renderHandlers: HandlersFor<Keys> = {
       {
         width,
         height,
-        camera: p.camera,
+        camera: cameraOverride(resolveFraming(p, room.doc), room.doc),
         settleMs: p.settleMs,
         at: p.at,
         legend: palette.legend,

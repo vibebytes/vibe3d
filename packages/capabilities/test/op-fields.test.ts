@@ -2,6 +2,7 @@ import { opSchema } from '@vibebyte/vibe3d-protocol';
 import { describe, expect, it } from 'vitest';
 import { opExample } from '../src/op-example';
 import { mergedFieldDocs, opFieldDoc, opFieldDocs } from '../src/op-fields';
+import { sceneOps } from '../src/specs/scene';
 
 const arms = (
   opSchema as unknown as { _def: { options: Array<{ shape: Record<string, { _def: { value: unknown } }> }> } }
@@ -82,5 +83,22 @@ describe('op field docs', () => {
     expect(paths).toContain('material.roughness');
     const example = JSON.parse(opExample('material.set') ?? '{}');
     expect(example.material.opacity).toBe(1);
+  });
+
+  it('documents rotation units and euler order on every transform field', () => {
+    const r = opFieldDoc('node.create', ['node', 'transform', 'r']);
+    expect(r?.description).toContain('弧度');
+    expect(r?.description).toContain('XYZ');
+    const patchR = opFieldDoc('node.update', ['patch', 'transform', 'r']);
+    expect(patchR?.description).toContain('弧度');
+    const fieldDesc = (op: keyof typeof sceneOps, field: string): string | undefined =>
+      (sceneOps[op].input as unknown as { shape: Record<string, { description?: string }> }).shape[
+        field
+      ]?.description;
+    expect(fieldDesc('node.transform_many', 'rotate')).toContain('度');
+    expect(fieldDesc('node.array', 'rotateStep')).toContain('度');
+    expect(fieldDesc('node.array', 'sweep')).toContain('度');
+    const mapRotation = opFieldDoc('material.map', ['map', 'rotation']);
+    expect(mapRotation?.description).toContain('弧度');
   });
 });
