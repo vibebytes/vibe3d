@@ -2,10 +2,11 @@ import {
   CAPABILITIES,
   CAPABILITY_NAMES,
   type CapabilityName,
+  buildOpSample,
   describeIssues,
   toIssues,
 } from '@vibebyte/vibe3d-capabilities';
-import { AppError, DAEMON_VERSION, PROTOCOL_VERSION, legacyGeometryNotes } from '@vibebyte/vibe3d-protocol';
+import { AppError, DAEMON_VERSION, GEOMETRY_FIELD_ALIASES, PROTOCOL_VERSION, legacyGeometryNotes } from '@vibebyte/vibe3d-protocol';
 import type { AutoOpenState, DispatchContext, HelloResult } from './context';
 import { assetHandlers } from './handlers/asset';
 import { backdropHandlers } from './handlers/backdrop';
@@ -140,14 +141,47 @@ function withMigrationNotes(name: CapabilityName, raw: unknown, result: unknown)
   return { ...result, warnings: [...(Array.isArray(warnings) ? warnings : []), ...notes] };
 }
 
+const MAX_HINT_EXAMPLE_CHARS = 400;
+
+const buildHint = (name: CapabilityName, issues: ReadonlyArray<{ path: PropertyKey[]; message: string }>): string => {
+  const first = issues[0];
+  const head = first?.path?.length
+    ? `检查参数 ${first.path.join('.')}：${first.message}`
+    : `检查 ${name} 参数：${first?.message ?? '请求体不完整'}`;
+  const sample = buildOpSample(name);
+  if (sample === undefined) return head;
+  const rendered = JSON.stringify(sample);
+  const trimmed = rendered.length > MAX_HINT_EXAMPLE_CHARS ? `${rendered.slice(0, MAX_HINT_EXAMPLE_CHARS)}…` : rendered;
+  return `${head}；最小示例 ${trimmed}`;
+};
+
+const normalizeFieldAliases = (v: unknown): unknown => {
+  if (Array.isArray(v)) return v.map(normalizeFieldAliases);
+  if (!v || typeof v !== 'object') return v;
+  const out: Record<string, unknown> = {};
+  let changed = false;
+  for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
+    const to = GEOMETRY_FIELD_ALIASES[k];
+    if (to !== undefined) {
+      if (out[to] === undefined) out[to] = val;
+      changed = true;
+      continue;
+    }
+    out[k] = normalizeFieldAliases(val);
+  }
+  return changed ? out : v;
+};
+
 export async function dispatch(method: string, params: unknown, ctx: DispatchContext): Promise<unknown> {
   const name = resolveMethod(method);
   const spec = CAPABILITIES[name];
-  const input = spec.input.safeParse(params ?? {});
+  const input = spec.input.safeParse(normalizeFieldAliases(params ?? {}));
   if (!input.success) {
     const issues = toIssues(input.error.issues);
     throw new AppError('E_INVALID_PARAMS', `${name} 参数校验失败：${describeIssues(input.error.issues)}`, {
       issues,
+      hint: buildHint(name, input.error.issues),
+      docRef: `#${name.replaceAll('.', '-')}`,
     });
   }
 

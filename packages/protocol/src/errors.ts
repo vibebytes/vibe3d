@@ -45,6 +45,8 @@ export interface ErrorSpec {
   retryable: boolean;
   message: string;
   hint?: string;
+  example?: string;
+  docRef?: string;
 }
 
 export const ERROR_SPECS: Record<ErrorCode, ErrorSpec> = {
@@ -56,7 +58,9 @@ export const ERROR_SPECS: Record<ErrorCode, ErrorSpec> = {
     http: 400,
     retryable: false,
     message: '参数校验失败',
-    hint: '对照工具 inputSchema 检查类型与取值范围，颜色用 [r,g,b,a] 0..1',
+    hint: '对照工具 inputSchema 检查类型与取值范围，颜色用 [r,g,b,a] 0..1；长度单位米、角度单位见各字段 describe',
+    example: '{"op":"node.create","node":{"kind":"mesh","name":"box1","transform":{"p":[0,0.5,0],"r":[0,0,0.5236],"s":[1,1,1]}}}',
+    docRef: 'vibe3d_help {tool:"vibe3d_apply_ops"} 的字段表与全局约定块',
   },
   E_INTERNAL: { rpc: -32603, http: 500, retryable: true, message: '内部错误' },
   E_ROOM_NOT_FOUND: {
@@ -83,7 +87,14 @@ export const ERROR_SPECS: Record<ErrorCode, ErrorSpec> = {
   E_RENDER_UNAVAILABLE: { rpc: -32004, http: 503, retryable: true, message: '渲染器不可用' },
   E_PROTOCOL: { rpc: -32005, http: 426, retryable: false, message: '协议版本不匹配' },
   E_ROOM_LIMIT: { rpc: -32006, http: 429, retryable: true, message: '房间数已达上限' },
-  E_PAYLOAD_TOO_LARGE: { rpc: -32007, http: 413, retryable: false, message: '请求体过大' },
+  E_PAYLOAD_TOO_LARGE: {
+    rpc: -32007,
+    http: 413,
+    retryable: false,
+    message: '请求体过大',
+    hint: '拆分 ops 分批 apply，或压缩贴图后重传；上限见 system.status 的 limits',
+    docRef: 'system.status → limits.maxPayloadBytes',
+  },
   E_UNAUTHORIZED: { rpc: -32008, http: 401, retryable: false, message: '未授权' },
   E_JOB_NOT_FOUND: { rpc: -32009, http: 404, retryable: false, message: '任务不存在或已过期' },
   E_UNSUPPORTED: {
@@ -192,9 +203,28 @@ export class AppError extends Error {
     return ERROR_SPECS[this.code].hint;
   }
 
+  get example(): string | undefined {
+    const own = this.data?.example;
+    if (typeof own === 'string' && own.length > 0) return own;
+    return ERROR_SPECS[this.code].example;
+  }
+
+  get docRef(): string | undefined {
+    const own = this.data?.docRef;
+    if (typeof own === 'string' && own.length > 0) return own;
+    return ERROR_SPECS[this.code].docRef;
+  }
+
   toJSON(): AppErrorData {
     const hint = this.hint;
-    const data = this.data || hint ? { ...this.data, ...(hint ? { hint } : {}) } : undefined;
+    const example = this.example;
+    const docRef = this.docRef;
+    const extras = {
+      ...(hint ? { hint } : {}),
+      ...(example ? { example } : {}),
+      ...(docRef ? { docRef } : {}),
+    };
+    const data = this.data || Object.keys(extras).length > 0 ? { ...this.data, ...extras } : undefined;
     return {
       code: this.code,
       message: this.message,

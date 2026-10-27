@@ -1195,15 +1195,18 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   },
                                   "radius": {
                                     "type": "number",
-                                    "exclusiveMinimum": 0
+                                    "exclusiveMinimum": 0,
+                                    "description": "统一半径（旧写法）；radius 与 radiusTop/radiusBottom 互斥"
                                   },
                                   "radius_top": {
                                     "type": "number",
-                                    "minimum": 0
+                                    "minimum": 0,
+                                    "description": "顶面半径；与 radiusBottom 成对给出，接受 radius_top 别名"
                                   },
                                   "radius_bottom": {
                                     "type": "number",
-                                    "minimum": 0
+                                    "minimum": 0,
+                                    "description": "底面半径；radiusTop=0 即圆锥，接受 radius_bottom 别名"
                                   },
                                   "height": {
                                     "type": "number",
@@ -2314,15 +2317,18 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                               },
                               "radius": {
                                 "type": "number",
-                                "exclusiveMinimum": 0
+                                "exclusiveMinimum": 0,
+                                "description": "统一半径（旧写法）；radius 与 radiusTop/radiusBottom 互斥"
                               },
                               "radius_top": {
                                 "type": "number",
-                                "minimum": 0
+                                "minimum": 0,
+                                "description": "顶面半径；与 radiusBottom 成对给出，接受 radius_top 别名"
                               },
                               "radius_bottom": {
                                 "type": "number",
-                                "minimum": 0
+                                "minimum": 0,
+                                "description": "底面半径；radiusTop=0 即圆锥，接受 radius_bottom 别名"
                               },
                               "height": {
                                 "type": "number",
@@ -5148,15 +5154,18 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         },
                                         "radius": {
                                           "type": "number",
-                                          "exclusiveMinimum": 0
+                                          "exclusiveMinimum": 0,
+                                          "description": "统一半径（旧写法）；radius 与 radiusTop/radiusBottom 互斥"
                                         },
                                         "radius_top": {
                                           "type": "number",
-                                          "minimum": 0
+                                          "minimum": 0,
+                                          "description": "顶面半径；与 radiusBottom 成对给出，接受 radius_top 别名"
                                         },
                                         "radius_bottom": {
                                           "type": "number",
-                                          "minimum": 0
+                                          "minimum": 0,
+                                          "description": "底面半径；radiusTop=0 即圆锥，接受 radius_bottom 别名"
                                         },
                                         "height": {
                                           "type": "number",

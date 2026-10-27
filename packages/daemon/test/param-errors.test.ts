@@ -26,4 +26,34 @@ describe('参数校验错误的可诊断性', () => {
     expect(parsed.success).toBe(true);
     expect(parsed.success && parsed.data.width).toBe(1280);
   });
+
+  it('geometry 别名 radius_top/radius_bottom（平铺与 patch.geometry 双路）被收下', async () => {
+    const flat = (await dispatch(
+      'node.create',
+      { roomId: room.id, kind: 'mesh', shape: 'cylinder', radius_top: 0.2, radius_bottom: 0.4, height: 1 },
+      harness.ctx,
+    )) as { nodeId?: string };
+    expect(flat.nodeId).toBeTruthy();
+
+    const patch = (await dispatch(
+      'node.update',
+      {
+        roomId: room.id,
+        nodeId: flat.nodeId!,
+        patch: { geometry: { type: 'cylinder', radius_top: 0.2, radius_bottom: 0.4, height: 1 } },
+      },
+      harness.ctx,
+    )) as { revision?: number };
+    expect(patch.revision).toBeGreaterThanOrEqual(0);
+  });
+
+  it('错误契约：data 附 hint 与 docRef，repair 可直接引用', async () => {
+    const err = (await dispatch('node.create', { kind: 'mesh' }, harness.ctx).catch(
+      (e) => e,
+    )) as import('@vibebyte/vibe3d-protocol').AppError;
+    const data = err.data as { hint?: string; docRef?: string };
+    expect(typeof data.hint).toBe('string');
+    expect(data.hint!.length).toBeGreaterThan(0);
+    expect(data.docRef).toBe('#node-create');
+  });
 });

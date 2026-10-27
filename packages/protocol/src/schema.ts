@@ -43,45 +43,79 @@ export const bakedGeometrySchema = z.object({
 
 const issue = (message: string) => ({ code: z.ZodIssueCode.custom, message });
 
-const cylinderGeometrySchema = z
-  .object({
-    type: z.literal('cylinder'),
-    radius: finite.positive().optional(),
-    radiusTop: finite.min(0).optional(),
-    radiusBottom: finite.min(0).optional(),
-    height: finite.positive(),
-    segments,
-  })
-  .superRefine((g, ctx) => {
-    const [top, bottom] = [g.radiusTop !== undefined, g.radiusBottom !== undefined];
-    if (g.radius !== undefined) {
-      if (top || bottom) ctx.addIssue(issue('cylinder takes radius or radiusTop/radiusBottom, not both'));
-      return;
-    }
-    if (!top && !bottom) {
-      ctx.addIssue(issue('cylinder needs radius, or radiusTop and radiusBottom'));
-      return;
-    }
-    if (!top || !bottom) ctx.addIssue(issue('radiusTop and radiusBottom must be given together'));
-  })
-  .transform((g) => ({
-    type: g.type,
-    radiusTop: g.radius ?? g.radiusTop!,
-    radiusBottom: g.radius ?? g.radiusBottom!,
-    height: g.height,
-    segments: g.segments,
-  }));
+const cylinderSnakeRadius = (raw: unknown): unknown => {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return raw;
+  const g = { ...(raw as Record<string, unknown>) };
+  if (g.radiusTop === undefined && 'radius_top' in g) {
+    g.radiusTop = g.radius_top;
+    delete g.radius_top;
+  }
+  if (g.radiusBottom === undefined && 'radius_bottom' in g) {
+    g.radiusBottom = g.radius_bottom;
+    delete g.radius_bottom;
+  }
+  return g;
+};
 
-export const geometrySchema = z.union([
-  z.object({
-    type: z.literal('box'),
-    size: z.tuple([finite.positive(), finite.positive(), finite.positive()]),
-  }),
-  z.object({ type: z.literal('sphere'), radius: finite.positive(), segments }),
-  cylinderGeometrySchema,
-  z.object({ type: z.literal('plane'), width: finite.positive(), height: finite.positive() }),
-  bakedGeometrySchema,
-]);
+const cylinderGeometrySchema = z.preprocess(
+  cylinderSnakeRadius,
+  z
+    .object({
+      type: z.literal('cylinder'),
+      radius: finite.positive().optional().describe('统一半径（旧写法）；radius 与 radiusTop/radiusBottom 互斥'),
+      radiusTop: finite.min(0).optional().describe('顶面半径；与 radiusBottom 成对给出，接受 radius_top 别名'),
+      radiusBottom: finite.min(0).optional().describe('底面半径；radiusTop=0 即圆锥，接受 radius_bottom 别名'),
+      height: finite.positive(),
+      segments,
+    })
+    .superRefine((g, ctx) => {
+      const [top, bottom] = [g.radiusTop !== undefined, g.radiusBottom !== undefined];
+      if (g.radius !== undefined) {
+        if (top || bottom) ctx.addIssue(issue('cylinder takes radius or radiusTop/radiusBottom, not both'));
+        return;
+      }
+      if (!top && !bottom) {
+        ctx.addIssue(issue('cylinder needs radius, or radiusTop and radiusBottom'));
+        return;
+      }
+      if (!top || !bottom) ctx.addIssue(issue('radiusTop and radiusBottom must be given together'));
+    }))
+    .transform((g) => ({
+      type: g.type,
+      radiusTop: g.radius ?? g.radiusTop!,
+      radiusBottom: g.radius ?? g.radiusBottom!,
+      height: g.height,
+      segments: g.segments,
+    }));
+
+export const GEOMETRY_FIELD_ALIASES: Readonly<Record<string, string>> = {
+  radius_top: 'radiusTop',
+  radius_bottom: 'radiusBottom',
+};
+
+const applyGeometryAliases = (g: unknown): unknown => {
+  if (!g || typeof g !== 'object' || Array.isArray(g)) return g;
+  const out: Record<string, unknown> = { ...(g as Record<string, unknown>) };
+  for (const [from, to] of Object.entries(GEOMETRY_FIELD_ALIASES)) {
+    if (out[from] !== undefined && out[to] === undefined) out[to] = out[from];
+    delete out[from];
+  }
+  return out;
+};
+
+export const geometrySchema = z.preprocess(
+  applyGeometryAliases,
+  z.union([
+    z.object({
+      type: z.literal('box'),
+      size: z.tuple([finite.positive(), finite.positive(), finite.positive()]),
+    }),
+    z.object({ type: z.literal('sphere'), radius: finite.positive(), segments }),
+    cylinderGeometrySchema,
+    z.object({ type: z.literal('plane'), width: finite.positive(), height: finite.positive() }),
+    bakedGeometrySchema,
+  ]),
+);
 
 interface RawNodeGeometryOp {
   id?: unknown;
