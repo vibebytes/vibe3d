@@ -21,7 +21,9 @@ const nonZeroScale = finite.refine((v) => v !== 0, 'scale axis must be non-zero'
 
 export const transformSchema = z.object({
   p: vec3.describe('世界坐标位置'),
-  r: vec3.describe('欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]'),
+  r: vec3.describe(
+    '欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]',
+  ),
   s: z.tuple([nonZeroScale, nonZeroScale, nonZeroScale]).describe('各轴缩放因子，不可为 0'),
 });
 
@@ -45,52 +47,81 @@ const issue = (message: string) => ({ code: z.ZodIssueCode.custom, message });
 
 const cylinderSnakeRadius = (raw: unknown): unknown => {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return raw;
-  const g = { ...(raw as Record<string, unknown>) };
-  if (g.radiusTop === undefined && 'radius_top' in g) {
-    g.radiusTop = g.radius_top;
-    delete g.radius_top;
+  const src = raw as Record<string, unknown>;
+  const g: Record<string, unknown> = {};
+  for (const key of Object.keys(src)) {
+    if (key === 'radius_top' || key === 'radius_bottom') continue;
+    g[key] = src[key];
   }
-  if (g.radiusBottom === undefined && 'radius_bottom' in g) {
-    g.radiusBottom = g.radius_bottom;
-    delete g.radius_bottom;
-  }
+  if (g.radiusTop === undefined && 'radius_top' in src) g.radiusTop = src.radius_top;
+  if (g.radiusBottom === undefined && 'radius_bottom' in src) g.radiusBottom = src.radius_bottom;
   return g;
 };
 
-const cylinderGeometrySchema = z.preprocess(
-  cylinderSnakeRadius,
-  z
-    .object({
-      type: z.literal('cylinder'),
-      radius: finite.positive().optional().describe('统一半径（旧写法）；radius 与 radiusTop/radiusBottom 互斥'),
-      radiusTop: finite.min(0).optional().describe('顶面半径；与 radiusBottom 成对给出，接受 radius_top 别名'),
-      radiusBottom: finite.min(0).optional().describe('底面半径；radiusTop=0 即圆锥，接受 radius_bottom 别名'),
-      height: finite.positive(),
-      segments,
-    })
-    .superRefine((g, ctx) => {
-      const [top, bottom] = [g.radiusTop !== undefined, g.radiusBottom !== undefined];
-      if (g.radius !== undefined) {
-        if (top || bottom) ctx.addIssue(issue('cylinder takes radius or radiusTop/radiusBottom, not both'));
-        return;
-      }
-      if (!top && !bottom) {
-        ctx.addIssue(issue('cylinder needs radius, or radiusTop and radiusBottom'));
-        return;
-      }
-      if (!top || !bottom) ctx.addIssue(issue('radiusTop and radiusBottom must be given together'));
-    }))
-    .transform((g) => ({
-      type: g.type,
-      radiusTop: g.radius ?? g.radiusTop!,
-      radiusBottom: g.radius ?? g.radiusBottom!,
-      height: g.height,
-      segments: g.segments,
-    }));
+const cylinderGeometrySchema = z
+  .preprocess(
+    cylinderSnakeRadius,
+    z
+      .object({
+        type: z.literal('cylinder'),
+        radius: finite
+          .positive()
+          .optional()
+          .describe('统一半径（旧写法）；radius 与 radiusTop/radiusBottom 互斥'),
+        radiusTop: finite
+          .min(0)
+          .optional()
+          .describe('顶面半径；与 radiusBottom 成对给出，接受 radius_top 别名'),
+        radiusBottom: finite
+          .min(0)
+          .optional()
+          .describe('底面半径；radiusTop=0 即圆锥，接受 radius_bottom 别名'),
+        height: finite.positive(),
+        segments,
+      })
+      .superRefine((g, ctx) => {
+        const [top, bottom] = [g.radiusTop !== undefined, g.radiusBottom !== undefined];
+        if (g.radius !== undefined) {
+          if (top || bottom) ctx.addIssue(issue('cylinder takes radius or radiusTop/radiusBottom, not both'));
+          return;
+        }
+        if (!top && !bottom) {
+          ctx.addIssue(issue('cylinder needs radius, or radiusTop and radiusBottom'));
+          return;
+        }
+        if (!top || !bottom) ctx.addIssue(issue('radiusTop and radiusBottom must be given together'));
+      }),
+  )
+  .transform((g) => ({
+    type: g.type,
+    radiusTop: g.radius ?? g.radiusTop!,
+    radiusBottom: g.radius ?? g.radiusBottom!,
+    height: g.height,
+    segments: g.segments,
+  }));
+
+const torusGeometrySchema = z
+  .object({
+    type: z.literal('torus'),
+    radius: finite.positive().describe('主环半径 R（环心到管心距离）'),
+    tube: finite.positive().describe('管截面半径 r，须小于 radius；接受 tube_radius 别名'),
+    segments,
+  })
+  .superRefine((g, ctx) => {
+    if (g.tube >= g.radius) ctx.addIssue(issue('torus tube must be smaller than radius'));
+  });
+
+const capsuleGeometrySchema = z.object({
+  type: z.literal('capsule'),
+  radius: finite.positive().describe('截面半径 r'),
+  height: finite.positive().describe('圆柱中段长度；总高 = height + 2*radius'),
+  segments,
+});
 
 export const FIELD_ALIASES: Readonly<Record<string, string>> = {
   radius_top: 'radiusTop',
   radius_bottom: 'radiusBottom',
+  tube_radius: 'tube',
   name_prefix: 'namePrefix',
   updated_before: 'updatedBefore',
 };
@@ -114,6 +145,8 @@ export const geometrySchema = z.preprocess(
     }),
     z.object({ type: z.literal('sphere'), radius: finite.positive(), segments }),
     cylinderGeometrySchema,
+    torusGeometrySchema,
+    capsuleGeometrySchema,
     z.object({ type: z.literal('plane'), width: finite.positive(), height: finite.positive() }),
     bakedGeometrySchema,
   ]),

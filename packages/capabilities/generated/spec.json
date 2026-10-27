@@ -1402,6 +1402,68 @@
                               "properties": {
                                 "type": {
                                   "type": "string",
+                                  "const": "torus"
+                                },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "主环半径 R（环心到管心距离）"
+                                },
+                                "tube": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                                },
+                                "segments": {
+                                  "type": "integer",
+                                  "minimum": 3,
+                                  "maximum": 128,
+                                  "default": 32
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "radius",
+                                "tube"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "capsule"
+                                },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "截面半径 r"
+                                },
+                                "height": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "圆柱中段长度；总高 = height + 2*radius"
+                                },
+                                "segments": {
+                                  "type": "integer",
+                                  "minimum": 3,
+                                  "maximum": 128,
+                                  "default": 32
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "radius",
+                                "height"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
                                   "const": "plane"
                                 },
                                 "width": {
@@ -4591,6 +4653,68 @@
                 "properties": {
                   "type": {
                     "type": "string",
+                    "const": "torus"
+                  },
+                  "radius": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "主环半径 R（环心到管心距离）"
+                  },
+                  "tube": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                  },
+                  "segments": {
+                    "type": "integer",
+                    "minimum": 3,
+                    "maximum": 128,
+                    "default": 32
+                  }
+                },
+                "required": [
+                  "type",
+                  "radius",
+                  "tube"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "capsule"
+                  },
+                  "radius": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "截面半径 r"
+                  },
+                  "height": {
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "description": "圆柱中段长度；总高 = height + 2*radius"
+                  },
+                  "segments": {
+                    "type": "integer",
+                    "minimum": 3,
+                    "maximum": 128,
+                    "default": 32
+                  }
+                },
+                "required": [
+                  "type",
+                  "radius",
+                  "height"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
                     "const": "plane"
                   },
                   "width": {
@@ -7615,6 +7739,68 @@
                                   "properties": {
                                     "type": {
                                       "type": "string",
+                                      "const": "torus"
+                                    },
+                                    "radius": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0,
+                                      "description": "主环半径 R（环心到管心距离）"
+                                    },
+                                    "tube": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0,
+                                      "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                                    },
+                                    "segments": {
+                                      "type": "integer",
+                                      "minimum": 3,
+                                      "maximum": 128,
+                                      "default": 32
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "radius",
+                                    "tube"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "capsule"
+                                    },
+                                    "radius": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0,
+                                      "description": "截面半径 r"
+                                    },
+                                    "height": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0,
+                                      "description": "圆柱中段长度；总高 = height + 2*radius"
+                                    },
+                                    "segments": {
+                                      "type": "integer",
+                                      "minimum": 3,
+                                      "maximum": 128,
+                                      "default": 32
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "radius",
+                                    "height"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
                                       "const": "plane"
                                     },
                                     "width": {
@@ -8926,6 +9112,68 @@
                               },
                               "required": [
                                 "type",
+                                "height"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "torus"
+                                },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "主环半径 R（环心到管心距离）"
+                                },
+                                "tube": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                                },
+                                "segments": {
+                                  "type": "integer",
+                                  "minimum": 3,
+                                  "maximum": 128,
+                                  "default": 32
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "radius",
+                                "tube"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "capsule"
+                                },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "截面半径 r"
+                                },
+                                "height": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "圆柱中段长度；总高 = height + 2*radius"
+                                },
+                                "segments": {
+                                  "type": "integer",
+                                  "minimum": 3,
+                                  "maximum": 128,
+                                  "default": 32
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "radius",
                                 "height"
                               ],
                               "additionalProperties": false
@@ -12256,6 +12504,68 @@
                                         },
                                         "required": [
                                           "type",
+                                          "height"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "const": "torus"
+                                          },
+                                          "radius": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0,
+                                            "description": "主环半径 R（环心到管心距离）"
+                                          },
+                                          "tube": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0,
+                                            "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                                          },
+                                          "segments": {
+                                            "type": "integer",
+                                            "minimum": 3,
+                                            "maximum": 128,
+                                            "default": 32
+                                          }
+                                        },
+                                        "required": [
+                                          "type",
+                                          "radius",
+                                          "tube"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "const": "capsule"
+                                          },
+                                          "radius": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0,
+                                            "description": "截面半径 r"
+                                          },
+                                          "height": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0,
+                                            "description": "圆柱中段长度；总高 = height + 2*radius"
+                                          },
+                                          "segments": {
+                                            "type": "integer",
+                                            "minimum": 3,
+                                            "maximum": 128,
+                                            "default": 32
+                                          }
+                                        },
+                                        "required": [
+                                          "type",
+                                          "radius",
                                           "height"
                                         ],
                                         "additionalProperties": false
@@ -15056,6 +15366,68 @@
                                   "properties": {
                                     "type": {
                                       "type": "string",
+                                      "const": "torus"
+                                    },
+                                    "radius": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0,
+                                      "description": "主环半径 R（环心到管心距离）"
+                                    },
+                                    "tube": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0,
+                                      "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                                    },
+                                    "segments": {
+                                      "type": "integer",
+                                      "minimum": 3,
+                                      "maximum": 128,
+                                      "default": 32
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "radius",
+                                    "tube"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "capsule"
+                                    },
+                                    "radius": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0,
+                                      "description": "截面半径 r"
+                                    },
+                                    "height": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0,
+                                      "description": "圆柱中段长度；总高 = height + 2*radius"
+                                    },
+                                    "segments": {
+                                      "type": "integer",
+                                      "minimum": 3,
+                                      "maximum": 128,
+                                      "default": 32
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "radius",
+                                    "height"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
                                       "const": "plane"
                                     },
                                     "width": {
@@ -16367,6 +16739,68 @@
                               },
                               "required": [
                                 "type",
+                                "height"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "torus"
+                                },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "主环半径 R（环心到管心距离）"
+                                },
+                                "tube": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                                },
+                                "segments": {
+                                  "type": "integer",
+                                  "minimum": 3,
+                                  "maximum": 128,
+                                  "default": 32
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "radius",
+                                "tube"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "capsule"
+                                },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "截面半径 r"
+                                },
+                                "height": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "圆柱中段长度；总高 = height + 2*radius"
+                                },
+                                "segments": {
+                                  "type": "integer",
+                                  "minimum": 3,
+                                  "maximum": 128,
+                                  "default": 32
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "radius",
                                 "height"
                               ],
                               "additionalProperties": false
@@ -19706,6 +20140,68 @@
                                         "properties": {
                                           "type": {
                                             "type": "string",
+                                            "const": "torus"
+                                          },
+                                          "radius": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0,
+                                            "description": "主环半径 R（环心到管心距离）"
+                                          },
+                                          "tube": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0,
+                                            "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                                          },
+                                          "segments": {
+                                            "type": "integer",
+                                            "minimum": 3,
+                                            "maximum": 128,
+                                            "default": 32
+                                          }
+                                        },
+                                        "required": [
+                                          "type",
+                                          "radius",
+                                          "tube"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "const": "capsule"
+                                          },
+                                          "radius": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0,
+                                            "description": "截面半径 r"
+                                          },
+                                          "height": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0,
+                                            "description": "圆柱中段长度；总高 = height + 2*radius"
+                                          },
+                                          "segments": {
+                                            "type": "integer",
+                                            "minimum": 3,
+                                            "maximum": 128,
+                                            "default": 32
+                                          }
+                                        },
+                                        "required": [
+                                          "type",
+                                          "radius",
+                                          "height"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
                                             "const": "plane"
                                           },
                                           "width": {
@@ -21876,8 +22372,11 @@
               "box",
               "sphere",
               "cylinder",
+              "torus",
+              "capsule",
               "plane"
-            ]
+            ],
+            "description": "基础体快捷写法；复杂几何请用 node.update 的 geometry（box/sphere/cylinder/torus/capsule/plane/baked）"
           },
           "size": {
             "type": "array",
@@ -21906,6 +22405,11 @@
           "radiusBottom": {
             "type": "number",
             "minimum": 0
+          },
+          "tube": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "torus 管截面半径 r（须小于 radius），其他 shape 忽略"
           },
           "height": {
             "type": "number",
@@ -25986,6 +26490,68 @@
                                   "properties": {
                                     "type": {
                                       "type": "string",
+                                      "const": "torus"
+                                    },
+                                    "radius": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0,
+                                      "description": "主环半径 R（环心到管心距离）"
+                                    },
+                                    "tube": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0,
+                                      "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                                    },
+                                    "segments": {
+                                      "type": "integer",
+                                      "minimum": 3,
+                                      "maximum": 128,
+                                      "default": 32
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "radius",
+                                    "tube"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
+                                      "const": "capsule"
+                                    },
+                                    "radius": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0,
+                                      "description": "截面半径 r"
+                                    },
+                                    "height": {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0,
+                                      "description": "圆柱中段长度；总高 = height + 2*radius"
+                                    },
+                                    "segments": {
+                                      "type": "integer",
+                                      "minimum": 3,
+                                      "maximum": 128,
+                                      "default": 32
+                                    }
+                                  },
+                                  "required": [
+                                    "type",
+                                    "radius",
+                                    "height"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "type": {
+                                      "type": "string",
                                       "const": "plane"
                                     },
                                     "width": {
@@ -27297,6 +27863,68 @@
                               },
                               "required": [
                                 "type",
+                                "height"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "torus"
+                                },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "主环半径 R（环心到管心距离）"
+                                },
+                                "tube": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                                },
+                                "segments": {
+                                  "type": "integer",
+                                  "minimum": 3,
+                                  "maximum": 128,
+                                  "default": 32
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "radius",
+                                "tube"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "capsule"
+                                },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "截面半径 r"
+                                },
+                                "height": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "圆柱中段长度；总高 = height + 2*radius"
+                                },
+                                "segments": {
+                                  "type": "integer",
+                                  "minimum": 3,
+                                  "maximum": 128,
+                                  "default": 32
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "radius",
                                 "height"
                               ],
                               "additionalProperties": false
@@ -30627,6 +31255,68 @@
                                         },
                                         "required": [
                                           "type",
+                                          "height"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "const": "torus"
+                                          },
+                                          "radius": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0,
+                                            "description": "主环半径 R（环心到管心距离）"
+                                          },
+                                          "tube": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0,
+                                            "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                                          },
+                                          "segments": {
+                                            "type": "integer",
+                                            "minimum": 3,
+                                            "maximum": 128,
+                                            "default": 32
+                                          }
+                                        },
+                                        "required": [
+                                          "type",
+                                          "radius",
+                                          "tube"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      {
+                                        "type": "object",
+                                        "properties": {
+                                          "type": {
+                                            "type": "string",
+                                            "const": "capsule"
+                                          },
+                                          "radius": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0,
+                                            "description": "截面半径 r"
+                                          },
+                                          "height": {
+                                            "type": "number",
+                                            "exclusiveMinimum": 0,
+                                            "description": "圆柱中段长度；总高 = height + 2*radius"
+                                          },
+                                          "segments": {
+                                            "type": "integer",
+                                            "minimum": 3,
+                                            "maximum": 128,
+                                            "default": 32
+                                          }
+                                        },
+                                        "required": [
+                                          "type",
+                                          "radius",
                                           "height"
                                         ],
                                         "additionalProperties": false
@@ -34122,6 +34812,68 @@
                               "properties": {
                                 "type": {
                                   "type": "string",
+                                  "const": "torus"
+                                },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "主环半径 R（环心到管心距离）"
+                                },
+                                "tube": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                                },
+                                "segments": {
+                                  "type": "integer",
+                                  "minimum": 3,
+                                  "maximum": 128,
+                                  "default": 32
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "radius",
+                                "tube"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "capsule"
+                                },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "截面半径 r"
+                                },
+                                "height": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "圆柱中段长度；总高 = height + 2*radius"
+                                },
+                                "segments": {
+                                  "type": "integer",
+                                  "minimum": 3,
+                                  "maximum": 128,
+                                  "default": 32
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "radius",
+                                "height"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
                                   "const": "plane"
                                 },
                                 "width": {
@@ -36889,6 +37641,68 @@
                               },
                               "required": [
                                 "type",
+                                "height"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "torus"
+                                },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "主环半径 R（环心到管心距离）"
+                                },
+                                "tube": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                                },
+                                "segments": {
+                                  "type": "integer",
+                                  "minimum": 3,
+                                  "maximum": 128,
+                                  "default": 32
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "radius",
+                                "tube"
+                              ],
+                              "additionalProperties": false
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "const": "capsule"
+                                },
+                                "radius": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "截面半径 r"
+                                },
+                                "height": {
+                                  "type": "number",
+                                  "exclusiveMinimum": 0,
+                                  "description": "圆柱中段长度；总高 = height + 2*radius"
+                                },
+                                "segments": {
+                                  "type": "integer",
+                                  "minimum": 3,
+                                  "maximum": 128,
+                                  "default": 32
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "radius",
                                 "height"
                               ],
                               "additionalProperties": false

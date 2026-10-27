@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 import { defOf, unwrap } from './coerce';
 
 type Def = { typeName?: string; [key: string]: unknown };
@@ -66,7 +66,7 @@ const enumValues = (schema: z.ZodTypeAny | undefined): string[] | undefined => {
 };
 
 const editDistance = (a: string, b: string): number => {
-  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  const prev = Array.from({ length: b.length + 1 }, (_, i) => i);
   for (let i = 1; i <= a.length; i += 1) {
     let last = prev[0] ?? 0;
     prev[0] = i;
@@ -91,7 +91,9 @@ const TAG_SYNONYMS: Record<string, string> = {
   plane: 'plane',
   ball: 'sphere',
   tube: 'cylinder',
-  capsule: 'cylinder',
+  capsule: 'capsule',
+  donut: 'torus',
+  ring: 'torus',
   gltf: 'model',
   glb: 'model',
   empty: 'group',
@@ -106,6 +108,7 @@ const TAG_RULES: Record<string, TagRule[]> = {
     { tag: 'mesh', any: ['geometry', 'shape', 'material', 'size', 'radius'] },
   ],
   type: [
+    { tag: 'torus', any: ['tube'] },
     { tag: 'cylinder', any: ['radiusTop', 'radiusBottom'] },
     { tag: 'cylinder', any: ['radius'], has: ['height'] },
     { tag: 'plane', any: ['width'] },
@@ -214,7 +217,10 @@ const allowsNull = (schema: z.ZodTypeAny): boolean => {
   for (let i = 0; i < 8 && current; i += 1) {
     const def = defOf(current);
     if (def.typeName === 'ZodNullable') return true;
-    if (def.typeName === 'ZodUnion' && armList(def).some((arm) => defOf(unwrap(arm)).typeName === 'ZodNull')) {
+    if (
+      def.typeName === 'ZodUnion' &&
+      armList(def).some((arm) => defOf(unwrap(arm)).typeName === 'ZodNull')
+    ) {
       return true;
     }
     if (def.typeName === 'ZodEffects' && def.schema) {
@@ -258,7 +264,10 @@ const armForTag = (schema: z.ZodTypeAny, value: Record<string, unknown>): z.ZodT
   return undefined;
 };
 
-const armByDiscriminator = (schema: z.ZodTypeAny, value: Record<string, unknown>): z.ZodTypeAny | undefined => {
+const armByDiscriminator = (
+  schema: z.ZodTypeAny,
+  value: Record<string, unknown>,
+): z.ZodTypeAny | undefined => {
   const def = defOf(unwrap(schema));
   if (def.typeName !== 'ZodDiscriminatedUnion') return undefined;
   return armForTag(schema, value);
@@ -274,7 +283,13 @@ const syntheticUnion = (options: z.ZodTypeAny[]): Def | undefined => {
   return undefined;
 };
 
-function moveKey(input: Record<string, unknown>, from: string, to: string, fixes: string[], path: string): boolean {
+function moveKey(
+  input: Record<string, unknown>,
+  from: string,
+  to: string,
+  fixes: string[],
+  path: string,
+): boolean {
   if (!(from in input) || from === to) return false;
   if (to in ID_PATTERNS && typeof input[from] !== 'string') return false;
   if (!(to in input)) input[to] = input[from];
@@ -385,7 +400,16 @@ function adoptRequiredKeys(
   }
 }
 
-const GEOMETRY_FIELDS = ['size', 'radius', 'height', 'width', 'depth', 'radiusTop', 'radiusBottom', 'segments'];
+const GEOMETRY_FIELDS = [
+  'size',
+  'radius',
+  'height',
+  'width',
+  'depth',
+  'radiusTop',
+  'radiusBottom',
+  'segments',
+];
 const NODE_FIELDS = ['name', 'parent', 'visible', 'transform', 'material', 'tags', 'clip'];
 
 function liftFlatGeometry(
@@ -393,30 +417,31 @@ function liftFlatGeometry(
   input: Record<string, unknown>,
   fixes: string[],
   path: string,
-): void {
+): Record<string, unknown> {
   const tag = input.shape ?? input.geometryType;
-  if (typeof tag !== 'string' || 'geometry' in input) return;
+  if (typeof tag !== 'string' || 'geometry' in input) return input;
   const own = 'geometry' in fields;
-  if (!own && (!('node' in fields) || isRecord(input.node))) return;
+  if (!own && (!('node' in fields) || isRecord(input.node))) return input;
   const geometry: Record<string, unknown> = { type: tag };
   const carried = GEOMETRY_FIELDS.filter((key) => key in input);
   for (const key of carried) geometry[key] = input[key];
-  delete input.shape;
-  delete input.geometryType;
+  const moved = new Set<string>(['shape', 'geometryType', ...(own ? carried : NODE_FIELDS)]);
+  const rest: Record<string, unknown> = {};
+  for (const key of Object.keys(input)) {
+    if (!moved.has(key)) rest[key] = input[key];
+  }
   if (own) {
-    for (const key of carried) delete input[key];
-    input.geometry = geometry;
+    rest.geometry = geometry;
   } else {
     const bag: Record<string, unknown> = { kind: 'mesh', geometry };
     for (const key of NODE_FIELDS) {
-      if (!(key in input)) continue;
-      bag[key] = input[key];
-      delete input[key];
+      if (key in input) bag[key] = input[key];
     }
-    input.node = bag;
+    rest.node = bag;
   }
   const list = carried.length > 0 ? `,${carried.join(',')}` : '';
   fixes.push(`${path}shape${list}→geometry`);
+  return rest;
 }
 
 function flattenGeometryObject(
@@ -424,23 +449,35 @@ function flattenGeometryObject(
   input: Record<string, unknown>,
   fixes: string[],
   path: string,
-): void {
-  if (!('shape' in shape) || 'geometry' in shape) return;
-  const direct = isRecord(input.geometry) ? input : undefined;
-  const nested = direct
-    ? undefined
-    : (Object.values(input).find((bag) => isRecord(bag) && isRecord(bag.geometry)) as
-        | Record<string, unknown>
-        | undefined);
-  const holder = direct ?? nested;
-  if (!holder) return;
+): Record<string, unknown> {
+  if (!('shape' in shape) || 'geometry' in shape) return input;
+  let holder: Record<string, unknown> | undefined;
+  let holderKey: string | undefined;
+  if (isRecord(input.geometry)) {
+    holder = input;
+  } else {
+    for (const [key, bag] of Object.entries(input)) {
+      if (isRecord(bag) && isRecord((bag as Record<string, unknown>).geometry)) {
+        holder = bag as Record<string, unknown>;
+        holderKey = key;
+        break;
+      }
+    }
+  }
+  if (!holder) return input;
   const geo = holder.geometry as Record<string, unknown>;
-  delete holder.geometry;
+  const holderRest: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(holder)) {
+    if (key !== 'geometry') holderRest[key] = value;
+  }
+  const out = holderKey === undefined ? holderRest : { ...input };
   const type = typeof geo.type === 'string' ? geo.type : undefined;
-  if (type && !('shape' in input)) input.shape = type;
-  const carried = GEOMETRY_FIELDS.filter((key) => key in geo && !(key in input));
-  for (const key of carried) input[key] = geo[key];
+  if (type && !('shape' in out)) out.shape = type;
+  const carried = GEOMETRY_FIELDS.filter((key) => key in geo && !(key in out));
+  for (const key of carried) out[key] = geo[key];
+  if (holderKey !== undefined) out[holderKey] = holderRest;
   fixes.push(`${path}geometry.{${['type', ...carried].join(',')}}→扁平字段`);
+  return out;
 }
 
 function unwrapNestedBag(
@@ -483,8 +520,8 @@ function repairObject(
     input = nested;
   }
 
-  liftFlatGeometry(shape, input, fixes, path);
-  flattenGeometryObject(shape, input, fixes, path);
+  input = liftFlatGeometry(shape, input, fixes, path);
+  input = flattenGeometryObject(shape, input, fixes, path);
   unwrapNestedBag(shape, input, fixes, path);
   adoptNestedFields(shape, input, fixes, path);
   adoptTransformParts(shape, input, fixes, path);
@@ -507,7 +544,9 @@ function repairValue(schema: z.ZodTypeAny, value: unknown, fixes: string[], path
   const def = defOf(inner);
 
   if (def.typeName === 'ZodArray' && def.type && Array.isArray(value)) {
-    return value.map((item, index) => repairValue(def.type as z.ZodTypeAny, item, fixes, `${path}[${index}].`));
+    return value.map((item, index) =>
+      repairValue(def.type as z.ZodTypeAny, item, fixes, `${path}[${index}].`),
+    );
   }
 
   if (def.typeName === 'ZodObject' && isRecord(value)) {

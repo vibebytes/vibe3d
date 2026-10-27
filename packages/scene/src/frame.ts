@@ -107,6 +107,12 @@ function localBox(doc: SceneDoc, node: SceneNode): Aabb | null {
     } else if (g.type === 'cylinder') {
       hx = hz = Math.max(g.radiusTop, g.radiusBottom);
       hy = g.height / 2;
+    } else if (g.type === 'torus') {
+      hx = hz = g.radius + g.tube;
+      hy = g.tube;
+    } else if (g.type === 'capsule') {
+      hx = hz = g.radius;
+      hy = g.height / 2 + g.radius;
     } else if (g.type === 'baked') {
       return { min: [...g.bbox.min], max: [...g.bbox.max] };
     } else {
@@ -216,9 +222,11 @@ export function relativeTransform(doc: SceneDoc, id: string, parentId: string | 
   const rel: [number, number, number][] = [0, 1, 2].map((i) => {
     const wc = wr[i]!;
     if (!pr) return wc;
-    return [0, 1, 2].map(
-      (j) => pr[j]![0] * wc[0] + pr[j]![1] * wc[1] + pr[j]![2] * wc[2],
-    ) as [number, number, number];
+    return [0, 1, 2].map((j) => pr[j]![0] * wc[0] + pr[j]![1] * wc[1] + pr[j]![2] * wc[2]) as [
+      number,
+      number,
+      number,
+    ];
   });
 
   const ws = [0, 1, 2].map((i) => {

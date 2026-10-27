@@ -8,14 +8,7 @@ export interface BakedMesh {
   indices: number[];
 }
 
-function quad(
-  out: BakedMesh,
-  a: Vec3,
-  b: Vec3,
-  c: Vec3,
-  d: Vec3,
-  n: Vec3,
-): void {
+function quad(out: BakedMesh, a: Vec3, b: Vec3, c: Vec3, d: Vec3, n: Vec3): void {
   const base = out.positions.length / 3;
   for (const p of [a, b, c, d]) {
     out.positions.push(p[0], p[1], p[2]);
@@ -75,12 +68,7 @@ function bakeSphere(radius: number, segments: number): BakedMesh {
   return out;
 }
 
-function bakeCylinder(
-  radiusTop: number,
-  radiusBottom: number,
-  height: number,
-  segments: number,
-): BakedMesh {
+function bakeCylinder(radiusTop: number, radiusBottom: number, height: number, segments: number): BakedMesh {
   const out: BakedMesh = { positions: [], normals: [], indices: [] };
   const width = segments + 1;
   const hy = height / 2;
@@ -123,6 +111,75 @@ function bakeCylinder(
   };
   if (radiusTop > 0) cap(radiusTop, hy, true);
   if (radiusBottom > 0) cap(radiusBottom, -hy, false);
+  return out;
+}
+
+function bakeTorus(majorRadius: number, tubeRadius: number, tubular: number, radial: number): BakedMesh {
+  const out: BakedMesh = { positions: [], normals: [], indices: [] };
+  const width = radial + 1;
+  for (let iu = 0; iu <= tubular; iu += 1) {
+    const theta = (iu / tubular) * Math.PI * 2;
+    const sinU = Math.sin(theta);
+    const cosU = Math.cos(theta);
+    for (let iv = 0; iv <= radial; iv += 1) {
+      const phi = (iv / radial) * Math.PI * 2;
+      const cosV = Math.cos(phi);
+      const sinV = Math.sin(phi);
+      out.positions.push(
+        (majorRadius + tubeRadius * cosV) * sinU,
+        tubeRadius * sinV,
+        (majorRadius + tubeRadius * cosV) * cosU,
+      );
+      out.normals.push(cosV * sinU, sinV, cosV * cosU);
+    }
+  }
+  for (let iu = 0; iu < tubular; iu += 1) {
+    for (let iv = 0; iv < radial; iv += 1) {
+      const a = iu * width + iv;
+      const b = (iu + 1) * width + iv;
+      const c = (iu + 1) * width + iv + 1;
+      const d = iu * width + iv + 1;
+      out.indices.push(a, b, d, b, c, d);
+    }
+  }
+  return out;
+}
+
+function bakeCapsule(radius: number, height: number, segments: number): BakedMesh {
+  const out: BakedMesh = { positions: [], normals: [], indices: [] };
+  const capSegments = Math.max(3, Math.round(segments / 2));
+  const profile: Array<[number, number, number, number]> = [];
+  for (let i = 0; i <= capSegments; i += 1) {
+    const phi = (i / capSegments) * (Math.PI / 2);
+    const sin = Math.sin(phi);
+    const cos = Math.cos(phi);
+    profile.push([sin * radius, -height / 2 - cos * radius, sin, -cos]);
+  }
+  for (let i = 0; i <= capSegments; i += 1) {
+    const phi = (i / capSegments) * (Math.PI / 2);
+    const sin = Math.sin(phi);
+    const cos = Math.cos(phi);
+    profile.push([sin * radius, height / 2 + cos * radius, sin, cos]);
+  }
+  const width = segments + 1;
+  for (const [x, y, nx, ny] of profile) {
+    for (let ix = 0; ix <= segments; ix += 1) {
+      const theta = (ix / segments) * Math.PI * 2;
+      const sin = Math.sin(theta);
+      const cos = Math.cos(theta);
+      out.positions.push(x * sin, y, x * cos);
+      out.normals.push(nx * sin, ny, nx * cos);
+    }
+  }
+  for (let row = 0; row + 1 < profile.length; row += 1) {
+    for (let ix = 0; ix < segments; ix += 1) {
+      const a = row * width + ix;
+      const b = (row + 1) * width + ix;
+      const c = (row + 1) * width + ix + 1;
+      const d = row * width + ix + 1;
+      out.indices.push(a, d, b, b, d, c);
+    }
+  }
   return out;
 }
 
@@ -172,6 +229,12 @@ export function bakeGeometry(g: Geometry): BakedMesh {
       return bakeSphere(g.radius, g.segments);
     case 'cylinder':
       return bakeCylinder(g.radiusTop, g.radiusBottom, g.height, g.segments);
+    case 'torus': {
+      const radial = Math.max(3, Math.round(g.segments / 2));
+      return bakeTorus(g.radius, g.tube, g.segments, radial);
+    }
+    case 'capsule':
+      return bakeCapsule(g.radius, g.height, g.segments);
     case 'baked':
       return {
         positions: [...g.positions],

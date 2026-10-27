@@ -42,8 +42,7 @@ import type { HandlersFor } from './types';
 
 const RAD2DEG = 180 / Math.PI;
 
-const fovHOf = (fovDeg: number) =>
-  2 * Math.atan(1.5 * Math.tan((fovDeg * Math.PI) / 360)) * RAD2DEG;
+const fovHOf = (fovDeg: number) => 2 * Math.atan(1.5 * Math.tan((fovDeg * Math.PI) / 360)) * RAD2DEG;
 
 const lensToState = <T extends { lens_mm?: number }>(
   camera: T | undefined,
@@ -110,11 +109,12 @@ function colorToRgba(hex: string, alpha = 1): [number, number, number, number] {
 }
 
 function geometryOf(p: {
-  shape?: 'box' | 'sphere' | 'cylinder' | 'plane';
+  shape?: 'box' | 'sphere' | 'cylinder' | 'torus' | 'capsule' | 'plane';
   size?: [number, number, number];
   radius?: number;
   radiusTop?: number;
   radiusBottom?: number;
+  tube?: number;
   height?: number;
 }): Geometry {
   const shape = p.shape ?? 'box';
@@ -123,6 +123,12 @@ function geometryOf(p: {
     const radiusTop = p.radiusTop ?? p.radius ?? 0.5;
     const radiusBottom = p.radiusBottom ?? p.radius ?? 0.5;
     return { type: 'cylinder', radiusTop, radiusBottom, height: p.height ?? 1, segments: 48 };
+  }
+  if (shape === 'torus') {
+    return { type: 'torus', radius: p.radius ?? 0.5, tube: p.tube ?? 0.2, segments: 48 };
+  }
+  if (shape === 'capsule') {
+    return { type: 'capsule', radius: p.radius ?? 0.5, height: p.height ?? 1, segments: 48 };
   }
   if (shape === 'plane') {
     const size = p.size ?? [1, 1, 1];
@@ -733,7 +739,9 @@ export const sceneHandlers: HandlersFor<Keys> = {
         throw new AppError('E_NODE_NOT_FOUND', `节点 ${target.nodeId} 不存在`);
     }
     const result = await room.run(() =>
-      room.apply([{ op: 'animation.pose', targets: p.targets.map((t) => ({ nodeId: t.nodeId, clip: t.clip })) }]),
+      room.apply([
+        { op: 'animation.pose', targets: p.targets.map((t) => ({ nodeId: t.nodeId, clip: t.clip })) },
+      ]),
     );
     return { revision: result.revision, appliedTo: p.targets.map((t) => t.nodeId) };
   },
@@ -886,10 +894,16 @@ export const sceneHandlers: HandlersFor<Keys> = {
     const width = p.width ?? 1280;
     const height = p.height ?? 720;
     if (ctx.renderer?.project) {
-      const r = await ctx.renderer.project({ roomId: room.id, doc: room.doc }, { camera, width, height, points: p.points });
+      const r = await ctx.renderer.project(
+        { roomId: room.id, doc: room.doc },
+        { camera, width, height, points: p.points },
+      );
       return { ...r, source: 'page' as const };
     }
-    return { ...projectPoints(room.doc, { camera, width, height, points: p.points }), source: 'math' as const };
+    return {
+      ...projectPoints(room.doc, { camera, width, height, points: p.points }),
+      source: 'math' as const,
+    };
   },
 
   'camera.unproject': async (p, ctx) => {
@@ -904,7 +918,10 @@ export const sceneHandlers: HandlersFor<Keys> = {
     );
     const depth = p.points.map((_, i) => p.depth?.[i] ?? defaultDepth);
     if (ctx.renderer?.unproject) {
-      return ctx.renderer.unproject({ roomId: room.id, doc: room.doc }, { camera, width, height, points: p.points, depth });
+      return ctx.renderer.unproject(
+        { roomId: room.id, doc: room.doc },
+        { camera, width, height, points: p.points, depth },
+      );
     }
     return unprojectPoints(room.doc, { camera, width, height, points: p.points, depth });
   },

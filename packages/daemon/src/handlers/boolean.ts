@@ -45,11 +45,9 @@ function axisAligned(m: Mat3): boolean {
   return m.every((row) => row.every((v) => near(v, 0) || near(v, 1) || near(v, -1)));
 }
 
-const identity = (m: Mat3): boolean =>
-  m.every((row, i) => row.every((v, j) => near(v, i === j ? 1 : 0)));
+const identity = (m: Mat3): boolean => m.every((row, i) => row.every((v, j) => near(v, i === j ? 1 : 0)));
 
-const unitScale = (t: Transform): boolean =>
-  near(t.s[0], 1) && near(t.s[1], 1) && near(t.s[2], 1);
+const unitScale = (t: Transform): boolean => near(t.s[0], 1) && near(t.s[1], 1) && near(t.s[2], 1);
 
 function worldOrigin(doc: SceneDoc, node: SceneNode): [number, number, number] {
   let cursor: SceneNode | undefined = node;
@@ -92,6 +90,11 @@ function geometryAabb(node: SceneNode): [number, number, number] | null {
     const r = Math.max(g.radiusTop, g.radiusBottom) * 2;
     return [r, g.height, r];
   }
+  if (g.type === 'torus') {
+    const d = (g.radius + g.tube) * 2;
+    return [d, g.tube * 2, d];
+  }
+  if (g.type === 'capsule') return [g.radius * 2, g.height + g.radius * 2, g.radius * 2];
   if (g.type === 'plane') return [g.width, g.height, MIN_EXTENT];
   return [
     Math.max(g.bbox.max[0] - g.bbox.min[0], MIN_EXTENT),
@@ -117,11 +120,15 @@ function boxNode(
     });
   }
   if (!force) {
-    throw new AppError('E_UNSUPPORTED', `布尔只对原生 box 精确：${node.name} 是 ${node.kind === 'mesh' ? node.geometry.type : node.kind}`, {
-      nodeId: node.id,
-      kind: node.kind,
-      hint: '包围盒近似请传 force:true；要精确请把目标改成 box 或改用 mesh 原生几何',
-    });
+    throw new AppError(
+      'E_UNSUPPORTED',
+      `布尔只对原生 box 精确：${node.name} 是 ${node.kind === 'mesh' ? node.geometry.type : node.kind}`,
+      {
+        nodeId: node.id,
+        kind: node.kind,
+        hint: '包围盒近似请传 force:true；要精确请把目标改成 box 或改用 mesh 原生几何',
+      },
+    );
   }
   return { size, mat, approximated: true };
 }

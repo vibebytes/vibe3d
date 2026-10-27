@@ -20,6 +20,14 @@ export function geometryTris(geometry: Geometry): number {
       return geometry.segments * geometry.segments * 2;
     case 'cylinder':
       return geometry.segments * 4;
+    case 'torus': {
+      const radial = Math.max(3, Math.round(geometry.segments / 2));
+      return geometry.segments * radial * 2;
+    }
+    case 'capsule': {
+      const capSegments = Math.max(3, Math.round(geometry.segments / 2));
+      return (2 * capSegments + 1) * geometry.segments * 2;
+    }
     case 'baked':
       return geometry.indices.length / 3;
   }

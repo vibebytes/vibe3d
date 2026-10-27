@@ -9,6 +9,17 @@ export function createGeometry(g: Geometry): THREE.BufferGeometry {
       return new THREE.SphereGeometry(g.radius, g.segments, Math.max(3, Math.round(g.segments / 2)));
     case 'cylinder':
       return new THREE.CylinderGeometry(g.radiusTop, g.radiusBottom, g.height, g.segments);
+    case 'torus': {
+      const radial = Math.max(3, Math.round(g.segments / 2));
+      return new THREE.TorusGeometry(g.radius, g.tube, radial, g.segments);
+    }
+    case 'capsule':
+      return new THREE.CapsuleGeometry(
+        g.radius,
+        g.height,
+        Math.max(3, Math.round(g.segments / 2)),
+        g.segments,
+      );
     case 'plane':
       return new THREE.PlaneGeometry(g.width, g.height);
     case 'baked': {

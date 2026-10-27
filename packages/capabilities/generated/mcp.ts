@@ -1234,6 +1234,68 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                 "properties": {
                                   "type": {
                                     "type": "string",
+                                    "const": "torus"
+                                  },
+                                  "radius": {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0,
+                                    "description": "主环半径 R（环心到管心距离）"
+                                  },
+                                  "tube": {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0,
+                                    "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                                  },
+                                  "segments": {
+                                    "type": "integer",
+                                    "minimum": 3,
+                                    "maximum": 128,
+                                    "default": 32
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "radius",
+                                  "tube"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "const": "capsule"
+                                  },
+                                  "radius": {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0,
+                                    "description": "截面半径 r"
+                                  },
+                                  "height": {
+                                    "type": "number",
+                                    "exclusiveMinimum": 0,
+                                    "description": "圆柱中段长度；总高 = height + 2*radius"
+                                  },
+                                  "segments": {
+                                    "type": "integer",
+                                    "minimum": 3,
+                                    "maximum": 128,
+                                    "default": 32
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "radius",
+                                  "height"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
                                     "const": "plane"
                                   },
                                   "width": {
@@ -2347,6 +2409,68 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                             },
                             "required": [
                               "type",
+                              "height"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "torus"
+                              },
+                              "radius": {
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "description": "主环半径 R（环心到管心距离）"
+                              },
+                              "tube": {
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                              },
+                              "segments": {
+                                "type": "integer",
+                                "minimum": 3,
+                                "maximum": 128,
+                                "default": 32
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "radius",
+                              "tube"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "const": "capsule"
+                              },
+                              "radius": {
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "description": "截面半径 r"
+                              },
+                              "height": {
+                                "type": "number",
+                                "exclusiveMinimum": 0,
+                                "description": "圆柱中段长度；总高 = height + 2*radius"
+                              },
+                              "segments": {
+                                "type": "integer",
+                                "minimum": 3,
+                                "maximum": 128,
+                                "default": 32
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "radius",
                               "height"
                             ],
                             "additionalProperties": false
@@ -5186,6 +5310,68 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       },
                                       "required": [
                                         "type",
+                                        "height"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "const": "torus"
+                                        },
+                                        "radius": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0,
+                                          "description": "主环半径 R（环心到管心距离）"
+                                        },
+                                        "tube": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0,
+                                          "description": "管截面半径 r，须小于 radius；接受 tube_radius 别名"
+                                        },
+                                        "segments": {
+                                          "type": "integer",
+                                          "minimum": 3,
+                                          "maximum": 128,
+                                          "default": 32
+                                        }
+                                      },
+                                      "required": [
+                                        "type",
+                                        "radius",
+                                        "tube"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    {
+                                      "type": "object",
+                                      "properties": {
+                                        "type": {
+                                          "type": "string",
+                                          "const": "capsule"
+                                        },
+                                        "radius": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0,
+                                          "description": "截面半径 r"
+                                        },
+                                        "height": {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0,
+                                          "description": "圆柱中段长度；总高 = height + 2*radius"
+                                        },
+                                        "segments": {
+                                          "type": "integer",
+                                          "minimum": 3,
+                                          "maximum": 128,
+                                          "default": 32
+                                        }
+                                      },
+                                      "required": [
+                                        "type",
+                                        "radius",
                                         "height"
                                       ],
                                       "additionalProperties": false

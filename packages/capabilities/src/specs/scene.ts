@@ -503,11 +503,17 @@ export const sceneOps = {
           'true 时查找首个同名节点：命中则改为 material.set + node.update（无变化则零 op、revision 不变）；未命中照常新建。需显式 name；同名不同 kind 报 E_CONFLICT。幂等重建请整脚本都用同一 name + upsert',
         ),
       parent: nodeIdSchema.nullable().optional(),
-      shape: z.enum(['box', 'sphere', 'cylinder', 'plane']).optional(),
+      shape: z
+        .enum(['box', 'sphere', 'cylinder', 'torus', 'capsule', 'plane'])
+        .optional()
+        .describe(
+          '基础体快捷写法；复杂几何请用 node.update 的 geometry（box/sphere/cylinder/torus/capsule/plane/baked）',
+        ),
       size: vec3.optional(),
       radius: z.number().positive().optional(),
       radiusTop: z.number().min(0).optional(),
       radiusBottom: z.number().min(0).optional(),
+      tube: z.number().positive().optional().describe('torus 管截面半径 r（须小于 radius），其他 shape 忽略'),
       height: z.number().positive().optional(),
       color: z
         .string()
@@ -602,7 +608,8 @@ export const sceneOps = {
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'material.create': {
-    title: '按语义预设创建材质（preset 也接受别名：white/matte/steel/moss/glass…，无法识别时回退 concrete 并在 warnings 说明）',
+    title:
+      '按语义预设创建材质（preset 也接受别名：white/matte/steel/moss/glass…，无法识别时回退 concrete 并在 warnings 说明）',
     input: z.object({
       roomId,
       preset: z
@@ -657,7 +664,8 @@ export const sceneOps = {
     errors: ['E_INVALID_PARAMS', 'E_MATERIAL_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'env.set': {
-    title: '设置环境：雾、背景与环境光；fog 传 false 或 null 关雾；hdriSrc 接受 .hdr / .exr / 等距柱状 png、jpg',
+    title:
+      '设置环境：雾、背景与环境光；fog 传 false 或 null 关雾；hdriSrc 接受 .hdr / .exr / 等距柱状 png、jpg',
     input: envSchema.partial().extend({
       roomId,
       hdri: z
@@ -908,7 +916,8 @@ export const sceneIoOps = {
     ] as const,
   },
   'mesh.tube': {
-    title: '管体：沿点序列扫掠圆管（Catmull-Rom + 平行传输标架），radius 可为逐点半径数组（与 points 等长），单节点 baked 几何',
+    title:
+      '管体：沿点序列扫掠圆管（Catmull-Rom + 平行传输标架），radius 可为逐点半径数组（与 points 等长），单节点 baked 几何',
     input: z.object({
       roomId,
       name: z.string().min(1).max(200).optional(),

@@ -13,15 +13,24 @@ async function room(h: Harness): Promise<string> {
 }
 
 describe('handlers: scene', () => {
-  it('node.create 覆盖 mesh 四种基础体、group、light 与材质', async () => {
+  it('node.create 覆盖 mesh 六种基础体、group、light 与材质', async () => {
     const h = makeHarness();
     const roomId = await room(h);
-    const shapes = ['box', 'sphere', 'cylinder', 'plane'] as const;
+    const shapes = ['box', 'sphere', 'cylinder', 'torus', 'capsule', 'plane'] as const;
     for (const shape of shapes) {
       const { body } = await call(
         h,
         'node.create',
-        { roomId, kind: 'mesh', shape, color: '#ff8800', radius: 0.7, height: 2, size: [1, 2, 3] },
+        {
+          roomId,
+          kind: 'mesh',
+          shape,
+          color: '#ff8800',
+          radius: 0.7,
+          tube: 0.25,
+          height: 2,
+          size: [1, 2, 3],
+        },
         roomId,
       );
       expect(body.result.nodeId).toMatch(/^n_/);
