@@ -1,8 +1,19 @@
 import { createInterface } from 'node:readline';
 import { isVibe3DError } from '@vibebyte/vibe3d-client';
 import { getPrompt, listPrompts } from './guide';
+import { logEvent } from './log';
 import type { ToolResult, ToolRuntime } from './tools';
 import { HELP_TOOL, callTimeoutMs, helpResult, listTools } from './tools';
+
+process.on('uncaughtException', (err) => {
+  logEvent({ event: 'uncaught', err: err.stack ?? String(err) });
+});
+process.on('unhandledRejection', (reason) => {
+  logEvent({ event: 'unhandledRejection', err: reason instanceof Error ? reason.stack ?? reason.message : String(reason) });
+});
+process.stdout.on('error', (err) => {
+  logEvent({ event: 'stdout.error', err: String(err) });
+});
 
 const SUPPORTED = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const SERVER_INFO = { name: 'vibe3d', version: '0.1.0', title: 'vibe3d 3D 场景' };
@@ -116,6 +127,7 @@ export function createServer(deps: ServerDeps) {
           process.stderr.write(
             `${JSON.stringify({ event: 'mcp.watchdog', tool: name, budgetMs: budget })}\n`,
           );
+          logEvent({ event: 'mcp.watchdog', tool: name, budgetMs: budget });
           result = {
             content: [
               {
@@ -151,6 +163,7 @@ export function createServer(deps: ServerDeps) {
         process.stderr.write(
           `${JSON.stringify({ event: 'mcp.slow', tool: name, elapsedMs: elapsed })}\n`,
         );
+        logEvent({ event: 'mcp.slow', tool: name, elapsedMs: elapsed });
       }
       reply(req.id, result);
       return;
@@ -175,13 +188,20 @@ export function createServer(deps: ServerDeps) {
         fail(null, { code: -32700, message: 'Parse error' });
         return;
       }
-      const task = handle(req).catch((err: unknown) => {
-        fail(req.id ?? null, { code: -32603, message: err instanceof Error ? err.message : String(err) });
-      });
+      const startedAt = Date.now();
+      logEvent({ event: 'req', id: req.id ?? null, method: req.method });
+      const task = handle(req)
+        .catch((err: unknown) => {
+          fail(req.id ?? null, { code: -32603, message: err instanceof Error ? err.message : String(err) });
+        })
+        .finally(() => {
+          logEvent({ event: 'res', id: req.id ?? null, method: req.method, ms: Date.now() - startedAt });
+        });
       inflight.add(task);
       void task.finally(() => inflight.delete(task));
     });
     rl.on('close', () => {
+      logEvent({ event: 'stdin.close', inflight: inflight.size });
       void Promise.allSettled([...inflight]).then(() => process.exit(0));
     });
   }
