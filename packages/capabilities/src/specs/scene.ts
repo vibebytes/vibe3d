@@ -490,11 +490,18 @@ export const sceneOps = {
     errors: ['E_INVALID_PARAMS', 'E_CONFLICT', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
   },
   'node.create': {
-    title: '建节点：基础体 / 组 / 灯光',
+    title:
+      '建节点：基础体 / 组 / 灯光；upsert_by_name=true 时按 name 幂等重建（同参零 op、不推进 revision），适合可重复运行的装配脚本',
     input: z.object({
       roomId,
       kind: z.enum(['mesh', 'group', 'light']),
       name: z.string().min(1).max(200).optional(),
+      upsert_by_name: z
+        .boolean()
+        .optional()
+        .describe(
+          'true 时查找首个同名节点：命中则改为 material.set + node.update（无变化则零 op、revision 不变）；未命中照常新建。需显式 name；同名不同 kind 报 E_CONFLICT。幂等重建请整脚本都用同一 name + upsert',
+        ),
       parent: nodeIdSchema.nullable().optional(),
       shape: z.enum(['box', 'sphere', 'cylinder', 'plane']).optional(),
       size: vec3.optional(),
@@ -514,13 +521,14 @@ export const sceneOps = {
     output: z.object({
       nodeId: nodeIdSchema,
       revision: z.number().int().min(0),
+      upserted: z.boolean().optional(),
       tags: tagsSchema.optional(),
     }),
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.apply' as const,
-    cli: { command: 'node create', args: '<roomId> --kind mesh --shape box [--tags a,b]' },
-    errors: ['E_INVALID_PARAMS', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
+    cli: { command: 'node create', args: '<roomId> --kind mesh --shape box [--upsert-by-name] [--tags a,b]' },
+    errors: ['E_INVALID_PARAMS', 'E_CONFLICT', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
   },
   'node.update': {
     title: '改节点：名称、可见、变换、灯光、动画参数、标签',

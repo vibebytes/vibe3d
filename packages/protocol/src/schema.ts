@@ -88,15 +88,17 @@ const cylinderGeometrySchema = z.preprocess(
       segments: g.segments,
     }));
 
-export const GEOMETRY_FIELD_ALIASES: Readonly<Record<string, string>> = {
+export const FIELD_ALIASES: Readonly<Record<string, string>> = {
   radius_top: 'radiusTop',
   radius_bottom: 'radiusBottom',
+  name_prefix: 'namePrefix',
+  updated_before: 'updatedBefore',
 };
 
 const applyGeometryAliases = (g: unknown): unknown => {
   if (!g || typeof g !== 'object' || Array.isArray(g)) return g;
   const out: Record<string, unknown> = { ...(g as Record<string, unknown>) };
-  for (const [from, to] of Object.entries(GEOMETRY_FIELD_ALIASES)) {
+  for (const [from, to] of Object.entries(FIELD_ALIASES)) {
     if (out[from] !== undefined && out[to] === undefined) out[to] = out[from];
     delete out[from];
   }

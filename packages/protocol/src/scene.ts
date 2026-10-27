@@ -71,7 +71,9 @@ export const fxSchema = z.object({
 });
 
 const nodeBase = {
-  id: nodeIdSchema,
+  id: nodeIdSchema.describe(
+    '客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import',
+  ),
   name: z.string().min(1).max(200),
   parent: nodeIdSchema.nullable(),
   visible: z.boolean(),

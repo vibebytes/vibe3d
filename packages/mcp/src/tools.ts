@@ -638,6 +638,7 @@ export class ToolRuntime {
   }
 
   private async resolveRoom(capability: CapabilityName, input: Record<string, unknown>): Promise<void> {
+    if (capability === 'room.close' && Array.isArray(input.ids) && input.roomId === undefined) return;
     const explicit = typeof input.roomId === 'string' && input.roomId ? input.roomId : undefined;
     if (!viewOf(capability).mcp?.roomArg) {
       if (explicit && explicit !== this.session.current) {
@@ -674,7 +675,7 @@ export class ToolRuntime {
       return;
     }
     if (capability === 'room.close') {
-      this.session.release(String(params.roomId));
+      if (typeof params.roomId === 'string') this.session.release(params.roomId);
       return;
     }
     if (capability === 'room.use' || capability === 'room.get' || capability === 'editor.open') {
@@ -688,6 +689,13 @@ export class ToolRuntime {
     params: Record<string, unknown>,
     signal?: AbortSignal,
   ): Promise<unknown> {
+    if (capability === 'room.close' && Array.isArray(params.ids) && params.roomId === undefined) {
+      const out = await this.studio.client.call(capability, params, { signal });
+      for (const r of (out as { results?: Array<{ roomId: string }> }).results ?? []) {
+        this.session.release(r.roomId);
+      }
+      return out;
+    }
     if (viewOf(capability).scope === 'daemon') {
       return this.studio.client.call(capability, params, { signal });
     }

@@ -144,9 +144,11 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
           name: node.name,
         });
       if (doc.nodes[id])
-        fail('节点已存在；新建节点请用 vibe3d_create_node（服务端生成 id），或换一个 n_ + 8 位 id', {
-          id,
-        });
+        throw new AppError(
+          'E_CONFLICT',
+          `节点 id 已存在，不覆盖；重建请用 node.create 的 upsert_by_name 或模板化 scene.import`,
+          { id, name: node.name },
+        );
       if (node.parent && !doc.nodes[node.parent]) fail('父节点不存在', { id: node.parent });
       let next = node as SceneNode;
       if (node.kind === 'mesh' && node.material === undefined) {

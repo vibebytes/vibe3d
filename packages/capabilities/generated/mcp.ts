@@ -21,10 +21,10 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
     title: "房间：建 / 列 / 切绑定 / 看摘要 / 关 / 时间线",
     ops: [
       { op: "create", capability: "room.create", title: "创建房间：分配 roomId 与文档；下次写操作会自动开窗，无需预先调用 vibe3d_open_editor" },
-      { op: "list", capability: "room.list", title: "列出房间（limit/cursor 分页，按 updatedAt 倒序）" },
+      { op: "list", capability: "room.list", title: "列出房间（limit/cursor 分页，按 updatedAt 倒序；name_prefix / updated_before 过滤，total 为过滤后总数）" },
       { op: "use", capability: "room.use", title: "切换当前会话绑定的房间：只换绑定，不打开窗口（之后 scene/node/render 都作用于它）" },
       { op: "get", capability: "room.get", title: "读取房间摘要（含 editors：0 表示暂无窗口在看，下一次写操作会自动开窗）" },
-      { op: "close", capability: "room.close", title: "关闭房间，可选清除磁盘数据" },
+      { op: "close", capability: "room.close", title: "关闭房间（roomId 单个，或 ids 批量：先整体校验存在性再逐一关闭，任一不存在则全部不动），可选清除磁盘数据" },
       { op: "timeline", capability: "room.timeline", title: "查看 op 时间线：每批 apply 的 opId/摘要/作者/步数，倒序；opId 仍可精确回退时才返回，配合 scene.undo{opId} 用" },
     ],
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
@@ -121,7 +121,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
     name: "vibe3d_node",
     title: "节点：建 / 改 / 删 / 克隆 / 读 / 换父 / 批量变换 / 阵列 / 吸附 / 编组 / 合并烘焙 / 导入模型",
     ops: [
-      { op: "create", capability: "node.create", title: "建节点：基础体 / 组 / 灯光" },
+      { op: "create", capability: "node.create", title: "建节点：基础体 / 组 / 灯光；upsert_by_name=true 时按 name 幂等重建（同参零 op、不推进 revision），适合可重复运行的装配脚本" },
       { op: "update", capability: "node.update", title: "改节点：名称、可见、变换、灯光、动画参数、标签" },
       { op: "delete", capability: "node.delete", title: "删节点，默认级联子树" },
       { op: "clone", capability: "node.clone", title: "克隆节点子树：换 id、共享材质与资产" },
@@ -4552,7 +4552,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "pattern": "^n_[a-z0-9]{8}$"
+                                  "pattern": "^n_[a-z0-9]{8}$",
+                                  "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                 },
                                 "name": {
                                   "type": "string",
@@ -4834,7 +4835,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "pattern": "^n_[a-z0-9]{8}$"
+                                  "pattern": "^n_[a-z0-9]{8}$",
+                                  "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                 },
                                 "name": {
                                   "type": "string",
@@ -5352,7 +5354,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "pattern": "^n_[a-z0-9]{8}$"
+                                  "pattern": "^n_[a-z0-9]{8}$",
+                                  "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                 },
                                 "name": {
                                   "type": "string",
@@ -5707,7 +5710,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                               "properties": {
                                 "id": {
                                   "type": "string",
-                                  "pattern": "^n_[a-z0-9]{8}$"
+                                  "pattern": "^n_[a-z0-9]{8}$",
+                                  "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                 },
                                 "name": {
                                   "type": "string",

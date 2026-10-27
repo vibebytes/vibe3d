@@ -6,7 +6,7 @@ import {
   describeIssues,
   toIssues,
 } from '@vibebyte/vibe3d-capabilities';
-import { AppError, DAEMON_VERSION, GEOMETRY_FIELD_ALIASES, PROTOCOL_VERSION, legacyGeometryNotes } from '@vibebyte/vibe3d-protocol';
+import { AppError, DAEMON_VERSION, FIELD_ALIASES, PROTOCOL_VERSION, legacyGeometryNotes } from '@vibebyte/vibe3d-protocol';
 import type { AutoOpenState, DispatchContext, HelloResult } from './context';
 import { assetHandlers } from './handlers/asset';
 import { backdropHandlers } from './handlers/backdrop';
@@ -161,7 +161,7 @@ const normalizeFieldAliases = (v: unknown): unknown => {
   const out: Record<string, unknown> = {};
   let changed = false;
   for (const [k, val] of Object.entries(v as Record<string, unknown>)) {
-    const to = GEOMETRY_FIELD_ALIASES[k];
+    const to = FIELD_ALIASES[k];
     if (to !== undefined) {
       if (out[to] === undefined) out[to] = val;
       changed = true;

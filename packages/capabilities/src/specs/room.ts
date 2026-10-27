@@ -22,13 +22,26 @@ export const roomCreate = {
     errors: ['E_ROOM_LIMIT', 'E_LOCKED'] as const,
   },
   'room.list': {
-    title: '列出房间（limit/cursor 分页，按 updatedAt 倒序）',
+    title:
+      '列出房间（limit/cursor 分页，按 updatedAt 倒序；name_prefix / updated_before 过滤，total 为过滤后总数）',
     input: z.object({
       limit: intIn(1, 100).optional(),
       cursor: z.string().min(1).optional(),
+      namePrefix: z
+        .string()
+        .min(1)
+        .max(120)
+        .optional()
+        .describe('按名称前缀过滤（区分大小写），翻页时每页都带同一前缀'),
+      updatedBefore: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}(T[\d:.]+Z?)?$/, 'ISO 时间（如 2026-01-01T00:00:00Z）或日期 YYYY-MM-DD')
+        .optional()
+        .describe('只列 updatedAt 早于该时刻的房间；传日期时按当天 00:00Z 计'),
     }),
     output: z.object({
       rooms: z.array(roomSummary.extend({ thumbUrl: z.string().optional() })),
+      total: z.number().int().min(0),
       nextCursor: z.string().optional(),
     }),
     scope: 'daemon' as const,
@@ -68,9 +81,20 @@ export const roomCreate = {
     errors: ['E_ROOM_NOT_FOUND'] as const,
   },
   'room.close': {
-    title: '关闭房间，可选清除磁盘数据',
-    input: z.object({ roomId, purge: z.boolean().optional() }),
-    output: revisionOut.extend({ closed: z.boolean() }),
+    title: '关闭房间（roomId 单个，或 ids 批量：先整体校验存在性再逐一关闭，任一不存在则全部不动），可选清除磁盘数据',
+    input: z.object({
+      roomId: roomId.optional(),
+      ids: z.array(roomId).min(1).max(100).optional(),
+      purge: z.boolean().optional(),
+    }),
+    output: z.object({
+      revision: z.number().int().min(0).optional(),
+      closed: z.boolean().optional(),
+      closedCount: z.number().int().min(0).optional(),
+      results: z
+        .array(z.object({ roomId, revision: z.number().int().min(0), closed: z.boolean() }))
+        .optional(),
+    }),
     scope: 'room' as const,
     mutating: true,
     wire: 'room.close' as const,

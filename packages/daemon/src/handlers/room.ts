@@ -181,6 +181,16 @@ export const roomHandlers: HandlersFor<Keys> = {
 
   'room.list': async (p, ctx) => {
     const limit = p.limit ?? 50;
+    const prefix = p.namePrefix;
+    const before =
+      p.updatedBefore === undefined
+        ? undefined
+        : Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(p.updatedBefore) ? `${p.updatedBefore}T00:00:00Z` : p.updatedBefore);
+    if (before !== undefined && Number.isNaN(before)) {
+      throw new AppError('E_INVALID_PARAMS', `updatedBefore 无法解析：${p.updatedBefore}`, {
+        hint: '传 ISO 时间（2026-01-01T00:00:00Z）或日期（2026-01-01）',
+      });
+    }
     const all = ctx.rooms
       .list()
       .map((room) => {
@@ -188,7 +198,13 @@ export const roomHandlers: HandlersFor<Keys> = {
         const thumb = ctx.thumbs?.latest(room.id);
         return { meta, thumbUrl: thumb ? thumbUrl(ctx.baseUrl, room.id, thumb) : undefined };
       })
+      .filter(
+        ({ meta }) =>
+          (prefix === undefined || meta.name.startsWith(prefix)) &&
+          (before === undefined || Date.parse(meta.updatedAt) < before),
+      )
       .sort((a, b) => compareRoom(a.meta, b.meta));
+    const total = all.length;
     const start = p.cursor ? decodeCursor(p.cursor) : undefined;
     const rest = start ? all.filter((m) => compareRoom(m.meta, start) > 0) : all;
     const page = rest.slice(0, limit);
@@ -210,6 +226,7 @@ export const roomHandlers: HandlersFor<Keys> = {
         updatedAt: meta.updatedAt,
         ...(url ? { thumbUrl: url } : {}),
       })),
+      total,
       ...(nextCursor ? { nextCursor } : {}),
     };
   },
@@ -247,6 +264,26 @@ export const roomHandlers: HandlersFor<Keys> = {
   },
 
   'room.close': async (p, ctx) => {
+    if (p.ids) {
+      if (p.roomId !== undefined) {
+        throw new AppError('E_INVALID_PARAMS', 'roomId 与 ids 二选一', {
+          hint: '关单个房间传 roomId；批量传 ids（最多 100 个）',
+        });
+      }
+      const rooms = p.ids.map((id) => ctx.rooms.get(id));
+      const results = rooms.map((room) => {
+        const revision = room.revision;
+        ctx.rooms.close(room.id, p.purge ?? false);
+        void ctx.renderer?.drop?.(room.id);
+        return { roomId: room.id, revision, closed: true };
+      });
+      return { closedCount: results.length, results };
+    }
+    if (p.roomId === undefined) {
+      throw new AppError('E_INVALID_PARAMS', 'roomId 与 ids 必须给一个', {
+        hint: '关单个房间传 roomId；批量传 ids（最多 100 个）',
+      });
+    }
     const room = ctx.rooms.get(p.roomId);
     const revision = room.revision;
     ctx.rooms.close(p.roomId, p.purge ?? false);

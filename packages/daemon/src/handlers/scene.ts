@@ -190,6 +190,91 @@ function applyDelta(t: Transform, delta: { translate?: Vec; rotate?: Vec; scale?
   };
 }
 
+type NodeCreateParams = Parameters<HandlersFor<Keys>['node.create']>[0];
+
+function deepEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== 'object' || a === null || typeof b !== 'object' || b === null) return false;
+  const keys = Object.keys(a as object);
+  return (
+    keys.length === Object.keys(b as object).length &&
+    keys.every((k) => deepEqual((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]))
+  );
+}
+
+const defaultLight = (): LightSpec => ({
+  type: 'directional',
+  color: [1, 1, 1, 1],
+  intensity: 2,
+  position: [3, 4, 5],
+  castShadow: true,
+});
+
+function buildCreateOps(p: NodeCreateParams): { id: string; ops: Op[]; hit: boolean } {
+  const id = makeNodeId();
+  const base = {
+    id,
+    name: p.name ?? `${p.kind}-${id.slice(2, 6)}`,
+    parent: p.parent ?? null,
+    visible: true,
+    transform: mergeTransform(p.transform),
+    ...(p.tags === undefined ? {} : { tags: [...p.tags] }),
+  };
+  const ops: Op[] = [];
+  let node: SceneNode;
+  if (p.kind === 'group') {
+    node = { ...base, kind: 'group' };
+  } else if (p.kind === 'light') {
+    node = { ...base, kind: 'light', light: p.light ?? defaultLight() };
+  } else {
+    const materialId = makeMaterialId();
+    ops.push({
+      op: 'material.set',
+      id: materialId,
+      material: materialOf({ color: p.color, material: p.material }),
+    });
+    node = { ...base, kind: 'mesh', geometry: geometryOf(p), material: materialId };
+  }
+  ops.push({ op: 'node.create', node });
+  return { id, ops, hit: false };
+}
+
+function buildUpsertOps(doc: SceneDoc, p: NodeCreateParams): { id: string; ops: Op[]; hit: boolean } {
+  if (!p.name) {
+    throw new AppError('E_INVALID_PARAMS', 'upsert_by_name 需要显式 name', { upsert_by_name: true });
+  }
+  const existing = Object.values(doc.nodes).find((n) => n.name === p.name);
+  if (!existing) return buildCreateOps(p);
+  if (existing.kind !== p.kind) {
+    throw new AppError(
+      'E_CONFLICT',
+      `同名节点「${p.name}」已存在且 kind 不同（${existing.kind}），upsert 拒绝重建`,
+      { id: existing.id },
+    );
+  }
+  const id = existing.id;
+  const patch: NodePatch = {};
+  const desiredTransform = mergeTransform(p.transform);
+  if (existing.visible !== true) patch.visible = true;
+  if (!deepEqual(existing.transform, desiredTransform)) patch.transform = desiredTransform;
+  if (p.tags !== undefined && !deepEqual(existing.tags ?? null, [...p.tags])) patch.tags = [...p.tags];
+  const ops: Op[] = [];
+  if (existing.kind === 'mesh') {
+    const geometry = geometryOf(p);
+    if (!deepEqual(existing.geometry, geometry)) patch.geometry = geometry;
+    const material = materialOf({ color: p.color, material: p.material });
+    if (!deepEqual(doc.materials[existing.material], material)) {
+      ops.push({ op: 'material.set', id: existing.material, material });
+    }
+  } else if (existing.kind === 'light') {
+    const light = p.light ?? defaultLight();
+    if (!deepEqual(existing.light, light)) patch.light = light;
+  }
+  if (existing.parent !== (p.parent ?? null)) ops.push({ op: 'node.reparent', id, parent: p.parent ?? null });
+  if (Object.keys(patch).length > 0) ops.push({ op: 'node.update', id, patch });
+  return { id, ops, hit: true };
+}
+
 export const sceneHandlers: HandlersFor<Keys> = {
   'scene.query': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
@@ -459,39 +544,12 @@ export const sceneHandlers: HandlersFor<Keys> = {
   },
   'node.create': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    const id = makeNodeId();
-    const base = {
-      id,
-      name: p.name ?? `${p.kind}-${id.slice(2, 6)}`,
-      parent: p.parent ?? null,
-      visible: true,
-      transform: mergeTransform(p.transform),
-      ...(p.tags === undefined ? {} : { tags: [...p.tags] }),
-    };
-
-    const ops: Op[] = [];
-    let node: SceneNode;
-    if (p.kind === 'group') {
-      node = { ...base, kind: 'group' };
-    } else if (p.kind === 'light') {
-      const light: LightSpec = p.light ?? {
-        type: 'directional',
-        color: [1, 1, 1, 1],
-        intensity: 2,
-        position: [3, 4, 5],
-        castShadow: true,
-      };
-      node = { ...base, kind: 'light', light };
-    } else {
-      const materialId = makeMaterialId();
-      const material = materialOf({ color: p.color, material: p.material });
-      ops.push({ op: 'material.set', id: materialId, material });
-      node = { ...base, kind: 'mesh', geometry: geometryOf(p), material: materialId };
-    }
-    ops.push({ op: 'node.create', node });
-
+    const { id, ops, hit } = p.upsert_by_name ? buildUpsertOps(room.doc, p) : buildCreateOps(p);
+    const upserted = hit ? { upserted: true } : {};
+    const tags = p.tags === undefined ? {} : { tags: [...p.tags] };
+    if (ops.length === 0) return { nodeId: id, revision: room.revision, ...upserted, ...tags };
     const result = await room.run(() => room.apply(ops));
-    return { nodeId: id, revision: result.revision, ...(p.tags === undefined ? {} : { tags: [...p.tags] }) };
+    return { nodeId: id, revision: result.revision, ...upserted, ...tags };
   },
 
   'node.update': async (p, ctx) => {

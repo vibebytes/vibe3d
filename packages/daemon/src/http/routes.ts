@@ -93,7 +93,9 @@ function rpc(kind: 'control' | 'data', deps: RouteDeps, roomId?: string) {
       envelope = await readEnvelope(c);
       const method = envelope.method;
       const scope = method === 'hello' ? 'daemon' : CAPABILITIES[method as CapabilityName]?.scope;
-      if (kind === 'control' && scope !== 'daemon') {
+      const batchIds = (envelope.params as { ids?: unknown }).ids;
+      const crossRoomBatch = method === 'room.close' && Array.isArray(batchIds);
+      if (kind === 'control' && scope !== 'daemon' && !crossRoomBatch) {
         throw new AppError('E_NO_METHOD', `控制面不接受方法：${method}`);
       }
       if (kind === 'data' && scope !== 'room') {

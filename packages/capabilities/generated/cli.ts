@@ -22,7 +22,7 @@ export const CLI_COMMANDS = [
   { command: "node reparent", args: "<roomId> <nodeId> --parent <id>|--root [--no-keep-world]", capability: "node.reparent" },
   { command: "material assign", args: "<roomId> --material <id> [--ids a,b] [--filter <json>]", capability: "material.assign" },
   { command: "scene apply", args: "<roomId> --ops <json|@file>", capability: "ops.apply" },
-  { command: "node create", args: "<roomId> --kind mesh --shape box [--tags a,b]", capability: "node.create" },
+  { command: "node create", args: "<roomId> --kind mesh --shape box [--upsert-by-name] [--tags a,b]", capability: "node.create" },
   { command: "node update", args: "<roomId> <nodeId> --patch <json>", capability: "node.update" },
   { command: "node rm", args: "<roomId> <nodeId> [--no-cascade]", capability: "node.delete" },
   { command: "node clone", args: "<roomId> <nodeId> [--count 2] [--parent <id>]", capability: "node.clone" },

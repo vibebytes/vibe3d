@@ -182,7 +182,7 @@
     },
     {
       "name": "room.list",
-      "title": "列出房间（limit/cursor 分页，按 updatedAt 倒序）",
+      "title": "列出房间（limit/cursor 分页，按 updatedAt 倒序；name_prefix / updated_before 过滤，total 为过滤后总数）",
       "wire": "room.list",
       "scope": "daemon",
       "mutating": false,
@@ -214,6 +214,17 @@
           "cursor": {
             "type": "string",
             "minLength": 1
+          },
+          "namePrefix": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "按名称前缀过滤（区分大小写），翻页时每页都带同一前缀"
+          },
+          "updatedBefore": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}(T[\\d:.]+Z?)?$",
+            "description": "只列 updatedAt 早于该时刻的房间；传日期时按当天 00:00Z 计"
           }
         },
         "additionalProperties": false,
@@ -263,12 +274,17 @@
               "additionalProperties": false
             }
           },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
           "nextCursor": {
             "type": "string"
           }
         },
         "required": [
-          "rooms"
+          "rooms",
+          "total"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -436,7 +452,7 @@
     },
     {
       "name": "room.close",
-      "title": "关闭房间，可选清除磁盘数据",
+      "title": "关闭房间（roomId 单个，或 ids 批量：先整体校验存在性再逐一关闭，任一不存在则全部不动），可选清除磁盘数据",
       "wire": "room.close",
       "scope": "room",
       "mutating": true,
@@ -465,13 +481,19 @@
             "type": "string",
             "pattern": "^r_[a-z0-9]{8}$"
           },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^r_[a-z0-9]{8}$"
+            },
+            "minItems": 1,
+            "maxItems": 100
+          },
           "purge": {
             "type": "boolean"
           }
         },
-        "required": [
-          "roomId"
-        ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
       },
@@ -484,12 +506,37 @@
           },
           "closed": {
             "type": "boolean"
+          },
+          "closedCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "roomId": {
+                  "type": "string",
+                  "pattern": "^r_[a-z0-9]{8}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "closed": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "roomId",
+                "revision",
+                "closed"
+              ],
+              "additionalProperties": false
+            }
           }
         },
-        "required": [
-          "revision",
-          "closed"
-        ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
       }
@@ -654,7 +701,8 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "pattern": "^n_[a-z0-9]{8}$",
+                          "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                         },
                         "name": {
                           "type": "string",
@@ -960,7 +1008,8 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "pattern": "^n_[a-z0-9]{8}$",
+                          "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                         },
                         "name": {
                           "type": "string",
@@ -1562,7 +1611,8 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "pattern": "^n_[a-z0-9]{8}$",
+                          "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                         },
                         "name": {
                           "type": "string",
@@ -1974,7 +2024,8 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "pattern": "^n_[a-z0-9]{8}$",
+                          "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                         },
                         "name": {
                           "type": "string",
@@ -11513,7 +11564,8 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "pattern": "^n_[a-z0-9]{8}$"
+                                    "pattern": "^n_[a-z0-9]{8}$",
+                                    "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                   },
                                   "name": {
                                     "type": "string",
@@ -11819,7 +11871,8 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "pattern": "^n_[a-z0-9]{8}$"
+                                    "pattern": "^n_[a-z0-9]{8}$",
+                                    "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                   },
                                   "name": {
                                     "type": "string",
@@ -12421,7 +12474,8 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "pattern": "^n_[a-z0-9]{8}$"
+                                    "pattern": "^n_[a-z0-9]{8}$",
+                                    "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                   },
                                   "name": {
                                     "type": "string",
@@ -12833,7 +12887,8 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "pattern": "^n_[a-z0-9]{8}$"
+                                    "pattern": "^n_[a-z0-9]{8}$",
+                                    "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                   },
                                   "name": {
                                     "type": "string",
@@ -18950,7 +19005,8 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "pattern": "^n_[a-z0-9]{8}$"
+                                    "pattern": "^n_[a-z0-9]{8}$",
+                                    "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                   },
                                   "name": {
                                     "type": "string",
@@ -19256,7 +19312,8 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "pattern": "^n_[a-z0-9]{8}$"
+                                    "pattern": "^n_[a-z0-9]{8}$",
+                                    "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                   },
                                   "name": {
                                     "type": "string",
@@ -19858,7 +19915,8 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "pattern": "^n_[a-z0-9]{8}$"
+                                    "pattern": "^n_[a-z0-9]{8}$",
+                                    "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                   },
                                   "name": {
                                     "type": "string",
@@ -20270,7 +20328,8 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "pattern": "^n_[a-z0-9]{8}$"
+                                    "pattern": "^n_[a-z0-9]{8}$",
+                                    "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                   },
                                   "name": {
                                     "type": "string",
@@ -21754,13 +21813,14 @@
     },
     {
       "name": "node.create",
-      "title": "建节点：基础体 / 组 / 灯光",
+      "title": "建节点：基础体 / 组 / 灯光；upsert_by_name=true 时按 name 幂等重建（同参零 op、不推进 revision），适合可重复运行的装配脚本",
       "wire": "scene.apply",
       "scope": "room",
       "mutating": true,
       "hostCoupled": false,
       "errors": [
         "E_INVALID_PARAMS",
+        "E_CONFLICT",
         "E_PAYLOAD_TOO_LARGE",
         "E_ROOM_NOT_FOUND"
       ],
@@ -21773,7 +21833,7 @@
       },
       "cli": {
         "command": "node create",
-        "args": "<roomId> --kind mesh --shape box [--tags a,b]"
+        "args": "<roomId> --kind mesh --shape box [--upsert-by-name] [--tags a,b]"
       },
       "input": {
         "type": "object",
@@ -21794,6 +21854,10 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 200
+          },
+          "upsert_by_name": {
+            "type": "boolean",
+            "description": "true 时查找首个同名节点：命中则改为 material.set + node.update（无变化则零 op、revision 不变）；未命中照常新建。需显式 name；同名不同 kind 报 E_CONFLICT。幂等重建请整脚本都用同一 name + upsert"
           },
           "parent": {
             "anyOf": [
@@ -22228,6 +22292,9 @@
           "revision": {
             "type": "integer",
             "minimum": 0
+          },
+          "upserted": {
+            "type": "boolean"
           },
           "tags": {
             "type": "array",
@@ -29868,7 +29935,8 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "pattern": "^n_[a-z0-9]{8}$"
+                                    "pattern": "^n_[a-z0-9]{8}$",
+                                    "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                   },
                                   "name": {
                                     "type": "string",
@@ -30174,7 +30242,8 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "pattern": "^n_[a-z0-9]{8}$"
+                                    "pattern": "^n_[a-z0-9]{8}$",
+                                    "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                   },
                                   "name": {
                                     "type": "string",
@@ -30776,7 +30845,8 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "pattern": "^n_[a-z0-9]{8}$"
+                                    "pattern": "^n_[a-z0-9]{8}$",
+                                    "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                   },
                                   "name": {
                                     "type": "string",
@@ -31188,7 +31258,8 @@
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "pattern": "^n_[a-z0-9]{8}$"
+                                    "pattern": "^n_[a-z0-9]{8}$",
+                                    "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                                   },
                                   "name": {
                                     "type": "string",
@@ -33350,7 +33421,8 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "pattern": "^n_[a-z0-9]{8}$",
+                          "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                         },
                         "name": {
                           "type": "string",
@@ -33656,7 +33728,8 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "pattern": "^n_[a-z0-9]{8}$",
+                          "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                         },
                         "name": {
                           "type": "string",
@@ -34258,7 +34331,8 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "pattern": "^n_[a-z0-9]{8}$",
+                          "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                         },
                         "name": {
                           "type": "string",
@@ -34670,7 +34744,8 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "pattern": "^n_[a-z0-9]{8}$",
+                          "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                         },
                         "name": {
                           "type": "string",
@@ -36122,7 +36197,8 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "pattern": "^n_[a-z0-9]{8}$",
+                          "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                         },
                         "name": {
                           "type": "string",
@@ -36428,7 +36504,8 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "pattern": "^n_[a-z0-9]{8}$",
+                          "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                         },
                         "name": {
                           "type": "string",
@@ -37030,7 +37107,8 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "pattern": "^n_[a-z0-9]{8}$",
+                          "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                         },
                         "name": {
                           "type": "string",
@@ -37442,7 +37520,8 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "pattern": "^n_[a-z0-9]{8}$",
+                          "description": "客户端可指定；ops.apply 中与既有节点同 id 报 E_CONFLICT（不覆盖）。幂等重建：node.create upsert_by_name 或模板化 scene.import"
                         },
                         "name": {
                           "type": "string",
