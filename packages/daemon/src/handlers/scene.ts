@@ -40,6 +40,20 @@ import {
 } from '@vibebyte/vibe3d-scene';
 import type { HandlersFor } from './types';
 
+const RAD2DEG = 180 / Math.PI;
+
+const fovHOf = (fovDeg: number) =>
+  2 * Math.atan(1.5 * Math.tan((fovDeg * Math.PI) / 360)) * RAD2DEG;
+
+const lensToState = <T extends { lens_mm?: number }>(
+  camera: T | undefined,
+): (Omit<T, 'lens_mm'> & { fov: number }) | undefined => {
+  if (!camera) return undefined;
+  if (camera.lens_mm == null) return camera as unknown as Omit<T, 'lens_mm'> & { fov: number };
+  const { lens_mm, ...rest } = camera;
+  return { ...rest, fov: 2 * Math.atan(12 / lens_mm) * RAD2DEG };
+};
+
 type Keys =
   | 'node.create'
   | 'node.update'
@@ -763,14 +777,16 @@ export const sceneHandlers: HandlersFor<Keys> = {
 
   'camera.set': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
+    const camera = lensToState(p.camera);
     const framed = p.bbox ? frameTarget(room.doc, { bbox: p.bbox, padding: p.padding, view: p.view }) : null;
     const op: Op = framed
-      ? { op: 'camera.set', camera: { ...p.camera, ...framed.camera } }
-      : { op: 'camera.set', camera: p.camera, frame: p.frame, name: p.name, preset: p.preset };
+      ? { op: 'camera.set', camera: { ...camera, ...framed.camera } }
+      : { op: 'camera.set', camera, frame: p.frame, name: p.name, preset: p.preset };
     const result = await room.run(() => room.apply([op]));
     return {
       revision: result.revision,
       camera: room.doc.camera,
+      fov_h: fovHOf(room.doc.camera.fov),
       ...(framed
         ? {
             frame: {
@@ -787,9 +803,16 @@ export const sceneHandlers: HandlersFor<Keys> = {
 
   'camera.save': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    const op: Op = { op: 'camera.save', name: p.name, camera: p.camera };
+    const camera = lensToState(p.camera);
+    const op: Op = { op: 'camera.save', name: p.name, camera };
     const result = await room.run(() => room.apply([op]));
-    return { revision: result.revision, camera: room.doc.camera, cameras: room.doc.cameras };
+    const pose = { ...room.doc.camera, ...(camera ?? {}) };
+    return {
+      revision: result.revision,
+      camera: pose,
+      fov_h: fovHOf(pose.fov),
+      cameras: room.doc.cameras,
+    };
   },
 
   'camera.delete': async (p, ctx) => {

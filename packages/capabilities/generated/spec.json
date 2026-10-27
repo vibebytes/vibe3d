@@ -40911,7 +40911,7 @@
     },
     {
       "name": "camera.set",
-      "title": "设相机：显式参数、自动取景、已存机位或预设",
+      "title": "设相机：显式参数（p/target/fov 或 lens_mm）、自动取景、已存机位或预设；输出附 fov_h（水平视野）",
       "wire": "camera.set",
       "scope": "room",
       "mutating": true,
@@ -40989,6 +40989,12 @@
               "zoom": {
                 "type": "number",
                 "exclusiveMinimum": 0
+              },
+              "lens_mm": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 1000,
+                "description": "等效焦距（mm），按 36×24 全画幅换算：fov=2·atan(12/lens_mm)。与 fov 互斥"
               }
             },
             "additionalProperties": false
@@ -41144,6 +41150,10 @@
             ],
             "additionalProperties": false
           },
+          "fov_h": {
+            "type": "number",
+            "description": "水平视野（度），按 36mm 传感器宽换算：fov_h=2·atan(18·tan(fov/2)/12)"
+          },
           "frame": {
             "type": "object",
             "properties": {
@@ -41235,7 +41245,7 @@
     },
     {
       "name": "camera.save",
-      "title": "保存当前机位，供之后按名字恢复",
+      "title": "保存当前机位（camera 可用 lens_mm 描述），供之后按名字恢复",
       "wire": "camera.save",
       "scope": "room",
       "mutating": true,
@@ -41316,6 +41326,12 @@
               "zoom": {
                 "type": "number",
                 "exclusiveMinimum": 0
+              },
+              "lens_mm": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 1000,
+                "description": "等效焦距（mm），按 36×24 全画幅换算：fov=2·atan(12/lens_mm)。与 fov 互斥"
               }
             },
             "additionalProperties": false
@@ -41395,6 +41411,9 @@
               "zoom"
             ],
             "additionalProperties": false
+          },
+          "fov_h": {
+            "type": "number"
           },
           "cameras": {
             "type": "object",

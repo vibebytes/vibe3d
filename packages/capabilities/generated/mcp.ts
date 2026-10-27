@@ -376,8 +376,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
     name: "vibe3d_camera",
     title: "机位：设置 / 保存命名机位 / 删除 / 像素投影与反投影",
     ops: [
-      { op: "set", capability: "camera.set", title: "设相机：显式参数、自动取景、已存机位或预设" },
-      { op: "save", capability: "camera.save", title: "保存当前机位，供之后按名字恢复" },
+      { op: "set", capability: "camera.set", title: "设相机：显式参数（p/target/fov 或 lens_mm）、自动取景、已存机位或预设；输出附 fov_h（水平视野）" },
+      { op: "save", capability: "camera.save", title: "保存当前机位（camera 可用 lens_mm 描述），供之后按名字恢复" },
       { op: "delete", capability: "camera.delete", title: "删除已存机位" },
       { op: "project", capability: "camera.project", title: "世界坐标 →像素坐标（同一渲染相机口径，无需截图标定）" },
       { op: "unproject", capability: "camera.unproject", title: "像素坐标 + 深度 →世界坐标；depth 缺省用相机到 target 的距离" },

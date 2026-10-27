@@ -59,3 +59,47 @@ describe('camera.save / camera.set name / preset', () => {
     expect(Object.keys(scene.body.result.doc.cameras)).toEqual(['hero']);
   });
 });
+
+describe('camera lens_mm / fov_h（V2-08b：36×24 全画幅）', () => {
+  it('camera.set 接受 lens_mm=50：fov=26.99°（垂直）、fov_h=39.60°（水平）', async () => {
+    const h = makeHarness();
+    const roomId = await roomWithBox(h);
+    const { body } = await call(h, 'camera.set', { roomId, camera: { lens_mm: 50 } }, roomId);
+    expect(body.error).toBeUndefined();
+    expect(body.result.camera.fov).toBeCloseTo(26.99, 2);
+    expect(body.result.fov_h).toBeCloseTo(39.6, 2);
+  });
+
+  it('lens_mm 与 fov 互斥，同传报 E_INVALID_PARAMS', async () => {
+    const h = makeHarness();
+    const roomId = await roomWithBox(h);
+    const bad = await call(
+      h,
+      'camera.set',
+      { roomId, camera: { lens_mm: 50, fov: 40 } },
+      roomId,
+    );
+    expect(codeOf(bad.body)).toBe('E_INVALID_PARAMS');
+  });
+
+  it('camera.save 也接受 lens_mm（24mm → fov 53.13°）', async () => {
+    const h = makeHarness();
+    const roomId = await roomWithBox(h);
+    const saved = await call(
+      h,
+      'camera.save',
+      { roomId, name: 'hero', camera: { lens_mm: 24 } },
+      roomId,
+    );
+    expect(saved.body.error).toBeUndefined();
+    expect(saved.body.result.camera.fov).toBeCloseTo(53.13, 2);
+  });
+
+  it('直接传 fov=40 时输出 fov_h 按同口径派生（36mm 水平）', async () => {
+    const h = makeHarness();
+    const roomId = await roomWithBox(h);
+    const { body } = await call(h, 'camera.set', { roomId, camera: { fov: 40 } }, roomId);
+    expect(body.error).toBeUndefined();
+    expect(body.result.fov_h).toBeCloseTo(57.2651, 2);
+  });
+});

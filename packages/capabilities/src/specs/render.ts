@@ -127,6 +127,26 @@ const pickPoint = z.union([
   z.tuple([intIn(0, 4095), intIn(0, 4095)]),
 ]);
 
+const cameraInput = cameraStateSchema
+  .partial()
+  .extend({
+    lens_mm: z
+      .number()
+      .min(1)
+      .max(1000)
+      .optional()
+      .describe('等效焦距（mm），按 36×24 全画幅换算：fov=2·atan(12/lens_mm)。与 fov 互斥'),
+  })
+  .superRefine((v, ctx) => {
+    if (v.lens_mm != null && v.fov != null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['lens_mm'],
+        message: 'lens_mm 与 fov 互斥，二选一',
+      });
+    }
+  });
+
 export const jobStateSchema = z.enum(['queued', 'running', 'done', 'failed', 'cancelled']);
 
 export const jobKindSchema = z.enum(['export.glb', 'render.sequence']);
@@ -149,10 +169,10 @@ export const jobViewSchema = z.object({
 
 export const renderOps = {
   'camera.set': {
-    title: '设相机：显式参数、自动取景、已存机位或预设',
+    title: '设相机：显式参数（p/target/fov 或 lens_mm）、自动取景、已存机位或预设；输出附 fov_h（水平视野）',
     input: z.object({
       roomId,
-      camera: cameraStateSchema.partial().optional(),
+      camera: cameraInput.optional(),
       frame: frameMode.optional(),
       name: cameraNameSchema.optional(),
       preset: z.enum(['miniature_45']).optional(),
@@ -162,6 +182,11 @@ export const renderOps = {
     }),
     output: revisionOut.extend({
       camera: cameraStateSchema,
+      fov_h: z
+        .number()
+        .finite()
+        .optional()
+        .describe('水平视野（度），按 36mm 传感器宽换算：fov_h=2·atan(18·tan(fov/2)/12)'),
       frame: z
         .object({
           source: z.enum(['bbox', 'ids', 'scene']),
@@ -182,14 +207,15 @@ export const renderOps = {
     errors: ['E_INVALID_PARAMS', 'E_CAMERA_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'camera.save': {
-    title: '保存当前机位，供之后按名字恢复',
+    title: '保存当前机位（camera 可用 lens_mm 描述），供之后按名字恢复',
     input: z.object({
       roomId,
       name: cameraNameSchema,
-      camera: cameraStateSchema.partial().optional(),
+      camera: cameraInput.optional(),
     }),
     output: revisionOut.extend({
       camera: cameraStateSchema,
+      fov_h: z.number().finite().optional(),
       cameras: z.record(cameraNameSchema, cameraStateSchema),
     }),
     scope: 'room' as const,
