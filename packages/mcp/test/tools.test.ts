@@ -378,3 +378,16 @@ describe('legacy 工具的同名包装与忽略字段', () => {
     expect(result.content).toHaveLength(1);
   });
 });
+
+describe('vibe3d_help：全局约定常驻首页', () => {
+  it('不带 tool 时先给 conventions，再列工具索引', async () => {
+    const runtime = new ToolRuntime(fakeStudio().studio, 'r_0000000c');
+    const result = await runtime.call('vibe3d_help', {});
+    const text = (result.content[0] as { text: string }).text;
+    const body = JSON.parse(text) as { conventions: Record<string, string>; tools: unknown[] };
+    expect(body.tools.length).toBeGreaterThan(0);
+    expect(body.conventions.world).toContain('米');
+    expect(body.conventions.fov).toContain('camera.fov');
+    expect(body.conventions.color).toContain('#RRGGBB');
+  });
+});

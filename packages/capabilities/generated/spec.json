@@ -81,6 +81,12 @@
             ],
             "additionalProperties": false
           },
+          "conventions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
           "notes": {
             "type": "array",
             "items": {
@@ -93,6 +99,7 @@
           "protocolVersion",
           "renderer",
           "limits",
+          "conventions",
           "notes"
         ],
         "additionalProperties": false,

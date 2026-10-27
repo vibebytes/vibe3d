@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { DispatchContext } from '../src/context';
 import { dispatch } from '../src/dispatch';
 import { makeHarness } from './helpers/harness';
+import { conventionMap } from '@vibebyte/vibe3d-capabilities';
 
 type Renderer = NonNullable<DispatchContext['renderer']>;
 
@@ -19,6 +20,7 @@ function renderer(overrides: Partial<Renderer> = {}): Renderer {
 interface Status {
   renderer: { name: string; ready: boolean; idPass: boolean };
   limits: { snapshotMaxPixels: number; snapshotTimeoutMs: number; wsPayloadBytes: number };
+  conventions: Record<string, string>;
   notes: string[];
 }
 
@@ -60,5 +62,10 @@ describe('system.status：调用前就能查到的能力与前提', () => {
       snapshotTimeoutMs: 30_000,
       wsPayloadBytes: 16 * 1024 * 1024,
     });
+  });
+
+  it('exposes the global conventions block', async () => {
+    const body = await status(makeHarness().ctx);
+    expect(body.conventions).toEqual(conventionMap());
   });
 });

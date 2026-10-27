@@ -17,6 +17,7 @@ export const systemOps = {
         snapshotTimeoutMs: z.number().int().min(0),
         wsPayloadBytes: z.number().int().min(0),
       }),
+      conventions: z.record(z.string()),
       notes: z.array(z.string()),
     }),
     scope: 'daemon' as const,

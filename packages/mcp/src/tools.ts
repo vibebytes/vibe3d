@@ -5,6 +5,7 @@ import {
   MCP_LEGACY_ALIASES,
   MCP_TOOLS,
   type McpToolDoc,
+  conventionMap,
   describeCapability,
   describeIssues,
   mergedFieldDocs,
@@ -244,7 +245,7 @@ function helpText(rawArgs: unknown): string {
   const raw = (rawArgs ?? {}) as { tool?: unknown; op?: unknown };
   const index = MCP_TOOLS.map((tool) => ({ tool: tool.name, ops: tool.ops.map((o) => o.op) }));
   if (typeof raw.tool !== 'string' || !raw.tool) {
-    return JSON.stringify({ tools: index, hint: '传 {tool, op} 查单个 op 的参数契约' });
+    return JSON.stringify({ conventions: conventionMap(), tools: index, hint: '传 {tool, op} 查单个 op 的参数契约' });
   }
   const tool = toolByName(raw.tool);
   if (!tool) {
