@@ -603,12 +603,16 @@ export const sceneOps = {
         .max(60)
         .optional()
         .describe(`语义预设，推荐：${materialPresetSchema.options.join(' | ')}；可选，缺省为浅灰 concrete`),
-      params: materialSchema.partial().optional(),
+      params: materialSchema
+        .partial()
+        .optional()
+        .describe('显式参数，覆盖顺序 params > preset 默认值；响应 material 字段回读最终参数'),
     }),
     output: revisionOut.extend({
       materialId: materialIdSchema,
       preset: materialPresetSchema.optional(),
       presetNote: z.string().optional(),
+      material: materialSchema.optional(),
     }),
     scope: 'room' as const,
     mutating: true,
@@ -620,7 +624,7 @@ export const sceneOps = {
     title:
       '局部更新材质字段：baseColor / metalness / roughness / emissive / emissiveIntensity / opacity / doubleSided / map；color 是 baseColor 的别名',
     input: z.object({ roomId, materialId: materialIdSchema, patch: materialPatchSchema }),
-    output: revisionOut.extend({ materialId: materialIdSchema }),
+    output: revisionOut.extend({ materialId: materialIdSchema, material: materialSchema.optional() }),
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.apply' as const,
@@ -637,7 +641,7 @@ export const sceneOps = {
       offset: mapTransformSchema.shape.offset,
       rotation: mapTransformSchema.shape.rotation,
     }),
-    output: revisionOut.extend({ materialId: materialIdSchema }),
+    output: revisionOut.extend({ materialId: materialIdSchema, material: materialSchema.optional() }),
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.apply' as const,

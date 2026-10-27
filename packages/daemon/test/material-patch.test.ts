@@ -4,6 +4,47 @@ import { type Harness, call, makeHarness } from './helpers/harness';
 const codeOf = (body: any): string => body?.error?.data?.code ?? body?.error?.code;
 const SHA = 'a'.repeat(64);
 
+describe('material.create', () => {
+  async function bareRoom(h: Harness): Promise<string> {
+    const { body } = await call(h, 'room.create', { name: '材质' });
+    return body.result.roomId;
+  }
+
+  it('lets params override the preset defaults and reads the final material back', async () => {
+    const h = makeHarness();
+    const roomId = await bareRoom(h);
+    const { body } = await call(
+      h,
+      'material.create',
+      { roomId, preset: 'concrete', params: { roughness: 0.9 } },
+      roomId,
+    );
+    expect(body.error).toBeUndefined();
+    expect(body.result.preset).toBe('concrete');
+    expect(body.result.material.roughness).toBe(0.9);
+    expect(body.result.material.baseColor).toBeDefined();
+  });
+
+  it('normalizes an alias preset and reports the resolution note', async () => {
+    const h = makeHarness();
+    const roomId = await bareRoom(h);
+    const { body } = await call(h, 'material.create', { roomId, preset: 'matte-white' }, roomId);
+    expect(body.error).toBeUndefined();
+    expect(body.result.preset).toBe('concrete');
+    expect(body.result.presetNote).toContain('concrete');
+    expect(body.result.material).toBeDefined();
+  });
+
+  it('falls back to concrete with a warning for unrecognizable presets', async () => {
+    const h = makeHarness();
+    const roomId = await bareRoom(h);
+    const { body } = await call(h, 'material.create', { roomId, preset: 'zzz-unknown' }, roomId);
+    expect(body.error).toBeUndefined();
+    expect(body.result.preset).toBe('concrete');
+    expect(body.result.presetNote).toContain('zzz-unknown');
+  });
+});
+
 async function roomWithBox(h: Harness): Promise<{ roomId: string; nodeId: string; materialId: string }> {
   const { body } = await call(h, 'room.create', { name: '材质' });
   const roomId = body.result.roomId;
@@ -56,6 +97,7 @@ describe('material.patch', () => {
       roomId,
     );
     expect(body.error).toBeUndefined();
+    expect(body.result.material.roughness).toBe(0.2);
 
     const after = (await call(h, 'scene.get', { roomId }, roomId)).body.result.doc.materials[materialId];
     expect(after.roughness).toBe(0.2);
@@ -101,6 +143,7 @@ describe('material.map', () => {
       roomId,
     );
     expect(body.error).toBeUndefined();
+    expect(body.result.material.map).toEqual({ sha: SHA, tiling: [4, 4], offset: [0, 0], rotation: 0 });
 
     const after = (await call(h, 'scene.get', { roomId }, roomId)).body.result.doc.materials[materialId];
     expect(after.map).toEqual({ sha: SHA, tiling: [4, 4], offset: [0, 0], rotation: 0 });

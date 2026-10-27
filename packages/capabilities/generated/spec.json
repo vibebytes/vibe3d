@@ -23544,7 +23544,8 @@
                 ]
               }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "description": "显式参数，覆盖顺序 params > preset 默认值；响应 material 字段回读最终参数"
           }
         },
         "required": [
@@ -23579,6 +23580,196 @@
           },
           "presetNote": {
             "type": "string"
+          },
+          "material": {
+            "type": "object",
+            "properties": {
+              "baseColor": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": [
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                ]
+              },
+              "metalness": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "roughness": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "emissive": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                ]
+              },
+              "emissiveIntensity": {
+                "type": "number",
+                "minimum": 0
+              },
+              "opacity": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "doubleSided": {
+                "type": "boolean"
+              },
+              "map": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "sha": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      },
+                      "tiling": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": [
+                          {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        ]
+                      },
+                      "offset": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "rotation": {
+                        "type": "number",
+                        "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
+                      },
+                      "channel": {
+                        "type": "number",
+                        "enum": [
+                          0,
+                          1
+                        ]
+                      },
+                      "uv": {
+                        "type": "object",
+                        "properties": {
+                          "offset": {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "repeat": {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "items": [
+                              {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              }
+                            ]
+                          },
+                          "rotation": {
+                            "type": "number"
+                          },
+                          "channel": {
+                            "type": "number",
+                            "enum": [
+                              0,
+                              1
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "sha"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "baseColor",
+              "metalness",
+              "roughness",
+              "emissive",
+              "emissiveIntensity",
+              "opacity",
+              "doubleSided"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -23850,6 +24041,196 @@
           "materialId": {
             "type": "string",
             "pattern": "^m_[a-z0-9]{8}$"
+          },
+          "material": {
+            "type": "object",
+            "properties": {
+              "baseColor": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": [
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                ]
+              },
+              "metalness": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "roughness": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "emissive": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                ]
+              },
+              "emissiveIntensity": {
+                "type": "number",
+                "minimum": 0
+              },
+              "opacity": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "doubleSided": {
+                "type": "boolean"
+              },
+              "map": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "sha": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      },
+                      "tiling": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": [
+                          {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        ]
+                      },
+                      "offset": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "rotation": {
+                        "type": "number",
+                        "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
+                      },
+                      "channel": {
+                        "type": "number",
+                        "enum": [
+                          0,
+                          1
+                        ]
+                      },
+                      "uv": {
+                        "type": "object",
+                        "properties": {
+                          "offset": {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "repeat": {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "items": [
+                              {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              }
+                            ]
+                          },
+                          "rotation": {
+                            "type": "number"
+                          },
+                          "channel": {
+                            "type": "number",
+                            "enum": [
+                              0,
+                              1
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "sha"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "baseColor",
+              "metalness",
+              "roughness",
+              "emissive",
+              "emissiveIntensity",
+              "opacity",
+              "doubleSided"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -23948,6 +24329,196 @@
           "materialId": {
             "type": "string",
             "pattern": "^m_[a-z0-9]{8}$"
+          },
+          "material": {
+            "type": "object",
+            "properties": {
+              "baseColor": {
+                "type": "array",
+                "minItems": 4,
+                "maxItems": 4,
+                "items": [
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                ]
+              },
+              "metalness": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "roughness": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "emissive": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                ]
+              },
+              "emissiveIntensity": {
+                "type": "number",
+                "minimum": 0
+              },
+              "opacity": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "doubleSided": {
+                "type": "boolean"
+              },
+              "map": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "sha": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                      },
+                      "tiling": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": [
+                          {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          },
+                          {
+                            "type": "number",
+                            "exclusiveMinimum": 0
+                          }
+                        ]
+                      },
+                      "offset": {
+                        "type": "array",
+                        "minItems": 2,
+                        "maxItems": 2,
+                        "items": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "number"
+                          }
+                        ]
+                      },
+                      "rotation": {
+                        "type": "number",
+                        "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
+                      },
+                      "channel": {
+                        "type": "number",
+                        "enum": [
+                          0,
+                          1
+                        ]
+                      },
+                      "uv": {
+                        "type": "object",
+                        "properties": {
+                          "offset": {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "items": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          },
+                          "repeat": {
+                            "type": "array",
+                            "minItems": 2,
+                            "maxItems": 2,
+                            "items": [
+                              {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              },
+                              {
+                                "type": "number",
+                                "exclusiveMinimum": 0
+                              }
+                            ]
+                          },
+                          "rotation": {
+                            "type": "number"
+                          },
+                          "channel": {
+                            "type": "number",
+                            "enum": [
+                              0,
+                              1
+                            ]
+                          }
+                        },
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "sha"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "baseColor",
+              "metalness",
+              "roughness",
+              "emissive",
+              "emissiveIntensity",
+              "opacity",
+              "doubleSided"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [

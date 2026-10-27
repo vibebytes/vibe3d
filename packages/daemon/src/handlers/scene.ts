@@ -716,11 +716,13 @@ export const sceneHandlers: HandlersFor<Keys> = {
         { op: 'material.create', id: materialId, preset: resolved.preset, params: resolved.params },
       ]),
     );
+    const final = room.doc.materials[materialId];
     return {
       revision: result.revision,
       materialId,
       preset: resolved.preset,
       ...(resolved.note ? { presetNote: resolved.note } : {}),
+      ...(final ? { material: { ...final } } : {}),
     };
   },
 
@@ -732,7 +734,12 @@ export const sceneHandlers: HandlersFor<Keys> = {
     const result = await room.run(() =>
       room.apply([{ op: 'material.patch', id: p.materialId, patch: p.patch }]),
     );
-    return { revision: result.revision, materialId: p.materialId };
+    const final = room.doc.materials[p.materialId];
+    return {
+      revision: result.revision,
+      materialId: p.materialId,
+      ...(final ? { material: { ...final } } : {}),
+    };
   },
 
   'material.map': async (p, ctx) => {
@@ -742,7 +749,12 @@ export const sceneHandlers: HandlersFor<Keys> = {
     }
     const { roomId: _roomId, materialId, ...map } = p;
     const result = await room.run(() => room.apply([{ op: 'material.map', id: materialId, map }]));
-    return { revision: result.revision, materialId };
+    const final = room.doc.materials[materialId];
+    return {
+      revision: result.revision,
+      materialId,
+      ...(final ? { material: { ...final } } : {}),
+    };
   },
 
   'camera.set': async (p, ctx) => {
