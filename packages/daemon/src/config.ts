@@ -1,4 +1,3 @@
-import { randomBytes } from 'node:crypto';
 import { homedir, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { z } from 'zod';
@@ -13,7 +12,7 @@ export const configSchema = z.object({
   maxRooms: z.coerce.number().int().min(1).max(1024).default(32),
   rateLimit: z.coerce.number().min(0).max(100_000).default(200),
   rateBurst: z.coerce.number().int().min(1).max(100_000).default(200),
-  token: z.string().min(8),
+  token: z.string().min(8).optional(),
   assetRoots: z.preprocess(
     (v) =>
       typeof v === 'string'
@@ -88,7 +87,7 @@ export function parseConfig(argv: string[], env: NodeJS.ProcessEnv = process.env
     maxRooms: flags['max-rooms'] ?? env.VIBE3D_MAX_ROOMS,
     rateLimit: flags['rate-limit'] ?? env.VIBE3D_RATE_LIMIT,
     rateBurst: flags['rate-burst'] ?? env.VIBE3D_RATE_BURST,
-    token: flags.token ?? env.VIBE3D_TOKEN ?? randomBytes(32).toString('hex'),
+    token: flags.token ?? env.VIBE3D_TOKEN,
     assetRoots: rootArgs.length > 0 ? rootArgs : env.VIBE3D_ASSET_ROOTS,
     renderer: flags.renderer ?? env.VIBE3D_RENDERER,
     jobConcurrency: flags['job-concurrency'] ?? env.VIBE3D_JOB_CONCURRENCY,

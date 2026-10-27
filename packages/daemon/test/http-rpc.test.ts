@@ -211,7 +211,7 @@ describe('http: 资产与导出', () => {
     const file = `${jobId}.glb`;
     writeFileSync(join(h.dirs.exports, file), Buffer.from('glTF'));
     const sign = (exp: number): string =>
-      createHmac('sha256', h.token).update(`${jobId}:${exp}`).digest('hex').slice(0, 32);
+      createHmac('sha256', h.token as string).update(`${jobId}:${exp}`).digest('hex').slice(0, 32);
 
     const exp = Date.now() + 60_000;
     const ok = await h.app.request(`/exports/${file}?exp=${exp}&sig=${sign(exp)}`, {
@@ -240,7 +240,7 @@ describe('http: 资产与导出', () => {
 
     const signed = `${'a'.repeat(32)}.glb`;
     const signedExp = Date.now() + 60_000;
-    const signedSig = createHmac('sha256', h.token)
+    const signedSig = createHmac('sha256', h.token as string)
       .update(`${'a'.repeat(32)}:${signedExp}`)
       .digest('hex')
       .slice(0, 32);

@@ -14,7 +14,7 @@ export interface RunRecord {
   host: string;
   home: string;
   mode: string;
-  token: string;
+  token?: string;
   version: string;
   startedAt: string;
   file: string;
@@ -53,7 +53,7 @@ export function listRuns(home = defaultHome()): RunRecord[] {
     const file = join(dir, entry);
     try {
       const raw = JSON.parse(readFileSync(file, 'utf8')) as Omit<RunRecord, 'file'>;
-      if (typeof raw.port === 'number' && typeof raw.token === 'string') {
+      if (typeof raw.port === 'number') {
         if (!alive(raw.pid)) {
           try {
             unlinkSync(file);
@@ -156,7 +156,6 @@ export async function probeRemoteHome(url: string, budgetMs = 1500): Promise<str
 export async function connect(opts: ConnectOptions = {}): Promise<RunRecord & { client: RpcClient }> {
   if (opts.url) {
     const token = opts.token ?? process.env.VIBE3D_TOKEN;
-    if (!token) throw new Vibe3DError('E_UNAUTHORIZED', '指定 url 时必须同时提供 token');
     const run: RunRecord = {
       pid: 0,
       port: Number(new URL(opts.url).port || 80),

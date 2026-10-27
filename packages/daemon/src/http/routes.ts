@@ -22,7 +22,7 @@ import type { WsHub } from '../ws/hub';
 
 export interface RouteDeps {
   ctx: DispatchContext;
-  token: string;
+  token: string | undefined;
   home: string;
   blobs: BlobStore;
   logger: Logger;
@@ -259,7 +259,7 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
     if (!EXPORT_FILE_RE.test(file)) throw new AppError('E_JOB_NOT_FOUND', '非法导出文件名');
     const exp = Number(c.req.query('exp') ?? 0);
     const sig = c.req.query('sig') ?? '';
-    if (!verifyExportSig(token, file, exp, sig) || exp < Date.now()) {
+    if (token && (!verifyExportSig(token, file, exp, sig) || exp < Date.now())) {
       throw new AppError('E_UNAUTHORIZED', '导出链接无效或已过期');
     }
     const path = join(deps.exportsDir, file);
@@ -279,7 +279,7 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
 
   const withTokenCookie = (c: Context, res: Response): Response => {
     const query = c.req.query('t');
-    if (query && tokenMatches(token, query)) {
+    if (token && query && tokenMatches(token, query)) {
       res.headers.append(
         'set-cookie',
         `${TOKEN_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400`,

@@ -31,11 +31,17 @@ export interface Harness {
   blobs: BlobStore;
   logger: Logger;
   app: ReturnType<typeof createApp>;
-  token: string;
+  token: string | undefined;
 }
 
 export function makeHarness(
-  opts: { maxRooms?: number; persist?: boolean; hub?: WsHub; mcpSchemaFile?: string } = {},
+  opts: {
+    maxRooms?: number;
+    persist?: boolean;
+    hub?: WsHub;
+    mcpSchemaFile?: string;
+    token?: string | null;
+  } = {},
 ): Harness {
   const root = mkdtempSync(join(tmpdir(), 'v3d-cov-'));
   const dirs = {
@@ -50,8 +56,9 @@ export function makeHarness(
   mkdirSync(join(dirs.editor, 'vendor', 'draco'), { recursive: true });
   writeFileSync(join(dirs.editor, 'vendor', 'draco', 'decoder.js'), 'export {}');
 
-  const token = 'test-token-0123456789';
-  const config = parseConfig(['--token', token, '--renderer', 'none', '--home', root], {});
+  const token = opts.token === null ? undefined : opts.token ?? 'test-token-0123456789';
+  const args = ['--renderer', 'none', '--home', root];
+  const config = parseConfig(token ? ['--token', token, ...args] : args, {});
   const logger = silentLogger();
   const blobs = new BlobStore(dirs.blobs);
   const { ingest, inspect } = createIngest({ blobs });

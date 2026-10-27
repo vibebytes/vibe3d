@@ -7,7 +7,7 @@ const KNOWN_CAPABILITIES = new Set<string>(CAPABILITY_NAMES);
 
 export interface RpcEndpoint {
   url: string;
-  token: string;
+  token?: string;
 }
 
 export interface CallOptions {
@@ -47,7 +47,7 @@ interface Reply {
 
 export class RpcClient implements Transport {
   readonly url: string;
-  readonly token: string;
+  readonly token: string | undefined;
   private seq = 0;
   private caps: Promise<{ version: string; capabilities: string[] }> | undefined;
 
@@ -120,7 +120,10 @@ export class RpcClient implements Transport {
     try {
       res = await fetch(target, {
         method: 'POST',
-        headers: { 'content-type': 'application/json', authorization: `Bearer ${this.token}` },
+        headers: {
+          'content-type': 'application/json',
+          ...(this.token ? { authorization: `Bearer ${this.token}` } : {}),
+        },
         body: JSON.stringify(body),
         signal: controller.signal,
       });
@@ -168,7 +171,7 @@ export class RpcClient implements Transport {
     form.set('file', blob, name);
     const res = await fetch(`${this.url}/r/${roomId}/assets`, {
       method: 'POST',
-      headers: { authorization: `Bearer ${this.token}` },
+      headers: this.token ? { authorization: `Bearer ${this.token}` } : {},
       body: form,
     });
     const payload = (await res.json().catch(() => null)) as {

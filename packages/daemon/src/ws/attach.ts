@@ -12,7 +12,7 @@ import { decodeClientFrame, encodeFrame } from './protocol';
 export interface WsDeps {
   server: Server;
   ctx: DispatchContext;
-  token: string;
+  token: string | undefined;
   hub: WsHub;
   logger: Logger;
   maxPayloadBytes?: number;

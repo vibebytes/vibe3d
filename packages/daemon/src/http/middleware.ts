@@ -41,7 +41,8 @@ export function bodyLimit(maxBytes: number): MiddlewareHandler {
   };
 }
 
-export function tokenMatches(expected: string, actual: string | undefined): boolean {
+export function tokenMatches(expected: string | undefined, actual: string | undefined): boolean {
+  if (!expected) return true;
   if (!actual) return false;
   const a = Buffer.from(expected);
   const b = Buffer.from(actual);
@@ -54,7 +55,8 @@ export function bearerOf(header: string | undefined): string | undefined {
   return scheme?.toLowerCase() === 'bearer' ? value : undefined;
 }
 
-export function requireBearer(expected: string): MiddlewareHandler {
+export function requireBearer(expected: string | undefined): MiddlewareHandler {
+  if (!expected) return async (_c, next) => next();
   return async (c, next) => {
     if (!tokenMatches(expected, bearerOf(c.req.header('authorization')))) {
       c.header('www-authenticate', 'Bearer realm="vibe3d"');
@@ -65,9 +67,10 @@ export function requireBearer(expected: string): MiddlewareHandler {
 }
 
 export function requireSurfaceToken(
-  expected: string,
+  expected: string | undefined,
   opts: { allowQuery?: boolean; logger?: Logger } = {},
 ): MiddlewareHandler {
+  if (!expected) return async (_c, next) => next();
   return async (c, next) => {
     const cookie = getCookie(c, TOKEN_COOKIE);
     const query = opts.allowQuery ? c.req.query('t') : undefined;

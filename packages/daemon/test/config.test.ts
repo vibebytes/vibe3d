@@ -40,3 +40,17 @@ describe('parseConfig', () => {
     expect(() => parseConfig([...base, '--gc-max-age=0'], {})).toThrow(/配置非法/);
   });
 });
+
+describe('parseConfig：token 可选（默认无鉴权）', () => {
+  it('不提供 token 时为 undefined（鉴权关闭）', () => {
+    expect(parseConfig([], {}).token).toBeUndefined();
+  });
+
+  it('显式 --token 仍然生效', () => {
+    expect(parseConfig(['--token', 'abcd1234'], {}).token).toBe('abcd1234');
+  });
+
+  it('VIBE3D_TOKEN 仍然生效', () => {
+    expect(parseConfig([], { VIBE3D_TOKEN: 'abcd1234' }).token).toBe('abcd1234');
+  });
+});

@@ -198,7 +198,7 @@ async function main(): Promise<void> {
         mode: config.persist ? 'persist' : 'ephemeral',
         rooms: rooms.size,
         renderer: ctx.renderer?.name ?? 'none',
-        url: `http://${config.host}:${port}/?t=${config.token}`,
+        url: `http://${config.host}:${port}/${config.token ? `?t=${config.token}` : ''}`,
       });
       ready(port);
     };

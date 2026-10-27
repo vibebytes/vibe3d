@@ -22,17 +22,24 @@ function sigOf(token: string, key: string, exp: number): string {
 }
 
 export function signExportUrl(
-  token: string,
+  token: string | undefined,
   file: string,
   ttlMs = EXPORT_LINK_TTL_MS,
   now: () => number = Date.now,
 ): string {
+  if (!token) return `/exports/${file}`;
   const exp = now() + ttlMs;
   const sig = sigOf(token, exportKey(file), exp);
   return `/exports/${file}?exp=${exp}&sig=${sig}`;
 }
 
-export function verifyExportSig(token: string, file: string, exp: number, sig: string): boolean {
+export function verifyExportSig(
+  token: string | undefined,
+  file: string,
+  exp: number,
+  sig: string,
+): boolean {
+  if (!token) return true;
   if (!Number.isFinite(exp)) return false;
   const want = Buffer.from(sigOf(token, exportKey(file), exp));
   const given = Buffer.from(sig);

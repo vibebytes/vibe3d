@@ -17,7 +17,7 @@ interface PageSession {
 }
 
 export interface ChromiumOptions {
-  token: string;
+  token: string | undefined;
   baseUrl: () => string;
   exportsDir: string;
   chromePath?: string;
@@ -343,7 +343,7 @@ export class ChromiumRenderer implements Renderer {
     await cdp.send('Log.enable', {}, sessionId).catch(() => undefined);
     this.watchPage(cdp, sessionId);
     const page: PageSession = { targetId, sessionId, roomId };
-    const url = `${this.opts.baseUrl()}/editor/r/${roomId}?headless=1&t=${encodeURIComponent(this.opts.token)}`;
+    const url = `${this.opts.baseUrl()}/editor/r/${roomId}?headless=1${this.opts.token ? `&t=${encodeURIComponent(this.opts.token)}` : ''}`;
     await cdp.send('Page.navigate', { url }, sessionId, this.opts.navigateTimeoutMs ?? 20_000);
     this.pages.push(page);
     return page;

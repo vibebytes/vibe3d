@@ -106,6 +106,8 @@ describe('ToolRuntime 真实调用链', () => {
     const runtime = new ToolRuntime(rejectClient('E_INVALID_PARAMS'));
     const result = await runtime.call('vibe3d_status', {});
     expect(result.isError).toBe(true);
-    expect(JSON.parse(String(result.content?.[0]?.text)).code).toBe('E_INVALID_PARAMS');
+    expect(JSON.parse(String((result.content?.[0] as { text?: string } | undefined)?.text)).code).toBe(
+      'E_INVALID_PARAMS',
+    );
   });
 });

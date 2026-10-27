@@ -172,7 +172,7 @@ describe('createRenderer', () => {
 describe('ChromiumRenderer', () => {
   const make = (h: ReturnType<typeof makeHarness>) =>
     createRenderer({
-      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      config: parseConfig(['--token', h.token!, '--renderer', 'chromium', '--home', h.root], {}),
       hub: { count: () => 0 } as unknown as WsHub,
       logger: h.logger,
       baseUrl: () => 'http://127.0.0.1:1',
@@ -185,7 +185,7 @@ describe('ChromiumRenderer', () => {
     state.evalQueue = [];
     const h = makeHarness();
     const r = createRenderer({
-      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      config: parseConfig(['--token', h.token!, '--renderer', 'chromium', '--home', h.root], {}),
       hub: { count: () => 0 } as unknown as WsHub,
       logger: h.logger,
       baseUrl: () => 'http://127.0.0.1:1',
@@ -213,7 +213,7 @@ describe('ChromiumRenderer', () => {
     state.evalQueue = [];
     const h = makeHarness();
     const r = createRenderer({
-      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      config: parseConfig(['--token', h.token!, '--renderer', 'chromium', '--home', h.root], {}),
       hub: { count: () => 0 } as unknown as WsHub,
       logger: h.logger,
       baseUrl: () => 'http://127.0.0.1:1',
@@ -260,7 +260,7 @@ describe('ChromiumRenderer', () => {
     state.launches = 0;
     const h = makeHarness();
     const r = createRenderer({
-      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      config: parseConfig(['--token', h.token!, '--renderer', 'chromium', '--home', h.root], {}),
       hub: { count: () => 0 } as unknown as WsHub,
       logger: h.logger,
       baseUrl: () => 'http://127.0.0.1:1',
@@ -289,7 +289,7 @@ describe('ChromiumRenderer', () => {
     state.stallFirstPage = true;
     const h = makeHarness();
     const r = createRenderer({
-      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      config: parseConfig(['--token', h.token!, '--renderer', 'chromium', '--home', h.root], {}),
       hub: { count: () => 0 } as unknown as WsHub,
       logger: h.logger,
       baseUrl: () => 'http://127.0.0.1:1',
@@ -312,7 +312,7 @@ describe('ChromiumRenderer', () => {
     state.navigations = 0;
     const h = makeHarness();
     const r = createRenderer({
-      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      config: parseConfig(['--token', h.token!, '--renderer', 'chromium', '--home', h.root], {}),
       hub: { count: () => 0 } as unknown as WsHub,
       logger: h.logger,
       baseUrl: () => 'http://127.0.0.1:1',
@@ -333,7 +333,7 @@ describe('ChromiumRenderer', () => {
     state.navigations = 0;
     const h = makeHarness();
     const r = createRenderer({
-      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      config: parseConfig(['--token', h.token!, '--renderer', 'chromium', '--home', h.root], {}),
       hub: { count: () => 0 } as unknown as WsHub,
       logger: h.logger,
       baseUrl: () => 'http://127.0.0.1:1',
@@ -356,7 +356,7 @@ describe('ChromiumRenderer', () => {
     state.closedTargets = [];
     const h = makeHarness();
     const r = createRenderer({
-      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      config: parseConfig(['--token', h.token!, '--renderer', 'chromium', '--home', h.root], {}),
       hub: { count: () => 0 } as unknown as WsHub,
       logger: h.logger,
       baseUrl: () => 'http://127.0.0.1:1',
@@ -377,7 +377,7 @@ describe('ChromiumRenderer', () => {
     state.navigations = 0;
     const h = makeHarness();
     const r = createRenderer({
-      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      config: parseConfig(['--token', h.token!, '--renderer', 'chromium', '--home', h.root], {}),
       hub: { count: () => 0 } as unknown as WsHub,
       logger: h.logger,
       baseUrl: () => 'http://127.0.0.1:1',
@@ -397,7 +397,7 @@ describe('ChromiumRenderer', () => {
     state.navigations = 0;
     const h = makeHarness();
     const r = createRenderer({
-      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      config: parseConfig(['--token', h.token!, '--renderer', 'chromium', '--home', h.root], {}),
       hub: { count: () => 0 } as unknown as WsHub,
       logger: h.logger,
       baseUrl: () => 'http://127.0.0.1:1',
@@ -421,7 +421,7 @@ describe('ChromiumRenderer', () => {
     ];
     const h = makeHarness();
     const r = createRenderer({
-      config: parseConfig(['--token', h.token, '--renderer', 'chromium', '--home', h.root], {}),
+      config: parseConfig(['--token', h.token!, '--renderer', 'chromium', '--home', h.root], {}),
       hub: { count: () => 0 } as unknown as WsHub,
       logger: h.logger,
       baseUrl: () => 'http://127.0.0.1:1',
@@ -441,7 +441,7 @@ describe('AutoRenderer', () => {
   it('prefers a live editor, falls back to chromium, and delegates export', async () => {
     state.shot = png(5, 5);
     const h = makeHarness();
-    const settings = parseConfig(['--token', h.token, '--renderer', 'auto', '--home', h.root], {});
+    const settings = parseConfig(['--token', h.token!, '--renderer', 'auto', '--home', h.root], {});
     const logger = { ...silentLogger(), warn: vi.fn() };
     const auto = createRenderer({
       config: settings,

@@ -36,7 +36,8 @@ export async function subscribeRoom(
   const mod = (await import('ws')) as unknown as { WebSocket?: WsCtor; default?: WsCtor };
   const Ctor = mod.WebSocket ?? mod.default;
   if (!Ctor) throw new Error('ws 模块不可用');
-  const url = `ws://${endpoint.host}:${endpoint.port}/r/${roomId}/ws?t=${encodeURIComponent(endpoint.token)}`;
+  const query = endpoint.token ? `?t=${encodeURIComponent(endpoint.token)}` : '';
+  const url = `ws://${endpoint.host}:${endpoint.port}/r/${roomId}/ws${query}`;
   const socket = new Ctor(url);
 
   socket.on('message', ((raw: unknown) => {
