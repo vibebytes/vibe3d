@@ -23,7 +23,7 @@ async function roomId(): Promise<{ ctx: DispatchContext; id: string }> {
 }
 
 const idPass = (ctx: DispatchContext, id: string): Promise<unknown> =>
-  renderHandlers['render.id-pass']({ roomId: id, width: 320, height: 240 }, ctx);
+  renderHandlers['render.id-pass']({ roomId: id, framing: 'camera', width: 320, height: 240 }, ctx);
 
 describe('能力类错误的出路', () => {
   it('tells the agent how to get id-pass when the renderer cannot do it', async () => {

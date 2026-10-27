@@ -393,6 +393,7 @@ export function CaptureBridge({ roomId, headless = false }: { roomId: string; he
       if (missing.length > 0) {
         throw new Error(`模型尚未加载完成，导出会丢失节点：${missing.join(', ')}`);
       }
+      scene.updateMatrixWorld(true);
       const out = await new GLTFExporter().parseAsync(target, { binary: true, onlyVisible: true });
       if (!(out instanceof ArrayBuffer)) throw new Error('GLTFExporter 未返回二进制数据');
       return toBase64(out);

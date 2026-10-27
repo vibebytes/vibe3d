@@ -37,6 +37,7 @@ export interface ChromiumOptions {
   readyTimeoutMs?: number;
   revisionGraceMs?: number;
   maxPages?: number;
+  idleCloseMs?: number;
 }
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
@@ -52,8 +53,14 @@ export class ChromiumRenderer implements Renderer {
   private lastErrorAt = 0;
   private noSandbox = /^(1|true|yes|on)$/i.test(process.env.VIBE3D_CHROME_NO_SANDBOX ?? '');
 
+  private generation = 0;
+  private inFlight = 0;
+  private lastUsedAt = 0;
+  private idleTimer?: ReturnType<typeof setTimeout>;
+
   constructor(private readonly opts: ChromiumOptions) {
     this.executable = findChrome(opts.chromePath);
+    this.touchIdle();
   }
 
   get ready(): boolean {
@@ -299,21 +306,55 @@ export class ChromiumRenderer implements Renderer {
   }
 
   async close(): Promise<void> {
+    this.generation++;
     const pages = this.pages;
+    const cdp = this.cdp;
+    const chrome = this.chrome;
     this.pages = [];
-    if (this.cdp && !this.cdp.isClosed) {
-      for (const page of pages) {
-        await this.cdp.send('Target.closeTarget', { targetId: page.targetId }).catch(() => undefined);
-      }
-    }
-    this.cdp?.close();
-    await this.chrome?.close();
     this.cdp = undefined;
     this.chrome = undefined;
+    this.booting = undefined;
+    if (cdp && !cdp.isClosed) {
+      for (const page of pages) {
+        await cdp.send('Target.closeTarget', { targetId: page.targetId }).catch(() => undefined);
+      }
+    }
+    cdp?.close();
+    await chrome?.close();
   }
 
   private serial<T>(task: () => Promise<T>, key = ''): Promise<T> {
-    return this.queue.run(task, key);
+    this.inFlight++;
+    this.touchIdle();
+    return this.queue.run(task, key).finally(() => {
+      this.inFlight--;
+      this.touchIdle();
+    });
+  }
+
+  private resolveIdleMs(): number {
+    const raw = this.opts.idleCloseMs ?? Number(process.env.VIBE3D_RENDER_IDLE_MS);
+    if (!Number.isFinite(raw)) return 180_000;
+    return raw > 0 ? raw : 0;
+  }
+
+  private touchIdle(): void {
+    if (this.idleTimer) clearTimeout(this.idleTimer);
+    this.lastUsedAt = Date.now();
+    const idleMs = this.resolveIdleMs();
+    if (idleMs <= 0) return;
+    this.idleTimer = setTimeout(() => {
+      this.idleTimer = undefined;
+      const idle = this.resolveIdleMs();
+      if (idle <= 0) return;
+      if (this.inFlight > 0 || Date.now() - this.lastUsedAt < idle) {
+        this.touchIdle();
+        return;
+      }
+      this.opts.logger.debug({ event: 'renderer.idle_close', idleMs: idle });
+      void this.close();
+    }, idleMs);
+    this.idleTimer.unref();
   }
 
   private async start(): Promise<Cdp> {
@@ -325,8 +366,20 @@ export class ChromiumRenderer implements Renderer {
     if (this.booting) return this.booting;
 
     const boot = async (noSandbox: boolean): Promise<Cdp> => {
-      this.chrome = await launchChrome(this.executable as string, { noSandbox });
-      const cdp = await Cdp.connect(this.chrome.wsUrl);
+      const gen = this.generation;
+      const handle = await launchChrome(this.executable as string, { noSandbox });
+      let cdp: Cdp;
+      try {
+        cdp = await Cdp.connect(handle.wsUrl);
+      } catch (err) {
+        await handle.close();
+        throw err;
+      }
+      if (gen !== this.generation) {
+        await handle.close();
+        throw new AppError('E_RENDER_UNAVAILABLE', '渲染器在启动期间被关闭');
+      }
+      this.chrome = handle;
       this.noSandbox = noSandbox;
       if (noSandbox) void this.rememberNoSandbox();
       this.cdp = cdp;

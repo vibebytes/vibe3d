@@ -390,7 +390,7 @@ export function SceneCanvas({
       <Canvas
         shadows
         dpr={headless ? 1 : [1, 2]}
-        frameloop="always"
+        frameloop={headless ? 'demand' : 'always'}
         camera={{ position: doc.camera.p, fov: doc.camera.fov, near: 0.05, far: 500 }}
         gl={canvasGlOptions({ headless })}
       >

@@ -48,14 +48,17 @@ function waitForPortFile(dir: string, deadline: number): Promise<string> {
   });
 }
 
-export interface LaunchOptions {
+export interface ChromeArgsOptions {
   noSandbox?: boolean;
+  platform?: NodeJS.Platform;
+  forceSwiftShader?: boolean;
 }
 
-export async function launchChrome(executable: string, opts: LaunchOptions = {}): Promise<ChromeHandle> {
-  const userDataDir = await mkdtemp(join(tmpdir(), 'vibe3d-chrome-'));
-  const noSandbox = opts.noSandbox ?? /^(1|true|yes|on)$/i.test(process.env.VIBE3D_CHROME_NO_SANDBOX ?? '');
-  const args = [
+// macOS/Windows 走真实 GPU（headless=new 支持 Metal/D3D），linux 无 GPU 环境强制 SwiftShader
+export function chromeArgs(userDataDir: string, opts: ChromeArgsOptions = {}): string[] {
+  const platform = opts.platform ?? process.platform;
+  const forceSwift = opts.forceSwiftShader ?? /^(1|true|yes|on)$/i.test(process.env.VIBE3D_CHROME_SWIFT ?? '');
+  return [
     '--headless=new',
     '--remote-debugging-port=0',
     `--user-data-dir=${userDataDir}`,
@@ -69,11 +72,21 @@ export async function launchChrome(executable: string, opts: LaunchOptions = {})
     '--hide-scrollbars',
     '--mute-audio',
     '--enable-unsafe-swiftshader',
-    '--use-angle=swiftshader',
+    ...(forceSwift || platform === 'linux' ? ['--use-angle=swiftshader'] : []),
     '--window-size=1280,720',
-    ...(noSandbox ? ['--no-sandbox', '--disable-gpu-sandbox'] : []),
+    ...(opts.noSandbox ? ['--no-sandbox', '--disable-gpu-sandbox'] : []),
     'about:blank',
   ];
+}
+
+export interface LaunchOptions {
+  noSandbox?: boolean;
+}
+
+export async function launchChrome(executable: string, opts: LaunchOptions = {}): Promise<ChromeHandle> {
+  const userDataDir = await mkdtemp(join(tmpdir(), 'vibe3d-chrome-'));
+  const noSandbox = opts.noSandbox ?? /^(1|true|yes|on)$/i.test(process.env.VIBE3D_CHROME_NO_SANDBOX ?? '');
+  const args = chromeArgs(userDataDir, { noSandbox });
   const child: ChildProcess = spawn(executable, args, {
     stdio: ['ignore', 'ignore', 'ignore'],
     detached: true,

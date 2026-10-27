@@ -127,6 +127,7 @@ export interface RendererDeps {
   exportsDir: string;
   readyTimeoutMs?: number;
   maxPages?: number;
+  idleCloseMs?: number;
 }
 
 export function createRenderer(deps: RendererDeps): Renderer | undefined {
@@ -143,6 +144,7 @@ export function createRenderer(deps: RendererDeps): Renderer | undefined {
     readyTimeoutMs: deps.readyTimeoutMs ?? (Number(process.env.VIBE3D_READY_TIMEOUT_MS) || 20_000),
     maxPages: deps.maxPages ?? (Number(process.env.VIBE3D_RENDER_PAGES) || 6),
     revisionGraceMs: Number(process.env.VIBE3D_REVISION_GRACE_MS) || undefined,
+    idleCloseMs: deps.idleCloseMs,
   });
   if (config.renderer === 'chromium') return chromium;
 

@@ -186,6 +186,25 @@ describe('ChromiumRenderer', () => {
       exportsDir: h.dirs.exports,
     })!;
 
+  it('closes chrome after idle and relaunches on next use', async () => {
+    state.executable = '/fake/chrome';
+    const h = makeHarness();
+    const r = createRenderer({
+      config: parseConfig(['--token', h.token!, '--renderer', 'chromium', '--home', h.root], {}),
+      hub: { count: () => 0 } as unknown as WsHub,
+      logger: h.logger,
+      baseUrl: () => 'http://127.0.0.1:1',
+      exportsDir: h.dirs.exports,
+      idleCloseMs: 30,
+    })!;
+    await r.snapshot(input, { settleMs: 0 });
+    expect(state.launches).toBe(1);
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    expect(state.closes).toBeGreaterThanOrEqual(1);
+    await r.snapshot(input, { settleMs: 0 });
+    expect(state.launches).toBe(2);
+  }, 10_000);
+
   it('captures screenshots and exports signed GLB jobs', async () => {
     state.executable = '/fake/chrome';
     state.shot = png(10, 20);
