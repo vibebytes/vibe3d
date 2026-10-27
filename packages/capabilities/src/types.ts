@@ -26,6 +26,8 @@ export const WIRE_METHODS = [
   'camera.set',
   'camera.save',
   'camera.delete',
+  'camera.project',
+  'camera.unproject',
   'render.snapshot',
   'render.views',
   'render.node',

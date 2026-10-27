@@ -58,6 +58,19 @@ declare global {
     __vibe3dRevision?: number;
     __vibe3dExport?: (nodeIds?: string[] | null) => Promise<string>;
     __vibe3dIdPass?: (opts: IdPassOptions) => IdPassResult;
+    __vibe3dProject?: (opts: {
+      camera: CameraState;
+      width: number;
+      height: number;
+      points: Array<[number, number, number]>;
+    }) => { points: Array<{ px: [number, number]; depth: number; in_view: boolean }> } | null;
+    __vibe3dUnproject?: (opts: {
+      camera: CameraState;
+      width: number;
+      height: number;
+      points: Array<[number, number]>;
+      depth: number[];
+    }) => { points: Array<{ p: [number, number, number]; in_view: boolean }> } | null;
     vibe3d?: {
       roomId: string;
       select(id: string | null): void;

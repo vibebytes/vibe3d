@@ -374,11 +374,13 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
   },
   {
     name: "vibe3d_camera",
-    title: "机位：设置 / 保存命名机位 / 删除",
+    title: "机位：设置 / 保存命名机位 / 删除 / 像素投影与反投影",
     ops: [
       { op: "set", capability: "camera.set", title: "设相机：显式参数、自动取景、已存机位或预设" },
       { op: "save", capability: "camera.save", title: "保存当前机位，供之后按名字恢复" },
       { op: "delete", capability: "camera.delete", title: "删除已存机位" },
+      { op: "project", capability: "camera.project", title: "世界坐标 →像素坐标（同一渲染相机口径，无需截图标定）" },
+      { op: "unproject", capability: "camera.unproject", title: "像素坐标 + 深度 →世界坐标；depth 缺省用相机到 target 的距离" },
     ],
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
@@ -390,13 +392,15 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
           "enum": [
             "set",
             "save",
-            "delete"
+            "delete",
+            "project",
+            "unproject"
           ],
           "description": "camera 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
-          "description": "必填字段：save{name} delete{name}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "必填字段：save{name} delete{name} project{points} unproject{points}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         }
       },
       "required": [
@@ -6916,6 +6920,8 @@ export const MCP_LEGACY_ALIASES: Readonly<Record<string, { tool: string; op: str
   "vibe3d_set_camera": { tool: "vibe3d_camera", op: "set" },
   "vibe3d_save_camera": { tool: "vibe3d_camera", op: "save" },
   "vibe3d_delete_camera": { tool: "vibe3d_camera", op: "delete" },
+  "vibe3d_camera_project": { tool: "vibe3d_camera", op: "project" },
+  "vibe3d_camera_unproject": { tool: "vibe3d_camera", op: "unproject" },
   "vibe3d_render_snapshot": { tool: "vibe3d_render", op: "snapshot" },
   "vibe3d_render_views": { tool: "vibe3d_render", op: "views" },
   "vibe3d_render_node": { tool: "vibe3d_render", op: "node" },

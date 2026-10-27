@@ -2,7 +2,18 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { AppError } from '@vibebyte/vibe3d-protocol';
-import type { IdPassOptions, IdPassShot, RenderInput, Renderer, Snapshot, SnapshotOptions } from '../context';
+import type {
+  IdPassOptions,
+  IdPassShot,
+  ProjectRequest,
+  ProjectShot,
+  RenderInput,
+  Renderer,
+  Snapshot,
+  SnapshotOptions,
+  UnprojectRequest,
+  UnprojectShot,
+} from '../context';
 import { signExportUrl } from '../http/export-url';
 import type { Logger } from '../logger';
 import { Cdp, CdpError } from './cdp';
@@ -165,6 +176,69 @@ export class ChromiumRenderer implements Renderer {
             });
           }
           return { width, height, rgba };
+        }),
+      input.roomId,
+    );
+  }
+
+  async project(input: RenderInput, opts: ProjectRequest): Promise<ProjectShot> {
+    return this.serial(
+      () =>
+        this.withRecovery(async () => {
+          const page = await this.openPage(input.roomId, opts.width, opts.height, input.doc?.revision);
+          const res = await this.cdp?.send<{
+            result: { value?: { points?: Array<{ px?: number[]; depth?: number; in_view?: boolean }> } | null };
+          }>(
+            'Runtime.evaluate',
+            {
+              expression: `window.__vibe3dProject?.(${JSON.stringify(opts)}) ?? null`,
+              awaitPromise: true,
+              returnByValue: true,
+            },
+            page.sessionId,
+            15_000,
+          );
+          const value = res?.result?.value;
+          if (!value?.points?.length) {
+            throw new AppError('E_RENDER_UNAVAILABLE', '页面未返回投影结果');
+          }
+          const points = value.points.map((pt) => ({
+            px: [pt.px?.[0] ?? 0, pt.px?.[1] ?? 0] as [number, number],
+            depth: pt.depth ?? 0,
+            in_view: pt.in_view ?? false,
+          }));
+          return { width: opts.width, height: opts.height, camera: opts.camera, points };
+        }),
+      input.roomId,
+    );
+  }
+
+  async unproject(input: RenderInput, opts: UnprojectRequest): Promise<UnprojectShot> {
+    return this.serial(
+      () =>
+        this.withRecovery(async () => {
+          const page = await this.openPage(input.roomId, opts.width, opts.height, input.doc?.revision);
+          const res = await this.cdp?.send<{
+            result: { value?: { points?: Array<{ p?: number[]; in_view?: boolean }> } | null };
+          }>(
+            'Runtime.evaluate',
+            {
+              expression: `window.__vibe3dUnproject?.(${JSON.stringify(opts)}) ?? null`,
+              awaitPromise: true,
+              returnByValue: true,
+            },
+            page.sessionId,
+            15_000,
+          );
+          const value = res?.result?.value;
+          if (!value?.points?.length) {
+            throw new AppError('E_RENDER_UNAVAILABLE', '页面未返回反投影结果');
+          }
+          const points = value.points.map((pt) => ({
+            p: [pt.p?.[0] ?? 0, pt.p?.[1] ?? 0, pt.p?.[2] ?? 0] as [number, number, number],
+            in_view: pt.in_view ?? false,
+          }));
+          return { width: opts.width, height: opts.height, camera: opts.camera, points };
         }),
       input.roomId,
     );

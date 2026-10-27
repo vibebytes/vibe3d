@@ -23,6 +23,18 @@ export {
   type FrameTargetOptions,
   type ViewName,
 } from './frame';
+export {
+  projectPoints,
+  unprojectPoints,
+  cameraBasis,
+  type CameraBasis,
+  type ProjectedPoint,
+  type ProjectOptions,
+  type ProjectResult,
+  type UnprojectedPoint,
+  type UnprojectOptions,
+  type UnprojectResult,
+} from './project';
 export { changedPaths, type ChangedPathOptions, type ChangedPaths } from './changed';
 export { mergeSubtrees, type MergeSubtreesResult } from './restore';
 export { validateDoc, DEFAULT_LIMITS, type Limits } from './validate';

@@ -27,11 +27,13 @@ import {
   nodeOwnBounds,
   nodeView,
   pickNode,
+  projectPoints,
   queryNodes,
   relativeTransform,
   resolveMaterialPreset,
   sceneStats,
   subtreeIds,
+  unprojectPoints,
   validateScene,
   worldMatrix,
   worldPointToLocal,
@@ -69,7 +71,9 @@ type Keys =
   | 'env.set'
   | 'camera.set'
   | 'camera.save'
-  | 'camera.delete';
+  | 'camera.delete'
+  | 'camera.project'
+  | 'camera.unproject';
 
 const IDENTITY: Transform = { p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] };
 const MAX_FX = 64;
@@ -793,5 +797,34 @@ export const sceneHandlers: HandlersFor<Keys> = {
     const op: Op = { op: 'camera.delete', name: p.name };
     const result = await room.run(() => room.apply([op]));
     return { revision: result.revision, camera: room.doc.camera, cameras: room.doc.cameras };
+  },
+
+  'camera.project': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const camera = p.camera ? { ...room.doc.camera, ...p.camera } : room.doc.camera;
+    const width = p.width ?? 1280;
+    const height = p.height ?? 720;
+    if (ctx.renderer?.project) {
+      const r = await ctx.renderer.project({ roomId: room.id, doc: room.doc }, { camera, width, height, points: p.points });
+      return { ...r, source: 'page' as const };
+    }
+    return { ...projectPoints(room.doc, { camera, width, height, points: p.points }), source: 'math' as const };
+  },
+
+  'camera.unproject': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const camera = p.camera ? { ...room.doc.camera, ...p.camera } : room.doc.camera;
+    const width = p.width ?? 1280;
+    const height = p.height ?? 720;
+    const defaultDepth = Math.hypot(
+      camera.target[0] - camera.p[0],
+      camera.target[1] - camera.p[1],
+      camera.target[2] - camera.p[2],
+    );
+    const depth = p.points.map((_, i) => p.depth?.[i] ?? defaultDepth);
+    if (ctx.renderer?.unproject) {
+      return ctx.renderer.unproject({ roomId: room.id, doc: room.doc }, { camera, width, height, points: p.points, depth });
+    }
+    return unprojectPoints(room.doc, { camera, width, height, points: p.points, depth });
   },
 };

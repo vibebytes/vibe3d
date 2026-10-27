@@ -12,6 +12,7 @@ const state = vi.hoisted(() => ({
   evalQueue: [] as unknown[],
   navFailures: 0,
   launches: 0,
+  closes: 0,
   pages: 0,
   navigations: 0,
   readyProbes: 0,
@@ -24,7 +25,12 @@ vi.mock('../src/render/chrome', () => ({
   findChrome: () => state.executable,
   launchChrome: async () => {
     state.launches++;
-    return { wsUrl: 'ws://mock', close: async () => undefined };
+    return {
+      wsUrl: 'ws://mock',
+      close: async () => {
+        state.closes++;
+      },
+    };
   },
 }));
 
@@ -87,6 +93,7 @@ beforeEach(() => {
   state.evalQueue = [];
   state.navFailures = 0;
   state.launches = 0;
+  state.closes = 0;
   state.pages = 0;
   state.navigations = 0;
   state.readyProbes = 0;

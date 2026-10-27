@@ -41662,6 +41662,482 @@
       }
     },
     {
+      "name": "camera.project",
+      "title": "世界坐标 →像素坐标（同一渲染相机口径，无需截图标定）",
+      "wire": "camera.project",
+      "scope": "room",
+      "mutating": false,
+      "hostCoupled": false,
+      "errors": [
+        "E_INVALID_PARAMS",
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_camera",
+        "op": "project",
+        "legacy": "vibe3d_camera_project",
+        "annotations": {},
+        "roomArg": false
+      },
+      "cli": null,
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 256
+          },
+          "camera": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "persp",
+                  "ortho"
+                ]
+              },
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "target": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "fov": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 179
+              },
+              "zoom": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "additionalProperties": false
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8192
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8192
+          }
+        },
+        "required": [
+          "roomId",
+          "points"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "width": {
+            "type": "integer"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "camera": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "persp",
+                  "ortho"
+                ]
+              },
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "target": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "fov": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 179
+              },
+              "zoom": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": [
+              "mode",
+              "p",
+              "target",
+              "fov",
+              "zoom"
+            ],
+            "additionalProperties": false
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "page",
+              "math"
+            ]
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "px": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "depth": {
+                  "type": "number"
+                },
+                "in_view": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "px",
+                "depth",
+                "in_view"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "width",
+          "height",
+          "camera",
+          "source",
+          "points"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "camera.unproject",
+      "title": "像素坐标 + 深度 →世界坐标；depth 缺省用相机到 target 的距离",
+      "wire": "camera.unproject",
+      "scope": "room",
+      "mutating": false,
+      "hostCoupled": false,
+      "errors": [
+        "E_INVALID_PARAMS",
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_camera",
+        "op": "unproject",
+        "legacy": "vibe3d_camera_unproject",
+        "annotations": {},
+        "roomArg": false
+      },
+      "cli": null,
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "minItems": 1,
+            "maxItems": 256
+          },
+          "depth": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "camera": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "persp",
+                  "ortho"
+                ]
+              },
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "target": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "fov": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 179
+              },
+              "zoom": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "additionalProperties": false
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8192
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8192
+          }
+        },
+        "required": [
+          "roomId",
+          "points"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "width": {
+            "type": "integer"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "camera": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "persp",
+                  "ortho"
+                ]
+              },
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "target": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "fov": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 179
+              },
+              "zoom": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              }
+            },
+            "required": [
+              "mode",
+              "p",
+              "target",
+              "fov",
+              "zoom"
+            ],
+            "additionalProperties": false
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "p": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "in_view": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "p",
+                "in_view"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "width",
+          "height",
+          "camera",
+          "points"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
       "name": "render.snapshot",
       "title": "离屏渲染一张图：默认尊重 doc 当前机位（framing:\"camera\"）；framing:\"scene\" 按 bbox 自动取景；camera 可临时覆盖取景（不落盘）",
       "wire": "render.snapshot",

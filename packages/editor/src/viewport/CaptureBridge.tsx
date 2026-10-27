@@ -352,6 +352,23 @@ function captureIdPass(
   }
 }
 
+function captureCamera(state: CameraState, width: number, height: number): THREE.Camera {
+  let cam: THREE.PerspectiveCamera | THREE.OrthographicCamera;
+  if (state.mode === 'ortho') {
+    const aspect = width / height;
+    cam = new THREE.OrthographicCamera(-aspect, aspect, 1, -1, 0.01, 1e6);
+  } else {
+    cam = new THREE.PerspectiveCamera(state.fov, width / height, 0.01, 1e6);
+  }
+  cam.zoom = state.zoom || 1;
+  cam.position.set(state.p[0], state.p[1], state.p[2]);
+  cam.up.set(0, 1, 0);
+  cam.lookAt(state.target[0], state.target[1], state.target[2]);
+  cam.updateProjectionMatrix();
+  cam.updateMatrixWorld(true);
+  return cam;
+}
+
 export function CaptureBridge({ roomId, headless = false }: { roomId: string; headless?: boolean }) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
@@ -384,12 +401,67 @@ export function CaptureBridge({ roomId, headless = false }: { roomId: string; he
       if (headless && opts.at === undefined) animations.seekAll(0);
       return captureIdPass(gl, scene, camera, size, opts);
     };
+    const project = (opts: {
+      camera: CameraState;
+      width: number;
+      height: number;
+      points: Array<[number, number, number]>;
+    }) => {
+      const cam = captureCamera(opts.camera, opts.width, opts.height);
+      const fwd = new THREE.Vector3();
+      cam.getWorldDirection(fwd);
+      return {
+        points: opts.points.map((p) => {
+          const world = new THREE.Vector3(p[0], p[1], p[2]);
+          const v = world.clone().project(cam);
+          const depth = world.clone().sub(cam.position).dot(fwd);
+          return {
+            px: [(v.x + 1) / 2 * opts.width, (1 - v.y) / 2 * opts.height] as [number, number],
+            depth,
+            in_view: depth > 0 && Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1,
+          };
+        }),
+      };
+    };
+    const unproject = (opts: {
+      camera: CameraState;
+      width: number;
+      height: number;
+      points: Array<[number, number]>;
+      depth: number[];
+    }) => {
+      const cam = captureCamera(opts.camera, opts.width, opts.height);
+      const raycaster = new THREE.Raycaster();
+      const fwd = new THREE.Vector3();
+      cam.getWorldDirection(fwd);
+      return {
+        points: opts.points.map((pt, i) => {
+          const depth = opts.depth[i] ?? 0;
+          raycaster.setFromCamera(
+            new THREE.Vector2((pt[0] / opts.width) * 2 - 1, 1 - (pt[1] / opts.height) * 2),
+            cam,
+          );
+          const dir = raycaster.ray.direction.clone();
+          const cos = dir.dot(fwd);
+          const t = Math.abs(cos) < 1e-9 ? 0 : depth / cos;
+          const p = raycaster.ray.origin.clone().addScaledVector(dir, t);
+          return {
+            p: [p.x, p.y, p.z] as [number, number, number],
+            in_view: pt[0] >= 0 && pt[0] <= opts.width && pt[1] >= 0 && pt[1] <= opts.height,
+          };
+        }),
+      };
+    };
     window.__vibe3dCapture = capture;
+    window.__vibe3dProject = project;
+    window.__vibe3dUnproject = unproject;
     window.__vibe3dExport = exportGlb;
     window.__vibe3dIdPass = idPass;
     window.vibe3d = { roomId, select: (id) => useSelection.getState().select(id), capture, exportGlb };
     return () => {
       Reflect.deleteProperty(window, '__vibe3dCapture');
+      Reflect.deleteProperty(window, '__vibe3dProject');
+      Reflect.deleteProperty(window, '__vibe3dUnproject');
       Reflect.deleteProperty(window, '__vibe3dExport');
       Reflect.deleteProperty(window, '__vibe3dIdPass');
       Reflect.deleteProperty(window, 'vibe3d');

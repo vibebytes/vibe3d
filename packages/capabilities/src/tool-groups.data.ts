@@ -112,11 +112,13 @@ export const TOOL_GROUP_TABLE: readonly ToolGroup[] = [
   },
   {
     tool: 'vibe3d_camera',
-    title: '机位：设置 / 保存命名机位 / 删除',
+    title: '机位：设置 / 保存命名机位 / 删除 / 像素投影与反投影',
     ops: [
       ['set', 'camera.set', 'set_camera'],
       ['save', 'camera.save', 'save_camera'],
       ['delete', 'camera.delete', 'delete_camera'],
+      ['project', 'camera.project', 'camera_project'],
+      ['unproject', 'camera.unproject', 'camera_unproject'],
     ],
   },
   {

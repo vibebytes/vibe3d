@@ -62,6 +62,8 @@ export type CapabilityName =
   | "camera.set"
   | "camera.save"
   | "camera.delete"
+  | "camera.project"
+  | "camera.unproject"
   | "render.snapshot"
   | "render.views"
   | "render.node"
@@ -134,6 +136,8 @@ export type InputOf<N extends CapabilityName> = {
   "camera.set": z.infer<(typeof CAPABILITIES)["camera.set"]['input']>;
   "camera.save": z.infer<(typeof CAPABILITIES)["camera.save"]['input']>;
   "camera.delete": z.infer<(typeof CAPABILITIES)["camera.delete"]['input']>;
+  "camera.project": z.infer<(typeof CAPABILITIES)["camera.project"]['input']>;
+  "camera.unproject": z.infer<(typeof CAPABILITIES)["camera.unproject"]['input']>;
   "render.snapshot": z.infer<(typeof CAPABILITIES)["render.snapshot"]['input']>;
   "render.views": z.infer<(typeof CAPABILITIES)["render.views"]['input']>;
   "render.node": z.infer<(typeof CAPABILITIES)["render.node"]['input']>;
@@ -207,6 +211,8 @@ export type OutputOf<N extends CapabilityName> = {
   "camera.set": z.infer<(typeof CAPABILITIES)["camera.set"]['output']>;
   "camera.save": z.infer<(typeof CAPABILITIES)["camera.save"]['output']>;
   "camera.delete": z.infer<(typeof CAPABILITIES)["camera.delete"]['output']>;
+  "camera.project": z.infer<(typeof CAPABILITIES)["camera.project"]['output']>;
+  "camera.unproject": z.infer<(typeof CAPABILITIES)["camera.unproject"]['output']>;
   "render.snapshot": z.infer<(typeof CAPABILITIES)["render.snapshot"]['output']>;
   "render.views": z.infer<(typeof CAPABILITIES)["render.views"]['output']>;
   "render.node": z.infer<(typeof CAPABILITIES)["render.node"]['output']>;

@@ -50,6 +50,35 @@ export interface IdPassShot {
   rgba: Uint8Array;
 }
 
+export interface ProjectRequest {
+  camera: CameraState;
+  width: number;
+  height: number;
+  points: Array<[number, number, number]>;
+}
+
+export interface UnprojectRequest {
+  camera: CameraState;
+  width: number;
+  height: number;
+  points: Array<[number, number]>;
+  depth: number[];
+}
+
+export interface ProjectShot {
+  width: number;
+  height: number;
+  camera: CameraState;
+  points: Array<{ px: [number, number]; depth: number; in_view: boolean }>;
+}
+
+export interface UnprojectShot {
+  width: number;
+  height: number;
+  camera: CameraState;
+  points: Array<{ p: [number, number, number]; in_view: boolean }>;
+}
+
 export interface RenderInput {
   roomId: string;
   doc: SceneDoc;
@@ -63,6 +92,8 @@ export interface Renderer {
   drop?(roomId: string): Promise<void>;
   snapshot(input: RenderInput, opts: SnapshotOptions): Promise<Snapshot>;
   idPass?(input: RenderInput, opts: IdPassOptions): Promise<IdPassShot>;
+  project?(input: RenderInput, opts: ProjectRequest): Promise<ProjectShot>;
+  unproject?(input: RenderInput, opts: UnprojectRequest): Promise<UnprojectShot>;
   exportGlb(
     input: RenderInput,
     nodeIds?: string[],

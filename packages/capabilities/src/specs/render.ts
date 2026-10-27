@@ -199,6 +199,59 @@ export const renderOps = {
     cli: { command: 'camera rm', args: '<roomId> <name>' },
     errors: ['E_CAMERA_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
+  'camera.project': {
+    title: '世界坐标 →像素坐标（同一渲染相机口径，无需截图标定）',
+    input: z.object({
+      roomId,
+      points: z.array(z.tuple([z.number().finite(), z.number().finite(), z.number().finite()])).min(1).max(256),
+      camera: cameraStateSchema.partial().optional(),
+      width: intIn(1, 8192).optional(),
+      height: intIn(1, 8192).optional(),
+    }),
+    output: z.object({
+      width: z.number().int(),
+      height: z.number().int(),
+      camera: cameraStateSchema,
+      source: z.enum(['page', 'math']),
+      points: z.array(
+        z.object({
+          px: z.tuple([z.number(), z.number()]),
+          depth: z.number(),
+          in_view: z.boolean(),
+        }),
+      ),
+    }),
+    scope: 'room' as const,
+    mutating: false,
+    wire: 'camera.project' as const,
+    errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
+  },
+  'camera.unproject': {
+    title: '像素坐标 + 深度 →世界坐标；depth 缺省用相机到 target 的距离',
+    input: z.object({
+      roomId,
+      points: z.array(z.tuple([z.number().finite(), z.number().finite()])).min(1).max(256),
+      depth: z.array(z.number().finite()).optional(),
+      camera: cameraStateSchema.partial().optional(),
+      width: intIn(1, 8192).optional(),
+      height: intIn(1, 8192).optional(),
+    }),
+    output: z.object({
+      width: z.number().int(),
+      height: z.number().int(),
+      camera: cameraStateSchema,
+      points: z.array(
+        z.object({
+          p: z.tuple([z.number(), z.number(), z.number()]),
+          in_view: z.boolean(),
+        }),
+      ),
+    }),
+    scope: 'room' as const,
+    mutating: false,
+    wire: 'camera.unproject' as const,
+    errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
+  },
   'render.snapshot': {
     title:
       '离屏渲染一张图：默认尊重 doc 当前机位（framing:"camera"）；framing:"scene" 按 bbox 自动取景；camera 可临时覆盖取景（不落盘）',
