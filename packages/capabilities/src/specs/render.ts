@@ -1,4 +1,10 @@
-import { cameraNameSchema, cameraStateSchema, nodeIdSchema, rgb } from '@vibebyte/vibe3d-protocol';
+import {
+  cameraNameSchema,
+  cameraStateSchema,
+  materialIdSchema,
+  nodeIdSchema,
+  rgb,
+} from '@vibebyte/vibe3d-protocol';
 import { z } from 'zod';
 import { intIn, numIn, revisionOut, roomId } from './common';
 
@@ -112,7 +118,14 @@ const pickImageOpts = {
   overlay: imageOpts.overlay,
   highlight: imageOpts.highlight,
   isolate: imageOpts.isolate,
+  camera: cameraOverride.optional(),
+  framing: framingParam,
 };
+
+const pickPoint = z.union([
+  z.object({ x: intIn(0, 4095), y: intIn(0, 4095) }),
+  z.tuple([intIn(0, 4095), intIn(0, 4095)]),
+]);
 
 export const jobStateSchema = z.enum(['queued', 'running', 'done', 'failed', 'cancelled']);
 
@@ -361,14 +374,11 @@ export const renderOps = {
     errors: ['E_RENDER_UNAVAILABLE', 'E_ROOM_NOT_FOUND', 'E_INVALID_PARAMS'] as const,
   },
   'render.pick': {
-    title: '像素取色：给点给区域量颜色与直方图，roi 可同时回传裁剪小图',
+    title:
+      '像素取色：给点（{x,y} 或 [x,y] 元组）给区域量颜色与直方图，同帧回传 node_id / material_id，roi 可同时回传裁剪小图',
     input: z.object({
       roomId,
-      points: z
-        .array(z.object({ x: intIn(0, 4095), y: intIn(0, 4095) }))
-        .min(1)
-        .max(32)
-        .optional(),
+      points: z.array(pickPoint).min(1).max(32).optional(),
       rect: z
         .object({ x: intIn(0, 4095), y: intIn(0, 4095), w: intIn(1, 4096), h: intIn(1, 4096) })
         .optional(),
@@ -393,6 +403,8 @@ export const renderOps = {
           rgb: z.tuple([z.number().int(), z.number().int(), z.number().int()]),
           hex: z.string(),
           alpha: z.number().int(),
+          node_id: nodeIdSchema.nullable().optional(),
+          material_id: materialIdSchema.nullable().optional(),
         }),
       ),
       region: z

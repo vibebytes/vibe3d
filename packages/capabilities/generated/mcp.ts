@@ -416,7 +416,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
       { op: "snapshot", capability: "render.snapshot", title: "离屏渲染一张图：默认尊重 doc 当前机位（framing:\"camera\"）；framing:\"scene\" 按 bbox 自动取景；camera 可临时覆盖取景（不落盘）" },
       { op: "views", capability: "render.views", title: "多视角出图：一次拿到 1–6 张带标签、可对照的截图" },
       { op: "node", capability: "render.node", title: "单资产特写：自动框选一个节点并怼近拍一张" },
-      { op: "pick", capability: "render.pick", title: "像素取色：给点给区域量颜色与直方图，roi 可同时回传裁剪小图" },
+      { op: "pick", capability: "render.pick", title: "像素取色：给点（{x,y} 或 [x,y] 元组）给区域量颜色与直方图，同帧回传 node_id / material_id，roi 可同时回传裁剪小图" },
       { op: "id_pass", capability: "render.id-pass", title: "ID 通道：每个节点刷成唯一色，回传像素覆盖与可选索引掩码（framing 语义与 snapshot 一致）" },
       { op: "sequence", capability: "render.sequence", title: "按 from/to/fps 采样动画，输出 PNG 帧序列 + manifest（任务制，用 job.get 取进度）" },
     ],

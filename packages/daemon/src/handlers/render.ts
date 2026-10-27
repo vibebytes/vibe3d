@@ -197,6 +197,52 @@ function framingEchoOf(p: ImageParams, doc: SceneDoc): { source: 'camera' | 'sce
   return { source: 'scene', center: cam.target, fov: cam.fov };
 }
 
+function nodeMaterialOf(doc: SceneDoc, nodeId: string | null): string | null {
+  if (!nodeId) return null;
+  const node = doc.nodes[nodeId];
+  return node && node.kind === 'mesh' ? node.material : null;
+}
+
+async function idPassLookup(
+  renderer: Renderer,
+  roomId: string,
+  doc: SceneDoc,
+  opts: SnapshotOptions,
+  width: number,
+  height: number,
+): Promise<((x: number, y: number) => string | null) | null> {
+  if (!renderer.idPass || !fitsIdPass(width, height)) return null;
+  try {
+    const legend = buildIdLegend(doc);
+    const shot = await renderer.idPass(
+      { roomId, doc },
+      {
+        width,
+        height,
+        camera: opts.camera,
+        settleMs: opts.settleMs,
+        at: opts.at,
+        legend: legend.legend,
+      },
+    );
+    return (x, y) => {
+      const sx =
+        shot.width === width ? x : Math.min(shot.width - 1, Math.round((x * shot.width) / width));
+      const sy =
+        shot.height === height
+          ? y
+          : Math.min(shot.height - 1, Math.round((y * shot.height) / height));
+      if (sx < 0 || sy < 0) return null;
+      const at = (sy * shot.width + sx) * 4;
+      const value =
+        ((shot.rgba[at] ?? 0) << 16) | ((shot.rgba[at + 1] ?? 0) << 8) | (shot.rgba[at + 2] ?? 0);
+      return legend.byHex[`#${value.toString(16).padStart(6, '0')}`] ?? null;
+    };
+  } catch {
+    return null;
+  }
+}
+
 export const renderHandlers: HandlersFor<Keys> = {
   'render.snapshot': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
@@ -329,19 +375,27 @@ export const renderHandlers: HandlersFor<Keys> = {
   'render.pick': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     const renderer = requireRenderer(ctx, room.id);
-    if (!p.points?.length && !p.rect) {
+    const points = (p.points ?? []).map((pt) => (Array.isArray(pt) ? { x: pt[0], y: pt[1] } : pt));
+    if (!points.length && !p.rect) {
       throw new AppError('E_INVALID_PARAMS', 'render.pick 至少需要 points 或 rect 之一');
     }
-    const shot = await renderer.snapshot(
-      { roomId: room.id, doc: room.doc },
-      {
-        ...imageOptions(p, room.doc),
-      },
-    );
+    const shotOpts = imageOptions(p, room.doc);
+    const shot = await renderer.snapshot({ roomId: room.id, doc: room.doc }, shotOpts);
     const img = decodeShot(shot.base64);
-    const samples = (p.points ?? []).map((pt) => {
+    const nodeAt = await idPassLookup(renderer, room.id, room.doc, shotOpts, img.width, img.height);
+    const samples = points.map((pt) => {
       const { rgb, alpha } = pixelAt(img, pt.x, pt.y);
-      return { x: pt.x, y: pt.y, rgb, hex: hexOf(rgb), alpha };
+      const nodeId = nodeAt ? nodeAt(pt.x, pt.y) : undefined;
+      const materialId = nodeId === undefined ? undefined : nodeMaterialOf(room.doc, nodeId);
+      return {
+        x: pt.x,
+        y: pt.y,
+        rgb,
+        hex: hexOf(rgb),
+        alpha,
+        ...(nodeId !== undefined ? { node_id: nodeId } : {}),
+        ...(materialId !== undefined ? { material_id: materialId } : {}),
+      };
     });
     const region = p.rect ? regionStats(img, p.rect, p.topColors ?? 5) : undefined;
     const cropBox = p.roi ? clampRect(img, p.roi) : null;

@@ -128,13 +128,14 @@ describe('render.pick', () => {
 });
 
 describe('render.pick V2-03：[[x,y]] 元组与 node_id / material_id 同帧归属', () => {
-  const COLOR = makePng(4, 4, () => [255, 0, 0, 255]).toString('base64');
+  const COLOR = makePng(64, 64, () => [255, 0, 0, 255]).toString('base64');
 
   const idRgba = (paint: (x: number, y: number) => [number, number, number]): Uint8Array => {
-    const rgba = new Uint8Array(4 * 4 * 4);
-    for (let y = 0; y < 4; y += 1) {
-      for (let x = 0; x < 4; x += 1) {
-        const at = (y * 4 + x) * 4;
+    const n = 64;
+    const rgba = new Uint8Array(4 * n * n);
+    for (let y = 0; y < n; y += 1) {
+      for (let x = 0; x < n; x += 1) {
+        const at = (y * n + x) * 4;
         const [r, g, b] = paint(x, y);
         rgba[at] = r;
         rgba[at + 1] = g;
@@ -152,7 +153,7 @@ describe('render.pick V2-03：[[x,y]] 元组与 node_id / material_id 同帧归�
       available: () => true,
       snapshot: async (_input: unknown, opts: SnapshotOptions = {}) => {
         seen.snapshot = opts;
-        return { mime: 'image/png', base64: COLOR, width: opts.width ?? 4, height: opts.height ?? 4 };
+        return { mime: 'image/png', base64: COLOR, width: opts.width ?? 64, height: opts.height ?? 64 };
       },
       idPass: async (_input: unknown, opts: Record<string, any>) => {
         seen.idPass = opts;
@@ -187,7 +188,7 @@ describe('render.pick V2-03：[[x,y]] 元组与 node_id / material_id 同帧归�
     const { body } = await call(
       h,
       'render.pick',
-      { roomId, points: [[2, 1], [0, 0]], camera: { fov: 45 }, width: 4, height: 4 },
+      { roomId, points: [[2, 1], [0, 0]], camera: { fov: 45 }, width: 64, height: 64 },
       roomId,
     );
     expect(body.error).toBeUndefined();
@@ -204,8 +205,8 @@ describe('render.pick V2-03：[[x,y]] 元组与 node_id / material_id 同帧归�
     });
     expect(s[1]).toMatchObject({ x: 0, y: 0, node_id: null, material_id: null });
     expect(seen.idPass).toBeDefined();
-    expect(seen.idPass.width).toBe(4);
-    expect(seen.idPass.height).toBe(4);
+    expect(seen.idPass.width).toBe(64);
+    expect(seen.idPass.height).toBe(64);
     expect(seen.idPass.camera).toEqual(seen.snapshot.camera);
   });
 

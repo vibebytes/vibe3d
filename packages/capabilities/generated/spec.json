@@ -43696,7 +43696,7 @@
     },
     {
       "name": "render.pick",
-      "title": "像素取色：给点给区域量颜色与直方图，roi 可同时回传裁剪小图",
+      "title": "像素取色：给点（{x,y} 或 [x,y] 元组）给区域量颜色与直方图，同帧回传 node_id / material_id，roi 可同时回传裁剪小图",
       "wire": "render.pick",
       "scope": "room",
       "mutating": false,
@@ -43730,24 +43730,45 @@
           "points": {
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "x": {
-                  "type": "integer",
-                  "minimum": 0,
-                  "maximum": 4095
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 4095
+                    },
+                    "y": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 4095
+                    }
+                  },
+                  "required": [
+                    "x",
+                    "y"
+                  ],
+                  "additionalProperties": false
                 },
-                "y": {
-                  "type": "integer",
-                  "minimum": 0,
-                  "maximum": 4095
+                {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 4095
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 4095
+                    }
+                  ]
                 }
-              },
-              "required": [
-                "x",
-                "y"
-              ],
-              "additionalProperties": false
+              ]
             },
             "minItems": 1,
             "maxItems": 32
@@ -43886,6 +43907,74 @@
               "pattern": "^n_[a-z0-9]{8}$"
             },
             "maxItems": 200
+          },
+          "camera": {
+            "type": "object",
+            "properties": {
+              "position": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "target": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "fov": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 179
+              }
+            },
+            "additionalProperties": false
+          },
+          "framing": {
+            "type": "string",
+            "enum": [
+              "camera",
+              "scene"
+            ],
+            "default": "camera",
+            "description": "取景来源：camera=尊重 doc 当前机位（默认，不自动取景）；scene=按场景 bbox 自动取景。显式传 camera 时优先于 framing。"
           }
         },
         "required": [
@@ -43986,6 +44075,28 @@
                 },
                 "alpha": {
                   "type": "integer"
+                },
+                "node_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^n_[a-z0-9]{8}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "material_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^m_[a-z0-9]{8}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
