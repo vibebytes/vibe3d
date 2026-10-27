@@ -201,7 +201,12 @@ export function createServer(deps: ServerDeps) {
   function start(): void {
     const rl = createInterface({ input: process.stdin, crlfDelay: Number.POSITIVE_INFINITY });
     const inflight = new Set<Promise<void>>();
+    const bootPpid = process.ppid;
     const hb = setInterval(() => {
+      if (process.ppid !== bootPpid) {
+        logEvent({ event: 'orphan.exit', bootPpid, ppid: process.ppid });
+        process.exit(0);
+      }
       logEvent({ event: 'hb', rss: process.memoryUsage().rss, inflight: inflight.size });
     }, 30_000);
     hb.unref?.();

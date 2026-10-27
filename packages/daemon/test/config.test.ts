@@ -31,6 +31,15 @@ describe('parseConfig', () => {
     expect(parseConfig([...base, '--gc=on'], { VIBE3D_GC: 'off' }).gc).toBe(true);
   });
 
+  it('daemonIdleMs 默认 30 分钟，flag/env 可覆盖，0 禁用', () => {
+    expect(parseConfig(base, {}).daemonIdleMs).toBe(1_800_000);
+    expect(parseConfig([...base, '--daemon-idle-ms=60000'], {}).daemonIdleMs).toBe(60_000);
+    expect(parseConfig(base, { VIBE3D_DAEMON_IDLE_MS: '0' }).daemonIdleMs).toBe(0);
+    expect(
+      parseConfig([...base, '--daemon-idle-ms=60000'], { VIBE3D_DAEMON_IDLE_MS: '0' }).daemonIdleMs,
+    ).toBe(60_000);
+  });
+
   it('--persist=false 显式关闭', () => {
     expect(parseConfig([...base, '--persist=false'], {}).persist).toBe(false);
     expect(parseConfig([...base, '--persist'], {}).persist).toBe(true);

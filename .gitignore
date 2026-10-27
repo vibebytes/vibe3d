@@ -158,6 +158,11 @@ vite.config.ts.timestamp-*
 .devhome/
 packages/daemon/.devhome/
 
+# tsc emit artifacts inside test dirs (helpers stay TS-only)
+packages/*/test/**/*.js
+packages/*/test/**/*.js.map
+packages/*/test/**/*.d.ts
+
 # Playwright
 test-results/
 playwright-report/

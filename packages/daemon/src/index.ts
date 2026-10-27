@@ -151,7 +151,16 @@ async function main(): Promise<void> {
     onEvict: (count) => logger.warn({ event: 'ws.heartbeat.evict', count }, '清理无心跳的编辑器连接'),
   });
   heartbeat.start();
-  const server = serve({ fetch: app.fetch, hostname: config.host, port: config.port }) as Server;
+  let lastActivity = Date.now();
+  const server = serve({
+    fetch: (req, env) => {
+      const path = new URL(req.url).pathname;
+      if (path !== '/health') lastActivity = Date.now();
+      return app.fetch(req, env);
+    },
+    hostname: config.host,
+    port: config.port,
+  }) as Server;
   server.once('error', (err: Error) => {
     logger.error(
       { event: 'listen.failed', host: config.host, port: config.port, err: String(err) },
@@ -235,6 +244,18 @@ async function main(): Promise<void> {
   process.on('SIGTERM', () => void shutdown('SIGTERM'));
   process.on('SIGINT', () => void shutdown('SIGINT'));
   server.on('close', () => process.exit(0));
+
+  if (config.persist && config.daemonIdleMs > 0) {
+    const idleTimer = setInterval(() => {
+      if (hub.total() > 0) return;
+      const idleFor = Date.now() - lastActivity;
+      if (idleFor < config.daemonIdleMs) return;
+      logger.warn({ event: 'daemon.idle_exit', idleFor, idleMs: config.daemonIdleMs });
+      clearInterval(idleTimer);
+      void shutdown('idle');
+    }, 5_000);
+    idleTimer.unref();
+  }
 }
 
 main().catch((err) => {

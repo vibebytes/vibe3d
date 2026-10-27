@@ -27,6 +27,7 @@ export const configSchema = z.object({
   jobConcurrency: z.coerce.number().int().min(1).max(16).default(2),
   chromePath: z.string().optional(),
   renderTimeoutMs: z.coerce.number().int().min(1000).max(120_000).default(20_000),
+  daemonIdleMs: z.coerce.number().int().min(0).max(86_400_000).default(1_800_000),
   wsMaxPayloadBytes: z.coerce
     .number()
     .int()
@@ -93,6 +94,7 @@ export function parseConfig(argv: string[], env: NodeJS.ProcessEnv = process.env
     jobConcurrency: flags['job-concurrency'] ?? env.VIBE3D_JOB_CONCURRENCY,
     chromePath: flags.chrome ?? env.VIBE3D_CHROME,
     renderTimeoutMs: flags['render-timeout'] ?? env.VIBE3D_RENDER_TIMEOUT,
+    daemonIdleMs: flags['daemon-idle-ms'] ?? env.VIBE3D_DAEMON_IDLE_MS,
     wsMaxPayloadBytes: flags['ws-max-payload'] ?? env.VIBE3D_WS_MAX_PAYLOAD,
     openEditor:
       flags['open-editor'] === true
