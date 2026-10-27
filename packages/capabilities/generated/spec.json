@@ -45104,6 +45104,480 @@
       }
     },
     {
+      "name": "render.assert",
+      "title": "视觉验收锚点：一张截图上按锚点断言颜色 / 节点 / 材质；at 用像素坐标，p 用世界坐标自动投影（与截图同机位），容差半径内搜索最近匹配并按 ΔE（CIE76）评分",
+      "wire": "render.assert",
+      "scope": "room",
+      "mutating": false,
+      "hostCoupled": false,
+      "errors": [
+        "E_RENDER_UNAVAILABLE",
+        "E_ROOM_NOT_FOUND",
+        "E_INVALID_PARAMS"
+      ],
+      "mcp": {
+        "tool": "vibe3d_render",
+        "op": "assert",
+        "legacy": "vibe3d_render_assert",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "roomArg": false
+      },
+      "cli": {
+        "command": "render assert",
+        "args": "<roomId> --anchor 100,10:#ff0000 [--tol 2] [--size 1280x720]"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "anchors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "at": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "p": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "hex": {
+                  "type": "string",
+                  "pattern": "^#[0-9a-fA-F]{6}$"
+                },
+                "node": {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                "material": {
+                  "type": "string",
+                  "pattern": "^m_[a-z0-9]{8}$"
+                },
+                "tol_px": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 64
+                },
+                "max_de": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 200
+                }
+              },
+              "additionalProperties": false
+            },
+            "minItems": 1,
+            "maxItems": 64
+          },
+          "tolerance_px": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 64
+          },
+          "max_de": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 200
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 64,
+            "maximum": 4096
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 64,
+            "maximum": 4096
+          },
+          "settleMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "at": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 3600
+          },
+          "transparent": {
+            "type": "boolean"
+          },
+          "shading": {
+            "type": "string",
+            "enum": [
+              "flat",
+              "wireframe",
+              "normals",
+              "material",
+              "rendered"
+            ]
+          },
+          "overlay": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "grid",
+                "axes",
+                "bbox",
+                "ground",
+                "centerline",
+                "scale",
+                "normal",
+                "dims"
+              ]
+            },
+            "maxItems": 8
+          },
+          "highlight": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "maxItems": 200
+          },
+          "isolate": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "maxItems": 200
+          },
+          "camera": {
+            "type": "object",
+            "properties": {
+              "position": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "target": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "fov": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 179
+              }
+            },
+            "additionalProperties": false
+          },
+          "framing": {
+            "type": "string",
+            "enum": [
+              "camera",
+              "scene"
+            ],
+            "default": "camera",
+            "description": "取景来源：camera=尊重 doc 当前机位（默认，不自动取景）；scene=按场景 bbox 自动取景。显式传 camera 时优先于 framing。"
+          }
+        },
+        "required": [
+          "roomId",
+          "anchors"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "width": {
+            "type": "integer"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "pass": {
+            "type": "boolean"
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer"
+              },
+              "passed": {
+                "type": "integer"
+              },
+              "failed": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "total",
+              "passed",
+              "failed"
+            ],
+            "additionalProperties": false
+          },
+          "anchors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "at": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 2,
+                      "items": [
+                        {
+                          "type": "integer"
+                        },
+                        {
+                          "type": "integer"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "p": {
+                  "anyOf": [
+                    {
+                      "type": "array",
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "items": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "in_view": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "expected": {
+                  "type": "object",
+                  "properties": {
+                    "hex": {
+                      "type": "string"
+                    },
+                    "node": {
+                      "type": "string"
+                    },
+                    "material": {
+                      "type": "string"
+                    },
+                    "tol_px": {
+                      "type": "integer"
+                    },
+                    "max_de": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "tol_px",
+                    "max_de"
+                  ],
+                  "additionalProperties": false
+                },
+                "got": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "hex": {
+                          "type": "string"
+                        },
+                        "rgb": {
+                          "type": "array",
+                          "minItems": 3,
+                          "maxItems": 3,
+                          "items": [
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "integer"
+                            },
+                            {
+                              "type": "integer"
+                            }
+                          ]
+                        },
+                        "alpha": {
+                          "type": "integer"
+                        },
+                        "node_id": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "material_id": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "hex",
+                        "rgb",
+                        "alpha",
+                        "node_id",
+                        "material_id"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "dist_px": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "de": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "ok": {
+                  "type": "boolean"
+                },
+                "reasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "name",
+                "at",
+                "p",
+                "in_view",
+                "expected",
+                "got",
+                "dist_px",
+                "de",
+                "ok",
+                "reasons"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "revision",
+          "width",
+          "height",
+          "pass",
+          "summary",
+          "anchors"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
       "name": "render.id-pass",
       "title": "ID 通道：每个节点刷成唯一色，回传像素覆盖与可选索引掩码（framing 语义与 snapshot 一致）",
       "wire": "render.id-pass",

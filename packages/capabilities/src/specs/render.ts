@@ -459,6 +459,94 @@ export const renderOps = {
     },
     errors: ['E_RENDER_UNAVAILABLE', 'E_ROOM_NOT_FOUND', 'E_INVALID_PARAMS'] as const,
   },
+  'render.assert': {
+    title:
+      '视觉验收锚点：一张截图上按锚点断言颜色 / 节点 / 材质；at 用像素坐标，p 用世界坐标自动投影（与截图同机位），容差半径内搜索最近匹配并按 ΔE（CIE76）评分',
+    input: z.object({
+      roomId,
+      anchors: z
+        .array(
+          z
+            .object({
+              name: z.string().min(1).max(80).optional(),
+              at: z.tuple([z.number(), z.number()]).optional(),
+              p: z.tuple([z.number(), z.number(), z.number()]).optional(),
+              hex: z
+                .string()
+                .regex(/^#[0-9a-fA-F]{6}$/, 'hex 需为 #RRGGBB')
+                .optional(),
+              node: nodeIdSchema.optional(),
+              material: materialIdSchema.optional(),
+              tol_px: intIn(0, 64).optional(),
+              max_de: z.number().min(0).max(200).optional(),
+            })
+            .superRefine((v, issue) => {
+              if (!v.at && !v.p) {
+                issue.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  path: ['at'],
+                  message: '锚点需要 at（像素坐标）或 p（世界坐标）之一',
+                });
+              }
+            }),
+        )
+        .min(1)
+        .max(64),
+      tolerance_px: intIn(0, 64).optional(),
+      max_de: z.number().min(0).max(200).optional(),
+      ...pickImageOpts,
+    }),
+    output: z.object({
+      revision: z.number().int().min(0),
+      width: z.number().int(),
+      height: z.number().int(),
+      pass: z.boolean(),
+      summary: z.object({
+        total: z.number().int(),
+        passed: z.number().int(),
+        failed: z.number().int(),
+      }),
+      anchors: z.array(
+        z.object({
+          name: z.string(),
+          at: z.tuple([z.number().int(), z.number().int()]).nullable(),
+          p: z.tuple([z.number(), z.number(), z.number()]).nullable(),
+          in_view: z.boolean().nullable(),
+          expected: z.object({
+            hex: z.string().optional(),
+            node: z.string().optional(),
+            material: z.string().optional(),
+            tol_px: z.number().int(),
+            max_de: z.number(),
+          }),
+          got: z
+            .object({
+              hex: z.string(),
+              rgb: z.tuple([z.number().int(), z.number().int(), z.number().int()]),
+              alpha: z.number().int(),
+              node_id: z.string().nullable(),
+              material_id: z.string().nullable(),
+            })
+            .nullable(),
+          dist_px: z.number().nullable(),
+          de: z.number().nullable(),
+          ok: z.boolean(),
+          reasons: z.array(z.string()),
+        }),
+      ),
+    }),
+    scope: 'room' as const,
+    mutating: false,
+    wire: 'render.assert' as const,
+    mcp: {
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    cli: {
+      command: 'render assert',
+      args: '<roomId> --anchor 100,10:#ff0000 [--tol 2] [--size 1280x720]',
+    },
+    errors: ['E_RENDER_UNAVAILABLE', 'E_ROOM_NOT_FOUND', 'E_INVALID_PARAMS'] as const,
+  },
   'render.id-pass': {
     title: 'ID 通道：每个节点刷成唯一色，回传像素覆盖与可选索引掩码（framing 语义与 snapshot 一致）',
     input: z.object({

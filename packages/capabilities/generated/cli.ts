@@ -63,6 +63,7 @@ export const CLI_COMMANDS = [
   { command: "render views", args: "<roomId> [--views front,top] [--node id] [--size 1280x720] [--out dir]", capability: "render.views" },
   { command: "render node", args: "<roomId> <nodeId> [--view three_quarter] [--padding 1.15] [--out shot.png] [--size 1280x720]", capability: "render.node" },
   { command: "render pick", args: "<roomId> [--point 12,34] [--rect 0,0,200,100] [--roi 0,0,200,100] [--size 1280x720] [--top-colors 5]", capability: "render.pick" },
+  { command: "render assert", args: "<roomId> --anchor 100,10:#ff0000 [--tol 2] [--size 1280x720]", capability: "render.assert" },
   { command: "render id-pass", args: "<roomId> [--size 640x480] [--camera px,py,pz,tx,ty,tz] [--mask]", capability: "render.id-pass" },
   { command: "render sequence", args: "<roomId> --from s --to s [--fps 24] [--size 1280x720] [--shading flat] [--wait]", capability: "render.sequence" },
   { command: "export glb", args: "<roomId> [--node id] [--out scene.glb] [--wait]", capability: "export.glb" },

@@ -129,6 +129,7 @@ export const TOOL_GROUP_TABLE: readonly ToolGroup[] = [
       ['views', 'render.views', 'render_views'],
       ['node', 'render.node', 'render_node'],
       ['pick', 'render.pick', 'render_pick'],
+      ['assert', 'render.assert', 'render_assert'],
       ['id_pass', 'render.id-pass', 'render_id_pass'],
       ['sequence', 'render.sequence', 'render_sequence'],
     ],

@@ -68,6 +68,7 @@ export type CapabilityName =
   | "render.views"
   | "render.node"
   | "render.pick"
+  | "render.assert"
   | "render.id-pass"
   | "render.sequence"
   | "export.glb"
@@ -142,6 +143,7 @@ export type InputOf<N extends CapabilityName> = {
   "render.views": z.infer<(typeof CAPABILITIES)["render.views"]['input']>;
   "render.node": z.infer<(typeof CAPABILITIES)["render.node"]['input']>;
   "render.pick": z.infer<(typeof CAPABILITIES)["render.pick"]['input']>;
+  "render.assert": z.infer<(typeof CAPABILITIES)["render.assert"]['input']>;
   "render.id-pass": z.infer<(typeof CAPABILITIES)["render.id-pass"]['input']>;
   "render.sequence": z.infer<(typeof CAPABILITIES)["render.sequence"]['input']>;
   "export.glb": z.infer<(typeof CAPABILITIES)["export.glb"]['input']>;
@@ -217,6 +219,7 @@ export type OutputOf<N extends CapabilityName> = {
   "render.views": z.infer<(typeof CAPABILITIES)["render.views"]['output']>;
   "render.node": z.infer<(typeof CAPABILITIES)["render.node"]['output']>;
   "render.pick": z.infer<(typeof CAPABILITIES)["render.pick"]['output']>;
+  "render.assert": z.infer<(typeof CAPABILITIES)["render.assert"]['output']>;
   "render.id-pass": z.infer<(typeof CAPABILITIES)["render.id-pass"]['output']>;
   "render.sequence": z.infer<(typeof CAPABILITIES)["render.sequence"]['output']>;
   "export.glb": z.infer<(typeof CAPABILITIES)["export.glb"]['output']>;

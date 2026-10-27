@@ -64,6 +64,36 @@ export function cropImage(img: PngImage, rect: Rect): PngImage {
   return { width: box.w, height: box.h, channels: img.channels, data };
 }
 
+const srgbToLinear = (c: number): number => {
+  const v = c / 255;
+  return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+};
+
+function srgbToLab(rgb: Rgb): [number, number, number] {
+  const [r, g, b] = rgb.map(srgbToLinear);
+  const x = (r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047;
+  const y = r * 0.2126 + g * 0.7152 + b * 0.0722;
+  const z = (r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883;
+  const f = (t: number): number => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  const [fx, fy, fz] = [f(x), f(y), f(z)];
+  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+}
+
+export function deltaE(a: Rgb, b: Rgb): number {
+  const la = srgbToLab(a);
+  const lb = srgbToLab(b);
+  return Math.hypot(la[0] - lb[0], la[1] - lb[1], la[2] - lb[2]);
+}
+
+export function hexToRgb(hex: string): Rgb {
+  const m = /^#?([0-9a-fA-F]{6})$/.exec(hex);
+  if (!m) {
+    throw new AppError('E_INVALID_PARAMS', `颜色需为 #RRGGBB 形式：${hex}`);
+  }
+  const n = Number.parseInt(m[1], 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
 export function regionStats(
   img: PngImage,
   rect: Rect,

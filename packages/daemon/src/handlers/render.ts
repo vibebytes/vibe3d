@@ -10,6 +10,7 @@ import {
   fitsIdPass,
   frameCamera,
   frameTarget,
+  projectPoints,
   resolveQuality,
   shotWarning,
 } from '@vibebyte/vibe3d-scene';
@@ -23,7 +24,7 @@ import type {
 } from '../context';
 import { signExportUrl } from '../http/export-url';
 import { type JobError, toView } from '../jobs/store';
-import { clampRect, cropImage, decodeShot, hexOf, pixelAt, regionStats } from '../render/pick';
+import { clampRect, cropImage, decodeShot, deltaE, hexOf, hexToRgb, pixelAt, regionStats } from '../render/pick';
 import { encodePng } from '../render/png';
 import { editorUrl } from './editor-url';
 import type { HandlersFor } from './types';
@@ -92,6 +93,7 @@ type Keys =
   | 'render.views'
   | 'render.node'
   | 'render.pick'
+  | 'render.assert'
   | 'render.id-pass'
   | 'render.sequence'
   | 'export.glb'
@@ -243,6 +245,62 @@ async function idPassLookup(
   }
 }
 
+interface AssertAnchorInput {
+  name?: string;
+  at?: [number, number];
+  p?: [number, number, number];
+  hex?: string;
+  node?: string;
+  material?: string;
+  tol_px?: number;
+  max_de?: number;
+}
+
+interface AssertExpected {
+  hex?: string;
+  node?: string;
+  material?: string;
+  tol_px: number;
+  max_de: number;
+}
+
+interface AssertAnchorResult {
+  name: string;
+  at: [number, number] | null;
+  p: [number, number, number] | null;
+  in_view: boolean | null;
+  expected: AssertExpected;
+  got: null | {
+    hex: string;
+    rgb: [number, number, number];
+    alpha: number;
+    node_id: string | null;
+    material_id: string | null;
+  };
+  dist_px: number | null;
+  de: number | null;
+  ok: boolean;
+  reasons: string[];
+}
+
+function gotAt(
+  img: ReturnType<typeof decodeShot>,
+  x: number,
+  y: number,
+  idAt: ((x: number, y: number) => string | null) | null,
+  doc: SceneDoc,
+): AssertAnchorResult['got'] {
+  const { rgb, alpha } = pixelAt(img, x, y);
+  const id = idAt ? idAt(x, y) : null;
+  return {
+    hex: hexOf(rgb),
+    rgb,
+    alpha,
+    node_id: id,
+    material_id: id ? nodeMaterialOf(doc, id) : null,
+  };
+}
+
 export const renderHandlers: HandlersFor<Keys> = {
   'render.snapshot': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
@@ -382,7 +440,14 @@ export const renderHandlers: HandlersFor<Keys> = {
     const shotOpts = imageOptions(p, room.doc);
     const shot = await renderer.snapshot({ roomId: room.id, doc: room.doc }, shotOpts);
     const img = decodeShot(shot.base64);
-    const nodeAt = await idPassLookup(renderer, room.id, room.doc, shotOpts, img.width, img.height);
+    const nodeAt = await idPassLookup(
+      renderer,
+      room.id,
+      room.doc,
+      shotOpts,
+      shotOpts.width ?? img.width,
+      shotOpts.height ?? img.height,
+    );
     const samples = points.map((pt) => {
       const { rgb, alpha } = pixelAt(img, pt.x, pt.y);
       const nodeId = nodeAt ? nodeAt(pt.x, pt.y) : undefined;
@@ -410,6 +475,181 @@ export const renderHandlers: HandlersFor<Keys> = {
         : {}),
       samples,
       ...(region ? { region } : {}),
+    };
+  },
+
+  'render.assert': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const renderer = requireRenderer(ctx, room.id);
+    const anchors = (p.anchors ?? []) as AssertAnchorInput[];
+    if (!anchors.length) {
+      throw new AppError('E_INVALID_PARAMS', 'render.assert 至少需要一个锚点：{at:[x,y]} 或 {p:[x,y,z]}，配 hex / node / material 期望');
+    }
+    const shotOpts = imageOptions({ ...p, format: 'png' }, room.doc);
+    const shot = await renderer.snapshot({ roomId: room.id, doc: room.doc }, shotOpts);
+    const img = decodeShot(shot.base64);
+    const idAt = await idPassLookup(
+      renderer,
+      room.id,
+      room.doc,
+      shotOpts,
+      shotOpts.width ?? img.width,
+      shotOpts.height ?? img.height,
+    );
+    const projectCam = shotOpts.camera ?? room.doc.camera;
+
+    let passed = 0;
+    const results: AssertAnchorResult[] = anchors.map((a, index) => {
+      const name = a.name ?? `#${index}`;
+      const expected: AssertExpected = {
+        ...(a.hex !== undefined ? { hex: a.hex.toLowerCase() } : {}),
+        ...(a.node !== undefined ? { node: a.node } : {}),
+        ...(a.material !== undefined ? { material: a.material } : {}),
+        tol_px: a.tol_px ?? p.tolerance_px ?? 0,
+        max_de: a.max_de ?? p.max_de ?? 12,
+      };
+      const base = {
+        name,
+        p: a.p ?? null,
+        expected,
+        dist_px: null as number | null,
+        de: null as number | null,
+        reasons: [] as string[],
+      };
+      const fail = (
+        at: [number, number] | null,
+        inView: boolean | null,
+        reasons: string[],
+        got: AssertAnchorResult['got'] = null,
+      ): AssertAnchorResult => ({
+        ...base,
+        at,
+        in_view: inView,
+        got,
+        ok: false,
+        reasons,
+      });
+
+      let px: [number, number];
+      let inView: boolean | null = null;
+      if (a.p) {
+        const pr = projectPoints(room.doc, {
+          camera: projectCam,
+          width: img.width,
+          height: img.height,
+          points: [a.p],
+        });
+        const pt = pr.points[0];
+        inView = pt.in_view;
+        if (!pt.in_view) return fail(null, inView, ['out_of_view']);
+        px = [Math.round(pt.px[0]), Math.round(pt.px[1])];
+      } else if (a.at) {
+        px = [Math.round(a.at[0]), Math.round(a.at[1])];
+      } else {
+        throw new AppError('E_INVALID_PARAMS', `锚点 ${name} 需要 at（像素坐标）或 p（世界坐标）之一`);
+      }
+      if (px[0] < 0 || px[1] < 0 || px[0] >= img.width || px[1] >= img.height) {
+        return fail(null, inView, ['out_of_bounds']);
+      }
+
+      const wantHex = expected.hex ? hexToRgb(expected.hex) : null;
+      const wantNode = expected.node ?? null;
+      const wantMaterial = expected.material ?? null;
+      const idExpected = wantNode !== null || wantMaterial !== null;
+      const centreGot = () => gotAt(img, px[0], px[1], idAt, room.doc);
+      if (idExpected && !idAt) {
+        return fail(px, inView, ['id_pass_unavailable']);
+      }
+      if (wantNode && wantMaterial && nodeMaterialOf(room.doc, wantNode) !== wantMaterial) {
+        return fail(px, inView, ['material_mismatch']);
+      }
+      if (idExpected) {
+        const centreId = idAt ? idAt(px[0], px[1]) : null;
+        if (wantNode && centreId !== wantNode) {
+          return fail(px, inView, ['node_mismatch'], centreGot());
+        }
+        if (wantMaterial && (!centreId || nodeMaterialOf(room.doc, centreId) !== wantMaterial)) {
+          return fail(px, inView, ['material_mismatch'], centreGot());
+        }
+        if (!wantHex) {
+          passed += 1;
+          return {
+            ...base,
+            at: px,
+            in_view: inView,
+            got: centreGot(),
+            dist_px: 0,
+            de: null,
+            ok: true,
+          };
+        }
+      }
+
+      if (!wantHex) {
+        passed += 1;
+        return {
+          ...base,
+          at: px,
+          in_view: inView,
+          got: centreGot(),
+          ok: true,
+        };
+      }
+
+      const radius = Math.min(expected.tol_px, Math.max(img.width, img.height));
+      let best: { x: number; y: number; dist: number; de: number; id: string | null } | null = null;
+      for (let dy = -radius; dy <= radius; dy += 1) {
+        for (let dx = -radius; dx <= radius; dx += 1) {
+          const dist = Math.hypot(dx, dy);
+          if (dist > radius) continue;
+          const x = px[0] + dx;
+          const y = px[1] + dy;
+          if (x < 0 || y < 0 || x >= img.width || y >= img.height) continue;
+          const id = idAt ? idAt(x, y) : null;
+          if (wantNode && id !== wantNode) continue;
+          if (wantMaterial && (!id || nodeMaterialOf(room.doc, id) !== wantMaterial)) continue;
+          const { rgb } = pixelAt(img, x, y);
+          const de = wantHex ? deltaE(rgb, wantHex) : 0;
+          if (!best || de < best.de || (de === best.de && dist < best.dist)) {
+            best = { x, y, dist, de, id };
+          }
+        }
+      }
+
+      if (idExpected && !best) {
+        return fail(px, inView, [wantNode ? 'node_mismatch' : 'material_mismatch']);
+      }
+      if (wantHex && (!best || best.de > expected.max_de)) {
+        const centre = pixelAt(img, px[0], px[1]);
+        return {
+          ...base,
+          at: px,
+          in_view: inView,
+          got: centreGot(),
+          de: deltaE(centre.rgb, wantHex),
+          ok: false,
+          reasons: ['colour_mismatch'],
+        };
+      }
+      passed += 1;
+      return {
+        ...base,
+        at: [best.x, best.y],
+        in_view: inView,
+        got: gotAt(img, best.x, best.y, idAt, room.doc),
+        dist_px: best.dist,
+        de: wantHex ? best.de : null,
+        ok: true,
+      };
+    });
+
+    return {
+      revision: room.revision,
+      width: img.width,
+      height: img.height,
+      pass: passed === results.length,
+      summary: { total: results.length, passed, failed: results.length - passed },
+      anchors: results,
     };
   },
 

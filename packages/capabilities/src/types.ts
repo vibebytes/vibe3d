@@ -32,6 +32,7 @@ export const WIRE_METHODS = [
   'render.views',
   'render.node',
   'render.pick',
+  'render.assert',
   'render.id-pass',
   'render.sequence',
   'export.glb',

@@ -11,8 +11,8 @@ const generatedDir = join(dirname(fileURLToPath(import.meta.url)), '../generated
 const read = (name: string): string => readFileSync(join(generatedDir, name), 'utf8');
 
 describe('capability registry', () => {
-  it('暴露 72 个能力，名字与 wire/scope 自洽', () => {
-    expect(CAPABILITY_NAMES).toHaveLength(72);
+  it('暴露 73 个能力，名字与 wire/scope 自洽', () => {
+    expect(CAPABILITY_NAMES).toHaveLength(73);
     for (const name of CAPABILITY_NAMES) {
       const spec = CAPABILITIES[name];
       expect(spec.title.length).toBeGreaterThan(0);

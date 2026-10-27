@@ -417,6 +417,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
       { op: "views", capability: "render.views", title: "多视角出图：一次拿到 1–6 张带标签、可对照的截图" },
       { op: "node", capability: "render.node", title: "单资产特写：自动框选一个节点并怼近拍一张" },
       { op: "pick", capability: "render.pick", title: "像素取色：给点（{x,y} 或 [x,y] 元组）给区域量颜色与直方图，同帧回传 node_id / material_id，roi 可同时回传裁剪小图" },
+      { op: "assert", capability: "render.assert", title: "视觉验收锚点：一张截图上按锚点断言颜色 / 节点 / 材质；at 用像素坐标，p 用世界坐标自动投影（与截图同机位），容差半径内搜索最近匹配并按 ΔE（CIE76）评分" },
       { op: "id_pass", capability: "render.id-pass", title: "ID 通道：每个节点刷成唯一色，回传像素覆盖与可选索引掩码（framing 语义与 snapshot 一致）" },
       { op: "sequence", capability: "render.sequence", title: "按 from/to/fps 采样动画，输出 PNG 帧序列 + manifest（任务制，用 job.get 取进度）" },
     ],
@@ -432,6 +433,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
             "views",
             "node",
             "pick",
+            "assert",
             "id_pass",
             "sequence"
           ],
@@ -439,7 +441,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "必填字段：node{node_id} sequence{from,to,fps}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "必填字段：node{node_id} assert{anchors} sequence{from,to,fps}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         }
       },
       "required": [
@@ -7116,6 +7118,7 @@ export const MCP_LEGACY_ALIASES: Readonly<Record<string, { tool: string; op: str
   "vibe3d_render_views": { tool: "vibe3d_render", op: "views" },
   "vibe3d_render_node": { tool: "vibe3d_render", op: "node" },
   "vibe3d_render_pick": { tool: "vibe3d_render", op: "pick" },
+  "vibe3d_render_assert": { tool: "vibe3d_render", op: "assert" },
   "vibe3d_render_id_pass": { tool: "vibe3d_render", op: "id_pass" },
   "vibe3d_render_sequence": { tool: "vibe3d_render", op: "sequence" },
   "vibe3d_job_get": { tool: "vibe3d_job", op: "get" },
