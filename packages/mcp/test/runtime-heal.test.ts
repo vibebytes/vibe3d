@@ -1,7 +1,7 @@
 import { Vibe3DError } from '@vibebyte/vibe3d-client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createServer } from '../src/server';
-import type { ToolRuntime } from '../src/tools';
+import { ToolRuntime } from '../src/tools';
 
 const write = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
 afterEach(() => write.mockClear());
@@ -74,5 +74,38 @@ describe('连接类错误自愈', () => {
     await callStatus(server, 2);
     expect(built).toHaveBeenCalledTimes(1);
     expect(JSON.parse(lastReply().result.content[0].text).code).toBe('E_INVALID_PARAMS');
+  });
+});
+
+describe('ToolRuntime 真实调用链', () => {
+  const rejectClient = (code: Vibe3DError['code']) =>
+    ({
+      home: '/tmp/vibe3d-runtime-heal-test',
+      client: {
+        call: async () => {
+          throw new Vibe3DError(code, `stub: ${code}`);
+        },
+      },
+    }) as never;
+
+  it('token 失配 E_UNAUTHORIZED 必须抛出（让 memo 重置），而不是吞成错误结果', async () => {
+    const runtime = new ToolRuntime(rejectClient('E_UNAUTHORIZED'));
+    await expect(runtime.call('vibe3d_status', {})).rejects.toMatchObject({
+      code: 'E_UNAUTHORIZED',
+    });
+  });
+
+  it('E_NO_DAEMON 同样必须抛出', async () => {
+    const runtime = new ToolRuntime(rejectClient('E_NO_DAEMON'));
+    await expect(runtime.call('vibe3d_status', {})).rejects.toMatchObject({
+      code: 'E_NO_DAEMON',
+    });
+  });
+
+  it('域错误（E_INVALID_PARAMS）仍以 isError 结果返回', async () => {
+    const runtime = new ToolRuntime(rejectClient('E_INVALID_PARAMS'));
+    const result = await runtime.call('vibe3d_status', {});
+    expect(result.isError).toBe(true);
+    expect(JSON.parse(String(result.content?.[0]?.text)).code).toBe('E_INVALID_PARAMS');
   });
 });

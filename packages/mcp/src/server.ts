@@ -2,7 +2,7 @@ import { createInterface } from 'node:readline';
 import { isVibe3DError } from '@vibebyte/vibe3d-client';
 import { getPrompt, listPrompts } from './guide';
 import { logEvent } from './log';
-import type { ToolResult, ToolRuntime } from './tools';
+import { type ToolResult, type ToolRuntime, DAEMON_LINK_CODES } from './tools';
 import { HELP_TOOL, callTimeoutMs, helpResult, listTools } from './tools';
 
 process.on('uncaughtException', (err) => {
@@ -63,16 +63,8 @@ export interface ServerDeps {
   log?: (line: string) => void;
 }
 
-const CONNECTION_CODES = new Set<string>([
-  'E_NETWORK',
-  'E_NO_DAEMON',
-  'E_UNAUTHORIZED',
-  'E_DAEMON_OUTDATED',
-  'E_PROTOCOL',
-]);
-
 function isConnectionError(err: unknown): boolean {
-  return isVibe3DError(err) && CONNECTION_CODES.has(err.code);
+  return isVibe3DError(err) && DAEMON_LINK_CODES.has(err.code);
 }
 
 function summarizeArgs(args: unknown): string | undefined {

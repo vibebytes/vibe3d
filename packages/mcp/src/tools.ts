@@ -88,6 +88,14 @@ interface SpecView {
 
 const viewOf = (capability: CapabilityName): SpecView => CAPABILITIES[capability] as SpecView;
 
+export const DAEMON_LINK_CODES = new Set<string>([
+  'E_NETWORK',
+  'E_NO_DAEMON',
+  'E_UNAUTHORIZED',
+  'E_DAEMON_OUTDATED',
+  'E_PROTOCOL',
+]);
+
 interface Picked {
   capability: CapabilityName;
   op: string;
@@ -623,6 +631,7 @@ export class ToolRuntime {
       if (droppedNote) content.push({ type: 'text', text: droppedNote });
       return { content, structuredContent: result };
     } catch (err) {
+      if (err instanceof Vibe3DError && DAEMON_LINK_CODES.has(err.code)) throw err;
       return failure(err);
     }
   }

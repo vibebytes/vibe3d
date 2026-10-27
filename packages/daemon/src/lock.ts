@@ -18,6 +18,9 @@ export function isStaleLock(file: string): boolean {
 }
 
 export function acquireLock(home: string): () => void {
+  if (/^(1|true|yes|on)$/i.test(process.env.VIBE3D_SKIP_LOCK ?? '')) {
+    return () => {};
+  }
   mkdirSync(home, { recursive: true });
   const file = join(home, 'lock');
   for (let attempt = 0; attempt < 2; attempt += 1) {
