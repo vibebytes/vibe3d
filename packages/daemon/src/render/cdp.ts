@@ -10,6 +10,7 @@ export class CdpError extends Error {
   constructor(
     message: string,
     readonly method: string,
+    readonly kind: string = method,
   ) {
     super(message);
     this.name = 'CdpError';
@@ -61,7 +62,7 @@ export class Cdp {
     return new Promise<T>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
-        reject(new CdpError(`CDP 调用超时：${method}`, method));
+        reject(new CdpError(`CDP 调用超时：${method}`, method, 'timeout'));
       }, timeoutMs);
       this.pending.set(id, {
         resolve: (value) => resolve(value as T),

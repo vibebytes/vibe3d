@@ -294,6 +294,11 @@ export class ChromiumRenderer implements Renderer {
         await this.close();
         return this.withRecovery(task, attempt + 1);
       }
+      if (attempt === 0 && err instanceof CdpError && err.kind === 'timeout') {
+        this.opts.logger.warn({ event: 'renderer.recycle', reason: 'cdp_timeout', err: String(err) });
+        await this.close();
+        return this.withRecovery(task, attempt + 1);
+      }
       const lost =
         err instanceof CdpError &&
         (err.method === 'close' || err.method === 'socket' || err.method === 'connect');
@@ -351,7 +356,7 @@ export class ChromiumRenderer implements Renderer {
         this.touchIdle();
         return;
       }
-      this.opts.logger.debug({ event: 'renderer.idle_close', idleMs: idle });
+      this.opts.logger.info({ event: 'renderer.idle_close', idleMs: idle });
       void this.close();
     }, idleMs);
     this.idleTimer.unref();
