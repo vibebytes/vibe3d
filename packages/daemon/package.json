@@ -20,10 +20,7 @@
       "default": "./src/server.ts"
     }
   },
-  "files": [
-    "dist",
-    "README.md"
-  ],
+  "files": ["dist", "README.md"],
   "bin": {
     "vibe3d-daemon": "./dist/index.js"
   },
