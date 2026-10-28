@@ -242,7 +242,10 @@ export const renderOps = {
     title: '世界坐标 →像素坐标（同一渲染相机口径，无需截图标定）',
     input: z.object({
       roomId,
-      points: z.array(z.tuple([z.number().finite(), z.number().finite(), z.number().finite()])).min(1).max(256),
+      points: z
+        .array(z.tuple([z.number().finite(), z.number().finite(), z.number().finite()]))
+        .min(1)
+        .max(256),
       camera: cameraStateSchema.partial().optional(),
       width: intIn(1, 8192).optional(),
       height: intIn(1, 8192).optional(),
@@ -269,7 +272,10 @@ export const renderOps = {
     title: '像素坐标 + 深度 →世界坐标；depth 缺省用相机到 target 的距离',
     input: z.object({
       roomId,
-      points: z.array(z.tuple([z.number().finite(), z.number().finite()])).min(1).max(256),
+      points: z
+        .array(z.tuple([z.number().finite(), z.number().finite()]))
+        .min(1)
+        .max(256),
       depth: z.array(z.number().finite()).optional(),
       camera: cameraStateSchema.partial().optional(),
       width: intIn(1, 8192).optional(),
@@ -625,10 +631,7 @@ export const renderOps = {
     title: '把场景导出为 GLB，返回 jobId；用 vibe3d_job.get 轮询到 state=done 后取产物',
     input: z.object({
       roomId,
-      nodeIds: z
-        .array(nodeIdSchema)
-        .optional()
-        .describe('只导出这些节点（含子树）；省略则导出整场景'),
+      nodeIds: z.array(nodeIdSchema).optional().describe('只导出这些节点（含子树）；省略则导出整场景'),
       include: z
         .array(z.enum(['cameras', 'lights']))
         .max(2)
@@ -680,7 +683,7 @@ export const renderOps = {
   },
   'editor.open': {
     title:
-      '在本地浏览器打开房间编辑器（默认直接弹出窗口；open:false 只回链接）；省略 room_id 时用会话绑定（未绑定自动建房）',
+      '在本地浏览器打开房间编辑器（默认直接弹出窗口；open:false 只回链接）；省略 room_id 时复用当前会话房间，仅未绑定时才自动建「MCP 会话房间」',
     input: z.object({
       roomId,
       focus: nodeIdSchema.optional().describe('打开后选中并聚焦到该节点'),

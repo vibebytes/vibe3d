@@ -1,5 +1,5 @@
 export const PROTOCOL_VERSION = '0.1';
-export const DAEMON_VERSION = '0.2.0';
+export const DAEMON_VERSION = '0.2.4';
 export const DOC_SCHEMA_VERSION = 1;
 
 export const ERROR_CODES = [
@@ -59,7 +59,8 @@ export const ERROR_SPECS: Record<ErrorCode, ErrorSpec> = {
     retryable: false,
     message: '参数校验失败',
     hint: '对照工具 inputSchema 检查类型与取值范围，颜色用 [r,g,b,a] 0..1；长度单位米、角度单位见各字段 describe',
-    example: '{"op":"node.create","node":{"kind":"mesh","name":"box1","transform":{"p":[0,0.5,0],"r":[0,0,0.5236],"s":[1,1,1]}}}',
+    example:
+      '{"op":"node.create","node":{"kind":"mesh","name":"box1","transform":{"p":[0,0.5,0],"r":[0,0,0.5236],"s":[1,1,1]}}}',
     docRef: 'vibe3d_help {tool:"vibe3d_apply_ops"} 的字段表与全局约定块',
   },
   E_INTERNAL: { rpc: -32603, http: 500, retryable: true, message: '内部错误' },

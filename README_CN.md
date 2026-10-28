@@ -38,37 +38,16 @@ daemon **只监听本机回环地址**（`127.0.0.1` / `localhost`）。
 }
 ```
 
-Cursor / Claude Desktop 等 GUI 往往**看不到**你在交互 shell 里选的 Node。先保证它们拉起的 Node **>= 20**，再用上面的 JSON。可选做法（任选其一；不要写本机绝对路径）：
+Cursor / Claude Desktop 等 GUI 往往**不会**加载交互 shell 配置（`~/.zshrc`、nvm 钩子等）。像 `bash -lc "nvm use …"` 这种写法在 macOS 上通常**无效**：登录用的 `bash` 不会加载 zsh 里的 nvm。不要把版本管理器包装进 MCP 配置。
 
-1. 把 Node.js 20+ 装成系统默认（不进项目目录时 `node -v` / `npx -v` 已是 20+），用[官网安装包](https://nodejs.org/)或 Homebrew；或
-2. 把版本管理器的 **default** 指到 20+（`nvm alias default 20`、`fnm default 20`，或 Volta 默认 Node 20+），再用上面的 JSON；或
-3. 若只有登录 shell 能加载版本管理器，再包一层 `npx`（示例）：
+先让 GUI 实际用到的默认 `node` / `npx` **>= 20**，再用上面的 JSON：
 
-```json
-{
-  "mcpServers": {
-    "vibe3d": {
-      "command": "bash",
-      "args": ["-lc", "nvm use 20 >/dev/null && npx -y @vibebyte/vibe3d-mcp"]
-    }
-  }
-}
-```
-
-```json
-{
-  "mcpServers": {
-    "vibe3d": {
-      "command": "bash",
-      "args": ["-lc", "volta run --node 20 -- npx -y @vibebyte/vibe3d-mcp"]
-    }
-  }
-}
-```
+1. 用[官网安装包](https://nodejs.org/)或 Homebrew 安装 Node.js 20+，让系统默认 `node` 就是 20+；或
+2. 若用版本管理器，把 **default** 设为 20+，并确保其 shim 在 GUI 能继承的非交互 PATH 上（例如 Volta 的 `~/.volta/bin`）。仅执行 `nvm alias default 20` 而 nvm 只在 zsh 里加载时，**不能**修好 Cursor。
 
 ### Cursor
 
-把默认 JSON 写入 `.cursor/mcp.json` 或用户级 MCP 配置。若一直 Error，打开 MCP Output：提示 Node < 20 时按上面 1–3 处理。
+把默认 JSON 写入 `.cursor/mcp.json` 或用户级 MCP 配置。若一直 Error，打开 MCP Output：提示 Node < 20 时，应修 GUI PATH 上的默认 Node（见上），而不是改 MCP JSON 形态。
 
 ### Claude Desktop
 
@@ -121,6 +100,10 @@ npx @modelcontextprotocol/inspector --cli npx -y @vibebyte/vibe3d-mcp --method t
 ## 工具
 
 服务暴露一组分组工具。每次调用传入 `op`，例如 `vibe3d_room` 配 `op: "create"`，这样 `tools/list` 更小。未知工具名会以工具错误（`isError`）返回，方便模型自我纠正。耗时的渲染与导出走 job：用 `vibe3d_job` 轮询。
+
+## 多房间与多聊天
+
+一个 MCP 进程只有一个默认房间。只接触过一个房间时，房间级工具可省略 `room_id`（结果标「隐式」即用了默认房间）；进程接触第二个房间（或多个聊天共用进程）后，不带 `room_id` 的调用会被拒绝并列出候选。请在每次调用里传自己建房时返回的 `room_id`；显式 `room_id` 只路由这一次调用，不改写默认房间。确认只有一个聊天在用时，可用 `vibe3d_room {op:"use"}` 钉死默认房间。
 
 ## 诊断
 

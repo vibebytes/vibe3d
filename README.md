@@ -38,37 +38,16 @@ Client config:
 }
 ```
 
-GUI apps (Cursor, Claude Desktop) often do **not** see your interactive-shell Node. Make sure the Node those apps spawn is **>= 20**, then use the JSON above. Practical options (pick one; no machine-specific absolute paths):
+GUI apps (Cursor, Claude Desktop) often do **not** load interactive shell config (`~/.zshrc`, nvm hooks, etc.). A wrapper like `bash -lc "nvm use …"` usually **fails** on macOS: login `bash` does not load zsh’s nvm. Do not put version-manager wrappers in MCP config.
 
-1. Install Node.js 20+ as the system default (`node -v` / `npx -v` outside any project already show 20+), via the [official installer](https://nodejs.org/) or Homebrew; or
-2. Point your version manager’s **default** at 20+ (`nvm alias default 20`, `fnm default 20`, or Volta’s default Node 20+), then use the JSON above; or
-3. If the manager is only available in a login shell, wrap `npx` (examples):
+Make the **default** `node` / `npx` on the PATH those apps actually use **>= 20**, then use the JSON above:
 
-```json
-{
-  "mcpServers": {
-    "vibe3d": {
-      "command": "bash",
-      "args": ["-lc", "nvm use 20 >/dev/null && npx -y @vibebyte/vibe3d-mcp"]
-    }
-  }
-}
-```
-
-```json
-{
-  "mcpServers": {
-    "vibe3d": {
-      "command": "bash",
-      "args": ["-lc", "volta run --node 20 -- npx -y @vibebyte/vibe3d-mcp"]
-    }
-  }
-}
-```
+1. Install Node.js 20+ with the [official installer](https://nodejs.org/) or Homebrew so the system `node` is already 20+; or
+2. If you use a version manager, set its **default** to 20+ **and** ensure its shims are on the non-interactive PATH the GUI inherits (for example Volta’s `~/.volta/bin`). `nvm alias default 20` alone does not fix Cursor if nvm is only sourced in zsh.
 
 ### Cursor
 
-Use the default JSON above in `.cursor/mcp.json` or the user MCP config. If status stays Error, open MCP Output — a Node < 20 message means apply option 1–3.
+Use the default JSON above in `.cursor/mcp.json` or the user MCP config. If status stays Error, open MCP Output — a Node < 20 message means fix the default Node on the GUI PATH (options above), not the MCP JSON shape.
 
 ### Claude Desktop
 
@@ -121,6 +100,10 @@ Rendering uses a system Chrome, Chromium, or Edge. The package does not download
 ## Tools
 
 The server exposes a small set of grouped tools. Each call passes `op`, for example `vibe3d_room` with `op: "create"`. This keeps `tools/list` small. Unknown tool names come back as tool errors (`isError`) so the model can correct itself. Long renders and exports are jobs: poll `vibe3d_job`.
+
+## Multiple rooms and chats
+
+One MCP process keeps one default room. While it has seen a single room, room tools may omit `room_id`; results marked "implicit" used that default. Once the process has seen a second room (or several chats share it), calls without `room_id` are rejected and list the candidates. Pass the `room_id` returned by your own `create` call on every call. An explicit `room_id` routes only that call and never changes the default. `vibe3d_room {op:"use"}` pins the default room when you know only one chat is active.
 
 ## Diagnostics
 

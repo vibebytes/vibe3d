@@ -99,9 +99,7 @@ describe('host stringified scalars', () => {
     const data = ok<{ ops: Array<{ node?: Record<string, unknown>; patch?: Record<string, unknown> }> }>(
       parse('ops.apply', {
         roomId: 'r_0000000a',
-        ops: [
-          { op: 'node.update', id: 'n_0000000a', patch: { visible: 'false', tags: 'null' } },
-        ],
+        ops: [{ op: 'node.update', id: 'n_0000000a', patch: { visible: 'false', tags: 'null' } }],
       }),
     );
     expect(data.ops[0]!.patch).toMatchObject({ visible: false, tags: null });

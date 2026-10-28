@@ -17,6 +17,7 @@ describe('README', () => {
     expect(readme).toContain('Node.js >= 20');
     expect(readme).toMatch(/MCP TypeScript SDK v2/);
     expect(readme).not.toContain('VIBE3D_TOKEN');
+    expect(readme).not.toMatch(/"args":\s*\["-lc"/);
     expect(readme).not.toMatch(/--token\s/);
     expect(readme).toContain('Windows');
     expect(readme).toContain('Not verified');
@@ -32,4 +33,3 @@ describe('README', () => {
     expect(readmeCn).not.toContain('VIBE3D_TOKEN');
   });
 });
-

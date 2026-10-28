@@ -20,7 +20,9 @@ describe('lenient input contracts', () => {
   });
 
   it('parses array text into a tuple field', () => {
-    expect(coerceForSchema(z.tuple([z.number(), z.number(), z.number()]), '[600,600,1]')).toEqual([600, 600, 1]);
+    expect(coerceForSchema(z.tuple([z.number(), z.number(), z.number()]), '[600,600,1]')).toEqual([
+      600, 600, 1,
+    ]);
   });
 
   it('fills parent/visible/transform defaults on a node payload', () => {

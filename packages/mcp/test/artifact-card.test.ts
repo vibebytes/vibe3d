@@ -46,7 +46,9 @@ const texts = (result: ToolResult): string[] =>
 const cardOf = (result: ToolResult): Record<string, unknown> => {
   const block = texts(result).find((t) => t.includes('<fast-artifact>'));
   expect(block).toBeTruthy();
-  const body = String(block).replace(/^[\s\S]*?<fast-artifact>/, '').replace(/<\/fast-artifact>[\s\S]*$/, '');
+  const body = String(block)
+    .replace(/^[\s\S]*?<fast-artifact>/, '')
+    .replace(/<\/fast-artifact>[\s\S]*$/, '');
   return JSON.parse(body) as Record<string, unknown>;
 };
 

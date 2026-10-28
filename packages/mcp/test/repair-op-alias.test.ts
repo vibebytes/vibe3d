@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { CAPABILITIES } from '@vibebyte/vibe3d-capabilities';
+import { describe, expect, it } from 'vitest';
 import { coerceForSchema } from '../src/coerce';
 import { repairInput } from '../src/repair';
 
@@ -9,7 +9,12 @@ const spec = (CAPABILITIES as unknown as Record<string, { input: Parameters<type
 
 const parse = (payload: Record<string, unknown>) => {
   const repaired = repairInput(spec, { roomId: 'r_0000000a', ...payload });
-  return { repaired, result: (spec as never as { safeParse: (v: unknown) => any }).safeParse(coerceForSchema(spec, repaired.value)) };
+  return {
+    repaired,
+    result: (spec as never as { safeParse: (v: unknown) => any }).safeParse(
+      coerceForSchema(spec, repaired.value),
+    ),
+  };
 };
 
 const node = (patch: Record<string, unknown> = {}) => ({
@@ -42,14 +47,18 @@ describe('apply_ops 自动修复', () => {
   });
 
   it('maps 0-255 colour channels into the 0..1 range', () => {
-    const { result } = parse({ ops: [{ op: 'env.set', env: { fog: { near: 1, far: 10, color: [255, 128, 0] } } }] });
+    const { result } = parse({
+      ops: [{ op: 'env.set', env: { fog: { near: 1, far: 10, color: [255, 128, 0] } } }],
+    });
     expect(result.success).toBe(true);
     expect(result.data.ops[0].env.fog.color[0]).toBeCloseTo(1);
     expect(result.data.ops[0].env.fog.color[2]).toBeCloseTo(0);
   });
 
   it('reads fog.enabled:false as turning fog off', () => {
-    const { result } = parse({ ops: [{ op: 'env.set', env: { fog: { enabled: false, near: 1, far: 10 } } }] });
+    const { result } = parse({
+      ops: [{ op: 'env.set', env: { fog: { enabled: false, near: 1, far: 10 } } }],
+    });
     expect(result.success).toBe(true);
     expect(result.data.ops[0].env.fog).toBeNull();
   });
@@ -116,25 +125,34 @@ describe('apply_ops 自动修复', () => {
   });
 
   it('does not mistake a node kind for an op name', () => {
-    const { repaired, result } = parse({ ops: [{ kind: 'mesh', name: 'box', shape: 'box', size: [1, 1, 1] }] });
+    const { repaired, result } = parse({
+      ops: [{ kind: 'mesh', name: 'box', shape: 'box', size: [1, 1, 1] }],
+    });
     expect(result.success).toBe(false);
     expect(repaired.fixes.join(' ')).not.toContain('kind→op');
   });
 });
 
 describe('node.create 扁平入参', () => {
-  const spec = (CAPABILITIES as unknown as Record<string, { input: Parameters<typeof repairInput>[0] }>)['node.create']!
-    .input;
+  const spec = (CAPABILITIES as unknown as Record<string, { input: Parameters<typeof repairInput>[0] }>)[
+    'node.create'
+  ]!.input;
   const parse = (payload: Record<string, unknown>) => {
     const repaired = repairInput(spec, { roomId: 'r_0000000a', ...payload });
     return {
       repaired,
-      result: (spec as never as { safeParse: (v: unknown) => any }).safeParse(coerceForSchema(spec, repaired.value)),
+      result: (spec as never as { safeParse: (v: unknown) => any }).safeParse(
+        coerceForSchema(spec, repaired.value),
+      ),
     };
   };
 
   it('flattens a geometry object into shape/radius', () => {
-    const { repaired, result } = parse({ kind: 'mesh', name: 'ball', geometry: { type: 'sphere', radius: 1 } });
+    const { repaired, result } = parse({
+      kind: 'mesh',
+      name: 'ball',
+      geometry: { type: 'sphere', radius: 1 },
+    });
     expect(result.success).toBe(true);
     expect(result.data.shape).toBe('sphere');
     expect(result.data.radius).toBeCloseTo(1);
@@ -142,7 +160,13 @@ describe('node.create 扁平入参', () => {
   });
 
   it('keeps a mesh payload out of the light bag when the op came in as type', () => {
-    const { repaired, result } = parse({ type: 'create', kind: 'mesh', name: 'box6', shape: 'box', size: [1, 1, 1] });
+    const { repaired, result } = parse({
+      type: 'create',
+      kind: 'mesh',
+      name: 'box6',
+      shape: 'box',
+      size: [1, 1, 1],
+    });
     expect(result.success).toBe(true);
     expect(result.data.kind).toBe('mesh');
     expect(result.data.light).toBeUndefined();

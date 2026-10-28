@@ -15,7 +15,8 @@ function fakeStudio() {
       invoke: async (_method: string, _params: Record<string, unknown>) => ({
         revision: 1,
         mime: 'image/png',
-        base64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+        base64:
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
         width: 1280,
         height: 720,
         quality: { level: 'standard', pixelRatio: 1, samples: 16, shadowMapSize: 1024, supersample: true },

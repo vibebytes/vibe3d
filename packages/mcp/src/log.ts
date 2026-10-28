@@ -1,13 +1,12 @@
-import { appendFileSync, renameSync, statSync, mkdirSync } from 'node:fs';
+import { appendFileSync, mkdirSync, renameSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
 function logPath(): string | undefined {
   if (process.env.VIBE3D_MCP_LOG === '0') return undefined;
-  const home = process.env.VIBE3D_HOME
-    ?? process.env.VIBE3D_MCP_HOME
-    ?? join(process.env.HOME ?? '/tmp', '.vibe3d');
+  const home =
+    process.env.VIBE3D_HOME ?? process.env.VIBE3D_MCP_HOME ?? join(process.env.HOME ?? '/tmp', '.vibe3d');
   return join(home, 'mcp.log');
 }
 

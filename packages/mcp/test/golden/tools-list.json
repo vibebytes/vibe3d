@@ -128,14 +128,7 @@
       "properties": {
         "op": {
           "type": "string",
-          "enum": [
-            "create",
-            "list",
-            "use",
-            "get",
-            "close",
-            "timeline"
-          ],
+          "enum": ["create", "list", "use", "get", "close", "timeline"],
           "description": "room 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
@@ -144,13 +137,10 @@
         },
         "room_id": {
           "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$",
-          "description": "房间 id；省略时用当前会话绑定的房间"
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
-      "required": [
-        "op"
-      ],
+      "required": ["op"],
       "additionalProperties": true
     },
     "annotations": {
@@ -191,11 +181,13 @@
         "params": {
           "type": "object",
           "description": "必填字段：import{doc} restore{checkpoint_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
-      "required": [
-        "op"
-      ],
+      "required": ["op"],
       "additionalProperties": true
     },
     "annotations": {
@@ -233,11 +225,13 @@
         "params": {
           "type": "object",
           "description": "必填字段：create{kind} update{node_id,patch} delete{node_id} clone{node_id} get{node_id} reparent{node_id,parent} array{node_id,count} attach{node_id,target_id,face} group{ids,name} merge{node_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
-      "required": [
-        "op"
-      ],
+      "required": ["op"],
       "additionalProperties": true
     },
     "annotations": {
@@ -256,22 +250,19 @@
       "properties": {
         "op": {
           "type": "string",
-          "enum": [
-            "create",
-            "patch",
-            "map",
-            "assign"
-          ],
+          "enum": ["create", "patch", "map", "assign"],
           "description": "material 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
           "description": "必填字段：patch{material_id,patch} map{material_id} assign{material_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
-      "required": [
-        "op"
-      ],
+      "required": ["op"],
       "additionalProperties": true
     },
     "annotations": {
@@ -290,20 +281,19 @@
       "properties": {
         "op": {
           "type": "string",
-          "enum": [
-            "set",
-            "env"
-          ],
+          "enum": ["set", "env"],
           "description": "stage 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
           "description": "必填字段：set{stage}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
-      "required": [
-        "op"
-      ],
+      "required": ["op"],
       "additionalProperties": true
     },
     "annotations": {
@@ -322,23 +312,19 @@
       "properties": {
         "op": {
           "type": "string",
-          "enum": [
-            "define",
-            "play",
-            "stop",
-            "clear",
-            "pose"
-          ],
+          "enum": ["define", "play", "stop", "clear", "pose"],
           "description": "animation 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
           "description": "必填字段：define{node_id,clip} play{node_id} stop{node_id} clear{node_id} pose{targets}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
-      "required": [
-        "op"
-      ],
+      "required": ["op"],
       "additionalProperties": true
     },
     "annotations": {
@@ -357,20 +343,19 @@
       "properties": {
         "op": {
           "type": "string",
-          "enum": [
-            "create",
-            "delete"
-          ],
+          "enum": ["create", "delete"],
           "description": "fx 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
           "description": "必填字段：create{type} delete{fx_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
-      "required": [
-        "op"
-      ],
+      "required": ["op"],
       "additionalProperties": true
     },
     "annotations": {
@@ -389,22 +374,19 @@
       "properties": {
         "op": {
           "type": "string",
-          "enum": [
-            "boolean",
-            "tube",
-            "backdrop",
-            "decal"
-          ],
+          "enum": ["boolean", "tube", "backdrop", "decal"],
           "description": "mesh 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
           "description": "必填字段：boolean{target,tool} tube{points,radius}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
-      "required": [
-        "op"
-      ],
+      "required": ["op"],
       "additionalProperties": true
     },
     "annotations": {
@@ -423,22 +405,19 @@
       "properties": {
         "op": {
           "type": "string",
-          "enum": [
-            "inspect",
-            "put",
-            "list",
-            "delete"
-          ],
+          "enum": ["inspect", "put", "list", "delete"],
           "description": "asset 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
           "description": "必填字段：inspect{src} put{src} delete{sha}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
-      "required": [
-        "op"
-      ],
+      "required": ["op"],
       "additionalProperties": true
     },
     "annotations": {
@@ -457,23 +436,19 @@
       "properties": {
         "op": {
           "type": "string",
-          "enum": [
-            "set",
-            "save",
-            "delete",
-            "project",
-            "unproject"
-          ],
+          "enum": ["set", "save", "delete", "project", "unproject"],
           "description": "camera 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
           "description": "必填字段：save{name} delete{name} project{points} unproject{points}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
-      "required": [
-        "op"
-      ],
+      "required": ["op"],
       "additionalProperties": true
     },
     "annotations": {
@@ -492,25 +467,19 @@
       "properties": {
         "op": {
           "type": "string",
-          "enum": [
-            "snapshot",
-            "views",
-            "node",
-            "pick",
-            "assert",
-            "id_pass",
-            "sequence"
-          ],
+          "enum": ["snapshot", "views", "node", "pick", "assert", "id_pass", "sequence"],
           "description": "render 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
           "description": "必填字段：node{node_id} assert{anchors} sequence{from,to,fps}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
-      "required": [
-        "op"
-      ],
+      "required": ["op"],
       "additionalProperties": true
     },
     "annotations": {
@@ -539,13 +508,13 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": [
-              "cameras",
-              "lights"
-            ]
+            "enum": ["cameras", "lights"]
           },
           "maxItems": 2,
           "description": "额外带上相机 / 灯光；默认不带"
+        },
+        "room_id": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -566,21 +535,19 @@
       "properties": {
         "op": {
           "type": "string",
-          "enum": [
-            "get",
-            "list",
-            "cancel"
-          ],
+          "enum": ["get", "list", "cancel"],
           "description": "job 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
           "description": "必填字段：get{job_id} cancel{job_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
-      "required": [
-        "op"
-      ],
+      "required": ["op"],
       "additionalProperties": true
     },
     "annotations": {
@@ -611,9 +578,7 @@
           "description": "true（默认）直接弹窗；false 只返回 url 不弹"
         },
         "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$",
-          "description": "房间 id；省略时用当前会话绑定的房间"
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -668,9 +633,7 @@
                 ]
               }
             },
-            "required": [
-              "op"
-            ],
+            "required": ["op"],
             "oneOf": [
               {
                 "type": "object",
@@ -679,10 +642,7 @@
                     "const": "node.create"
                   }
                 },
-                "required": [
-                  "op",
-                  "node"
-                ]
+                "required": ["op", "node"]
               },
               {
                 "type": "object",
@@ -691,11 +651,7 @@
                     "const": "node.update"
                   }
                 },
-                "required": [
-                  "op",
-                  "id",
-                  "patch"
-                ]
+                "required": ["op", "id", "patch"]
               },
               {
                 "type": "object",
@@ -704,10 +660,7 @@
                     "const": "node.delete"
                   }
                 },
-                "required": [
-                  "op",
-                  "id"
-                ]
+                "required": ["op", "id"]
               },
               {
                 "type": "object",
@@ -716,11 +669,7 @@
                     "const": "node.reparent"
                   }
                 },
-                "required": [
-                  "op",
-                  "id",
-                  "parent"
-                ]
+                "required": ["op", "id", "parent"]
               },
               {
                 "type": "object",
@@ -729,11 +678,7 @@
                     "const": "material.set"
                   }
                 },
-                "required": [
-                  "op",
-                  "id",
-                  "material"
-                ]
+                "required": ["op", "id", "material"]
               },
               {
                 "type": "object",
@@ -742,10 +687,7 @@
                     "const": "material.create"
                   }
                 },
-                "required": [
-                  "op",
-                  "id"
-                ]
+                "required": ["op", "id"]
               },
               {
                 "type": "object",
@@ -754,11 +696,7 @@
                     "const": "material.patch"
                   }
                 },
-                "required": [
-                  "op",
-                  "id",
-                  "patch"
-                ]
+                "required": ["op", "id", "patch"]
               },
               {
                 "type": "object",
@@ -767,11 +705,7 @@
                     "const": "material.map"
                   }
                 },
-                "required": [
-                  "op",
-                  "id",
-                  "map"
-                ]
+                "required": ["op", "id", "map"]
               },
               {
                 "type": "object",
@@ -780,10 +714,7 @@
                     "const": "env.set"
                   }
                 },
-                "required": [
-                  "op",
-                  "env"
-                ]
+                "required": ["op", "env"]
               },
               {
                 "type": "object",
@@ -792,10 +723,7 @@
                     "const": "stage.set"
                   }
                 },
-                "required": [
-                  "op",
-                  "stage"
-                ]
+                "required": ["op", "stage"]
               },
               {
                 "type": "object",
@@ -804,11 +732,7 @@
                     "const": "animation.define"
                   }
                 },
-                "required": [
-                  "op",
-                  "target",
-                  "clip"
-                ]
+                "required": ["op", "target", "clip"]
               },
               {
                 "type": "object",
@@ -817,10 +741,7 @@
                     "const": "fx.create"
                   }
                 },
-                "required": [
-                  "op",
-                  "fx"
-                ]
+                "required": ["op", "fx"]
               },
               {
                 "type": "object",
@@ -829,9 +750,7 @@
                     "const": "camera.set"
                   }
                 },
-                "required": [
-                  "op"
-                ]
+                "required": ["op"]
               },
               {
                 "type": "object",
@@ -840,10 +759,7 @@
                     "const": "camera.save"
                   }
                 },
-                "required": [
-                  "op",
-                  "name"
-                ]
+                "required": ["op", "name"]
               },
               {
                 "type": "object",
@@ -852,10 +768,7 @@
                     "const": "asset.register"
                   }
                 },
-                "required": [
-                  "op",
-                  "asset"
-                ]
+                "required": ["op", "asset"]
               },
               {
                 "type": "object",
@@ -864,10 +777,7 @@
                     "const": "scene.replace"
                   }
                 },
-                "required": [
-                  "op",
-                  "doc"
-                ]
+                "required": ["op", "doc"]
               }
             ]
           },
@@ -880,21 +790,9 @@
                 "parent": null,
                 "visible": true,
                 "transform": {
-                  "p": [
-                    0,
-                    0,
-                    0
-                  ],
-                  "r": [
-                    0,
-                    0,
-                    0
-                  ],
-                  "s": [
-                    1,
-                    1,
-                    1
-                  ]
+                  "p": [0, 0, 0],
+                  "r": [0, 0, 0],
+                  "s": [1, 1, 1]
                 }
               }
             },
@@ -907,41 +805,20 @@
                 "visible": true,
                 "geometry": {
                   "type": "box",
-                  "size": [
-                    1,
-                    1,
-                    0.2
-                  ]
+                  "size": [1, 1, 0.2]
                 },
                 "material": "m_ab12cd34",
                 "transform": {
-                  "p": [
-                    0,
-                    0,
-                    0
-                  ],
-                  "r": [
-                    0,
-                    0,
-                    0
-                  ],
-                  "s": [
-                    1,
-                    1,
-                    1
-                  ]
+                  "p": [0, 0, 0],
+                  "r": [0, 0, 0],
+                  "s": [1, 1, 1]
                 }
               }
             },
             {
               "op": "env.set",
               "env": {
-                "background": [
-                  0.1,
-                  0.1,
-                  0.1,
-                  1
-                ]
+                "background": [0.1, 0.1, 0.1, 1]
               }
             },
             {
@@ -949,11 +826,7 @@
               "id": "@box1",
               "patch": {
                 "transform": {
-                  "p": [
-                    0,
-                    0.5,
-                    0
-                  ]
+                  "p": [0, 0.5, 0]
                 }
               }
             },
@@ -966,12 +839,10 @@
         },
         "room_id": {
           "type": "string",
-          "description": "省略则用当前会话房间"
+          "description": "省略则用会话默认房间；多房间或多聊天并行时必须显式传"
         }
       },
-      "required": [
-        "ops"
-      ],
+      "required": ["ops"],
       "additionalProperties": true
     },
     "annotations": {

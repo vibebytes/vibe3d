@@ -50,8 +50,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "room_id": {
           "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$",
-          "description": "房间 id；省略时用当前会话绑定的房间"
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
       "required": [
@@ -109,6 +108,10 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         "params": {
           "type": "object",
           "description": "必填字段：import{doc} restore{checkpoint_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
       "required": [
@@ -160,6 +163,10 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         "params": {
           "type": "object",
           "description": "必填字段：create{kind} update{node_id,patch} delete{node_id} clone{node_id} get{node_id} reparent{node_id,parent} array{node_id,count} attach{node_id,target_id,face} group{ids,name} merge{node_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
       "required": [
@@ -195,6 +202,10 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         "params": {
           "type": "object",
           "description": "必填字段：patch{material_id,patch} map{material_id} assign{material_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
       "required": [
@@ -226,6 +237,10 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         "params": {
           "type": "object",
           "description": "必填字段：set{stage}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
       "required": [
@@ -263,6 +278,10 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         "params": {
           "type": "object",
           "description": "必填字段：define{node_id,clip} play{node_id} stop{node_id} clear{node_id} pose{targets}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
       "required": [
@@ -294,6 +313,10 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         "params": {
           "type": "object",
           "description": "必填字段：create{type} delete{fx_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
       "required": [
@@ -329,6 +352,10 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         "params": {
           "type": "object",
           "description": "必填字段：boolean{target,tool} tube{points,radius}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
       "required": [
@@ -364,6 +391,10 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         "params": {
           "type": "object",
           "description": "必填字段：inspect{src} put{src} delete{sha}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
       "required": [
@@ -401,6 +432,10 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         "params": {
           "type": "object",
           "description": "必填字段：save{name} delete{name} project{points} unproject{points}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
       "required": [
@@ -442,6 +477,10 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         "params": {
           "type": "object",
           "description": "必填字段：node{node_id} assert{anchors} sequence{from,to,fps}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
       "required": [
@@ -480,6 +519,9 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
           },
           "maxItems": 2,
           "description": "额外带上相机 / 灯光；默认不带"
+        },
+        "room_id": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -510,6 +552,10 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         "params": {
           "type": "object",
           "description": "必填字段：get{job_id} cancel{job_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略用默认房间；多房间/多聊天并行必传"
         }
       },
       "required": [
@@ -522,7 +568,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
     name: "vibe3d_open_editor",
     title: "打开房间编辑器（默认弹窗）",
     ops: [
-      { op: "open", capability: "editor.open", title: "在本地浏览器打开房间编辑器（默认直接弹出窗口；open:false 只回链接）；省略 room_id 时用会话绑定（未绑定自动建房）" },
+      { op: "open", capability: "editor.open", title: "在本地浏览器打开房间编辑器（默认直接弹出窗口；open:false 只回链接）；省略 room_id 时复用当前会话房间，仅未绑定时才自动建「MCP 会话房间」" },
     ],
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
@@ -543,9 +589,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
           "description": "true（默认）直接弹窗；false 只返回 url 不弹"
         },
         "room_id": {
-          "type": "string",
-          "pattern": "^r_[a-z0-9]{8}$",
-          "description": "房间 id；省略时用当前会话绑定的房间"
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -7043,6 +7087,9 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
           "type": "string",
           "minLength": 1,
           "maxLength": 120
+        },
+        "room_id": {
+          "type": "string"
         }
       },
       "required": [

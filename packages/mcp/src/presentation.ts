@@ -50,7 +50,14 @@ type ZodArm = { _def: { shape: () => Record<string, ZodLike> } };
 type ZodLike = { _def: { typeName?: string; value?: unknown; innerType?: ZodLike; schema?: ZodLike } };
 
 const UNWRAP = new Set(['ZodOptional', 'ZodNullable', 'ZodDefault', 'ZodCatch', 'ZodEffects', 'ZodReadonly']);
-const COMPOSITE = new Set(['ZodObject', 'ZodDiscriminatedUnion', 'ZodUnion', 'ZodIntersection', 'ZodRecord', 'ZodLazy']);
+const COMPOSITE = new Set([
+  'ZodObject',
+  'ZodDiscriminatedUnion',
+  'ZodUnion',
+  'ZodIntersection',
+  'ZodRecord',
+  'ZodLazy',
+]);
 
 const unwrap = (schema: ZodLike): ZodLike => {
   let current = schema;
@@ -81,9 +88,9 @@ const armTable = (arm: ZodArm): { op: string; fields: string[]; required: string
   return { op, fields, required, wrapped };
 };
 
-const ARMS = [...((opSchema as unknown as { _def: { options: Map<string, ZodArm> } })._def.options.values())].map(
-  armTable,
-);
+const ARMS = [
+  ...(opSchema as unknown as { _def: { options: Map<string, ZodArm> } })._def.options.values(),
+].map(armTable);
 
 export const OP_NAMES = ARMS.map((arm) => arm.op);
 
@@ -146,7 +153,7 @@ export const applyOpsSchema = (): unknown => ({
       },
       examples: OPS_EXAMPLES,
     },
-    room_id: { type: 'string', description: '省略则用当前会话房间' },
+    room_id: { type: 'string', description: '省略则用会话默认房间；多房间或多聊天并行时必须显式传' },
   },
   required: ['ops'],
   additionalProperties: true,

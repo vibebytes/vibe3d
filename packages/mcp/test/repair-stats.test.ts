@@ -1,7 +1,7 @@
-import type { Studio } from '@vibebyte/vibe3d-client';
 import { existsSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { Studio } from '@vibebyte/vibe3d-client';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   flushRepairStats,
@@ -63,8 +63,7 @@ describe('runtime counts repairs', () => {
       createRoom: async () => ({ id: 'r_0000000a' }),
       room: (roomId: string) => ({
         id: roomId,
-        invoke: async (method: string) =>
-          method === 'room.use' ? { roomId } : { revision: 1, camera: {} },
+        invoke: async (method: string) => (method === 'room.use' ? { roomId } : { revision: 1, camera: {} }),
       }),
     } as unknown as Studio;
 

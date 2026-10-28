@@ -42,7 +42,12 @@ export function paramDocs(capability: CapabilityName): ParamDoc[] {
   const required = new Set(schema.required ?? []);
   return Object.entries(schema.properties ?? {}).map(([name, prop]) => {
     const doc: ParamDoc = { name, required: required.has(name) };
-    const type = prop.type ?? prop.anyOf?.map((arm) => arm.type).filter(Boolean).join(' | ');
+    const type =
+      prop.type ??
+      prop.anyOf
+        ?.map((arm) => arm.type)
+        .filter(Boolean)
+        .join(' | ');
     if (type) doc.type = type;
     if (prop.description) doc.description = prop.description;
     if (prop.enum) doc.values = prop.enum;
@@ -62,7 +67,7 @@ export function describeCapability(capability: CapabilityName): CapabilityDoc {
     legacy: LEGACY_OF.get(capability) ?? '',
     scope: spec.scope,
     mutating: spec.mutating,
-    roomArg: (spec as { mcp?: McpSpec }).mcp?.roomArg ?? false,
+    roomArg: (spec as { mcp?: McpSpec }).mcp?.roomArg ?? spec.scope === 'room',
     errors: 'errors' in spec ? (spec.errors ?? []) : [],
     params: paramDocs(capability),
   };

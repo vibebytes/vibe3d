@@ -46384,7 +46384,7 @@
     },
     {
       "name": "editor.open",
-      "title": "在本地浏览器打开房间编辑器（默认直接弹出窗口；open:false 只回链接）；省略 room_id 时用会话绑定（未绑定自动建房）",
+      "title": "在本地浏览器打开房间编辑器（默认直接弹出窗口；open:false 只回链接）；省略 room_id 时复用当前会话房间，仅未绑定时才自动建「MCP 会话房间」",
       "wire": "editor.open",
       "scope": "room",
       "mutating": false,

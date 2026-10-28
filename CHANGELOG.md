@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- 多房间/多聊天：所有房间级工具接受可选 `room_id`（只路由本次调用）；进程接触多个房间后不带 `room_id` 的调用被拒绝并列出候选；隐式调用在结果里标注所用房间；`open_editor` 已有房间时不再新建。
 - MCP 协议壳改为官方 SDK v2 低层 Server。`instructions` 与真实分组工具名对齐，`serverInfo.version` 与包版本一致。
 - `vibe3d-mcp` 精确依赖 `vibe3d-daemon`；daemon 发布包带上 editor 静态资源，并能从安装目录被解析到。
 - 增加 Node >=22 前置检查、`--doctor`，以及 MCP Registry 元数据（`io.github.vibebytes/vibe3d`）。

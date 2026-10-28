@@ -96,7 +96,7 @@ export interface CliSpec {
 
 export interface McpSpec {
   annotations?: ToolAnnotations;
-  /** 房间是操作对象（读/关/打开）而非路由：room_id 以可选参数暴露，省略时取会话绑定 */
+  /** 房间是操作对象（读/关/打开/切换）：'required' 表示 room_id 必填（room.use）；其余 room 级能力一律暴露可选 room_id */
   roomArg?: boolean | 'required';
 }
 

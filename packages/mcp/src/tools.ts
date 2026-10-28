@@ -84,7 +84,6 @@ export interface ToolResult {
 
 interface SpecView {
   scope: 'daemon' | 'room';
-  mcp?: { roomArg?: boolean };
 }
 
 const viewOf = (capability: CapabilityName): SpecView => CAPABILITIES[capability] as SpecView;
@@ -116,6 +115,8 @@ function unwrapWrapper(input: Record<string, unknown>, keys: string[]): Record<s
 }
 
 const wrapperKeys = (tool: ToolDef, op: string): string[] => [op, tool.name.replace(/^vibe3d_/, '')];
+
+const ROOM_NAME = 'MCP 会话房间';
 
 const IGNORED_KEYS = new Set(['op', 'params', 'roomId']);
 
@@ -552,9 +553,12 @@ export class ToolRuntime {
     if (name !== tool.name) {
       process.stderr.write(`${JSON.stringify({ event: 'tool.alias', called: name, tool: tool.name, op })}\n`);
     }
+    let implicit = false;
+    let targetRoom: string | undefined;
     try {
       const input = picked.input;
-      if (viewOf(capability).scope === 'room') await this.resolveRoom(capability, input);
+      if (viewOf(capability).scope === 'room') implicit = await this.resolveRoom(capability, input);
+      targetRoom = typeof input.roomId === 'string' ? input.roomId : undefined;
       const repaired = repairInput(spec.input, input);
       if (repaired.fixes.length > 0) {
         process.stderr.write(
@@ -600,6 +604,11 @@ export class ToolRuntime {
         parent?.removeEventListener('abort', onParentAbort);
       }
       this.afterCall(capability, data, result);
+      const notes = this.roomNotes(
+        capability,
+        capability === 'room.create' ? (result as { roomId?: string }).roomId : targetRoom,
+        implicit,
+      ).map((text) => ({ type: 'text' as const, text }));
       if (capability === 'render.snapshot') {
         const shot = result as {
           base64: string;
@@ -633,6 +642,7 @@ export class ToolRuntime {
             { type: 'text', text: JSON.stringify(meta) },
             ...(warningNote ? [{ type: 'text' as const, text: warningNote }] : []),
             ...(droppedNote ? [{ type: 'text' as const, text: droppedNote }] : []),
+            ...notes,
           ],
           structuredContent: meta,
         };
@@ -646,58 +656,69 @@ export class ToolRuntime {
         ...(card ? [{ type: 'text' as const, text: card }] : []),
       ];
       if (droppedNote) content.push({ type: 'text', text: droppedNote });
+      content.push(...notes);
       return { content, structuredContent: result };
     } catch (err) {
+      if (err instanceof Vibe3DError && err.code === 'E_ROOM_NOT_FOUND' && targetRoom)
+        this.session.release(targetRoom);
       if (err instanceof Vibe3DError && DAEMON_LINK_CODES.has(err.code)) throw err;
       return failure(err);
     }
   }
 
-  private async resolveRoom(capability: CapabilityName, input: Record<string, unknown>): Promise<void> {
-    if (capability === 'room.close' && Array.isArray(input.ids) && input.roomId === undefined) return;
+  /** 解析本次调用的房间，写回 input.roomId；返回是否走了会话默认房间（隐式）。 */
+  private async resolveRoom(capability: CapabilityName, input: Record<string, unknown>): Promise<boolean> {
+    if (capability === 'room.close' && Array.isArray(input.ids) && input.roomId === undefined) return false;
     const explicit = typeof input.roomId === 'string' && input.roomId ? input.roomId : undefined;
-    if (!viewOf(capability).mcp?.roomArg) {
-      if (explicit && explicit !== this.session.current) {
-        throw new Vibe3DError(
-          'E_INVALID_PARAMS',
-          `${capability} 不接受 room_id：房间由会话绑定（当前 ${this.session.current ?? '未绑定'}）。换房间请用 vibe3d_use_room（纯绑定不弹窗），或用 vibe3d_get_room / vibe3d_open_editor 传 room_id。`,
-        );
-      }
-      input.roomId = this.session.require();
-      return;
-    }
     if (capability === 'room.use' && !explicit) {
       throw new Vibe3DError(
         'E_INVALID_PARAMS',
         'vibe3d_use_room 需要 room_id：它把当前会话切到指定房间（只换绑定，不弹窗）。房间列表用 vibe3d_list_rooms。',
       );
     }
-    if (explicit) {
-      input.roomId = explicit;
-      return;
-    }
+    if (explicit) return false;
     input.roomId = capability === 'editor.open' ? await this.ensureRoom() : this.session.require();
+    return true;
   }
 
+  /** open_editor 未显式传 room_id 时：已接触过房间就走默认房间规则（可能报歧义）；否则建「MCP 会话房间」。 */
   private async ensureRoom(): Promise<string> {
-    const room = await this.studio.createRoom({ name: 'MCP 会话房间' });
-    this.session.bind(room.id);
+    if (this.session.rooms.length > 0) return this.session.require();
+    const room = await this.studio.createRoom({ name: ROOM_NAME });
+    this.session.add(room.id);
+    this.session.setName(room.id, ROOM_NAME);
     return room.id;
   }
 
   private afterCall(capability: CapabilityName, params: Record<string, unknown>, result: unknown): void {
+    const out = (result ?? {}) as { roomId?: unknown; name?: unknown };
+    if (typeof out.roomId === 'string' && typeof out.name === 'string')
+      this.session.setName(out.roomId, out.name);
     if (capability === 'room.create') {
-      this.session.bind((result as { roomId: string }).roomId);
+      this.session.add((result as { roomId: string }).roomId);
       return;
     }
     if (capability === 'room.close') {
       if (typeof params.roomId === 'string') this.session.release(params.roomId);
       return;
     }
-    if (capability === 'room.use' || capability === 'room.get' || capability === 'editor.open') {
-      const roomId = params.roomId;
-      if (typeof roomId === 'string') this.session.bind(roomId);
+    const roomId = params.roomId;
+    if (typeof roomId !== 'string') return;
+    if (capability === 'room.use') this.session.use(roomId);
+    if (capability === 'room.get' || capability === 'editor.open') this.session.adopt(roomId);
+  }
+
+  /** 结果末尾的路由提示：隐式走了默认房间要回显；出现多个房间时提醒后续显式传 room_id。 */
+  private roomNotes(capability: CapabilityName, roomId: string | undefined, implicit: boolean): string[] {
+    const notes: string[] = [];
+    if (implicit && roomId) notes.push(`房间 ${this.session.label(roomId)}（隐式：会话默认房间）`);
+    const created = capability === 'room.create' || capability === 'room.use';
+    if (created && roomId && this.session.rooms.length > 1) {
+      notes.push(
+        `本进程已接触 ${this.session.rooms.length} 个房间：之后每次调用请显式传 room_id="${roomId}"。`,
+      );
     }
+    return notes;
   }
 
   private async dispatch(

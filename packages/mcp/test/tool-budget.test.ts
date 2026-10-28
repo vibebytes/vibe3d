@@ -6,8 +6,8 @@ const byName = (name: string) => tools.find((tool) => tool.name === name);
 const quoted = tools.map((tool) => ({ name: tool.name, bytes: JSON.stringify(tool).length }));
 
 describe('advertised tool list budget', () => {
-  it('keeps the whole tools/list payload under 16KB', () => {
-    expect(JSON.stringify(tools).length).toBeLessThanOrEqual(16 * 1024);
+  it('keeps the whole tools/list payload under 17KB', () => {
+    expect(JSON.stringify(tools).length).toBeLessThanOrEqual(17 * 1024);
   });
 
   it('keeps every description under 360 chars', () => {

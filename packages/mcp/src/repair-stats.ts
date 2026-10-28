@@ -96,7 +96,11 @@ export function recordRepair(event: RepairEvent, home?: string): void {
   firstSeenAt ??= now;
   updatedAt = now;
   total += 1;
-  const entry = tools.get(event.tool) ?? { capability: event.capability, count: 0, fixes: new Map<string, number>() };
+  const entry = tools.get(event.tool) ?? {
+    capability: event.capability,
+    count: 0,
+    fixes: new Map<string, number>(),
+  };
   entry.capability = event.capability;
   entry.count += 1;
   for (const fix of event.fixes) entry.fixes.set(fix, (entry.fixes.get(fix) ?? 0) + 1);

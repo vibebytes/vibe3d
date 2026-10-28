@@ -79,9 +79,14 @@ export function snakeKeys(schema: unknown): unknown {
 const specOf = (name: string): CapabilitySpec<unknown, unknown> =>
   CAPABILITIES[name as keyof typeof CAPABILITIES] as CapabilitySpec<unknown, unknown>;
 
+export const ROOM_ID_PATTERN = '^r_[a-z0-9]{8}$';
+
+/** 省略 room_id 时用会话默认房间；多个房间或多个聊天并行时必须显式传 */
+export const ROOM_ID_HINT = '省略用默认房间；多房间/多聊天并行必传';
+
 /**
- * 房间是连接层状态：room 级能力的 room_id 不进工具 schema，
- * 只有声明 mcp.roomArg 的能力（房间本身是操作对象）保留一个可选 room_id。
+ * 所有 room 级能力都接受可选 room_id：显式传入只路由这一次调用，不改写会话默认房间。
+ * 只有 room.use（mcp.roomArg 为 'required'）把它当作必填，它才负责改写默认房间。
  */
 export function mcpInputSchema(spec: CapabilitySpec<unknown, unknown>): Record<string, unknown> {
   const schema = mcpSafe(snakeKeys(toJsonSchema(spec.input))) as {
@@ -92,21 +97,15 @@ export function mcpInputSchema(spec: CapabilitySpec<unknown, unknown>): Record<s
   const keep = (key: string): boolean => key !== 'room_id';
   const properties = Object.fromEntries(Object.entries(schema.properties ?? {}).filter(([key]) => keep(key)));
   const required = (schema.required ?? []).filter(keep);
-  if (spec.mcp?.roomArg) {
-    properties.room_id =
-      spec.mcp.roomArg === 'required'
-        ? {
-            type: 'string',
-            pattern: '^r_[a-z0-9]{8}$',
-            description: '要切换到的房间 id（必填）：只换绑定，不打开窗口。先用 vibe3d_list_rooms 取 id。',
-          }
-        : {
-            type: 'string',
-            pattern: '^r_[a-z0-9]{8}$',
-            description: '房间 id；省略时用当前会话绑定的房间',
-          };
-    if (spec.mcp.roomArg === 'required') required.push('room_id');
-  }
+  const mustPass = spec.mcp?.roomArg === 'required';
+  properties.room_id = mustPass
+    ? {
+        type: 'string',
+        pattern: ROOM_ID_PATTERN,
+        description: '要切换到的房间 id（必填）：只换绑定，不打开窗口。先用 vibe3d_room {op:"list"} 取 id。',
+      }
+    : { type: 'string' };
+  if (mustPass) required.push('room_id');
   const out: Record<string, unknown> = { $schema: JSON_SCHEMA_DIALECT, ...schema, properties };
   out.required = required.length > 0 ? required : undefined;
   return out;
@@ -215,8 +214,8 @@ function envelopeSchema(group: ToolGroup): Record<string, unknown> {
       description: `必填字段：${opParamTable(group)}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段`,
     },
   };
-  if (group.ops.some(([, capability]) => specOf(capability).mcp?.roomArg)) {
-    properties.room_id = { type: 'string', pattern: '^r_[a-z0-9]{8}$', description: '房间 id；省略时用当前会话绑定的房间' };
+  if (group.ops.some(([, capability]) => specOf(capability).scope === 'room')) {
+    properties.room_id = { type: 'string', description: ROOM_ID_HINT };
   }
   return {
     $schema: JSON_SCHEMA_DIALECT,
@@ -250,7 +249,10 @@ export function buildMcp(): string {
     ].join('\n');
   });
   const aliases = [...LEGACY_TOOL_ALIASES.entries()]
-    .map(([legacy, target]) => `  ${JSON.stringify(legacy)}: { tool: ${JSON.stringify(target.tool)}, op: ${JSON.stringify(target.op)} },`)
+    .map(
+      ([legacy, target]) =>
+        `  ${JSON.stringify(legacy)}: { tool: ${JSON.stringify(target.tool)}, op: ${JSON.stringify(target.op)} },`,
+    )
     .join('\n');
   return [
     HEADER,
