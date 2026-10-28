@@ -1,10 +1,22 @@
+import { EventEmitter } from 'node:events';
 import { existsSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
-import { describe, expect, it } from 'vitest';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { connect, listRuns, probeRemoteHome, resolveDaemonEntry, startBudgetMs } from '../src/discovery';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  connect,
+  listRuns,
+  probeRemoteHome,
+  resetSpawnGate,
+  resolveDaemonEntry,
+  startBudgetMs,
+  startDaemon,
+} from '../src/discovery';
+
+const { spawnMock } = vi.hoisted(() => ({ spawnMock: vi.fn() }));
+vi.mock('node:child_process', () => ({ spawn: spawnMock }));
 
 describe('daemon 入口解析', () => {
   it('没有 node_modules link 时回退到同仓构建产物', () => {
@@ -80,5 +92,88 @@ describe('无 token daemon（默认鉴权关闭）', () => {
     const run = await connect({ url: 'http://127.0.0.1:1' });
     expect(run.client).toBeTruthy();
     expect(run.token).toBeUndefined();
+  });
+});
+
+describe('startDaemon 失败诊断与冷却门闩', () => {
+  const makeChild = () => {
+    const child = new EventEmitter() as unknown as EventEmitter & {
+      stderr: EventEmitter;
+      exitCode: number | null;
+      pid: number;
+      unref: () => void;
+    };
+    child.stderr = Object.assign(new EventEmitter(), { destroy: () => undefined });
+    child.exitCode = null;
+    child.pid = 424242;
+    child.unref = vi.fn();
+    return child;
+  };
+
+  beforeEach(() => {
+    spawnMock.mockReset();
+    resetSpawnGate();
+  });
+
+  it('spawn 失败：错误信息携带子进程 stderr 尾部，且 child 已 unref', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'v3d-spawn-'));
+    const child = makeChild();
+    spawnMock.mockReturnValue(child);
+    setTimeout(() => {
+      child.stderr.emit('data', 'Error: Cannot find module /broken/daemon.js');
+      child.exitCode = 1;
+      child.emit('exit', 1, null);
+    }, 30);
+    const err = await startDaemon({ home }).catch((e: unknown) => e);
+    expect((err as Error).message).toContain('Cannot find module');
+    expect((err as { code?: string }).code).toBe('E_NO_DAEMON');
+    expect(child.unref).toHaveBeenCalled();
+  });
+
+  it('同一 home 启动失败后进入冷却：冷却期内快速失败，不再 spawn', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'v3d-spawn-'));
+    spawnMock.mockImplementation(() => {
+      const child = makeChild();
+      setTimeout(() => {
+        child.exitCode = 1;
+        child.emit('exit', 1, null);
+      }, 30);
+      return child;
+    });
+    await expect(startDaemon({ home })).rejects.toThrow(/退出码 1/);
+    const t0 = Date.now();
+    await expect(startDaemon({ home })).rejects.toThrow(/冷却/);
+    expect(Date.now() - t0).toBeLessThan(1000);
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('VIBE3D_SPAWN_COOLDOWN_MS=0 关闭门闩：冷却期内仍允许再次 spawn', async () => {
+    const prev = process.env.VIBE3D_SPAWN_COOLDOWN_MS;
+    process.env.VIBE3D_SPAWN_COOLDOWN_MS = '0';
+    try {
+      const home = mkdtempSync(join(tmpdir(), 'v3d-spawn-'));
+      spawnMock.mockImplementation(() => {
+        const child = makeChild();
+        setTimeout(() => {
+          child.exitCode = 1;
+          child.emit('exit', 1, null);
+        }, 30);
+        return child;
+      });
+      await expect(startDaemon({ home })).rejects.toThrow();
+      await expect(startDaemon({ home })).rejects.toThrow();
+      expect(spawnMock).toHaveBeenCalledTimes(2);
+    } finally {
+      if (prev === undefined) delete process.env.VIBE3D_SPAWN_COOLDOWN_MS;
+      else process.env.VIBE3D_SPAWN_COOLDOWN_MS = prev;
+    }
+  });
+
+  it('child error 事件被捕获并转为拒绝，而不是未处理异常', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'v3d-spawn-'));
+    const child = makeChild();
+    spawnMock.mockReturnValue(child);
+    setTimeout(() => child.emit('error', new Error('spawn ENOENT')), 30);
+    await expect(startDaemon({ home })).rejects.toThrow(/spawn ENOENT/);
   });
 });

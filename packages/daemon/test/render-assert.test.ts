@@ -74,9 +74,11 @@ describe('render.assert V2-12：project + pick 串联的锚点验收', () => {
     expect(behind.got).toBeNull();
 
     for (let i = 0; i < cases.length; i += 1) {
-      expect(r.anchors[i].name).toBe(cases[i].name);
-      expect(r.anchors[i].ok).toBe(cases[i].ok);
-      if (!cases[i].ok) expect(r.anchors[i].reasons).toEqual(cases[i].reasons);
+      const anchor = r.anchors[i]!;
+      const item = cases[i]!;
+      expect(anchor.name).toBe(item.name);
+      expect(anchor.ok).toBe(item.ok);
+      if (!item.ok) expect(anchor.reasons).toEqual(item.reasons);
     }
   });
 

@@ -120,24 +120,69 @@ export function resolveDaemonEntry(): { file: string; loader: string[] } {
   );
 }
 
+const SPAWN_COOLDOWN_DEFAULT_MS = 30_000;
+
+const spawnCooldownMs = (): number => {
+  const raw = Number(process.env.VIBE3D_SPAWN_COOLDOWN_MS);
+  return Number.isFinite(raw) && raw >= 0 ? raw : SPAWN_COOLDOWN_DEFAULT_MS;
+};
+
+let lastSpawnFailure: { home: string; at: number } | undefined;
+
+export function resetSpawnGate(): void {
+  lastSpawnFailure = undefined;
+}
+
 export async function startDaemon(opts: ConnectOptions = {}): Promise<RunRecord> {
   const home = opts.home ?? defaultHome();
+  const cooldown = spawnCooldownMs();
+  if (cooldown > 0 && lastSpawnFailure?.home === home) {
+    const since = Date.now() - lastSpawnFailure.at;
+    if (since < cooldown) {
+      throw new Vibe3DError(
+        'E_NO_DAEMON',
+        `daemon 启动刚失败（${Math.ceil((cooldown - since) / 1000)}s 冷却中，防止循环拉起）。请先解决启动问题或查 ${join(home, 'daemon.log')}`,
+        { log: join(home, 'daemon.log') },
+      );
+    }
+  }
   const { file, loader } = resolveDaemonEntry();
   const args = [...loader, file, '--home', home, ...(opts.spawnArgs ?? [])];
-  const child = spawn(process.execPath, args, { detached: true, stdio: 'ignore' });
+  const child = spawn(process.execPath, args, {
+    detached: true,
+    stdio: ['ignore', 'ignore', 'pipe'],
+  });
+  let stderrTail = '';
+  let spawnError: string | undefined;
+  child.stderr?.on('data', (chunk: Buffer | string) => {
+    stderrTail = `${stderrTail}${chunk.toString()}`.slice(-2000);
+  });
+  child.on('error', (err) => {
+    spawnError = err.message;
+  });
+  child.once('exit', () => child.stderr?.destroy());
   child.unref();
-  const deadline = Date.now() + startBudgetMs(countRooms(home));
+  const budget = startBudgetMs(countRooms(home));
+  const tail = () => (stderrTail.trim() ? `；stderr: ${stderrTail.trim().slice(-500)}` : '');
+  const fail = (message: string): never => {
+    lastSpawnFailure = { home, at: Date.now() };
+    throw new Vibe3DError('E_NO_DAEMON', message, {
+      log: join(home, 'daemon.log'),
+      stderr: stderrTail.trim() || undefined,
+    });
+  };
+  const deadline = Date.now() + budget;
   while (Date.now() < deadline) {
     await delay(120);
     const run = listRuns(home).find((item) => item.pid === child.pid);
     if (run && (await probe(run))) return run;
-    if (child.exitCode !== null) {
-      throw new Vibe3DError('E_NO_DAEMON', `daemon 启动失败，退出码 ${child.exitCode}`, {
-        log: join(home, 'daemon.log'),
-      });
-    }
+    if (spawnError) return fail(`daemon 启动失败：${spawnError}${tail()}`);
+    if (child.exitCode !== null) return fail(`daemon 启动失败，退出码 ${child.exitCode}${tail()}`);
   }
-  throw new Vibe3DError('E_TIMEOUT', 'daemon 启动超时');
+  lastSpawnFailure = { home, at: Date.now() };
+  throw new Vibe3DError('E_TIMEOUT', `daemon 启动超时（${Math.round(budget / 1000)}s）${tail()}`, {
+    log: join(home, 'daemon.log'),
+  });
 }
 
 export async function probeRemoteHome(url: string, budgetMs = 1500): Promise<string | undefined> {

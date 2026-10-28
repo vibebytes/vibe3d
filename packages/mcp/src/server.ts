@@ -2,14 +2,17 @@ import { createInterface } from 'node:readline';
 import { isVibe3DError } from '@vibebyte/vibe3d-client';
 import { getPrompt, listPrompts } from './guide';
 import { logEvent } from './log';
-import { type ToolResult, type ToolRuntime, DAEMON_LINK_CODES } from './tools';
+import { DAEMON_LINK_CODES, type ToolResult, type ToolRuntime } from './tools';
 import { HELP_TOOL, callTimeoutMs, helpResult, listTools } from './tools';
 
 process.on('uncaughtException', (err) => {
   logEvent({ event: 'uncaught', err: err.stack ?? String(err) });
 });
 process.on('unhandledRejection', (reason) => {
-  logEvent({ event: 'unhandledRejection', err: reason instanceof Error ? reason.stack ?? reason.message : String(reason) });
+  logEvent({
+    event: 'unhandledRejection',
+    err: reason instanceof Error ? (reason.stack ?? reason.message) : String(reason),
+  });
 });
 process.stdout.on('error', (err) => {
   logEvent({ event: 'stdout.error', err: String(err) });
@@ -132,11 +135,18 @@ export function createServer(deps: ServerDeps) {
       const startedAt = Date.now();
       const task = (async (): Promise<ToolResult> => {
         if (name === HELP_TOOL.name) return helpResult(args);
-        const runtime = await deps.runtime();
-        return runtime.call(name, args);
+        try {
+          return await (await deps.runtime()).call(name, args);
+        } catch (err) {
+          if (!deps.onRuntimeError || !isConnectionError(err)) throw err;
+          deps.onRuntimeError(err);
+          logEvent({ event: 'mcp.reconnect-retry', tool: name });
+          return await (await deps.runtime()).call(name, args);
+        }
       })();
       task.catch(() => {});
-      const budget = callTimeoutMs() + 30_000;
+      // watchdog 围栏需覆盖 daemon 冷启动预算（startBudgetMs 封顶 45s）：首次拉起与重试拉起都适用
+      const budget = callTimeoutMs() + 45_000 + 30_000;
       let watchTimer: ReturnType<typeof setTimeout> | undefined;
       const watchdog = new Promise<never>((_, reject) => {
         watchTimer = setTimeout(() => reject(new Error('mcp-watchdog')), budget);
@@ -183,9 +193,7 @@ export function createServer(deps: ServerDeps) {
       }
       const elapsed = Date.now() - startedAt;
       if (elapsed > 5_000) {
-        process.stderr.write(
-          `${JSON.stringify({ event: 'mcp.slow', tool: name, elapsedMs: elapsed })}\n`,
-        );
+        process.stderr.write(`${JSON.stringify({ event: 'mcp.slow', tool: name, elapsedMs: elapsed })}\n`);
         logEvent({ event: 'mcp.slow', tool: name, elapsedMs: elapsed });
       }
       reply(req.id, result);
@@ -231,7 +239,13 @@ export function createServer(deps: ServerDeps) {
           fail(req.id ?? null, { code: -32603, message: err instanceof Error ? err.message : String(err) });
         })
         .finally(() => {
-          logEvent({ event: 'res', id: req.id ?? null, method: req.method, ...callMeta, ms: Date.now() - startedAt });
+          logEvent({
+            event: 'res',
+            id: req.id ?? null,
+            method: req.method,
+            ...callMeta,
+            ms: Date.now() - startedAt,
+          });
         });
       inflight.add(task);
       void task.finally(() => inflight.delete(task));
