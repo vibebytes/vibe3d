@@ -14,8 +14,9 @@ describe('README', () => {
     const vscode = blocks.find((block) => block.servers?.vibe3d);
     expect(cursor.mcpServers.vibe3d.args).toContain(pkg.name);
     expect(vscode.servers.vibe3d.args).toContain(pkg.name);
-    expect(readme).toContain('Node.js >= 22');
-    expect(readme).toContain('VIBE3D_TOKEN');
+    expect(readme).toContain('Node.js >= 20');
+    expect(readme).toMatch(/MCP TypeScript SDK v2/);
+    expect(readme).not.toContain('VIBE3D_TOKEN');
     expect(readme).not.toMatch(/--token\s/);
     expect(readme).toContain('Windows');
     expect(readme).toContain('Not verified');
@@ -26,7 +27,9 @@ describe('README', () => {
     expect(readme).toContain('简体中文');
     expect(readmeCn).toContain('href="./README.md"');
     expect(readmeCn).toContain('English');
-    expect(readmeCn).toContain('Node.js >= 22');
-    expect(readmeCn).toContain('VIBE3D_TOKEN');
+    expect(readmeCn).toContain('Node.js >= 20');
+    expect(readmeCn).toMatch(/MCP TypeScript SDK v2/);
+    expect(readmeCn).not.toContain('VIBE3D_TOKEN');
   });
 });
+

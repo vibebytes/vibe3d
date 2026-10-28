@@ -12,7 +12,7 @@ That process starts this daemon automatically.
 
 ## Requirements
 
-- Node.js >= 22
+- Node.js >= 20 (same as MCP TypeScript SDK v2)
 - Optional: system Chrome / Chromium / Edge for snapshots (set `VIBE3D_CHROME` if needed)
 
 ## Run directly
@@ -23,7 +23,7 @@ npx -y @vibebyte/vibe3d-daemon
 vibe3d-daemon
 ```
 
-Listens on `127.0.0.1` only. Set `VIBE3D_TOKEN` on shared machines.
+Listens on `127.0.0.1` only.
 
 ## Docs
 

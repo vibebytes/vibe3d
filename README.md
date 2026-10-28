@@ -7,7 +7,7 @@
 
 vibe3d is an MCP server for building and rendering 3D scenes. One command starts the protocol server, which launches the local daemon for you.
 
-Requires **Node.js >= 22**. Licensed under [Apache-2.0](./LICENSE).
+Requires **Node.js >= 20** (same as the [MCP TypeScript SDK v2](https://github.com/modelcontextprotocol/typescript-sdk)). Licensed under [Apache-2.0](./LICENSE).
 
 ## Identity
 
@@ -23,35 +23,56 @@ Requires **Node.js >= 22**. Licensed under [Apache-2.0](./LICENSE).
 npx -y @vibebyte/vibe3d-mcp
 ```
 
-### Auth and binding
+The daemon listens on **loopback only** (`127.0.0.1` / `localhost`).
 
-The daemon listens on **loopback only** (`127.0.0.1` / `localhost`). A token is optional for single-user local use. For any shared machine or anything beyond loopback, set `VIBE3D_TOKEN`.
-
-Pass the token with the `VIBE3D_TOKEN` environment variable. Do not put it in command arguments — those show up in the process list.
+Client config:
 
 ```json
 {
   "mcpServers": {
     "vibe3d": {
       "command": "npx",
-      "args": ["-y", "@vibebyte/vibe3d-mcp"],
-      "env": {
-        "VIBE3D_TOKEN": "replace-me"
-      }
+      "args": ["-y", "@vibebyte/vibe3d-mcp"]
     }
   }
 }
 ```
 
-If `npx` is not on the Node 22 path, set `command` to the absolute path of that Node binary and keep the same `args`.
+GUI apps (Cursor, Claude Desktop) often do **not** see your interactive-shell Node. Make sure the Node those apps spawn is **>= 20**, then use the JSON above. Practical options (pick one; no machine-specific absolute paths):
+
+1. Install Node.js 20+ as the system default (`node -v` / `npx -v` outside any project already show 20+), via the [official installer](https://nodejs.org/) or Homebrew; or
+2. Point your version manager’s **default** at 20+ (`nvm alias default 20`, `fnm default 20`, or Volta’s default Node 20+), then use the JSON above; or
+3. If the manager is only available in a login shell, wrap `npx` (examples):
+
+```json
+{
+  "mcpServers": {
+    "vibe3d": {
+      "command": "bash",
+      "args": ["-lc", "nvm use 20 >/dev/null && npx -y @vibebyte/vibe3d-mcp"]
+    }
+  }
+}
+```
+
+```json
+{
+  "mcpServers": {
+    "vibe3d": {
+      "command": "bash",
+      "args": ["-lc", "volta run --node 20 -- npx -y @vibebyte/vibe3d-mcp"]
+    }
+  }
+}
+```
 
 ### Cursor
 
-Use the JSON block above in `.cursor/mcp.json` or the user MCP config.
+Use the default JSON above in `.cursor/mcp.json` or the user MCP config. If status stays Error, open MCP Output — a Node < 20 message means apply option 1–3.
 
 ### Claude Desktop
 
-The same JSON goes in `claude_desktop_config.json`.
+Same JSON in `claude_desktop_config.json`.
 
 ### Claude Code
 
@@ -82,7 +103,6 @@ npx @modelcontextprotocol/inspector --cli npx -y @vibebyte/vibe3d-mcp --method t
 
 | Variable | Purpose |
 | --- | --- |
-| `VIBE3D_TOKEN` | Daemon auth token (recommended on shared hosts) |
 | `VIBE3D_HOME` | Daemon data directory |
 | `VIBE3D_CHROME` | Chrome or Chromium executable used for rendering |
 | `VIBE3D_ROOM` | Room bound when the process starts |
@@ -112,7 +132,7 @@ This prints the Node version, daemon health, Chrome discovery, schema file, and 
 
 ## Develop
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md). From this repository, with Node 22:
+See [CONTRIBUTING.md](./CONTRIBUTING.md). From this repository, with Node 20+:
 
 ```bash
 CI=true pnpm install

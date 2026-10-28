@@ -3,7 +3,7 @@ set -u
 set -o pipefail
 cd "$(dirname "$0")/.." || exit 1
 
-# Prefer Node on PATH (requires >=22). Optional: VOLTA_HOME if you use Volta.
+# Prefer Node on PATH (requires >=20). Optional: VOLTA_HOME if you use Volta.
 if [[ -n "${VOLTA_HOME:-}" ]]; then
   export PATH="$VOLTA_HOME/bin:$PATH"
 fi

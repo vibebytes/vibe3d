@@ -7,7 +7,7 @@
 
 vibe3d 是一个用于构建与渲染 3D 场景的 MCP 服务。一条命令即可启动协议进程，并由它自动拉起本地 daemon。
 
-需要 **Node.js >= 22**。采用 [Apache-2.0](./LICENSE) 开源许可。
+需要 **Node.js >= 20**（与 [MCP TypeScript SDK v2](https://github.com/modelcontextprotocol/typescript-sdk) 官方要求一致）。采用 [Apache-2.0](./LICENSE) 开源许可。
 
 ## 对外身份
 
@@ -23,31 +23,52 @@ vibe3d 是一个用于构建与渲染 3D 场景的 MCP 服务。一条命令即�
 npx -y @vibebyte/vibe3d-mcp
 ```
 
-### 鉴权与绑定
+daemon **只监听本机回环地址**（`127.0.0.1` / `localhost`）。
 
-daemon **只监听本机回环地址**（`127.0.0.1` / `localhost`）。单机单用户可以不设令牌；共享机器或任何超出本机回环的场景，请设置 `VIBE3D_TOKEN`。
-
-令牌请放在环境变量 `VIBE3D_TOKEN` 中，不要写进命令行参数（会出现在进程列表里）。
+客户端配置：
 
 ```json
 {
   "mcpServers": {
     "vibe3d": {
       "command": "npx",
-      "args": ["-y", "@vibebyte/vibe3d-mcp"],
-      "env": {
-        "VIBE3D_TOKEN": "replace-me"
-      }
+      "args": ["-y", "@vibebyte/vibe3d-mcp"]
     }
   }
 }
 ```
 
-若 `npx` 不在 Node 22 的 PATH 上，把 `command` 设为该 Node 可执行文件的绝对路径，`args` 保持不变。
+Cursor / Claude Desktop 等 GUI 往往**看不到**你在交互 shell 里选的 Node。先保证它们拉起的 Node **>= 20**，再用上面的 JSON。可选做法（任选其一；不要写本机绝对路径）：
+
+1. 把 Node.js 20+ 装成系统默认（不进项目目录时 `node -v` / `npx -v` 已是 20+），用[官网安装包](https://nodejs.org/)或 Homebrew；或
+2. 把版本管理器的 **default** 指到 20+（`nvm alias default 20`、`fnm default 20`，或 Volta 默认 Node 20+），再用上面的 JSON；或
+3. 若只有登录 shell 能加载版本管理器，再包一层 `npx`（示例）：
+
+```json
+{
+  "mcpServers": {
+    "vibe3d": {
+      "command": "bash",
+      "args": ["-lc", "nvm use 20 >/dev/null && npx -y @vibebyte/vibe3d-mcp"]
+    }
+  }
+}
+```
+
+```json
+{
+  "mcpServers": {
+    "vibe3d": {
+      "command": "bash",
+      "args": ["-lc", "volta run --node 20 -- npx -y @vibebyte/vibe3d-mcp"]
+    }
+  }
+}
+```
 
 ### Cursor
 
-把上面的 JSON 写入 `.cursor/mcp.json` 或用户级 MCP 配置。
+把默认 JSON 写入 `.cursor/mcp.json` 或用户级 MCP 配置。若一直 Error，打开 MCP Output：提示 Node < 20 时按上面 1–3 处理。
 
 ### Claude Desktop
 
@@ -82,7 +103,6 @@ npx @modelcontextprotocol/inspector --cli npx -y @vibebyte/vibe3d-mcp --method t
 
 | 变量 | 用途 |
 | --- | --- |
-| `VIBE3D_TOKEN` | daemon 鉴权令牌（共享环境建议开启） |
 | `VIBE3D_HOME` | daemon 数据目录 |
 | `VIBE3D_CHROME` | 用于渲染的 Chrome / Chromium 可执行文件 |
 | `VIBE3D_ROOM` | 进程启动时绑定的房间 |
@@ -112,7 +132,7 @@ npx -y @vibebyte/vibe3d-mcp --doctor --json
 
 ## 开发
 
-见 [CONTRIBUTING.md](./CONTRIBUTING.md)。在本仓库、Node 22 下：
+见 [CONTRIBUTING.md](./CONTRIBUTING.md)。在本仓库、Node 20+ 下：
 
 ```bash
 CI=true pnpm install
