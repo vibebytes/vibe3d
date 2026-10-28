@@ -1,16 +1,27 @@
 {
   "name": "@vibebyte/vibe3d-mcp",
   "version": "0.2.0",
+  "description": "Edit and render 3D scenes over MCP: rooms, nodes, materials, cameras, and snapshots.",
   "type": "module",
+  "mcpName": "io.github.vibebytes/vibe3d",
   "bin": {
     "vibe3d-mcp": "./dist/index.js"
   },
   "files": ["dist"],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "tsx src/index.ts",
-    "build": "tsup"
+    "build": "tsup && node dist/schema-cli.js && chmod +x dist/index.js",
+    "prepack": "pnpm run build"
   },
   "dependencies": {
+    "@vibebyte/vibe3d-daemon": "workspace:*"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.4.0",
+    "@modelcontextprotocol/server": "^2.4.0",
     "@vibebyte/vibe3d-capabilities": "workspace:*",
     "@vibebyte/vibe3d-client": "workspace:*",
     "@vibebyte/vibe3d-protocol": "workspace:*",

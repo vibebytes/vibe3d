@@ -1,31 +1,20 @@
 import { Vibe3DError } from '@vibebyte/vibe3d-client';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createServer } from '../src/server';
 import { ToolRuntime } from '../src/tools';
-
-const write = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
-afterEach(() => write.mockClear());
+import { connectClient } from './helpers/client';
 
 const fakeRuntime = (call: (name: string) => Promise<unknown>): ToolRuntime =>
   ({ call }) as unknown as ToolRuntime;
 
-type Server = ReturnType<typeof createServer>;
-
-const callStatus = (server: Server, id: number) =>
-  server.handle({
-    jsonrpc: '2.0',
-    id,
-    method: 'tools/call',
-    params: { name: 'vibe3d_status', arguments: {} },
-  });
-
-const lastReply = () => JSON.parse(String(write.mock.calls.at(-1)?.[0]));
+const textOf = (result: { content: Array<{ type: string; text?: string }> }): string =>
+  result.content.find((item) => item.type === 'text')?.text ?? '';
 
 describe('连接类错误自愈', () => {
   it('daemon 死亡后 E_NETWORK 触发重置，同一调用内重试即成功', async () => {
     const built = vi.fn();
     let current: ToolRuntime | undefined;
-    const server = createServer({
+    const { client } = await connectClient({
       runtime: async () => {
         current ??= (() => {
           built();
@@ -42,21 +31,21 @@ describe('连接类错误自愈', () => {
       },
     });
 
-    await callStatus(server, 1);
+    const first = await client.callTool({ name: 'vibe3d_status', arguments: {} });
     expect(built).toHaveBeenCalledTimes(2);
-    expect(lastReply().result.isError).toBeUndefined();
-    expect(lastReply().result.content[0].text).toBe('ok');
+    expect(first.isError).toBeUndefined();
+    expect(textOf(first)).toBe('ok');
 
-    await callStatus(server, 2);
+    const second = await client.callTool({ name: 'vibe3d_status', arguments: {} });
     expect(built).toHaveBeenCalledTimes(2);
-    expect(lastReply().result.isError).toBeUndefined();
-    expect(lastReply().result.content[0].text).toBe('ok');
+    expect(second.isError).toBeUndefined();
+    expect(textOf(second)).toBe('ok');
   });
 
   it('域错误（E_INVALID_PARAMS）不重置 memo', async () => {
     const built = vi.fn();
     let current: ToolRuntime | undefined;
-    const server = createServer({
+    const { client } = await connectClient({
       runtime: async () => {
         current ??= (() => {
           built();
@@ -71,10 +60,10 @@ describe('连接类错误自愈', () => {
       },
     });
 
-    await callStatus(server, 1);
-    await callStatus(server, 2);
+    await client.callTool({ name: 'vibe3d_status', arguments: {} });
+    const second = await client.callTool({ name: 'vibe3d_status', arguments: {} });
     expect(built).toHaveBeenCalledTimes(1);
-    expect(JSON.parse(lastReply().result.content[0].text).code).toBe('E_INVALID_PARAMS');
+    expect(JSON.parse(textOf(second)).code).toBe('E_INVALID_PARAMS');
   });
 });
 
@@ -135,27 +124,37 @@ describe('同一次调用内的有界重试', () => {
     return { server, built };
   };
 
+  const callStatus = async (server: ReturnType<typeof createServer>) => {
+    const [clientTransport, serverTransport] = (
+      await import('@modelcontextprotocol/server')
+    ).InMemoryTransport.createLinkedPair();
+    await server.connect(serverTransport);
+    const { Client } = await import('@modelcontextprotocol/client');
+    const client = new Client({ name: 'vibe3d-test', version: '0.0.0' });
+    await client.connect(clientTransport);
+    return client.callTool({ name: 'vibe3d_status', arguments: {} });
+  };
+
   it('连接错误 → 重置 → 重建 runtime → 重放同一调用并成功', async () => {
     const { server, built } = buildCountingServer(['net', 'ok']);
-    await callStatus(server, 1);
+    const result = await callStatus(server);
     expect(built).toHaveBeenCalledTimes(2);
-    expect(lastReply().result.isError).toBeUndefined();
-    expect(lastReply().result.content[0].text).toBe('ok');
+    expect(result.isError).toBeUndefined();
+    expect(textOf(result)).toBe('ok');
   });
 
   it('重试一次仍连接错误 → 返回错误,不触发第三次重建', async () => {
     const { server, built } = buildCountingServer(['net', 'net']);
-    await callStatus(server, 1);
+    const result = await callStatus(server);
     expect(built).toHaveBeenCalledTimes(2);
-    const reply = lastReply();
-    expect(reply.result.isError).toBe(true);
-    expect(JSON.parse(reply.result.content[0].text).code).toBe('E_NETWORK');
+    expect(result.isError).toBe(true);
+    expect(JSON.parse(textOf(result)).code).toBe('E_NETWORK');
   });
 
   it('域错误不重试、不重建', async () => {
     const { server, built } = buildCountingServer(['domain']);
-    await callStatus(server, 1);
+    const result = await callStatus(server);
     expect(built).toHaveBeenCalledTimes(1);
-    expect(JSON.parse(lastReply().result.content[0].text).code).toBe('E_INVALID_PARAMS');
+    expect(JSON.parse(textOf(result)).code).toBe('E_INVALID_PARAMS');
   });
 });

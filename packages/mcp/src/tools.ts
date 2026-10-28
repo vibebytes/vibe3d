@@ -245,7 +245,11 @@ function helpText(rawArgs: unknown): string {
   const raw = (rawArgs ?? {}) as { tool?: unknown; op?: unknown };
   const index = MCP_TOOLS.map((tool) => ({ tool: tool.name, ops: tool.ops.map((o) => o.op) }));
   if (typeof raw.tool !== 'string' || !raw.tool) {
-    return JSON.stringify({ conventions: conventionMap(), tools: index, hint: '传 {tool, op} 查单个 op 的参数契约' });
+    return JSON.stringify({
+      conventions: conventionMap(),
+      tools: index,
+      hint: '传 {tool, op} 查单个 op 的参数契约',
+    });
   }
   const tool = toolByName(raw.tool);
   if (!tool) {
@@ -528,7 +532,7 @@ export class ToolRuntime {
     this.session = new RoomSession(roomId ?? process.env.VIBE3D_ROOM);
   }
 
-  async call(name: string, rawArgs: unknown): Promise<ToolResult> {
+  async call(name: string, rawArgs: unknown, opts?: { signal?: AbortSignal }): Promise<ToolResult> {
     if (name === HELP_TOOL.name) {
       return { content: [{ type: 'text', text: helpText(rawArgs) }] };
     }
@@ -580,12 +584,21 @@ export class ToolRuntime {
           ? `⚠ 以下字段不属于 ${capability}，本次未采用（结果按其余参数与 doc 当前机位执行）：${dropped.join(', ')}。参数平铺在顶层；正确键名用 vibe3d_help {tool:"${tool.name}", op:"${op}"} 查。`
           : '';
       const abort = new AbortController();
-      const result = await withDeadline(
-        this.dispatch(capability, data, abort.signal),
-        capability,
-        data,
-        (reason) => abort.abort(new Error(reason)),
-      );
+      const parent = opts?.signal;
+      const onParentAbort = () => abort.abort(parent?.reason);
+      if (parent?.aborted) abort.abort(parent.reason);
+      else parent?.addEventListener('abort', onParentAbort, { once: true });
+      let result: unknown;
+      try {
+        result = await withDeadline(
+          this.dispatch(capability, data, abort.signal),
+          capability,
+          data,
+          (reason) => abort.abort(new Error(reason)),
+        );
+      } finally {
+        parent?.removeEventListener('abort', onParentAbort);
+      }
       this.afterCall(capability, data, result);
       if (capability === 'render.snapshot') {
         const shot = result as {
@@ -626,7 +639,10 @@ export class ToolRuntime {
       }
       const card = artifactBlock(capability, result);
       const content: Array<TextContent | ImageContent> = [
-        { type: 'text', text: JSON.stringify(capability === 'editor.open' ? editorOpenView(result) : result) },
+        {
+          type: 'text',
+          text: JSON.stringify(capability === 'editor.open' ? editorOpenView(result) : result),
+        },
         ...(card ? [{ type: 'text' as const, text: card }] : []),
       ];
       if (droppedNote) content.push({ type: 'text', text: droppedNote });
@@ -701,10 +717,12 @@ export class ToolRuntime {
     }
     const room = this.studio.room(String(params.roomId)) as RoomHandle;
     const { roomId: _ignored, ...rest } = params;
-    return (room.invoke as (method: CapabilityName, input: Record<string, unknown>, opts?: CallOptions) => Promise<unknown>)(
-      capability,
-      rest,
-      { signal },
-    );
+    return (
+      room.invoke as (
+        method: CapabilityName,
+        input: Record<string, unknown>,
+        opts?: CallOptions,
+      ) => Promise<unknown>
+    )(capability, rest, { signal });
   }
 }

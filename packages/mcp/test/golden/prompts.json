@@ -1,0 +1,46 @@
+{
+  "list": [
+    {
+      "name": "vibe3d.build",
+      "title": "从零搭一个场景",
+      "description": "建房间 → 分区骨架 → 基础体 → 材质与环境 → 首次出图自检"
+    },
+    {
+      "name": "vibe3d.edit",
+      "title": "精修已有场景",
+      "description": "先定位再改：query/get → patch → 原子批 → 冲突处理 → 回滚"
+    },
+    {
+      "name": "vibe3d.render",
+      "title": "出图与对照",
+      "description": "取景 → 单帧/多视角/特写 → 取色与 id-pass → 序列"
+    },
+    {
+      "name": "vibe3d.verify",
+      "title": "交付前自证",
+      "description": "几何体检 → 预算 → 拾取核对 → 截图与 diff 留证"
+    },
+    {
+      "name": "vibe3d.import",
+      "title": "导入资产与场景",
+      "description": "先探针再入库：inspect → put/import → 对齐落地 → 策略"
+    },
+    {
+      "name": "vibe3d.history",
+      "title": "版本、检查点与回滚",
+      "description": "checkpoint → 改动 → diff → restore / undo"
+    }
+  ],
+  "build": {
+    "description": "建房间 → 分区骨架 → 基础体 → 材质与环境 → 首次出图自检",
+    "messages": [
+      {
+        "role": "user",
+        "content": {
+          "type": "text",
+          "text": "1. vibe3d_room {op:\"create\"}：建房并绑定会话；之后别再传 room_id。写操作会自动开窗，不要预先调 vibe3d_open_editor。\n1b. 需要确认画面是否真的在显示：看 vibe3d_open_editor 返回的 state（connected / opening / not_connected）或 vibe3d_room {op:\"get\"} 的 editors；editors=0 时改动只写进场景，看不到画面。\n2. vibe3d_scene {op:\"stats\"}：记下基线节点数/三角面，交付前拿同一组数字对比。\n3. 先骨架后细节：用 vibe3d_node {op:\"create\"} 的 kind:\"group\" 建分区（地面/主体/配景），再把 mesh 挂到组下。\n4. 尺寸用真实米：box 的 size 就是长宽高，位置给 transform.p，落地前先确认地面高度。\n5. vibe3d_material {op:\"create\"} → vibe3d_material {op:\"assign\"}：颜色 [r,g,b,a] 0..1，金属度/粗糙度先取 0/0.8 再微调。\n6. vibe3d_stage {op:\"env\"} 定背景与环境光；需要方向光时用 vibe3d_node {op:\"create\"} 的 kind:\"light\"。\n7. 每 3~5 个构件就 vibe3d_render {op:\"snapshot\"}（views:[\"three_quarter\"]）看一眼，别攒到最后。\n8. 收尾：vibe3d_scene {op:\"validate\"} 查悬空/穿模/沉地，vibe3d_scene {op:\"stats\"} 带 budget 核预算。"
+        }
+      }
+    ]
+  }
+}

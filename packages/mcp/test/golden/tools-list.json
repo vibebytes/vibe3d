@@ -1,0 +1,984 @@
+[
+  {
+    "name": "vibe3d_help",
+    "description": "查参数契约：给 tool(+op) 返回该 op 的参数字段/必填/枚举/错误码与示例；不给 tool 则列出全部工具与 op",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "tool": {
+          "type": "string",
+          "enum": [
+            "vibe3d_status",
+            "vibe3d_room",
+            "vibe3d_scene",
+            "vibe3d_node",
+            "vibe3d_material",
+            "vibe3d_stage",
+            "vibe3d_animation",
+            "vibe3d_fx",
+            "vibe3d_mesh",
+            "vibe3d_asset",
+            "vibe3d_camera",
+            "vibe3d_render",
+            "vibe3d_export_glb",
+            "vibe3d_job",
+            "vibe3d_open_editor",
+            "vibe3d_apply_ops"
+          ],
+          "description": "工具名；省略则列出全部工具与 op"
+        },
+        "op": {
+          "type": "string",
+          "enum": [
+            "status",
+            "create",
+            "list",
+            "use",
+            "get",
+            "close",
+            "timeline",
+            "summary",
+            "query",
+            "stats",
+            "pick",
+            "validate",
+            "undo",
+            "redo",
+            "diff",
+            "export",
+            "import",
+            "checkpoint",
+            "checkpoints",
+            "restore",
+            "selection",
+            "update",
+            "delete",
+            "clone",
+            "reparent",
+            "transform",
+            "array",
+            "attach",
+            "group",
+            "merge",
+            "patch",
+            "map",
+            "assign",
+            "set",
+            "env",
+            "define",
+            "play",
+            "stop",
+            "clear",
+            "pose",
+            "boolean",
+            "tube",
+            "backdrop",
+            "decal",
+            "inspect",
+            "put",
+            "save",
+            "project",
+            "unproject",
+            "snapshot",
+            "views",
+            "node",
+            "assert",
+            "id_pass",
+            "sequence",
+            "glb",
+            "cancel",
+            "open",
+            "apply"
+          ],
+          "description": "该工具下的 op；省略则返回该工具全部 op"
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_status",
+    "description": "[status] 能力探测：渲染器是否就绪、能否出 ID 通道、快照上限与载荷上限｜含 id-pass 支持；渲染或导入前先查一次",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_room",
+    "description": "[room] 房间：建 / 列 / 切绑定 / 看摘要 / 关 / 时间线｜op: [read] list use get timeline；[write] create close｜必填见 params 描述，字段见 vibe3d_help {tool, op}",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "create",
+            "list",
+            "use",
+            "get",
+            "close",
+            "timeline"
+          ],
+          "description": "room 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
+        },
+        "params": {
+          "type": "object",
+          "description": "必填字段：use{room_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        },
+        "room_id": {
+          "type": "string",
+          "pattern": "^r_[a-z0-9]{8}$",
+          "description": "房间 id；省略时用当前会话绑定的房间"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "additionalProperties": true
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_scene",
+    "description": "[scene] 场景：取整份 / 摘要 / 查询节点 / 统计 / 拾取 / 体检 / 撤销重做 / 差分 / 导入导出 / 检查点 / 当前选中｜op: [read] get summary query stats pick validate diff export checkpoints selection；[write] undo redo import checkpoint restore｜必填见 params 描述，字段见 vibe3d_help {tool, op}｜import 是整场景替换，仅用于初始化或回滚",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "get",
+            "summary",
+            "query",
+            "stats",
+            "pick",
+            "validate",
+            "undo",
+            "redo",
+            "diff",
+            "export",
+            "import",
+            "checkpoint",
+            "checkpoints",
+            "restore",
+            "selection"
+          ],
+          "description": "scene 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
+        },
+        "params": {
+          "type": "object",
+          "description": "必填字段：import{doc} restore{checkpoint_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "additionalProperties": true
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_node",
+    "description": "[node] 节点：建 / 改 / 删 / 克隆 / 读 / 换父 / 批量变换 / 阵列 / 吸附 / 编组 / 合并烘焙 / 导入模型｜op: [read] get；[write] create update delete clone reparent transform array attach group merge import｜必填见 params 描述，字段见 vibe3d_help {tool, op}｜create 平铺传 kind+shape+size，material 可省略（自动建）",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "create",
+            "update",
+            "delete",
+            "clone",
+            "get",
+            "reparent",
+            "transform",
+            "array",
+            "attach",
+            "group",
+            "merge",
+            "import"
+          ],
+          "description": "node 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
+        },
+        "params": {
+          "type": "object",
+          "description": "必填字段：create{kind} update{node_id,patch} delete{node_id} clone{node_id} get{node_id} reparent{node_id,parent} array{node_id,count} attach{node_id,target_id,face} group{ids,name} merge{node_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "additionalProperties": true
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_material",
+    "description": "[material] 材质：按预设建 / 局部改 / 贴图与 UV / 批量指派｜op: create patch map assign｜必填见 params 描述，字段见 vibe3d_help {tool, op}｜create 收 {preset}，id 由服务端生成；preset 任意描述词都收（如 matte-white 会归一到 concrete + 浅色），原名回读在 preset/presetNote；patch 用 baseColor（也接受 color 别名）/metalness/roughness/emissive/opacity",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "create",
+            "patch",
+            "map",
+            "assign"
+          ],
+          "description": "material 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
+        },
+        "params": {
+          "type": "object",
+          "description": "必填字段：patch{material_id,patch} map{material_id} assign{material_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "additionalProperties": true
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_stage",
+    "description": "[stage] 舞台与环境：预设/曝光/后处理/三渲二；雾、背景、环境光、HDRI｜op: set env｜必填见 params 描述，字段见 vibe3d_help {tool, op}｜set/env 的字段平铺在顶层（勿包成 stage:{…}）：env 传 background/ambient/fog，颜色 [r,g,b,a]，fog 是对象 {near,far}、关雾传 false",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "set",
+            "env"
+          ],
+          "description": "stage 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
+        },
+        "params": {
+          "type": "object",
+          "description": "必填字段：set{stage}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "additionalProperties": true
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_animation",
+    "description": "[animation] 程序化动画：定义轨道 / 播放 / 停止 / 清除 / 批量摆姿势｜op: define play stop clear pose｜必填见 params 描述，字段见 vibe3d_help {tool, op}",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "define",
+            "play",
+            "stop",
+            "clear",
+            "pose"
+          ],
+          "description": "animation 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
+        },
+        "params": {
+          "type": "object",
+          "description": "必填字段：define{node_id,clip} play{node_id} stop{node_id} clear{node_id} pose{targets}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "additionalProperties": true
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_fx",
+    "description": "[fx] 特效：粒子或光柱，建 / 删｜op: create delete｜必填见 params 描述，字段见 vibe3d_help {tool, op}｜id 由服务端生成，不要复用已有 id",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "create",
+            "delete"
+          ],
+          "description": "fx 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
+        },
+        "params": {
+          "type": "object",
+          "description": "必填字段：create{type} delete{fx_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "additionalProperties": true
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_mesh",
+    "description": "[mesh] 网格构造：布尔 / 管体扫掠 / 背板扫掠 / 文字图片贴花｜op: boolean tube backdrop decal｜必填见 params 描述，字段见 vibe3d_help {tool, op}｜decal 用真字形/图片；color 用 [r,g,b,a] 或 '#RRGGBB'",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "boolean",
+            "tube",
+            "backdrop",
+            "decal"
+          ],
+          "description": "mesh 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
+        },
+        "params": {
+          "type": "object",
+          "description": "必填字段：boolean{target,tool} tube{points,radius}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "additionalProperties": true
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_asset",
+    "description": "[asset] 资产：解析 glTF / 上传贴图模型 / 列表 / 删除｜op: [read] inspect list；[write] put delete｜必填见 params 描述，字段见 vibe3d_help {tool, op}",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "inspect",
+            "put",
+            "list",
+            "delete"
+          ],
+          "description": "asset 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
+        },
+        "params": {
+          "type": "object",
+          "description": "必填字段：inspect{src} put{src} delete{sha}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "additionalProperties": true
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_camera",
+    "description": "[camera] 机位：设置 / 保存命名机位 / 删除 / 像素投影与反投影｜op: [read] project unproject；[write] set save delete｜必填见 params 描述，字段见 vibe3d_help {tool, op}｜set 平铺 p/target/fov，勿包成 camera:{…}；save 用命名机位",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "set",
+            "save",
+            "delete",
+            "project",
+            "unproject"
+          ],
+          "description": "camera 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
+        },
+        "params": {
+          "type": "object",
+          "description": "必填字段：save{name} delete{name} project{points} unproject{points}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "additionalProperties": true
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_render",
+    "description": "[render] 渲染：快照 / 多视角 / 单资产特写 / 像素取色 / ID 通道 / 序列帧｜op: snapshot views node pick assert id_pass sequence｜必填见 params 描述，字段见 vibe3d_help {tool, op}｜snapshot / views 前先 vibe3d_status 探能力",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "snapshot",
+            "views",
+            "node",
+            "pick",
+            "assert",
+            "id_pass",
+            "sequence"
+          ],
+          "description": "render 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
+        },
+        "params": {
+          "type": "object",
+          "description": "必填字段：node{node_id} assert{anchors} sequence{from,to,fps}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "additionalProperties": true
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_export_glb",
+    "description": "[export_glb] 导出 GLB（任务制，用 vibe3d_job 查进度）｜拿到 jobId 后轮询 vibe3d_job.get 到 state=done（失败看 error）",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "node_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "description": "只导出这些节点（含子树）；省略则导出整场景"
+        },
+        "include": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "cameras",
+              "lights"
+            ]
+          },
+          "maxItems": 2,
+          "description": "额外带上相机 / 灯光；默认不带"
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_job",
+    "description": "[job] 导出任务：查询 / 列表 / 取消｜op: [read] get list；[write] cancel｜必填见 params 描述，字段见 vibe3d_help {tool, op}",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "op": {
+          "type": "string",
+          "enum": [
+            "get",
+            "list",
+            "cancel"
+          ],
+          "description": "job 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
+        },
+        "params": {
+          "type": "object",
+          "description": "必填字段：get{job_id} cancel{job_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+        }
+      },
+      "required": [
+        "op"
+      ],
+      "additionalProperties": true
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_open_editor",
+    "description": "[open_editor] 打开房间编辑器（默认弹窗）｜返回 url 与 hint；open:false 只回链接",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "focus": {
+          "type": "string",
+          "pattern": "^n_[a-z0-9]{8}$",
+          "description": "打开后选中并聚焦到该节点"
+        },
+        "reuse": {
+          "type": "boolean",
+          "description": "复用已开的同房间编辑页；false 强制新开一个"
+        },
+        "open": {
+          "type": "boolean",
+          "description": "true（默认）直接弹窗；false 只返回 url 不弹"
+        },
+        "room_id": {
+          "type": "string",
+          "pattern": "^r_[a-z0-9]{8}$",
+          "description": "房间 id；省略时用当前会话绑定的房间"
+        }
+      },
+      "additionalProperties": false
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "vibe3d_apply_ops",
+    "description": "[apply_ops] 原子批量 op（仅用于跨节点依赖；日常请用专用工具）｜嵌套载荷包在同名字段 {op:\"node.create\",node:{…}} / {op:\"env.set\",env:{…}}，不能平铺到 op 顶层（会校验失败）；ops 传数组不是 JSON 字符串。逐条操作请用专用工具",
+    "inputSchema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "ops": {
+          "type": "array",
+          "description": "按顺序原子执行；每个元素是 {op:\"名字\", ...字段}。复合载荷要包在同名字段里，不能平铺在 op 顶层：node.create 传 {op,node:{…}}、env.set 传 {op,env:{…}}、stage.set 传 {op,stage:{…}}、camera.set 传 {op,camera:{…}}、fx.create 传 {op,fx:{…}}。op 与顶层字段：node.create{node:{…}} node.update{id:{…},patch:{…}} node.delete{id:{…},cascade?} node.reparent{id:{…},parent:{…},index?} material.set{id,material:{…}} material.delete{id,force?} material.create{id,preset?,params?:{…}} material.patch{id,patch:{…}} material.map{id,map:{…}} env.set{env:{…}} stage.set{stage:{…}} animation.play{target,clip?,speed?,loop?,direction?,weight?} animation.stop{target} animation.define{target,clip:{…},applyTo?} animation.clear{target,applyTo?,channel?} animation.pose{targets} fx.create{fx:{…}} fx.delete{id} camera.set{camera?:{…},frame?,name?,preset?} camera.save{name,camera?:{…}} camera.delete{name} asset.register{asset:{…}} asset.unregister{sha} scene.replace{doc:{…}}。字段细节见 vibe3d_help {tool:\"vibe3d_apply_ops\", op:\"node.create\"}。",
+          "items": {
+            "type": "object",
+            "properties": {
+              "op": {
+                "type": "string",
+                "enum": [
+                  "node.create",
+                  "node.update",
+                  "node.delete",
+                  "node.reparent",
+                  "material.set",
+                  "material.delete",
+                  "material.create",
+                  "material.patch",
+                  "material.map",
+                  "env.set",
+                  "stage.set",
+                  "animation.play",
+                  "animation.stop",
+                  "animation.define",
+                  "animation.clear",
+                  "animation.pose",
+                  "fx.create",
+                  "fx.delete",
+                  "camera.set",
+                  "camera.save",
+                  "camera.delete",
+                  "asset.register",
+                  "asset.unregister",
+                  "scene.replace"
+                ]
+              }
+            },
+            "required": [
+              "op"
+            ],
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "node.create"
+                  }
+                },
+                "required": [
+                  "op",
+                  "node"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "node.update"
+                  }
+                },
+                "required": [
+                  "op",
+                  "id",
+                  "patch"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "node.delete"
+                  }
+                },
+                "required": [
+                  "op",
+                  "id"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "node.reparent"
+                  }
+                },
+                "required": [
+                  "op",
+                  "id",
+                  "parent"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "material.set"
+                  }
+                },
+                "required": [
+                  "op",
+                  "id",
+                  "material"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "material.create"
+                  }
+                },
+                "required": [
+                  "op",
+                  "id"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "material.patch"
+                  }
+                },
+                "required": [
+                  "op",
+                  "id",
+                  "patch"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "material.map"
+                  }
+                },
+                "required": [
+                  "op",
+                  "id",
+                  "map"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "env.set"
+                  }
+                },
+                "required": [
+                  "op",
+                  "env"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "stage.set"
+                  }
+                },
+                "required": [
+                  "op",
+                  "stage"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "animation.define"
+                  }
+                },
+                "required": [
+                  "op",
+                  "target",
+                  "clip"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "fx.create"
+                  }
+                },
+                "required": [
+                  "op",
+                  "fx"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "camera.set"
+                  }
+                },
+                "required": [
+                  "op"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "camera.save"
+                  }
+                },
+                "required": [
+                  "op",
+                  "name"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "asset.register"
+                  }
+                },
+                "required": [
+                  "op",
+                  "asset"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "const": "scene.replace"
+                  }
+                },
+                "required": [
+                  "op",
+                  "doc"
+                ]
+              }
+            ]
+          },
+          "examples": [
+            {
+              "op": "node.create",
+              "node": {
+                "kind": "group",
+                "name": "pivot",
+                "parent": null,
+                "visible": true,
+                "transform": {
+                  "p": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "r": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "s": [
+                    1,
+                    1,
+                    1
+                  ]
+                }
+              }
+            },
+            {
+              "op": "node.create",
+              "node": {
+                "kind": "mesh",
+                "name": "box1",
+                "parent": "@pivot",
+                "visible": true,
+                "geometry": {
+                  "type": "box",
+                  "size": [
+                    1,
+                    1,
+                    0.2
+                  ]
+                },
+                "material": "m_ab12cd34",
+                "transform": {
+                  "p": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "r": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "s": [
+                    1,
+                    1,
+                    1
+                  ]
+                }
+              }
+            },
+            {
+              "op": "env.set",
+              "env": {
+                "background": [
+                  0.1,
+                  0.1,
+                  0.1,
+                  1
+                ]
+              }
+            },
+            {
+              "op": "node.update",
+              "id": "@box1",
+              "patch": {
+                "transform": {
+                  "p": [
+                    0,
+                    0.5,
+                    0
+                  ]
+                }
+              }
+            },
+            {
+              "op": "node.reparent",
+              "id": "@box1",
+              "parent": "@pivot"
+            }
+          ]
+        },
+        "room_id": {
+          "type": "string",
+          "description": "省略则用当前会话房间"
+        }
+      },
+      "required": [
+        "ops"
+      ],
+      "additionalProperties": true
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  }
+]

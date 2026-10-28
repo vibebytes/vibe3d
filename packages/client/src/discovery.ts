@@ -103,7 +103,14 @@ export function resolveDaemonEntry(): { file: string; loader: string[] } {
   let base: string | undefined;
   try {
     base = require.resolve('@vibebyte/vibe3d-daemon');
-  } catch {
+  } catch (err) {
+    process.stderr.write(
+      `${JSON.stringify({
+        level: 'warn',
+        msg: '解析 @vibebyte/vibe3d-daemon 失败',
+        err: err instanceof Error ? err.message : String(err),
+      })}\n`,
+    );
     base = undefined;
   }
   if (base) {

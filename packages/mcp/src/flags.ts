@@ -1,4 +1,4 @@
-const BOOLEAN_KEYS = new Set(['autostart', 'persist', 'open-editor']);
+const BOOLEAN_KEYS = new Set(['autostart', 'persist', 'open-editor', 'doctor', 'json']);
 
 export function parseFlags(argv: string[]): Record<string, string | boolean> {
   const flags: Record<string, string | boolean> = {};

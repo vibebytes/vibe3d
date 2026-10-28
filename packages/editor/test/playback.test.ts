@@ -40,9 +40,9 @@ describe('advanceTime', () => {
 describe('usePlayback 播放控制', () => {
   beforeEach(() => usePlayback.getState().reset());
 
-  it('缺省自动播放、24fps、1..250、循环', () => {
+  it('缺省不自动播放、24fps、1..250、循环', () => {
     const s = usePlayback.getState();
-    expect(s.playing).toBe(true);
+    expect(s.playing).toBe(false);
     expect(s.fps).toBe(24);
     expect(s.start).toBe(1);
     expect(s.end).toBe(250);
@@ -52,13 +52,16 @@ describe('usePlayback 播放控制', () => {
 
   it('play / pause / toggle', () => {
     const p = usePlayback.getState();
-    p.pause();
-    expect(usePlayback.getState().playing).toBe(false);
-    usePlayback.getState().toggle();
+    p.play();
     expect(usePlayback.getState().playing).toBe(true);
+    usePlayback.getState().toggle();
+    expect(usePlayback.getState().playing).toBe(false);
   });
 
   it('暂停时 advance 不动，播放时按 delta 前进', () => {
+    usePlayback.getState().advance(0.5);
+    expect(usePlayback.getState().time).toBe(0);
+    usePlayback.getState().play();
     usePlayback.getState().advance(0.5);
     expect(usePlayback.getState().time).toBeCloseTo(0.5);
     usePlayback.getState().pause();
@@ -68,6 +71,7 @@ describe('usePlayback 播放控制', () => {
 
   it('循环播放回绕，不循环到达末帧后暂停', () => {
     const p = usePlayback.getState();
+    p.play();
     p.setRange(1, 24); // 24 帧 @24fps = 1 秒
     usePlayback.getState().seekTime(0.9);
     usePlayback.getState().advance(0.2);

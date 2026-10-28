@@ -25,7 +25,7 @@ export interface PlaybackState extends PlaybackRange {
   reset(): void;
 }
 
-const DEFAULTS = { start: 1, end: 250, fps: 24, playing: true, loop: true, time: 0 };
+const DEFAULTS = { start: 1, end: 250, fps: 24, playing: false, loop: true, time: 0 };
 
 export function safeFps(fps: number): number {
   return Number.isFinite(fps) && fps > 0 ? fps : 1;

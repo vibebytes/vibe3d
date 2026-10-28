@@ -5,9 +5,13 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "engines": {
+    "node": ">=22"
+  },
   "exports": {
     ".": {
       "types": "./src/index.ts",
+      "import": "./src/index.ts",
       "default": "./src/index.ts"
     },
     "./app": {
@@ -25,7 +29,9 @@
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",
-        "import": "./dist/index.js"
+        "import": "./dist/index.js",
+        "require": "./dist/index.js",
+        "default": "./dist/index.js"
       },
       "./app": {
         "types": "./dist/server.d.ts",
@@ -36,19 +42,17 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "tsx src/index.ts",
-    "build": "tsup"
+    "build": "tsup && node scripts/copy-editor.mjs && chmod +x dist/index.js"
   },
-  "dependencies": {
+  "devDependencies": {
     "@hono/node-server": "^1.13.7",
+    "@types/ws": "^8.5.13",
     "@vibebyte/vibe3d-capabilities": "workspace:*",
     "@vibebyte/vibe3d-protocol": "workspace:*",
     "@vibebyte/vibe3d-scene": "workspace:*",
     "hono": "^4.6.14",
+    "tsx": "^4.19.2",
     "ws": "^8.18.0",
     "zod": "^3.25.76"
-  },
-  "devDependencies": {
-    "@types/ws": "^8.5.13",
-    "tsx": "^4.19.2"
   }
 }

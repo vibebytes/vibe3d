@@ -1,5 +1,5 @@
 export const PROTOCOL_VERSION = '0.1';
-export const DAEMON_VERSION = '0.1.0';
+export const DAEMON_VERSION = '0.2.0';
 export const DOC_SCHEMA_VERSION = 1;
 
 export const ERROR_CODES = [

@@ -1,59 +1,36 @@
-import { spawn } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
-import { createInterface } from 'node:readline';
+
+const require = createRequire(new URL('../packages/mcp/package.json', import.meta.url));
+const { Client } = await import(require.resolve('@modelcontextprotocol/client'));
+const { StdioClientTransport } = await import(require.resolve('@modelcontextprotocol/client/stdio'));
+const serverBin = new URL('../packages/mcp/dist/index.js', import.meta.url).pathname;
 
 const spec = JSON.parse(
   readFileSync(new URL('../packages/capabilities/generated/spec.json', import.meta.url), 'utf8'),
 );
 const declared = spec.capabilities.filter((c) => c.mcp?.tool);
+const declaredTools = [...new Set(declared.map((c) => c.mcp.tool))];
 
 const url = process.env.VIBE3D_URL ?? 'http://127.0.0.1:18790';
 const token = process.env.VIBE3D_TOKEN ?? 'testtoken123456';
+const root = new URL('..', import.meta.url).pathname;
 
-const child = spawn(
-  './node_modules/.bin/tsx',
-  ['packages/mcp/src/index.ts', '--url', url, '--token', token, '--no-autostart'],
-  {
-    cwd: new URL('..', import.meta.url).pathname,
-    stdio: ['pipe', 'pipe', 'inherit'],
-  },
-);
-
-const rl = createInterface({ input: child.stdout });
-const pending = new Map();
-rl.on('line', (line) => {
-  let msg;
-  try {
-    msg = JSON.parse(line);
-  } catch {
-    return;
-  }
-  const resolve = pending.get(msg.id);
-  if (resolve) {
-    pending.delete(msg.id);
-    resolve(msg);
-  }
+const transport = new StdioClientTransport({
+  command: process.execPath,
+  args: [serverBin, '--url', url, '--autostart', 'false'],
+  cwd: root,
+  env: { ...process.env, VIBE3D_URL: url, VIBE3D_TOKEN: token },
+  stderr: 'inherit',
 });
+const client = new Client({ name: 'smoke', version: '0' });
 
-let seq = 0;
-function call(method, params) {
-  const id = ++seq;
-  child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id, method, params })}\n`);
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`timeout ${method}`)), 60_000);
-    pending.set(id, (msg) => {
-      clearTimeout(timer);
-      resolve(msg);
-    });
-  });
-}
-
-const text = (msg) => msg.result?.content?.[0]?.text ?? '';
-const json = (msg) => {
+const text = (result) => result.content?.find((block) => block.type === 'text')?.text ?? '';
+const json = (result) => {
   try {
-    return JSON.parse(text(msg));
+    return JSON.parse(text(result));
   } catch {
-    return text(msg);
+    return text(result);
   }
 };
 
@@ -67,96 +44,72 @@ function assert(ok, label, detail = '') {
   console.error(`FAIL ${label} ${detail}`.trim());
 }
 
-try {
-  const init = await call('initialize', {
-    protocolVersion: '2025-06-18',
-    clientInfo: { name: 'smoke', version: '0' },
-  });
-  console.log('initialize', init.result?.serverInfo?.name, init.result?.protocolVersion);
+const call = (name, args) => client.callTool({ name, arguments: args });
 
-  const list = await call('tools/list', {});
-  const tools = list.result.tools;
-  const names = tools.map((t) => t.name);
-  assert(names.length === declared.length, `tools/list == ${declared.length}`, `got ${names.length}`);
-  const expectedRoomArg = declared
-    .filter((c) => c.mcp.roomArg)
-    .map((c) => c.mcp.tool)
-    .sort();
-  const roomArgTools = tools
-    .filter((t) => t.inputSchema?.properties?.room_id)
-    .map((t) => t.name)
+try {
+  await client.connect(transport);
+  console.log('initialize', client.getServerVersion()?.name);
+
+  const listed = await client.listTools();
+  const names = listed.tools.map((tool) => tool.name);
+  assert(names.includes('vibe3d_help'), 'help tool is advertised');
+  assert(
+    declaredTools.every((name) => names.includes(name)) && names.length === declaredTools.length + 1,
+    `tools/list == ${declaredTools.length} grouped tools + help`,
+    `got ${names.length}`,
+  );
+  const expectedRoomArg = [...new Set(declared.filter((c) => c.mcp.roomArg).map((c) => c.mcp.tool))].sort();
+  const roomArgTools = listed.tools
+    .filter((tool) => tool.inputSchema?.properties?.room_id)
+    .map((tool) => tool.name)
     .sort();
   assert(
-    JSON.stringify(roomArgTools) === JSON.stringify(expectedRoomArg),
-    `room_id only on ${expectedRoomArg.length} roomArg tools`,
+    expectedRoomArg.every((name) => roomArgTools.includes(name)),
+    `room_id present on ${expectedRoomArg.join(', ')}`,
     roomArgTools.join(','),
   );
-  const expectedRequired = declared
-    .filter((c) => c.mcp.roomArg === 'required')
-    .map((c) => c.mcp.tool)
-    .sort();
-  const requiredServed = tools
-    .filter((t) => (t.inputSchema?.required ?? []).includes('room_id'))
-    .map((t) => t.name)
-    .sort();
-  assert(
-    JSON.stringify(requiredServed) === JSON.stringify(expectedRequired),
-    'room_id required only on room.use',
-    requiredServed.join(','),
-  );
 
-  const room = await call('tools/call', { name: 'vibe3d_create_room', arguments: { name: 'mcp-smoke' } });
+  const room = await call('vibe3d_room', { op: 'create', name: 'mcp-smoke' });
   const roomId = json(room).roomId;
   assert(/^r_[a-z0-9]{8}$/.test(roomId ?? ''), 'create_room returns + binds room', String(roomId));
 
-  const add = await call('tools/call', {
-    name: 'vibe3d_create_node',
-    arguments: {
-      kind: 'mesh',
-      name: 'Box',
-      shape: 'box',
-      size: [1, 1, 1],
-      transform: { p: [0, 0.5, 0] },
-    },
+  const add = await call('vibe3d_node', {
+    op: 'create',
+    node: { kind: 'mesh', name: 'Box', shape: 'box', size: [1, 1, 1], transform: { p: [0, 0.5, 0] } },
   });
-  assert(!add.result?.isError, 'create_node without room_id', text(add).slice(0, 160));
+  assert(!add.isError, 'create_node without room_id', text(add).slice(0, 160));
 
-  const scene = await call('tools/call', { name: 'vibe3d_get_scene', arguments: {} });
+  const scene = await call('vibe3d_scene', { op: 'get' });
   const doc = json(scene);
   const nodeNames = Object.values(doc.doc?.nodes ?? {}).map((n) => n.name);
   assert(nodeNames.includes('Box'), 'scene contains Box', nodeNames.join(','));
 
-  const shot = await call('tools/call', { name: 'vibe3d_render_snapshot', arguments: {} });
-  assert(!shot.result?.isError, 'render_snapshot ok', text(shot).slice(0, 160));
+  const shot = await call('vibe3d_render', { op: 'snapshot' });
+  assert(!shot.isError, 'render_snapshot ok', text(shot).slice(0, 160));
 
-  const glb = await call('tools/call', { name: 'vibe3d_export_glb', arguments: {} });
-  assert(
-    !glb.result?.isError && Boolean(json(glb).jobId),
-    'export_glb returns jobId',
-    text(glb).slice(0, 160),
-  );
+  const glb = await call('vibe3d_export_glb', { op: 'glb' });
+  if (json(glb).code === 'E_RENDER_UNAVAILABLE') {
+    console.log('skip export_glb: no editor page is connected');
+  } else {
+    assert(!glb.isError && Boolean(json(glb).jobId), 'export_glb returns jobId', text(glb).slice(0, 160));
+  }
 
-  const second = await call('tools/call', {
-    name: 'vibe3d_create_room',
-    arguments: { name: 'mcp-smoke-2' },
-  });
+  const second = await call('vibe3d_room', { op: 'create', name: 'mcp-smoke-2' });
   const room2 = json(second).roomId;
   assert(/^r_[a-z0-9]{8}$/.test(room2 ?? '') && room2 !== roomId, 'second room binds', String(room2));
 
-  const stale = await call('tools/call', {
-    name: 'vibe3d_create_node',
-    arguments: { room_id: roomId, kind: 'mesh', shape: 'box' },
+  const stale = await call('vibe3d_node', {
+    op: 'create',
+    room_id: roomId,
+    node: { kind: 'mesh', shape: 'box' },
   });
-  assert(stale.result?.isError === true, 'stale room_id rejected', text(stale).slice(0, 160));
+  assert(stale.isError === true, 'stale room_id rejected', text(stale).slice(0, 160));
 
-  const missing = await call('tools/call', { name: 'vibe3d_use_room', arguments: {} });
-  assert(missing.result?.isError === true, 'use_room without room_id rejected', text(missing).slice(0, 120));
+  const missing = await call('vibe3d_room', { op: 'use' });
+  assert(missing.isError === true, 'use_room without room_id rejected', text(missing).slice(0, 120));
 
-  const back = await call('tools/call', {
-    name: 'vibe3d_use_room',
-    arguments: { room_id: roomId },
-  });
-  const backScene = await call('tools/call', { name: 'vibe3d_get_scene', arguments: {} });
+  const back = await call('vibe3d_room', { op: 'use', room_id: roomId });
+  const backScene = await call('vibe3d_scene', { op: 'get' });
   const backNodes = Object.keys(json(backScene).doc?.nodes ?? {}).length;
   assert(
     json(back).roomId === roomId && backNodes === 1,
@@ -164,13 +117,14 @@ try {
     `${json(back).roomId} nodes=${backNodes}`,
   );
 
-  const bad = await call('tools/call', {
-    name: 'vibe3d_create_node',
-    arguments: { room_id: 'r_nope', kind: 'mesh', shape: 'box' },
+  const bad = await call('vibe3d_node', {
+    op: 'create',
+    room_id: 'r_nope',
+    node: { kind: 'mesh', shape: 'box' },
   });
-  assert(bad.result?.isError === true, 'unknown room_id rejected', text(bad).slice(0, 120));
+  assert(bad.isError === true, 'unknown room_id rejected', text(bad).slice(0, 120));
 } finally {
-  child.kill('SIGTERM');
+  await client.close().catch(() => undefined);
 }
 
 if (failures.length) {

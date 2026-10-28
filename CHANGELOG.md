@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- MCP 协议壳改为官方 SDK v2 低层 Server。`instructions` 与真实分组工具名对齐，`serverInfo.version` 与包版本一致。
+- `vibe3d-mcp` 精确依赖 `vibe3d-daemon`；daemon 发布包带上 editor 静态资源，并能从安装目录被解析到。
+- 增加 Node >=22 前置检查、`--doctor`，以及 MCP Registry 元数据（`io.github.vibebytes/vibe3d`）。
+
 ## 0.2.0 — 2026-10-27
 
 V2 全量修复（V2-01–V2-15）：对齐 MCP 契约、补投影/验收能力、统一错误与文档语义。

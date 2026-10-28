@@ -11,6 +11,7 @@ import { openInBrowser } from './browser';
 import { parseConfig } from './config';
 import type { DispatchContext } from './context';
 import { flushAll } from './doc/persist';
+import { editorMissingWarning, resolveEditorDir } from './editor-dir';
 import { JobQueue, MAX_QUEUED } from './jobs/queue';
 import { JobStore, sweepExports } from './jobs/store';
 import { acquireLock } from './lock';
@@ -24,7 +25,9 @@ import { createHeartbeat } from './ws/heartbeat';
 import { WsHub } from './ws/hub';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const EDITOR_DIST = process.env.VIBE3D_EDITOR_DIR ?? join(here, '../../editor/dist');
+const EDITOR_DIST = resolveEditorDir(here);
+const editorWarning = editorMissingWarning(EDITOR_DIST);
+if (editorWarning) process.stderr.write(`${editorWarning}\n`);
 
 async function main(): Promise<void> {
   let config: ReturnType<typeof parseConfig>;
