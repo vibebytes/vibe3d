@@ -5,7 +5,7 @@ Local HTTP/WebSocket daemon for [vibe3d](https://github.com/vibebytes/vibe3d): s
 Most users should install the MCP entrypoint instead:
 
 ```bash
-npx -y @vibebyte/vibe3d-mcp
+npx -y @vibebyte/vibe3d-mcp@latest
 ```
 
 That process starts this daemon automatically.

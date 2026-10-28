@@ -20,7 +20,7 @@ vibe3d 是一个用于构建与渲染 3D 场景的 MCP 服务。一条命令即�
 ## 安装
 
 ```bash
-npx -y @vibebyte/vibe3d-mcp
+npx -y @vibebyte/vibe3d-mcp@latest
 ```
 
 daemon **只监听本机回环地址**（`127.0.0.1` / `localhost`）。
@@ -32,13 +32,15 @@ daemon **只监听本机回环地址**（`127.0.0.1` / `localhost`）。
   "mcpServers": {
     "vibe3d": {
       "command": "npx",
-      "args": ["-y", "@vibebyte/vibe3d-mcp"]
+      "args": ["-y", "@vibebyte/vibe3d-mcp@latest"]
     }
   }
 }
 ```
 
 Cursor / Claude Desktop 等 GUI 往往**不会**加载交互 shell 配置（`~/.zshrc`、nvm 钩子等）。像 `bash -lc "nvm use …"` 这种写法在 macOS 上通常**无效**：登录用的 `bash` 不会加载 zsh 里的 nvm。不要把版本管理器包装进 MCP 配置。
+
+配置里请保留 `@latest`：不带版本号时 `npx` 会一直复用缓存，reload MCP 也拿不到新版本。新版 MCP 启动时会顺带重启旧版本的本地 daemon。
 
 先让 GUI 实际用到的默认 `node` / `npx` **>= 20**，再用上面的 JSON：
 
@@ -56,7 +58,7 @@ Cursor / Claude Desktop 等 GUI 往往**不会**加载交互 shell 配置（`~/.
 ### Claude Code
 
 ```bash
-claude mcp add vibe3d -- npx -y @vibebyte/vibe3d-mcp
+claude mcp add vibe3d -- npx -y @vibebyte/vibe3d-mcp@latest
 ```
 
 ### VS Code
@@ -66,7 +68,7 @@ claude mcp add vibe3d -- npx -y @vibebyte/vibe3d-mcp
   "servers": {
     "vibe3d": {
       "command": "npx",
-      "args": ["-y", "@vibebyte/vibe3d-mcp"]
+      "args": ["-y", "@vibebyte/vibe3d-mcp@latest"]
     }
   }
 }
@@ -75,7 +77,7 @@ claude mcp add vibe3d -- npx -y @vibebyte/vibe3d-mcp
 ### MCP Inspector
 
 ```bash
-npx @modelcontextprotocol/inspector --cli npx -y @vibebyte/vibe3d-mcp --method tools/list
+npx @modelcontextprotocol/inspector --cli npx -y @vibebyte/vibe3d-mcp@latest --method tools/list
 ```
 
 ## 环境变量
@@ -111,7 +113,7 @@ MCP 进程启动时若发现本地 daemon 版本与自己不同，会先停掉�
 ## 诊断
 
 ```bash
-npx -y @vibebyte/vibe3d-mcp --doctor --json
+npx -y @vibebyte/vibe3d-mcp@latest --doctor --json
 ```
 
 会打印 Node 版本、daemon 健康、Chrome 发现、schema 文件与版本匹配情况，不会启动 MCP 会话。

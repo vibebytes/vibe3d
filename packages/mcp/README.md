@@ -3,7 +3,7 @@
 MCP server for building and rendering 3D scenes. Starts the local `@vibebyte/vibe3d-daemon` for you.
 
 ```bash
-npx -y @vibebyte/vibe3d-mcp
+npx -y @vibebyte/vibe3d-mcp@latest
 ```
 
 Requires Node.js >= 20 (same as MCP TypeScript SDK v2). Registry name: `io.github.vibebytes/vibe3d`.

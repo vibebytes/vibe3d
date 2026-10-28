@@ -20,7 +20,7 @@ Requires **Node.js >= 20** (same as the [MCP TypeScript SDK v2](https://github.c
 ## Install
 
 ```bash
-npx -y @vibebyte/vibe3d-mcp
+npx -y @vibebyte/vibe3d-mcp@latest
 ```
 
 The daemon listens on **loopback only** (`127.0.0.1` / `localhost`).
@@ -32,13 +32,15 @@ Client config:
   "mcpServers": {
     "vibe3d": {
       "command": "npx",
-      "args": ["-y", "@vibebyte/vibe3d-mcp"]
+      "args": ["-y", "@vibebyte/vibe3d-mcp@latest"]
     }
   }
 }
 ```
 
 GUI apps (Cursor, Claude Desktop) often do **not** load interactive shell config (`~/.zshrc`, nvm hooks, etc.). A wrapper like `bash -lc "nvm use …"` usually **fails** on macOS: login `bash` does not load zsh’s nvm. Do not put version-manager wrappers in MCP config.
+
+Keep `@latest` in the config: without a version tag `npx` reuses its cache and never picks up new releases, even after you reload the MCP server. A newer MCP also restarts an older local daemon on start.
 
 Make the **default** `node` / `npx` on the PATH those apps actually use **>= 20**, then use the JSON above:
 
@@ -56,7 +58,7 @@ Same JSON in `claude_desktop_config.json`.
 ### Claude Code
 
 ```bash
-claude mcp add vibe3d -- npx -y @vibebyte/vibe3d-mcp
+claude mcp add vibe3d -- npx -y @vibebyte/vibe3d-mcp@latest
 ```
 
 ### VS Code
@@ -66,7 +68,7 @@ claude mcp add vibe3d -- npx -y @vibebyte/vibe3d-mcp
   "servers": {
     "vibe3d": {
       "command": "npx",
-      "args": ["-y", "@vibebyte/vibe3d-mcp"]
+      "args": ["-y", "@vibebyte/vibe3d-mcp@latest"]
     }
   }
 }
@@ -75,7 +77,7 @@ claude mcp add vibe3d -- npx -y @vibebyte/vibe3d-mcp
 ### MCP Inspector
 
 ```bash
-npx @modelcontextprotocol/inspector --cli npx -y @vibebyte/vibe3d-mcp --method tools/list
+npx @modelcontextprotocol/inspector --cli npx -y @vibebyte/vibe3d-mcp@latest --method tools/list
 ```
 
 ## Environment
@@ -111,7 +113,7 @@ One MCP process keeps one default room. While it has seen a single room, room to
 ## Diagnostics
 
 ```bash
-npx -y @vibebyte/vibe3d-mcp --doctor --json
+npx -y @vibebyte/vibe3d-mcp@latest --doctor --json
 ```
 
 This prints the Node version, daemon health, Chrome discovery, schema file, and version match. It does not start an MCP session.
