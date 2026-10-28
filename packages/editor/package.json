@@ -28,5 +28,15 @@
     "tailwindcss": "^4.1.4",
     "typescript": "^5.6.3",
     "vite": "^6.3.3"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/vibebytes/vibe3d#readme",
+  "bugs": {
+    "url": "https://github.com/vibebytes/vibe3d/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vibebytes/vibe3d.git",
+    "directory": "packages/editor"
   }
 }

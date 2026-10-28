@@ -7,7 +7,9 @@
   "bin": {
     "vibe3d-mcp": "./dist/index.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=22"
   },
@@ -26,5 +28,15 @@
     "@vibebyte/vibe3d-client": "workspace:*",
     "@vibebyte/vibe3d-protocol": "workspace:*",
     "zod": "^3.25.76"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/vibebytes/vibe3d#readme",
+  "bugs": {
+    "url": "https://github.com/vibebytes/vibe3d/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vibebytes/vibe3d.git",
+    "directory": "packages/mcp"
   }
 }

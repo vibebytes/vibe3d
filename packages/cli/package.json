@@ -5,7 +5,9 @@
   "bin": {
     "vibe3d": "./dist/index.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsx src/index.ts"
@@ -14,5 +16,15 @@
     "@vibebyte/vibe3d-client": "workspace:*",
     "@vibebyte/vibe3d-daemon": "workspace:*",
     "@vibebyte/vibe3d-protocol": "workspace:*"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/vibebytes/vibe3d#readme",
+  "bugs": {
+    "url": "https://github.com/vibebytes/vibe3d/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vibebytes/vibe3d.git",
+    "directory": "packages/cli"
   }
 }

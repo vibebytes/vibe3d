@@ -2,7 +2,15 @@
 
 vibe3d is an MCP server for building and rendering 3D scenes. One command starts the protocol server, which launches the local daemon for you.
 
-Requires **Node.js >= 22**.
+Requires **Node.js >= 22**. Licensed under [Apache-2.0](./LICENSE).
+
+## Identity
+
+| Surface | Value |
+| --- | --- |
+| GitHub | [github.com/vibebytes/vibe3d](https://github.com/vibebytes/vibe3d) |
+| npm | `@vibebyte/vibe3d-mcp` (and other `@vibebyte/vibe3d-*` packages) |
+| MCP Registry | `io.github.vibebytes/vibe3d` |
 
 ## Install
 
@@ -10,7 +18,11 @@ Requires **Node.js >= 22**.
 npx -y @vibebyte/vibe3d-mcp
 ```
 
-Pass the daemon token with the `VIBE3D_TOKEN` environment variable. Do not put the token in the command arguments, because those show up in the process list.
+### Auth and binding
+
+The daemon listens on **loopback only** (`127.0.0.1` / `localhost`). A token is optional for single-user local use. For any shared machine or anything beyond loopback, set `VIBE3D_TOKEN`.
+
+Pass the token with the `VIBE3D_TOKEN` environment variable. Do not put it in command arguments — those show up in the process list.
 
 ```json
 {
@@ -65,7 +77,7 @@ npx @modelcontextprotocol/inspector --cli npx -y @vibebyte/vibe3d-mcp --method t
 
 | Variable | Purpose |
 | --- | --- |
-| `VIBE3D_TOKEN` | Daemon auth token |
+| `VIBE3D_TOKEN` | Daemon auth token (recommended on shared hosts) |
 | `VIBE3D_HOME` | Daemon data directory |
 | `VIBE3D_CHROME` | Chrome or Chromium executable used for rendering |
 | `VIBE3D_ROOM` | Room bound when the process starts |
@@ -95,7 +107,7 @@ This prints the Node version, daemon health, Chrome discovery, schema file, and 
 
 ## Develop
 
-From this repository, with Node 22:
+See [CONTRIBUTING.md](./CONTRIBUTING.md). From this repository, with Node 22:
 
 ```bash
 CI=true pnpm install
@@ -106,6 +118,12 @@ pnpm --filter @vibebyte/vibe3d-mcp build
 
 `pnpm install` may ask to reinstall `node_modules` from scratch. `CI=true` accepts that prompt.
 
+Security reports: [SECURITY.md](./SECURITY.md).
+
 ## 中文
 
-vibe3d 是一个 3D 场景 MCP 服务。`npx -y @vibebyte/vibe3d-mcp` 会拉起协议进程，并自动启动本地 daemon。需要 Node.js 22 或更高版本。令牌放在环境变量 `VIBE3D_TOKEN` 里。渲染依赖系统里的 Chrome / Chromium，不随包下载浏览器；没有浏览器时仍可编辑场景。排障运行 `--doctor --json`。macOS 已验证；Linux 需系统里有 Chrome / Chromium，本次未复测；Windows 尚未验证。
+vibe3d 是一个 3D 场景 MCP 服务。`npx -y @vibebyte/vibe3d-mcp` 会拉起协议进程，并自动启动本地 daemon。需要 Node.js 22 或更高版本。Apache-2.0 开源。
+
+对外身份：GitHub `vibebytes/vibe3d`，npm `@vibebyte/*`，MCP Registry `io.github.vibebytes/vibe3d`。
+
+daemon 只监听本机回环地址；单机可不用令牌，共享环境请设置 `VIBE3D_TOKEN`（放在环境变量里，不要写进命令行参数）。渲染依赖系统里的 Chrome / Chromium，不随包下载浏览器；没有浏览器时仍可编辑场景。排障运行 `--doctor --json`。macOS 已验证；Linux 需系统里有 Chrome / Chromium，本次未复测；Windows 尚未验证。

@@ -11,7 +11,9 @@
       "default": "./src/index.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "publishConfig": {
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -28,5 +30,15 @@
   "dependencies": {
     "@vibebyte/vibe3d-protocol": "workspace:*",
     "zod": "^3.25.76"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/vibebytes/vibe3d#readme",
+  "bugs": {
+    "url": "https://github.com/vibebytes/vibe3d/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vibebytes/vibe3d.git",
+    "directory": "packages/scene"
   }
 }

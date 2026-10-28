@@ -19,7 +19,9 @@
       "default": "./src/server.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "bin": {
     "vibe3d-daemon": "./dist/index.js"
   },
@@ -54,5 +56,15 @@
     "tsx": "^4.19.2",
     "ws": "^8.18.0",
     "zod": "^3.25.76"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/vibebytes/vibe3d#readme",
+  "bugs": {
+    "url": "https://github.com/vibebytes/vibe3d/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vibebytes/vibe3d.git",
+    "directory": "packages/daemon"
   }
 }

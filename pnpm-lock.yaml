@@ -14,9 +14,6 @@ importers:
       '@playwright/test':
         specifier: ^1.49.0
         version: 1.64.1
-      '@tailwindcss/oxide-darwin-x64':
-        specifier: 4.3.3
-        version: 4.3.3
       '@types/node':
         specifier: ^22.10.2
         version: 22.20.5
@@ -1240,6 +1237,7 @@ packages:
   '@tailwindcss/oxide-darwin-x64@4.3.3':
     resolution: {integrity: sha512-fAeUqfV5ndhxRwai8cXGzdLvul9utWOmeTkv69unv4ZXixjn61Z+p9lCWdwOwA3TYboG3BwdVuN/RDjhBRl0mw==}
     engines: {node: '>= 20'}
+    cpu: [x64]
     os: [darwin]
 
   '@tailwindcss/oxide-freebsd-x64@4.3.3':
@@ -3153,7 +3151,8 @@ snapshots:
   '@tailwindcss/oxide-darwin-arm64@4.3.3':
     optional: true
 
-  '@tailwindcss/oxide-darwin-x64@4.3.3': {}
+  '@tailwindcss/oxide-darwin-x64@4.3.3':
+    optional: true
 
   '@tailwindcss/oxide-freebsd-x64@4.3.3':
     optional: true

@@ -5,6 +5,7 @@
 - MCP 协议壳改为官方 SDK v2 低层 Server。`instructions` 与真实分组工具名对齐，`serverInfo.version` 与包版本一致。
 - `vibe3d-mcp` 精确依赖 `vibe3d-daemon`；daemon 发布包带上 editor 静态资源，并能从安装目录被解析到。
 - 增加 Node >=22 前置检查、`--doctor`，以及 MCP Registry 元数据（`io.github.vibebytes/vibe3d`）。
+- 开源准备：统一 GitHub/`@vibebyte`/Registry 身份元数据，补齐 Apache-2.0 版权与各包 `license`/`repository`，移除本机绝对路径脚本，删除仓库内私有整改文档，增加 `SECURITY.md` / `CONTRIBUTING.md` / CI；编辑器时间轴默认不自动播放。
 
 ## 0.2.0 — 2026-10-27
 

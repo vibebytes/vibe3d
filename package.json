@@ -29,7 +29,6 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@playwright/test": "^1.49.0",
-    "@tailwindcss/oxide-darwin-x64": "4.3.3",
     "@types/node": "^22.10.2",
     "@vitest/coverage-v8": "2.1.9",
     "fast-check": "^4.10.2",
@@ -40,5 +39,14 @@
     "vitest": "^2.1.8",
     "ws": "^8.18.0",
     "zod": "^3.25.76"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/vibebytes/vibe3d#readme",
+  "bugs": {
+    "url": "https://github.com/vibebytes/vibe3d/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vibebytes/vibe3d.git"
   }
 }

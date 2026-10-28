@@ -1,8 +1,11 @@
 import { spawn } from 'node:child_process';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
+const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const child = spawn('node', ['packages/mcp/dist/index.js'], {
-  cwd: '/Users/kai/iwork/code/work/quant/agent_work/vibe3d',
-  env: { ...process.env, VIBE3D_HOME: '.devhome' },
+  cwd: root,
+  env: { ...process.env, VIBE3D_HOME: join(root, '.devhome') },
 });
 let buf = '';
 let sentList = false;
@@ -13,7 +16,11 @@ child.stdout.on('data', (d) => {
   for (const line of buf.split('\n')) {
     if (!line.trim()) continue;
     let msg;
-    try { msg = JSON.parse(line); } catch { continue; }
+    try {
+      msg = JSON.parse(line);
+    } catch {
+      continue;
+    }
     if (msg.id === 1 && !sentList) {
       sentList = true;
       send({ jsonrpc: '2.0', id: 2, method: 'tools/list' });
@@ -27,11 +34,27 @@ child.stdout.on('data', (d) => {
       console.log('top', sizes.slice(0, 6));
       console.log('top1 share', (sizes[0][1] / all).toFixed(2));
       console.log('no description', tools.filter((t) => !t.description).length);
-      console.log('desc avg chars', Math.round(tools.reduce((s, t) => s + (t.description ?? '').length, 0) / tools.length));
+      console.log(
+        'desc avg chars',
+        Math.round(tools.reduce((s, t) => s + (t.description ?? '').length, 0) / tools.length),
+      );
       child.kill();
       process.exit(0);
     }
   }
 });
-send({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'measure', version: '1' } } });
-setTimeout(() => { console.error('timeout'); child.kill(); process.exit(1); }, 20000);
+send({
+  jsonrpc: '2.0',
+  id: 1,
+  method: 'initialize',
+  params: {
+    protocolVersion: '2025-06-18',
+    capabilities: {},
+    clientInfo: { name: 'measure', version: '1' },
+  },
+});
+setTimeout(() => {
+  console.error('timeout');
+  child.kill();
+  process.exit(1);
+}, 20000);

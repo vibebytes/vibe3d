@@ -1,9 +1,20 @@
 #!/bin/zsh
 set -u
 set -o pipefail
-export PATH="/Users/kai/.volta/bin:$PATH"
 cd "$(dirname "$0")/.." || exit 1
-run() { volta run --node 22.23.2 -- "$@"; }
+
+# Prefer Node on PATH (requires >=22). Optional: VOLTA_HOME if you use Volta.
+if [[ -n "${VOLTA_HOME:-}" ]]; then
+  export PATH="$VOLTA_HOME/bin:$PATH"
+fi
+run() {
+  if command -v volta >/dev/null 2>&1; then
+    volta run --node 22 -- "$@"
+  else
+    "$@"
+  fi
+}
+
 PORTS=(18788 18790)
 PIDS=()
 FAILED=0
