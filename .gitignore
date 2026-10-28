@@ -158,6 +158,9 @@ vite.config.ts.timestamp-*
 .devhome/
 packages/daemon/.devhome/
 
+# local publish helpers (not for the public repo)
+publish/
+
 # tsc emit artifacts inside test dirs (helpers stay TS-only)
 packages/*/test/**/*.js
 packages/*/test/**/*.js.map

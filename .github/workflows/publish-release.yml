@@ -1,0 +1,171 @@
+# Publish @vibebyte/vibe3d-daemon + @vibebyte/vibe3d-mcp to npm (OIDC trusted publishing),
+# then publish io.github.vibebytes/vibe3d to the MCP Registry (GitHub OIDC).
+#
+# Prerequisites (one-time):
+# 1. npm Trusted Publisher on both packages → GitHub Actions
+#    org/user: vibebytes, repo: vibe3d, workflow: publish-release.yml, environment: (empty)
+# 2. Tag must match package versions after sync, e.g. v0.2.2
+#
+# Trigger:
+#   git tag v0.2.2 && git push origin v0.2.2
+
+name: Publish release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Version tag without v prefix (e.g. 0.2.2). Leave empty to use package.json."
+        required: false
+        type: string
+
+concurrency:
+  group: publish-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      MCP_PUBLISHER_VERSION: v1.8.1
+      NPM_REGISTRY: https://registry.npmjs.org
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: ver
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.tag }}" ]]; then
+            VERSION="${{ inputs.tag }}"
+            VERSION="${VERSION#v}"
+          elif [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="$(node -p "require('./packages/mcp/package.json').version")"
+          fi
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-].+)?$ ]]; then
+            echo "invalid version: $VERSION" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Publishing version $VERSION"
+
+      - name: Sync package versions
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.version }}"
+          node <<'NODE'
+          const fs = require('fs');
+          const version = process.env.VERSION;
+          for (const rel of ['packages/daemon/package.json', 'packages/mcp/package.json']) {
+            const p = JSON.parse(fs.readFileSync(rel, 'utf8'));
+            p.version = version;
+            fs.writeFileSync(rel, JSON.stringify(p, null, 2) + '\n');
+          }
+          const serverPath = 'packages/mcp/server.json';
+          const server = JSON.parse(fs.readFileSync(serverPath, 'utf8'));
+          server.version = version;
+          if (server.packages?.[0]) server.packages[0].version = version;
+          fs.writeFileSync(serverPath, JSON.stringify(server, null, 2) + '\n');
+          console.log('synced to', version);
+          NODE
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+
+      # Trusted publishing needs npm >= 11.5.1
+      - name: Upgrade npm for OIDC publish
+        run: npm install -g npm@^11.5.1 && npm -v && node -v
+
+      - name: Install
+        run: CI=true pnpm install --frozen-lockfile
+
+      - name: Build
+        run: |
+          pnpm --filter @vibebyte/vibe3d-editor build
+          pnpm --filter @vibebyte/vibe3d-daemon build
+          pnpm --filter @vibebyte/vibe3d-mcp build
+
+      - name: Release check
+        run: node scripts/check-mcp-release.mjs
+
+      - name: Publish daemon to npm
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.version }}"
+          if npm view "@vibebyte/vibe3d-daemon@$VERSION" version --registry="$NPM_REGISTRY" >/dev/null 2>&1; then
+            echo "already on npm: @vibebyte/vibe3d-daemon@$VERSION"
+          else
+            pnpm --filter @vibebyte/vibe3d-daemon publish --access public --no-git-checks
+          fi
+
+      - name: Publish mcp to npm
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.version }}"
+          if npm view "@vibebyte/vibe3d-mcp@$VERSION" version --registry="$NPM_REGISTRY" >/dev/null 2>&1; then
+            echo "already on npm: @vibebyte/vibe3d-mcp@$VERSION"
+          else
+            pnpm --filter @vibebyte/vibe3d-mcp publish --access public --no-git-checks
+          fi
+
+      - name: Wait for npm visibility
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.version }}"
+          for i in $(seq 1 30); do
+            if npm view "@vibebyte/vibe3d-mcp@$VERSION" mcpName --registry="$NPM_REGISTRY" 2>/dev/null | grep -q 'io.github.vibebytes/vibe3d'; then
+              echo "npm visible: @vibebyte/vibe3d-mcp@$VERSION"
+              exit 0
+            fi
+            echo "waiting for npm ($i/30)..."
+            sleep 10
+          done
+          echo "timed out waiting for npm package" >&2
+          exit 1
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3.8.1
+
+      - name: Download and verify mcp-publisher
+        run: |
+          set -euo pipefail
+          os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+          arch="$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+          archive="mcp-publisher_${os}_${arch}.tar.gz"
+          base_url="https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}"
+          curl --fail --location --silent --show-error --output "$archive" "$base_url/$archive"
+          curl --fail --location --silent --show-error --output "$archive.sigstore.json" "$base_url/$archive.sigstore.json"
+          cosign verify-blob \
+            --bundle "$archive.sigstore.json" \
+            --certificate-identity "https://github.com/modelcontextprotocol/registry/.github/workflows/release.yml@refs/tags/${MCP_PUBLISHER_VERSION}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "$archive"
+          tar xzf "$archive" mcp-publisher
+          chmod +x mcp-publisher
+          rm -f "$archive" "$archive.sigstore.json"
+
+      - name: Authenticate to MCP Registry (OIDC)
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish to MCP Registry
+        working-directory: packages/mcp
+        run: ../../mcp-publisher publish
