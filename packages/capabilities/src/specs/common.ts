@@ -13,6 +13,10 @@ export const transformInput = z.object({
     .describe('欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]')
     .optional(),
   s: vec3.optional(),
+  space: z
+    .enum(['local', 'world'])
+    .optional()
+    .describe('坐标空间：local（默认，相对父节点）或 world（世界坐标，自动换算为父节点局部 TRS）'),
 });
 
 export const nodeRef = z.object({ nodeId: nodeIdSchema });

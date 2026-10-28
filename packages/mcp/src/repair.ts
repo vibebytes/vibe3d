@@ -409,6 +409,7 @@ const GEOMETRY_FIELDS = [
   'radiusTop',
   'radiusBottom',
   'segments',
+  'tube',
 ];
 const NODE_FIELDS = ['name', 'parent', 'visible', 'transform', 'material', 'tags', 'clip'];
 

@@ -496,7 +496,7 @@ export const sceneOps = {
       roomId,
       kind: z.enum(['mesh', 'group', 'light']),
       name: z.string().min(1).max(200).optional(),
-      upsert_by_name: z
+      upsertByName: z
         .boolean()
         .optional()
         .describe(
@@ -515,11 +515,31 @@ export const sceneOps = {
       radiusBottom: z.number().min(0).optional(),
       tube: z.number().positive().optional().describe('torus 管截面半径 r（须小于 radius），其他 shape 忽略'),
       height: z.number().positive().optional(),
+      segments: z
+        .number()
+        .int()
+        .min(3)
+        .max(128)
+        .optional()
+        .describe('圆周分段数（3..128）；cylinder 设 4/6/8 即四棱台/六角柱/八角台基'),
+      from: vec3
+        .optional()
+        .describe('两点连杆起点（与 to 成对给出时，自动计算中心 p、长度 height 与朝向 r）'),
+      to: vec3.optional().describe('两点连杆终点（cylinder/capsule 沿 Y 轴从 from 指向 to）'),
+      anchor: z
+        .enum(['center', 'bottom', 'top'])
+        .optional()
+        .describe(
+          '高度定位锚点：center（默认，几何中心）| bottom（底面中心对齐 p.y）| top（顶面中心对齐 p.y）',
+        ),
       color: z
         .string()
         .regex(/^#[0-9a-fA-F]{6}$/)
         .optional(),
-      material: materialSchema.optional(),
+      material: z
+        .union([materialIdSchema, materialSchema])
+        .optional()
+        .describe('可传已有材质 id（m_ + 8位，共享材质）或内联材质对象'),
       light: lightSpecSchema.optional(),
       transform: transformInput.optional(),
       tags: tagsSchema.optional(),

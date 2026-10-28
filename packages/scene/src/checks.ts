@@ -108,6 +108,13 @@ function overlap(a: Bounds, b: Bounds, tolerance: number): boolean {
   return x > tolerance && y > tolerance && z > tolerance;
 }
 
+function touching(a: Bounds, b: Bounds, tolerance: number): boolean {
+  const x = Math.min(a.max[0], b.max[0]) - Math.max(a.min[0], b.min[0]);
+  const y = Math.min(a.max[1], b.max[1]) - Math.max(a.min[1], b.min[1]);
+  const z = Math.min(a.max[2], b.max[2]) - Math.max(a.min[2], b.min[2]);
+  return x >= -tolerance && y >= -tolerance && z >= -tolerance;
+}
+
 function outside(box: Bounds, bounds: Bounds, tolerance: number): boolean {
   for (const axis of [0, 1, 2] as const) {
     if (box.min[axis] < bounds.min[axis] - tolerance) return true;
@@ -234,14 +241,32 @@ export function validateScene(doc: SceneDoc, opts: ValidateOptions = {}): Valida
   );
 
   if (checks.has('floating')) {
+    const supported = new Set<string>();
+    const queue: { node: SceneNode; box: Bounds }[] = [];
+    for (const item of solid) {
+      if (item.box.min[1] <= groundY + tolerance) {
+        supported.add(item.node.id);
+        queue.push(item);
+      }
+    }
+    while (queue.length > 0) {
+      const cur = queue.shift()!;
+      for (const candidate of solid) {
+        if (supported.has(candidate.node.id)) continue;
+        if (touching(cur.box, candidate.box, tolerance)) {
+          supported.add(candidate.node.id);
+          queue.push(candidate);
+        }
+      }
+    }
     for (const { node, box } of solid) {
-      if (box.min[1] > groundY + tolerance) {
+      if (!supported.has(node.id)) {
         issues.push({
           code: 'floating',
           nodeIds: [node.id],
           severity: 'warn',
-          detail: `${node.name} 最低点 ${box.min[1].toFixed(3)} 高于地面 ${groundY.toFixed(3)}`,
-          fixHint: '下移节点使其接触地面，或把 ignore 加入豁免（如吊灯、悬空装饰）',
+          detail: `${node.name} 最低点 ${box.min[1].toFixed(3)} 高于地面 ${groundY.toFixed(3)} 且未与受支撑节点接触`,
+          fixHint: '下移节点使其接触地面/底座，或把 ignore 加入豁免（如吊灯、悬空装饰）',
           bounds: box,
         });
       }

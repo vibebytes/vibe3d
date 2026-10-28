@@ -20,7 +20,7 @@ const FIELD_SHAPES: Record<string, string> = {
   geometry:
     'geometry 按 type 给字段：box{size:[x,y,z]} / sphere{radius} / cylinder{radius,height} 或 {radiusTop,radiusBottom,height} / plane{width,height}；legacy vibe3d_node create 用平铺的 shape+size',
   material:
-    'material 可省略（服务端挂默认材质 m_00000000）；给了就必须是已存在的材质 id（m_ + 8 位），可先 vibe3d_material {op:"create", preset} 建',
+    'material 可省略（服务端挂默认材质 m_00000000）；可传已存在的材质 id（m_ + 8 位，先用 vibe3d_material {op:"create", preset} 建），或内联材质对象 {"baseColor": [r,g,b,a]}',
   transform: 'transform 是对象 {p:[x,y,z], r:[x,y,z], s:[x,y,z]}（弧度）',
   size: 'size 是数组 [x,y,z]（米）',
 };

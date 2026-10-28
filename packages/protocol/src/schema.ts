@@ -20,7 +20,7 @@ export const tagsSchema = z.array(tagSchema).max(16);
 const nonZeroScale = finite.refine((v) => v !== 0, 'scale axis must be non-zero');
 
 export const transformSchema = z.object({
-  p: vec3.describe('世界坐标位置'),
+  p: vec3.describe('局部坐标位置（parent=null 时即世界坐标；有 parent 时相对父节点局部坐标系）'),
   r: vec3.describe(
     '欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]',
   ),
@@ -124,6 +124,7 @@ export const FIELD_ALIASES: Readonly<Record<string, string>> = {
   tube_radius: 'tube',
   name_prefix: 'namePrefix',
   updated_before: 'updatedBefore',
+  upsert_by_name: 'upsertByName',
 };
 
 const applyGeometryAliases = (g: unknown): unknown => {

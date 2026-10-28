@@ -104,4 +104,22 @@ describe('scene.validate', () => {
       .flatMap((i: any) => i.nodeIds);
     expect(ids).toContain(far);
   });
+
+  it('连通支撑图：叠在接地底座上的节点不误报 floating，真正脱离接触的孤岛才报 floating', async () => {
+    const h = makeHarness();
+    const created = await call(h, 'room.create', { name: '支撑图' });
+    const roomId = created.body.result.roomId;
+    await ground(h, roomId);
+    // 接地底座 [0, 0.5, 0]（y: 0..1）
+    await box(h, roomId, '底座', [2, 1, 2], [0, 0.5, 0]);
+    // 站在底座上的二层柱体 [0, 1.5, 0]（y: 1..2，与底座顶面 y=1 接触）
+    await box(h, roomId, '二层柱', [1, 1, 1], [0, 1.5, 0]);
+    // 真正悬空的断枝 [4, 2.5, 0]（y: 2..3，无任何接触支撑）
+    const disconnected = await box(h, roomId, '悬空断枝', [1, 1, 1], [4, 2.5, 0]);
+
+    const { body } = await call(h, 'scene.validate', { roomId, checks: ['floating'] }, roomId);
+    expect(body.error).toBeUndefined();
+    const floatingIds = body.result.issues.flatMap((i: any) => i.nodeIds);
+    expect(floatingIds).toEqual([disconnected]);
+  });
 });

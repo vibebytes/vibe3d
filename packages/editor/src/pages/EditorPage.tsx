@@ -205,7 +205,9 @@ export function EditorPage() {
           </SceneCanvas>
           <ViewportHud
             nodeCount={nodes.length}
+            cameras={Object.keys(doc.cameras ?? {})}
             onFit={() => void run(() => useDoc.getState().frameCamera('fit'))}
+            onUseCamera={(name) => void run(() => useDoc.getState().useCamera(name))}
           />
           {nodes.length === 0 && (
             <EmptyViewport

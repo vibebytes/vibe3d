@@ -137,6 +137,90 @@ describe('node.create upsert_by_name（V2-09 幂等重建）', () => {
     const { body } = await call(h, 'scene.export', { roomId }, roomId);
     expect(body.result.doc.nodes[idA].light.intensity).toBe(5);
   });
+
+  it('supports shared materialId string, segments, anchor:bottom, from/to span, and space:world', async () => {
+    const h = makeHarness();
+    const roomId = await room(h, 'create-enhanced');
+
+    const matRes = await call(h, 'material.create', { roomId, preset: 'clay' }, roomId);
+    const matId = matRes.body.result.materialId;
+
+    const base = await call(
+      h,
+      'node.create',
+      {
+        roomId,
+        kind: 'mesh',
+        name: 'oct-pedestal',
+        shape: 'cylinder',
+        radiusTop: 1.5,
+        radiusBottom: 2.0,
+        height: 2.0,
+        segments: 8,
+        anchor: 'bottom',
+        material: matId,
+        transform: { p: [0, 0, 0] },
+      },
+      roomId,
+    );
+    expect(base.body.error).toBeUndefined();
+    const baseId = base.body.result.nodeId;
+
+    const branch = await call(
+      h,
+      'node.create',
+      {
+        roomId,
+        kind: 'mesh',
+        name: 'branch-1',
+        shape: 'cylinder',
+        radiusTop: 0.05,
+        radiusBottom: 0.15,
+        from: [0, 2, 0],
+        to: [2, 4, 0],
+        material: matId,
+      },
+      roomId,
+    );
+    expect(branch.body.error).toBeUndefined();
+    const branchId = branch.body.result.nodeId;
+
+    const grp = await call(
+      h,
+      'node.create',
+      { roomId, kind: 'group', name: 'shifted-grp', transform: { p: [10, 5, -10] } },
+      roomId,
+    );
+    const grpId = grp.body.result.nodeId;
+
+    const worldChild = await call(
+      h,
+      'node.create',
+      {
+        roomId,
+        kind: 'mesh',
+        name: 'world-child',
+        parent: grpId,
+        shape: 'box',
+        size: [1, 1, 1],
+        material: matId,
+        transform: { p: [12, 6, -10], space: 'world' },
+      },
+      roomId,
+    );
+    expect(worldChild.body.error).toBeUndefined();
+    const childId = worldChild.body.result.nodeId;
+
+    const { body } = await call(h, 'scene.export', { roomId }, roomId);
+    const doc = body.result.doc;
+    expect(doc.nodes[baseId].material).toBe(matId);
+    expect(doc.nodes[baseId].geometry.segments).toBe(8);
+    expect(doc.nodes[baseId].transform.p[1]).toBeCloseTo(1.0, 5);
+    expect(doc.nodes[branchId].material).toBe(matId);
+    expect(doc.nodes[branchId].transform.p).toEqual([1, 3, 0]);
+    expect(doc.nodes[branchId].geometry.height).toBeCloseTo(Math.hypot(2, 2, 0), 5);
+    expect(doc.nodes[childId].transform.p).toEqual([2, 1, 0]);
+  });
 });
 
 describe('显式 node.id 冲突（V2-09 裁决：E_CONFLICT，不覆盖）', () => {

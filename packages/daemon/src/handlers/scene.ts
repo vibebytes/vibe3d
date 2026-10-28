@@ -116,25 +116,117 @@ function geometryOf(p: {
   radiusBottom?: number;
   tube?: number;
   height?: number;
+  segments?: number;
 }): Geometry {
   const shape = p.shape ?? 'box';
-  if (shape === 'sphere') return { type: 'sphere', radius: p.radius ?? 0.5, segments: 48 };
+  const segments = p.segments ?? 48;
+  if (shape === 'sphere') return { type: 'sphere', radius: p.radius ?? 0.5, segments };
   if (shape === 'cylinder') {
     const radiusTop = p.radiusTop ?? p.radius ?? 0.5;
     const radiusBottom = p.radiusBottom ?? p.radius ?? 0.5;
-    return { type: 'cylinder', radiusTop, radiusBottom, height: p.height ?? 1, segments: 48 };
+    return { type: 'cylinder', radiusTop, radiusBottom, height: p.height ?? 1, segments };
   }
   if (shape === 'torus') {
-    return { type: 'torus', radius: p.radius ?? 0.5, tube: p.tube ?? 0.2, segments: 48 };
+    return { type: 'torus', radius: p.radius ?? 0.5, tube: p.tube ?? 0.2, segments };
   }
   if (shape === 'capsule') {
-    return { type: 'capsule', radius: p.radius ?? 0.5, height: p.height ?? 1, segments: 48 };
+    return { type: 'capsule', radius: p.radius ?? 0.5, height: p.height ?? 1, segments };
   }
   if (shape === 'plane') {
     const size = p.size ?? [1, 1, 1];
     return { type: 'plane', width: size[0], height: size[1] };
   }
   return { type: 'box', size: p.size ?? [1, 1, 1] };
+}
+
+function spanOrientation(from: Vec, to: Vec): { center: Vec; length: number; r: Vec } {
+  const dx = to[0] - from[0];
+  const dy = to[1] - from[1];
+  const dz = to[2] - from[2];
+  const length = Math.hypot(dx, dy, dz);
+  if (length < 1e-6) {
+    throw new AppError('E_INVALID_PARAMS', 'from 与 to 不能重合（距离需大于 0）', { from, to });
+  }
+  const center: Vec = [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2, (from[2] + to[2]) / 2];
+  const ux = dx / length;
+  const uy = dy / length;
+  const uz = dz / length;
+  // 构建以 Y 轴为 (ux, uy, uz) 的正交旋转基 R = [X, Y, Z]，并按 XYZ 欧拉角提取 (rx, ry, rz)
+  const ref: Vec = Math.abs(uy) < 0.99 ? [0, 1, 0] : [1, 0, 0];
+  let xx = uy * ref[2] - uz * ref[1];
+  let xy = uz * ref[0] - ux * ref[2];
+  let xz = ux * ref[1] - uy * ref[0];
+  const xLen = Math.hypot(xx, xy, xz) || 1;
+  xx /= xLen;
+  xy /= xLen;
+  xz /= xLen;
+  const zx = xx * uy - xy * ux;
+  const zy = xy * uz - xz * uy;
+  const zz = xz * ux - xx * uz;
+  // R column 0 = X=(xx,xy,xz), col 1 = Y=(ux,uy,uz), col 2 = Z=(zx,zy,zz)
+  // eulerOf 约定：r02 = Z.x = zx, r12 = Z.y = zy, r22 = Z.z = zz, r01 = Y.x = ux, r00 = X.x = xx
+  const ry = Math.asin(Math.max(-1, Math.min(1, zx)));
+  const r: Vec =
+    Math.abs(zx) < 0.999999 ? [Math.atan2(-zy, zz), ry, Math.atan2(-ux, xx)] : [Math.atan2(uz, uy), ry, 0];
+  return { center, length, r };
+}
+
+function geometryHalfHeight(g: Geometry): number {
+  if (g.type === 'box') return g.size[1] / 2;
+  if (g.type === 'sphere') return g.radius;
+  if (g.type === 'cylinder') return g.height / 2;
+  if (g.type === 'torus') return g.tube;
+  if (g.type === 'capsule') return g.height / 2 + g.radius;
+  if (g.type === 'plane') return g.height / 2;
+  return (g.bbox.max[1] - g.bbox.min[1]) / 2;
+}
+
+function resolvePlacement(doc: SceneDoc, p: NodeCreateParams): { transform: Transform; geometry?: Geometry } {
+  if ((p.from === undefined) !== (p.to === undefined)) {
+    throw new AppError('E_INVALID_PARAMS', 'from 与 to 必须成对给出', { from: p.from, to: p.to });
+  }
+  const baseTransform = mergeTransform(p.transform);
+  let targetP: Vec = [...baseTransform.p];
+  let targetR: Vec = [...baseTransform.r];
+  const targetS: Vec = [...baseTransform.s];
+  let heightOverride = p.height;
+
+  if (p.from && p.to) {
+    const span = spanOrientation(p.from, p.to);
+    targetP = span.center;
+    targetR = span.r;
+    const shape = p.shape ?? 'cylinder';
+    if (shape === 'capsule') {
+      const r = p.radius ?? 0.5;
+      heightOverride = Math.max(1e-4, span.length - 2 * r);
+    } else {
+      heightOverride = span.length;
+    }
+  }
+
+  const geometry =
+    p.kind === 'mesh'
+      ? geometryOf({
+          ...p,
+          shape: p.shape ?? (p.from && p.to ? 'cylinder' : 'box'),
+          height: heightOverride,
+        })
+      : undefined;
+
+  if (geometry && p.anchor && p.anchor !== 'center' && !(p.from && p.to)) {
+    const hy = geometryHalfHeight(geometry) * targetS[1];
+    targetP = [targetP[0], targetP[1] + (p.anchor === 'bottom' ? hy : -hy), targetP[2]];
+  }
+
+  const parentId = p.parent ?? null;
+  if (p.transform?.space === 'world' && parentId && doc.nodes[parentId]) {
+    targetP = worldPointToLocal(doc, parentId, targetP);
+  }
+
+  return {
+    transform: { p: targetP, r: targetR, s: targetS },
+    geometry,
+  };
 }
 
 function materialOf(p: { color?: string; material?: Material }): Material {
@@ -216,14 +308,15 @@ const defaultLight = (): LightSpec => ({
   castShadow: true,
 });
 
-function buildCreateOps(p: NodeCreateParams): { id: string; ops: Op[]; hit: boolean } {
+function buildCreateOps(doc: SceneDoc, p: NodeCreateParams): { id: string; ops: Op[]; hit: boolean } {
   const id = makeNodeId();
+  const { transform, geometry } = resolvePlacement(doc, p);
   const base = {
     id,
     name: p.name ?? `${p.kind}-${id.slice(2, 6)}`,
     parent: p.parent ?? null,
     visible: true,
-    transform: mergeTransform(p.transform),
+    transform,
     ...(p.tags === undefined ? {} : { tags: [...p.tags] }),
   };
   const ops: Op[] = [];
@@ -233,13 +326,21 @@ function buildCreateOps(p: NodeCreateParams): { id: string; ops: Op[]; hit: bool
   } else if (p.kind === 'light') {
     node = { ...base, kind: 'light', light: p.light ?? defaultLight() };
   } else {
-    const materialId = makeMaterialId();
-    ops.push({
-      op: 'material.set',
-      id: materialId,
-      material: materialOf({ color: p.color, material: p.material }),
-    });
-    node = { ...base, kind: 'mesh', geometry: geometryOf(p), material: materialId };
+    let materialId: string;
+    if (typeof p.material === 'string') {
+      if (!doc.materials[p.material]) {
+        throw new AppError('E_MATERIAL_NOT_FOUND', `材质 ${p.material} 不存在`, { material: p.material });
+      }
+      materialId = p.material;
+    } else {
+      materialId = makeMaterialId();
+      ops.push({
+        op: 'material.set',
+        id: materialId,
+        material: materialOf({ color: p.color, material: p.material }),
+      });
+    }
+    node = { ...base, kind: 'mesh', geometry: geometry ?? geometryOf(p), material: materialId };
   }
   ops.push({ op: 'node.create', node });
   return { id, ops, hit: false };
@@ -250,7 +351,7 @@ function buildUpsertOps(doc: SceneDoc, p: NodeCreateParams): { id: string; ops: 
     throw new AppError('E_INVALID_PARAMS', 'upsert_by_name 需要显式 name', { upsert_by_name: true });
   }
   const existing = Object.values(doc.nodes).find((n) => n.name === p.name);
-  if (!existing) return buildCreateOps(p);
+  if (!existing) return buildCreateOps(doc, p);
   if (existing.kind !== p.kind) {
     throw new AppError(
       'E_CONFLICT',
@@ -260,17 +361,24 @@ function buildUpsertOps(doc: SceneDoc, p: NodeCreateParams): { id: string; ops: 
   }
   const id = existing.id;
   const patch: NodePatch = {};
-  const desiredTransform = mergeTransform(p.transform);
+  const { transform: desiredTransform, geometry: desiredGeometry } = resolvePlacement(doc, p);
   if (existing.visible !== true) patch.visible = true;
   if (!deepEqual(existing.transform, desiredTransform)) patch.transform = desiredTransform;
   if (p.tags !== undefined && !deepEqual(existing.tags ?? null, [...p.tags])) patch.tags = [...p.tags];
   const ops: Op[] = [];
   if (existing.kind === 'mesh') {
-    const geometry = geometryOf(p);
+    const geometry = desiredGeometry ?? geometryOf(p);
     if (!deepEqual(existing.geometry, geometry)) patch.geometry = geometry;
-    const material = materialOf({ color: p.color, material: p.material });
-    if (!deepEqual(doc.materials[existing.material], material)) {
-      ops.push({ op: 'material.set', id: existing.material, material });
+    if (typeof p.material === 'string') {
+      if (!doc.materials[p.material]) {
+        throw new AppError('E_MATERIAL_NOT_FOUND', `材质 ${p.material} 不存在`, { material: p.material });
+      }
+      if (existing.material !== p.material) patch.material = p.material;
+    } else {
+      const material = materialOf({ color: p.color, material: p.material });
+      if (!deepEqual(doc.materials[existing.material], material)) {
+        ops.push({ op: 'material.set', id: existing.material, material });
+      }
     }
   } else if (existing.kind === 'light') {
     const light = p.light ?? defaultLight();
@@ -550,7 +658,7 @@ export const sceneHandlers: HandlersFor<Keys> = {
   },
   'node.create': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    const { id, ops, hit } = p.upsert_by_name ? buildUpsertOps(room.doc, p) : buildCreateOps(p);
+    const { id, ops, hit } = p.upsertByName ? buildUpsertOps(room.doc, p) : buildCreateOps(room.doc, p);
     const upserted = hit ? { upserted: true } : {};
     const tags = p.tags === undefined ? {} : { tags: [...p.tags] };
     if (ops.length === 0) return { nodeId: id, revision: room.revision, ...upserted, ...tags };
@@ -567,9 +675,14 @@ export const sceneHandlers: HandlersFor<Keys> = {
     if (p.patch.anim !== undefined) patch.anim = p.patch.anim;
     if (p.patch.tags !== undefined) patch.tags = p.patch.tags;
     if (p.patch.transform) {
-      const current = room.doc.nodes[p.nodeId]?.transform ?? IDENTITY;
+      const node = room.doc.nodes[p.nodeId];
+      const current = node?.transform ?? IDENTITY;
+      let nextP = p.patch.transform.p ?? current.p;
+      if (p.patch.transform.space === 'world' && node?.parent && room.doc.nodes[node.parent]) {
+        nextP = worldPointToLocal(room.doc, node.parent, nextP);
+      }
       patch.transform = {
-        p: p.patch.transform.p ?? current.p,
+        p: nextP,
         r: p.patch.transform.r ?? current.r,
         s: p.patch.transform.s ?? current.s,
       };

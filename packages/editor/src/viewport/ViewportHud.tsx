@@ -3,10 +3,12 @@ import { useUi } from '../stores/ui';
 
 interface ViewportHudProps {
   nodeCount: number;
+  cameras?: string[];
   onFit(): void;
+  onUseCamera?(name: string): void;
 }
 
-export function ViewportHud({ nodeCount, onFit }: ViewportHudProps) {
+export function ViewportHud({ nodeCount, cameras = [], onFit, onUseCamera }: ViewportHudProps) {
   const grid = useUi((s) => s.grid);
   const setGrid = useUi((s) => s.setGrid);
   const gizmoMode = useUi((s) => s.gizmoMode);
@@ -14,7 +16,7 @@ export function ViewportHud({ nodeCount, onFit }: ViewportHudProps) {
 
   return (
     <>
-      <div className="hud left-3 top-3">
+      <div className="hud left-3 top-3 flex items-center gap-1.5">
         <div className="hud-card flex items-center gap-0.5 p-1">
           <span className="px-1.5 text-[10.5px] tracking-wide text-base-content/60">透视</span>
           <span className="divider-v !mx-0 !h-3" />
@@ -30,6 +32,21 @@ export function ViewportHud({ nodeCount, onFit }: ViewportHudProps) {
           </button>
           <span className="num px-1 text-[10.5px] text-base-content/60">{nodeCount} 节点</span>
         </div>
+        {cameras.length > 0 && onUseCamera && (
+          <div className="hud-card flex items-center gap-0.5 p-1">
+            {cameras.slice(0, 4).map((name) => (
+              <button
+                key={name}
+                type="button"
+                className="hud-btn px-1.5 text-[10.5px]"
+                onClick={() => onUseCamera(name)}
+                title={`切换到已存机位 ${name}`}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="hud right-3 top-3">

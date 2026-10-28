@@ -663,7 +663,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                 "items": {
                                   "type": "number"
                                 },
-                                "description": "世界坐标位置"
+                                "description": "局部坐标位置（parent=null 时即世界坐标；有 parent 时相对父节点局部坐标系）"
                               },
                               "r": {
                                 "type": "array",
@@ -952,7 +952,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                 "items": {
                                   "type": "number"
                                 },
-                                "description": "世界坐标位置"
+                                "description": "局部坐标位置（parent=null 时即世界坐标；有 parent 时相对父节点局部坐标系）"
                               },
                               "r": {
                                 "type": "array",
@@ -1538,7 +1538,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                 "items": {
                                   "type": "number"
                                 },
-                                "description": "世界坐标位置"
+                                "description": "局部坐标位置（parent=null 时即世界坐标；有 parent 时相对父节点局部坐标系）"
                               },
                               "r": {
                                 "type": "array",
@@ -1900,7 +1900,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                 "items": {
                                   "type": "number"
                                 },
-                                "description": "世界坐标位置"
+                                "description": "局部坐标位置（parent=null 时即世界坐标；有 parent 时相对父节点局部坐标系）"
                               },
                               "r": {
                                 "type": "array",
@@ -4754,7 +4754,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "items": {
                                         "type": "number"
                                       },
-                                      "description": "世界坐标位置"
+                                      "description": "局部坐标位置（parent=null 时即世界坐标；有 parent 时相对父节点局部坐标系）"
                                     },
                                     "r": {
                                       "type": "array",
@@ -5037,7 +5037,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "items": {
                                         "type": "number"
                                       },
-                                      "description": "世界坐标位置"
+                                      "description": "局部坐标位置（parent=null 时即世界坐标；有 parent 时相对父节点局部坐标系）"
                                     },
                                     "r": {
                                       "type": "array",
@@ -5618,7 +5618,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "items": {
                                         "type": "number"
                                       },
-                                      "description": "世界坐标位置"
+                                      "description": "局部坐标位置（parent=null 时即世界坐标；有 parent 时相对父节点局部坐标系）"
                                     },
                                     "r": {
                                       "type": "array",
@@ -5974,7 +5974,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "items": {
                                         "type": "number"
                                       },
-                                      "description": "世界坐标位置"
+                                      "description": "局部坐标位置（parent=null 时即世界坐标；有 parent 时相对父节点局部坐标系）"
                                     },
                                     "r": {
                                       "type": "array",

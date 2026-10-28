@@ -138,10 +138,13 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number): unkno
     typeof value === 'string' &&
     def.typeName === 'ZodTuple' &&
     Array.isArray(def.items) &&
-    def.items.length === 4
+    (def.items.length === 4 || def.items.length === 3)
   ) {
     const hex = parseHexColour(value);
-    if (hex && inner.safeParse(hex).success) return hex;
+    if (hex) {
+      const candidate = def.items.length === 3 ? hex.slice(0, 3) : hex;
+      if (inner.safeParse(candidate).success) return candidate;
+    }
   }
 
   if (typeof value === 'string') {
@@ -176,6 +179,12 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number): unkno
       const byte = full.map((item) => (item > 1 ? Math.round((item / 255) * 1e6) / 1e6 : item));
       if (byte.some((item, index) => item !== full[index]) && inner.safeParse(byte).success) return byte;
       return full;
+    }
+    if (items.length === 3 && out.length === 4 && out.every((item) => typeof item === 'number')) {
+      const rgb = out.slice(0, 3);
+      const byte = rgb.map((item) => (item > 1 ? Math.round((item / 255) * 1e6) / 1e6 : item));
+      if (byte.some((item, index) => item !== rgb[index]) && inner.safeParse(byte).success) return byte;
+      if (inner.safeParse(rgb).success) return rgb;
     }
     return out;
   }

@@ -35,6 +35,28 @@ describe('colour coercion', () => {
     );
     expect(data.background[3]).toBeCloseTo(0x80 / 255, 3);
   });
+
+  it('truncates 4-element rgba or #RRGGBB into 3-element rgb for emissive', () => {
+    const fromRgba = ok<{ params: { emissive: number[] } }>(
+      parse('material.create', {
+        roomId: 'r_0000000a',
+        preset: 'porcelain',
+        params: { emissive: [0.85, 0.95, 0.75, 1] },
+      }),
+    );
+    expect(fromRgba.params.emissive).toEqual([0.85, 0.95, 0.75]);
+
+    const fromHex = ok<{ params: { emissive: number[] } }>(
+      parse('material.create', {
+        roomId: 'r_0000000a',
+        preset: 'porcelain',
+        params: { emissive: '#ff8000' },
+      }),
+    );
+    expect(fromHex.params.emissive[0]).toBeCloseTo(1, 5);
+    expect(fromHex.params.emissive[1]).toBeCloseTo(0x80 / 255, 5);
+    expect(fromHex.params.emissive[2]).toBe(0);
+  });
 });
 
 describe('default filling', () => {
