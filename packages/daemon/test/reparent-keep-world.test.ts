@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { worldMatrix } from '@vibebyte/vibe3d-scene';
+import { describe, expect, it } from 'vitest';
 import { type Harness, call, makeHarness } from './helpers/harness';
 
 const near = (a: number[], b: number[]) => {

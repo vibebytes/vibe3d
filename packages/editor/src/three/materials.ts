@@ -16,10 +16,7 @@ export function rgbColor(color: readonly number[]): THREE.Color {
   return new THREE.Color(rgbaHex(color));
 }
 
-export type MapTextureLoader = (
-  sha: string,
-  onLoad?: (texture: THREE.Texture) => void,
-) => THREE.Texture;
+export type MapTextureLoader = (sha: string, onLoad?: (texture: THREE.Texture) => void) => THREE.Texture;
 
 export type TextureFetch = (
   url: string,

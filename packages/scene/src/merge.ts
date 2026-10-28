@@ -63,12 +63,7 @@ function cofactor(m: Mat4): Mat4 {
   const n0 = cross(c1, c2);
   const n1 = cross(c2, c0);
   const n2 = cross(c0, c1);
-  return [
-    n0[0], n0[1], n0[2], 0,
-    n1[0], n1[1], n1[2], 0,
-    n2[0], n2[1], n2[2], 0,
-    0, 0, 0, 1,
-  ];
+  return [n0[0], n0[1], n0[2], 0, n1[0], n1[1], n1[2], 0, n2[0], n2[1], n2[2], 0, 0, 0, 0, 1];
 }
 
 function pushPoint(out: number[], m: Mat4, src: readonly number[], i: number): void {
@@ -144,11 +139,10 @@ export function mergeGroup(doc: SceneDoc, opts: MergeOptions): MergePlan {
   }
 
   if (blockers.length > 0) {
-    throw new AppError(
-      'E_UNSUPPORTED',
-      `组内 ${blockers.length} 个节点无法烘焙`,
-      { nodeId: root.id, blockers },
-    );
+    throw new AppError('E_UNSUPPORTED', `组内 ${blockers.length} 个节点无法烘焙`, {
+      nodeId: root.id,
+      blockers,
+    });
   }
 
   if (opts.material && !doc.materials[opts.material]) {
@@ -160,11 +154,10 @@ export function mergeGroup(doc: SceneDoc, opts: MergeOptions): MergePlan {
   const distinct = [...materials].sort();
   const looks = new Set(distinct.map((id) => JSON.stringify(doc.materials[id] ?? null)));
   if (looks.size > 1 && !opts.material) {
-    throw new AppError(
-      'E_UNSUPPORTED',
-      `组内材质不一致（${distinct.join(', ')}），请显式指定 material`,
-      { nodeId: root.id, materials: distinct },
-    );
+    throw new AppError('E_UNSUPPORTED', `组内材质不一致（${distinct.join(', ')}），请显式指定 material`, {
+      nodeId: root.id,
+      materials: distinct,
+    });
   }
 
   const vertices = positions.length / 3;
@@ -172,8 +165,8 @@ export function mergeGroup(doc: SceneDoc, opts: MergeOptions): MergePlan {
     throw new AppError('E_INVALID_PARAMS', `组 ${root.id} 内没有可烘焙的网格`, { nodeId: root.id });
   }
 
-  const min: Vec3 = [Infinity, Infinity, Infinity];
-  const max: Vec3 = [-Infinity, -Infinity, -Infinity];
+  const min: Vec3 = [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
+  const max: Vec3 = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY];
   for (let i = 0; i < positions.length; i += 3) {
     for (let k = 0; k < 3; k += 1) {
       const v = positions[i + k]!;

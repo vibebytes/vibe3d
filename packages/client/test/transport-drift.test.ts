@@ -1,4 +1,4 @@
-import { createServer, type Server } from 'node:http';
+import { type Server, createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Vibe3DError } from '../src/errors';
@@ -9,7 +9,9 @@ const OLD_CAPS = ['hello', 'room.list', 'scene.get'];
 function fakeDaemon(capabilities: string[]): Promise<{ server: Server; url: string }> {
   const server = createServer((req, res) => {
     let raw = '';
-    req.on('data', (chunk) => (raw += chunk));
+    req.on('data', (chunk) => {
+      raw += chunk;
+    });
     req.on('end', () => {
       const body = JSON.parse(raw) as { id: number; method: string };
       res.setHeader('content-type', 'application/json');
@@ -93,7 +95,9 @@ describe('旧 daemon 的能力漂移', () => {
     let hellos = 0;
     const server = createServer((req, res) => {
       let raw = '';
-      req.on('data', (chunk) => (raw += chunk));
+      req.on('data', (chunk) => {
+        raw += chunk;
+      });
       req.on('end', () => {
         const body = JSON.parse(raw) as { id: number; method: string };
         res.setHeader('content-type', 'application/json');
@@ -108,7 +112,12 @@ describe('旧 daemon 的能力漂移', () => {
             JSON.stringify({
               jsonrpc: '2.0',
               id: body.id,
-              result: { protocolVersion: '0.1', daemonVersion: '0.0.9', renderer: 'none', capabilities: OLD_CAPS },
+              result: {
+                protocolVersion: '0.1',
+                daemonVersion: '0.0.9',
+                renderer: 'none',
+                capabilities: OLD_CAPS,
+              },
             }),
           );
           return;

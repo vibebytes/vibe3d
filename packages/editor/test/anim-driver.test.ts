@@ -34,7 +34,11 @@ describe('applyProceduralClips', () => {
     const root = new THREE.Object3D();
     root.add(wrapper);
     const bases = {
-      n_aaaaaaaa: { p: [2, 1, -3] as [number, number, number], r: [0, 0.5, 0] as [number, number, number], s: [1, 1, 1] as [number, number, number] },
+      n_aaaaaaaa: {
+        p: [2, 1, -3] as [number, number, number],
+        r: [0, 0.5, 0] as [number, number, number],
+        s: [1, 1, 1] as [number, number, number],
+      },
     };
     applyProceduralClips(root, {}, 0, bases);
     const world = mesh.getWorldPosition(new THREE.Vector3());

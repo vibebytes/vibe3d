@@ -15,5 +15,4 @@ export const GLOBAL_CONVENTIONS: readonly ConventionEntry[] = [
 export const conventionMap = (): Record<string, string> =>
   Object.fromEntries(GLOBAL_CONVENTIONS.map((c) => [c.key, c.text]));
 
-export const conventionText = (): string =>
-  GLOBAL_CONVENTIONS.map((c) => `${c.key}：${c.text}`).join('\n');
+export const conventionText = (): string => GLOBAL_CONVENTIONS.map((c) => `${c.key}：${c.text}`).join('\n');

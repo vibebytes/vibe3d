@@ -56,7 +56,7 @@ export function makeHarness(
   mkdirSync(join(dirs.editor, 'vendor', 'draco'), { recursive: true });
   writeFileSync(join(dirs.editor, 'vendor', 'draco', 'decoder.js'), 'export {}');
 
-  const token = opts.token === null ? undefined : opts.token ?? 'test-token-0123456789';
+  const token = opts.token === null ? undefined : (opts.token ?? 'test-token-0123456789');
   const args = ['--renderer', 'none', '--home', root];
   const config = parseConfig(token ? ['--token', token, ...args] : args, {});
   const logger = silentLogger();

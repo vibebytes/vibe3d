@@ -145,13 +145,26 @@ describe('诊断叠加 addOverlays', () => {
   });
 });
 
-function taggedScene(): { scene: THREE.Scene; a: THREE.Mesh; b: THREE.Mesh; bMaterial: THREE.MeshStandardMaterial } {
+function taggedScene(): {
+  scene: THREE.Scene;
+  a: THREE.Mesh;
+  b: THREE.Mesh;
+  bMaterial: THREE.MeshStandardMaterial;
+} {
   const scene = new THREE.Scene();
   const root = new THREE.Group();
   root.name = 'vibe3d-export';
-  const a = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+  const a = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshStandardMaterial({ color: 0x111111 }),
+  );
   a.userData.nodeId = 'n_00000001';
-  const bMaterial = new THREE.MeshStandardMaterial({ color: 0x222222, transparent: true, opacity: 0.4, name: 'b-mat' });
+  const bMaterial = new THREE.MeshStandardMaterial({
+    color: 0x222222,
+    transparent: true,
+    opacity: 0.4,
+    name: 'b-mat',
+  });
   const b = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), bMaterial);
   b.userData.nodeId = 'n_00000002';
   b.position.x = 2;

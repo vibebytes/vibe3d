@@ -7,13 +7,25 @@ async function twoBoxes(h: Harness): Promise<{ roomId: string; near: string; far
   const near = await call(
     h,
     'node.create',
-    { roomId, kind: 'mesh', shape: 'box', name: 'near', transform: { p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] } },
+    {
+      roomId,
+      kind: 'mesh',
+      shape: 'box',
+      name: 'near',
+      transform: { p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] },
+    },
     roomId,
   );
   const far = await call(
     h,
     'node.create',
-    { roomId, kind: 'mesh', shape: 'box', name: 'far', transform: { p: [0, 0, -10], r: [0, 0, 0], s: [1, 1, 1] } },
+    {
+      roomId,
+      kind: 'mesh',
+      shape: 'box',
+      name: 'far',
+      transform: { p: [0, 0, -10], r: [0, 0, 0], s: [1, 1, 1] },
+    },
     roomId,
   );
   return { roomId, near: near.body.result.nodeId, far: far.body.result.nodeId };

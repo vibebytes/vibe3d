@@ -11,10 +11,7 @@
       "default": "./src/index.ts"
     }
   },
-  "files": [
-    "dist",
-    "generated"
-  ],
+  "files": ["dist", "generated"],
   "publishConfig": {
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

@@ -188,7 +188,16 @@ describe('render.pick V2-03：[[x,y]] 元组与 node_id / material_id 同帧归�
     const { body } = await call(
       h,
       'render.pick',
-      { roomId, points: [[2, 1], [0, 0]], camera: { fov: 45 }, width: 64, height: 64 },
+      {
+        roomId,
+        points: [
+          [2, 1],
+          [0, 0],
+        ],
+        camera: { fov: 45 },
+        width: 64,
+        height: 64,
+      },
       roomId,
     );
     expect(body.error).toBeUndefined();
@@ -219,12 +228,7 @@ describe('render.pick V2-03：[[x,y]] 元组与 node_id / material_id 同帧归�
       seen,
     );
 
-    const objects = await call(
-      h,
-      'render.pick',
-      { roomId, points: [{ x: 2, y: 1 }] },
-      roomId,
-    );
+    const objects = await call(h, 'render.pick', { roomId, points: [{ x: 2, y: 1 }] }, roomId);
     const tuples = await call(h, 'render.pick', { roomId, points: [[2, 1]] }, roomId);
     expect(objects.body.error).toBeUndefined();
     expect(tuples.body.error).toBeUndefined();

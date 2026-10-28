@@ -66,11 +66,7 @@ function eulerToQuat(r: readonly number[]): [number, number, number, number] {
 
 const near = (a: number, b: number): boolean => Math.abs(a - b) <= TOLERANCE;
 
-function composeMatrix(
-  p: readonly number[],
-  q: readonly number[],
-  s: readonly number[],
-): number[] {
+function composeMatrix(p: readonly number[], q: readonly number[], s: readonly number[]): number[] {
   const [x = 0, y = 0, z = 0, w = 1] = q;
   const x2 = x + x;
   const y2 = y + y;
@@ -107,11 +103,7 @@ function composeMatrix(
 
 function nodeMatrix(node: GltfNode): number[] {
   if (node.matrix?.length === 16) return node.matrix;
-  return composeMatrix(
-    node.translation ?? [0, 0, 0],
-    node.rotation ?? [0, 0, 0, 1],
-    node.scale ?? [1, 1, 1],
-  );
+  return composeMatrix(node.translation ?? [0, 0, 0], node.rotation ?? [0, 0, 0, 1], node.scale ?? [1, 1, 1]);
 }
 
 function matrixMatches(actual: number[] | undefined, expected: readonly number[]): boolean {
@@ -120,7 +112,11 @@ function matrixMatches(actual: number[] | undefined, expected: readonly number[]
 }
 
 function isExported(node: SceneNode, doc: SceneDoc): boolean {
-  for (let current: SceneNode | undefined = node; current; current = current.parent ? doc.nodes[current.parent] : undefined) {
+  for (
+    let current: SceneNode | undefined = node;
+    current;
+    current = current.parent ? doc.nodes[current.parent] : undefined
+  ) {
     if (!current.visible) return false;
   }
   return true;
@@ -184,11 +180,7 @@ export function verifyGlbExport(
       missing.push(id);
       continue;
     }
-    const expectedMatrix = composeMatrix(
-      node.transform.p,
-      eulerToQuat(node.transform.r),
-      node.transform.s,
-    );
+    const expectedMatrix = composeMatrix(node.transform.p, eulerToQuat(node.transform.r), node.transform.s);
     const ok = candidates.some((candidate) => matrixMatches(nodeMatrix(candidate), expectedMatrix));
     if (!ok) mismatched.push(id);
   }

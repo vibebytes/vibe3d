@@ -45,7 +45,11 @@ describe('mergeGroup', () => {
     const doc = docOf(
       group({ transform: { p: [10, 0, 0], r: [0, 0, 0], s: [1, 1, 1] } }),
       node({ id: 'n_00000002', parent: 'n_00000001' }),
-      node({ id: 'n_00000003', parent: 'n_00000001', transform: { p: [4, 0, 0], r: [0, 0, 0], s: [1, 1, 1] } }),
+      node({
+        id: 'n_00000003',
+        parent: 'n_00000001',
+        transform: { p: [4, 0, 0], r: [0, 0, 0], s: [1, 1, 1] },
+      }),
     );
     const plan = mergeGroup(doc, { nodeId: 'n_00000001' });
     expect(plan.sources).toEqual(['n_00000002', 'n_00000003']);
@@ -80,7 +84,12 @@ describe('mergeGroup', () => {
   it('多层嵌套组的子节点也一起烘焙', () => {
     const doc = docOf(
       group(),
-      group({ id: 'n_00000002', name: '内层', parent: 'n_00000001', transform: { p: [0, 2, 0], r: [0, 0, 0], s: [1, 1, 1] } }),
+      group({
+        id: 'n_00000002',
+        name: '内层',
+        parent: 'n_00000001',
+        transform: { p: [0, 2, 0], r: [0, 0, 0], s: [1, 1, 1] },
+      }),
       node({ id: 'n_00000003', parent: 'n_00000002' }),
     );
     const plan = mergeGroup(doc, { nodeId: 'n_00000001' });
@@ -141,10 +150,7 @@ describe('mergeGroup', () => {
   });
 
   it('目标不是组、空组、节点不存在分别报错', () => {
-    const doc = docOf(
-      node({ id: 'n_00000002', name: '单盒' }),
-      group({ id: 'n_00000003', name: '空组' }),
-    );
+    const doc = docOf(node({ id: 'n_00000002', name: '单盒' }), group({ id: 'n_00000003', name: '空组' }));
     expect(codeOf(fail(doc, { nodeId: 'n_zzzzzzzz' }))).toBe('E_NODE_NOT_FOUND');
     expect(codeOf(fail(doc, { nodeId: 'n_00000002' }))).toBe('E_INVALID_PARAMS');
     expect(codeOf(fail(doc, { nodeId: 'n_00000003' }))).toBe('E_INVALID_PARAMS');

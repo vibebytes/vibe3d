@@ -33,12 +33,7 @@ export function signExportUrl(
   return `/exports/${file}?exp=${exp}&sig=${sig}`;
 }
 
-export function verifyExportSig(
-  token: string | undefined,
-  file: string,
-  exp: number,
-  sig: string,
-): boolean {
+export function verifyExportSig(token: string | undefined, file: string, exp: number, sig: string): boolean {
   if (!token) return true;
   if (!Number.isFinite(exp)) return false;
   const want = Buffer.from(sigOf(token, exportKey(file), exp));

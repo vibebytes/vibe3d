@@ -121,7 +121,13 @@ describe('node.create upsert_by_name（V2-09 幂等重建）', () => {
         kind: 'light',
         name: 'sun',
         upsert_by_name: true,
-        light: { type: 'directional', color: [1, 1, 1, 1], intensity: 5, position: [3, 4, 5], castShadow: true },
+        light: {
+          type: 'directional',
+          color: [1, 1, 1, 1],
+          intensity: 5,
+          position: [3, 4, 5],
+          castShadow: true,
+        },
       },
       roomId,
     );
@@ -137,7 +143,14 @@ describe('显式 node.id 冲突（V2-09 裁决：E_CONFLICT，不覆盖）', () 
   it('ops.apply 同 id 二次创建报 E_CONFLICT，原节点保留', async () => {
     const h = makeHarness();
     const roomId = await room(h, 'id-conflict');
-    const node = { id: 'n_dup00001', name: '原节点', kind: 'group', parent: null, visible: true, transform: { p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] } };
+    const node = {
+      id: 'n_dup00001',
+      name: '原节点',
+      kind: 'group',
+      parent: null,
+      visible: true,
+      transform: { p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] },
+    };
     const first = await call(h, 'ops.apply', { roomId, ops: [{ op: 'node.create', node }] }, roomId);
     expect(first.body.error).toBeUndefined();
 

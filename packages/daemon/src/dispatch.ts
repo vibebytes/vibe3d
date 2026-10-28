@@ -6,7 +6,13 @@ import {
   describeIssues,
   toIssues,
 } from '@vibebyte/vibe3d-capabilities';
-import { AppError, DAEMON_VERSION, FIELD_ALIASES, PROTOCOL_VERSION, legacyGeometryNotes } from '@vibebyte/vibe3d-protocol';
+import {
+  AppError,
+  DAEMON_VERSION,
+  FIELD_ALIASES,
+  PROTOCOL_VERSION,
+  legacyGeometryNotes,
+} from '@vibebyte/vibe3d-protocol';
 import type { AutoOpenState, DispatchContext, HelloResult } from './context';
 import { assetHandlers } from './handlers/asset';
 import { backdropHandlers } from './handlers/backdrop';
@@ -79,7 +85,13 @@ function autoOpenEditor(name: CapabilityName, params: unknown, result: unknown, 
   const log = ctx.logger;
   const fail = (err?: unknown): void => {
     state.set(roomId, 'failed');
-    log?.warn({ event: 'surface.autoopen', roomId, trigger: name, ok: false, err: err ? String(err) : undefined });
+    log?.warn({
+      event: 'surface.autoopen',
+      roomId,
+      trigger: name,
+      ok: false,
+      err: err ? String(err) : undefined,
+    });
   };
   try {
     void Promise.resolve(open({ url: editorUrl(ctx, roomId), roomId }))
@@ -143,7 +155,10 @@ function withMigrationNotes(name: CapabilityName, raw: unknown, result: unknown)
 
 const MAX_HINT_EXAMPLE_CHARS = 400;
 
-const buildHint = (name: CapabilityName, issues: ReadonlyArray<{ path: PropertyKey[]; message: string }>): string => {
+const buildHint = (
+  name: CapabilityName,
+  issues: ReadonlyArray<{ path: PropertyKey[]; message: string }>,
+): string => {
   const first = issues[0];
   const head = first?.path?.length
     ? `检查参数 ${first.path.join('.')}：${first.message}`
@@ -151,7 +166,8 @@ const buildHint = (name: CapabilityName, issues: ReadonlyArray<{ path: PropertyK
   const sample = buildOpSample(name);
   if (sample === undefined) return head;
   const rendered = JSON.stringify(sample);
-  const trimmed = rendered.length > MAX_HINT_EXAMPLE_CHARS ? `${rendered.slice(0, MAX_HINT_EXAMPLE_CHARS)}…` : rendered;
+  const trimmed =
+    rendered.length > MAX_HINT_EXAMPLE_CHARS ? `${rendered.slice(0, MAX_HINT_EXAMPLE_CHARS)}…` : rendered;
   return `${head}；最小示例 ${trimmed}`;
 };
 

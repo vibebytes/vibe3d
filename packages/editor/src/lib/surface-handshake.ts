@@ -11,7 +11,13 @@
 export type SurfaceCapability = 'tool.call' | 'clipboard' | 'open-external';
 
 export type HostMsg =
-  | { kind: 'host.ready'; surfaceId: string; instanceKey: string; theme: 'dark' | 'light'; size: { width: number; height: number } }
+  | {
+      kind: 'host.ready';
+      surfaceId: string;
+      instanceKey: string;
+      theme: 'dark' | 'light';
+      size: { width: number; height: number };
+    }
   | { kind: 'host.token'; token: string; toolScope: string[] };
 
 export type PageMsg =
@@ -106,7 +112,11 @@ export function installSurfaceHandshake(deps: HandshakeDeps): () => void {
       if (!ready) {
         ready = true;
         post({ kind: 'surface.ready', capabilities: [...capabilities] });
-        log('ready', { capabilities: [...capabilities], surfaceId: msg.surfaceId, instanceKey: msg.instanceKey });
+        log('ready', {
+          capabilities: [...capabilities],
+          surfaceId: msg.surfaceId,
+          instanceKey: msg.instanceKey,
+        });
       }
       return;
     }

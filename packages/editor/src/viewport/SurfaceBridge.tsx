@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
+import { applyGrant } from '../lib/surface-grant';
 import { installSurfaceHandshake } from '../lib/surface-handshake';
 import type { SurfaceCapability } from '../lib/surface-handshake';
-import { applyGrant } from '../lib/surface-grant';
 
 /** Capabilities this editor actually implements; the host rejects anything it did not declare. */
 const CAPABILITIES: readonly SurfaceCapability[] = ['tool.call'];

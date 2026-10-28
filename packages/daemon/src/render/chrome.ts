@@ -57,7 +57,8 @@ export interface ChromeArgsOptions {
 // macOS/Windows 走真实 GPU（headless=new 支持 Metal/D3D），linux 无 GPU 环境强制 SwiftShader
 export function chromeArgs(userDataDir: string, opts: ChromeArgsOptions = {}): string[] {
   const platform = opts.platform ?? process.platform;
-  const forceSwift = opts.forceSwiftShader ?? /^(1|true|yes|on)$/i.test(process.env.VIBE3D_CHROME_SWIFT ?? '');
+  const forceSwift =
+    opts.forceSwiftShader ?? /^(1|true|yes|on)$/i.test(process.env.VIBE3D_CHROME_SWIFT ?? '');
   return [
     '--headless=new',
     '--remote-debugging-port=0',

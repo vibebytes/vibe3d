@@ -146,7 +146,7 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       if (doc.nodes[id])
         throw new AppError(
           'E_CONFLICT',
-          `节点 id 已存在，不覆盖；重建请用 node.create 的 upsert_by_name 或模板化 scene.import`,
+          '节点 id 已存在，不覆盖；重建请用 node.create 的 upsert_by_name 或模板化 scene.import',
           { id, name: node.name },
         );
       if (node.parent && !doc.nodes[node.parent]) fail('父节点不存在', { id: node.parent });
@@ -408,9 +408,12 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       const node = doc.nodes[op.target] ?? fail('节点不存在', { id: op.target });
       if (node.kind !== 'model') {
         if (nodeClipsOf(node).length > 0) return;
-        fail('该节点没有动画：程序化 clip 无需 play，直接 render.snapshot at=<秒> 采样；只有导入模型(GPU动画)需要 play', {
-          id: op.target,
-        });
+        fail(
+          '该节点没有动画：程序化 clip 无需 play，直接 render.snapshot at=<秒> 采样；只有导入模型(GPU动画)需要 play',
+          {
+            id: op.target,
+          },
+        );
       }
       const report = doc.assets[node.sha]?.gltf ?? fail('模型资产缺少 gltf 报告', { sha: node.sha });
       const clip = op.clip ?? report.animations[0]?.name;
@@ -464,7 +467,10 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
         const kept = op.channel ? existing.filter((c) => clipChannelOf(c) !== op.channel) : [];
         const previousClips = existing;
         const previousClip = node.clip ? clone(node.clip) : null;
-        setNodeClips(node, kept.map((c) => clone(c)));
+        setNodeClips(
+          node,
+          kept.map((c) => clone(c)),
+        );
         inverse.push({ op: 'node.update', id, patch: { clips: previousClips, clip: previousClip } });
       }
       return;
@@ -477,7 +483,11 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
         const previousClips = nodeClipsOf(node);
         const previousClip = node.clip ? clone(node.clip) : null;
         setNodeClips(node, next);
-        inverse.push({ op: 'node.update', id: target.nodeId, patch: { clips: previousClips, clip: previousClip } });
+        inverse.push({
+          op: 'node.update',
+          id: target.nodeId,
+          patch: { clips: previousClips, clip: previousClip },
+        });
       }
       return;
     }

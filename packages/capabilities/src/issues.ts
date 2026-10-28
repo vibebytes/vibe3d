@@ -24,7 +24,11 @@ const expand = (issue: RawIssue, depth = 0): RawIssue[] => {
 };
 
 const rank = (issue: RawIssue): number => {
-  const required = /^required$/i.test(issue.message.trim()) ? 2 : /invalid literal/i.test(issue.message) ? -1 : 0;
+  const required = /^required$/i.test(issue.message.trim())
+    ? 2
+    : /invalid literal/i.test(issue.message)
+      ? -1
+      : 0;
   return required * 100 + issue.path.length;
 };
 

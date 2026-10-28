@@ -139,7 +139,12 @@ describe('render shading & overlay', () => {
       const seen: SnapshotOptions[] = [];
       h.ctx.renderer = fakeRenderer(seen) as unknown as DispatchContext['renderer'];
       const { roomId } = await roomWithBox(h);
-      const { body } = await call(h, 'render.snapshot', { roomId, shading: mode, width: 200, height: 160 }, roomId);
+      const { body } = await call(
+        h,
+        'render.snapshot',
+        { roomId, shading: mode, width: 200, height: 160 },
+        roomId,
+      );
       expect(body.error).toBeUndefined();
       expect(get(seen, 0).shading).toBe(mode);
     }

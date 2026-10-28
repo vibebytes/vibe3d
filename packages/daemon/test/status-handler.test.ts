@@ -1,8 +1,8 @@
+import { conventionMap } from '@vibebyte/vibe3d-capabilities';
 import { describe, expect, it } from 'vitest';
 import type { DispatchContext } from '../src/context';
 import { dispatch } from '../src/dispatch';
 import { makeHarness } from './helpers/harness';
-import { conventionMap } from '@vibebyte/vibe3d-capabilities';
 
 type Renderer = NonNullable<DispatchContext['renderer']>;
 

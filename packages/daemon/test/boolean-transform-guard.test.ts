@@ -8,26 +8,13 @@ async function newRoom(h: Harness): Promise<string> {
   return body.result.roomId;
 }
 
-async function create(
-  h: Harness,
-  roomId: string,
-  input: Record<string, unknown>,
-): Promise<string> {
+async function create(h: Harness, roomId: string, input: Record<string, unknown>): Promise<string> {
   const { body } = await call(h, 'node.create', { roomId, kind: 'mesh', ...input }, roomId);
   return body.result.nodeId;
 }
 
-async function group(
-  h: Harness,
-  roomId: string,
-  transform: Record<string, unknown>,
-): Promise<string> {
-  const { body } = await call(
-    h,
-    'node.create',
-    { roomId, kind: 'group', name: 'g', transform },
-    roomId,
-  );
+async function group(h: Harness, roomId: string, transform: Record<string, unknown>): Promise<string> {
+  const { body } = await call(h, 'node.create', { roomId, kind: 'group', name: 'g', transform }, roomId);
   return body.result.nodeId;
 }
 

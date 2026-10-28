@@ -45,7 +45,13 @@ describe('installSurfaceHandshake', () => {
   it('host.ready → 回 surface.ready，且只回一次', () => {
     const w = fakeWindow();
     mount(w);
-    const ready = { kind: 'host.ready', surfaceId: 'vibe3d.editor', instanceKey: 'k1', theme: 'dark', size: { width: 1, height: 1 } };
+    const ready = {
+      kind: 'host.ready',
+      surfaceId: 'vibe3d.editor',
+      instanceKey: 'k1',
+      theme: 'dark',
+      size: { width: 1, height: 1 },
+    };
     w.send(ready);
     w.send(ready);
     expect(w.posted).toEqual([
@@ -57,7 +63,13 @@ describe('installSurfaceHandshake', () => {
   it('host.token → onGrant 带上 ready 里的 surfaceId / instanceKey', () => {
     const w = fakeWindow();
     const { onGrant } = mount(w);
-    w.send({ kind: 'host.ready', surfaceId: 'vibe3d.editor', instanceKey: 'k1', theme: 'light', size: { width: 1, height: 1 } });
+    w.send({
+      kind: 'host.ready',
+      surfaceId: 'vibe3d.editor',
+      instanceKey: 'k1',
+      theme: 'light',
+      size: { width: 1, height: 1 },
+    });
     w.send({ kind: 'host.token', token: 'tok', toolScope: ['vibe3d_status', 7] });
     expect(onGrant).toHaveBeenCalledWith({
       surfaceId: 'vibe3d.editor',

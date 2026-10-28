@@ -29,9 +29,7 @@ describe('backdropPlan', () => {
     expect([plan.width, plan.height]).toEqual([2, 256]);
     expect(plan.data).toHaveLength(2 * 256 * 4);
     expect([...plan.data.slice(0, 8)]).toEqual([0, 0, 0, 255, 0, 0, 0, 255]);
-    expect([...plan.data.slice(-8)]).toEqual([
-      255, 255, 255, 255, 255, 255, 255, 255,
-    ]);
+    expect([...plan.data.slice(-8)]).toEqual([255, 255, 255, 255, 255, 255, 255, 255]);
     const mid = plan.data[128 * 2 * 4];
     expect(mid).toBeGreaterThan(120);
     expect(mid).toBeLessThan(136);

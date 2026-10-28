@@ -417,7 +417,7 @@ export function CaptureBridge({ roomId, headless = false }: { roomId: string; he
           const v = world.clone().project(cam);
           const depth = world.clone().sub(cam.position).dot(fwd);
           return {
-            px: [(v.x + 1) / 2 * opts.width, (1 - v.y) / 2 * opts.height] as [number, number],
+            px: [((v.x + 1) / 2) * opts.width, ((1 - v.y) / 2) * opts.height] as [number, number],
             depth,
             in_view: depth > 0 && Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1,
           };
@@ -469,7 +469,6 @@ export function CaptureBridge({ roomId, headless = false }: { roomId: string; he
     };
   }, [gl, scene, camera, size, roomId, headless]);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: re-flag readiness after each doc revision
   useEffect(() => {
     window.__vibe3dRevision = revision;
     return scheduleReadyFlag(window);

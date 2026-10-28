@@ -24,7 +24,16 @@ import type {
 } from '../context';
 import { signExportUrl } from '../http/export-url';
 import { type JobError, toView } from '../jobs/store';
-import { clampRect, cropImage, decodeShot, deltaE, hexOf, hexToRgb, pixelAt, regionStats } from '../render/pick';
+import {
+  clampRect,
+  cropImage,
+  decodeShot,
+  deltaE,
+  hexOf,
+  hexToRgb,
+  pixelAt,
+  regionStats,
+} from '../render/pick';
 import { encodePng } from '../render/png';
 import { editorUrl } from './editor-url';
 import type { HandlersFor } from './types';
@@ -193,7 +202,10 @@ function presentShot(shot: Snapshot, quality?: QualityPreset) {
   };
 }
 
-function framingEchoOf(p: ImageParams, doc: SceneDoc): { source: 'camera' | 'scene'; center?: [number, number, number]; fov?: number } {
+function framingEchoOf(
+  p: ImageParams,
+  doc: SceneDoc,
+): { source: 'camera' | 'scene'; center?: [number, number, number]; fov?: number } {
   if (p.camera || p.framing !== 'scene') return { source: 'camera' };
   const cam = frameCamera(doc, 'fit');
   return { source: 'scene', center: cam.target, fov: cam.fov };
@@ -228,16 +240,12 @@ async function idPassLookup(
       },
     );
     return (x, y) => {
-      const sx =
-        shot.width === width ? x : Math.min(shot.width - 1, Math.round((x * shot.width) / width));
+      const sx = shot.width === width ? x : Math.min(shot.width - 1, Math.round((x * shot.width) / width));
       const sy =
-        shot.height === height
-          ? y
-          : Math.min(shot.height - 1, Math.round((y * shot.height) / height));
+        shot.height === height ? y : Math.min(shot.height - 1, Math.round((y * shot.height) / height));
       if (sx < 0 || sy < 0) return null;
       const at = (sy * shot.width + sx) * 4;
-      const value =
-        ((shot.rgba[at] ?? 0) << 16) | ((shot.rgba[at + 1] ?? 0) << 8) | (shot.rgba[at + 2] ?? 0);
+      const value = ((shot.rgba[at] ?? 0) << 16) | ((shot.rgba[at + 1] ?? 0) << 8) | (shot.rgba[at + 2] ?? 0);
       return legend.byHex[`#${value.toString(16).padStart(6, '0')}`] ?? null;
     };
   } catch {
@@ -470,9 +478,7 @@ export const renderHandlers: HandlersFor<Keys> = {
       width: cropBox ? cropBox.w : img.width,
       height: cropBox ? cropBox.h : img.height,
       ...(crop ? { mime: 'image/png' as const, base64: crop.toString('base64') } : {}),
-      ...(cropBox
-        ? { frame: { width: img.width, height: img.height }, roi: cropBox }
-        : {}),
+      ...(cropBox ? { frame: { width: img.width, height: img.height }, roi: cropBox } : {}),
       samples,
       ...(region ? { region } : {}),
     };
@@ -483,7 +489,10 @@ export const renderHandlers: HandlersFor<Keys> = {
     const renderer = requireRenderer(ctx, room.id);
     const anchors = (p.anchors ?? []) as AssertAnchorInput[];
     if (!anchors.length) {
-      throw new AppError('E_INVALID_PARAMS', 'render.assert 至少需要一个锚点：{at:[x,y]} 或 {p:[x,y,z]}，配 hex / node / material 期望');
+      throw new AppError(
+        'E_INVALID_PARAMS',
+        'render.assert 至少需要一个锚点：{at:[x,y]} 或 {p:[x,y,z]}，配 hex / node / material 期望',
+      );
     }
     const shotOpts = imageOptions({ ...p, format: 'png' }, room.doc);
     const shot = await renderer.snapshot({ roomId: room.id, doc: room.doc }, shotOpts);

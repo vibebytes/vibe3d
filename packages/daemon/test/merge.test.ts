@@ -26,7 +26,13 @@ async function fixture(h: Harness) {
     const made = await call(
       h,
       'node.create',
-      { roomId, kind: 'mesh', shape: 'box', parent: groupId, transform: { p: p as [number, number, number] } },
+      {
+        roomId,
+        kind: 'mesh',
+        shape: 'box',
+        parent: groupId,
+        transform: { p: p as [number, number, number] },
+      },
       roomId,
     );
     ids.push(made.body.result.nodeId);

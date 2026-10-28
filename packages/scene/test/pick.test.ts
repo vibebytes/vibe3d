@@ -24,7 +24,10 @@ function docOf(...nodes: SceneNode[]): SceneDoc {
   return doc;
 }
 
-const RAY_DOWN_Z = { origin: [0, 0, 5] as [number, number, number], direction: [0, 0, -1] as [number, number, number] };
+const RAY_DOWN_Z = {
+  origin: [0, 0, 5] as [number, number, number],
+  direction: [0, 0, -1] as [number, number, number],
+};
 
 describe('pickNode', () => {
   it('hits the nearest box and reports distance, point and candidates', () => {
@@ -85,7 +88,10 @@ describe('pickNode', () => {
 
   it('expands boxes by tolerance so thin gaps stay clickable', () => {
     const doc = docOf(node({ id: 'n_00000001' }));
-    const grazing = { origin: [1.05, 0, 5] as [number, number, number], direction: [0, 0, -1] as [number, number, number] };
+    const grazing = {
+      origin: [1.05, 0, 5] as [number, number, number],
+      direction: [0, 0, -1] as [number, number, number],
+    };
     expect(pickNode(doc, { ray: grazing }).nodeId).toBeNull();
     expect(pickNode(doc, { ray: grazing, tolerance: 0.1 }).nodeId).toBe('n_00000001');
   });

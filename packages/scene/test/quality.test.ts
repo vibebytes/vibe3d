@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { QUALITY_LEVELS, resolveQuality } from '../src/quality';
 
-const codeOf = (err: unknown): string | undefined =>
-  (err as { code?: string } | undefined)?.code;
+const codeOf = (err: unknown): string | undefined => (err as { code?: string } | undefined)?.code;
 
 describe('resolveQuality', () => {
   it('defaults to standard with 4x MSAA and 1024 shadows', () => {

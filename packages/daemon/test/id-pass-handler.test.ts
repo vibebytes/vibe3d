@@ -8,14 +8,14 @@ const code = (body: { error?: { data?: { code?: string }; code?: string } }): st
 
 function paint(opts: IdPassOptions, cells: Array<[number, string]>): IdPassShot {
   const rgba = new Uint8Array(opts.width * opts.height * 4);
-  cells.forEach(([offset, hex]) => {
+  for (const [offset, hex] of cells) {
     const rgb = Number.parseInt(hex.slice(1), 16);
     const p = offset * 4;
     rgba[p] = (rgb >> 16) & 0xff;
     rgba[p + 1] = (rgb >> 8) & 0xff;
     rgba[p + 2] = rgb & 0xff;
     rgba[p + 3] = 255;
-  });
+  }
   return { width: opts.width, height: opts.height, rgba };
 }
 

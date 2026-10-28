@@ -73,24 +73,14 @@ describe('camera lens_mm / fov_h（V2-08b：36×24 全画幅）', () => {
   it('lens_mm 与 fov 互斥，同传报 E_INVALID_PARAMS', async () => {
     const h = makeHarness();
     const roomId = await roomWithBox(h);
-    const bad = await call(
-      h,
-      'camera.set',
-      { roomId, camera: { lens_mm: 50, fov: 40 } },
-      roomId,
-    );
+    const bad = await call(h, 'camera.set', { roomId, camera: { lens_mm: 50, fov: 40 } }, roomId);
     expect(codeOf(bad.body)).toBe('E_INVALID_PARAMS');
   });
 
   it('camera.save 也接受 lens_mm（24mm → fov 53.13°）', async () => {
     const h = makeHarness();
     const roomId = await roomWithBox(h);
-    const saved = await call(
-      h,
-      'camera.save',
-      { roomId, name: 'hero', camera: { lens_mm: 24 } },
-      roomId,
-    );
+    const saved = await call(h, 'camera.save', { roomId, name: 'hero', camera: { lens_mm: 24 } }, roomId);
     expect(saved.body.error).toBeUndefined();
     expect(saved.body.result.camera.fov).toBeCloseTo(53.13, 2);
   });

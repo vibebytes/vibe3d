@@ -1,14 +1,13 @@
 import { execFileSync } from 'node:child_process';
-import { createRequire } from 'node:module';
 import { existsSync, mkdtempSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const root = new URL('..', import.meta.url).pathname;
 const node = process.execPath;
 
-const run = (cmd, args, cwd = root) =>
-  execFileSync(cmd, args, { cwd, stdio: 'inherit', env: process.env });
+const run = (cmd, args, cwd = root) => execFileSync(cmd, args, { cwd, stdio: 'inherit', env: process.env });
 
 const mcpDist = join(root, 'packages/mcp/dist/index.js');
 const daemonDist = join(root, 'packages/daemon/dist/index.js');
@@ -19,7 +18,8 @@ if (!existsSync(mcpDist) || !existsSync(daemonDist)) {
 const mcpStat = statSync(mcpDist);
 const bundleLimit = Math.floor(1.6 * 1024 * 1024);
 if (mcpStat.size > bundleLimit) throw new Error(`mcp bundle too large: ${mcpStat.size} > ${bundleLimit}`);
-if (!readFileSync(mcpDist, 'utf8').startsWith('#!/usr/bin/env node')) throw new Error('mcp bin missing shebang');
+if (!readFileSync(mcpDist, 'utf8').startsWith('#!/usr/bin/env node'))
+  throw new Error('mcp bin missing shebang');
 if ((mcpStat.mode & 0o111) === 0) throw new Error('mcp bin is not executable');
 
 const pack = (dir) => {
@@ -61,7 +61,8 @@ if (!String(daemonPkg.engines?.node).includes('20')) throw new Error('daemon eng
 const daemonDep = mcpPkg.dependencies?.['@vibebyte/vibe3d-daemon'];
 if (daemonDep !== daemonPkg.version) throw new Error(`daemon dep ${daemonDep} != ${daemonPkg.version}`);
 const exported = daemonPkg.exports?.['.']?.default ?? daemonPkg.exports?.['.'];
-if (!String(exported).includes('dist')) throw new Error(`daemon exports ${JSON.stringify(daemonPkg.exports)}`);
+if (!String(exported).includes('dist'))
+  throw new Error(`daemon exports ${JSON.stringify(daemonPkg.exports)}`);
 
 const home = mkdtempSync(join(tmpdir(), 'vibe3d-install-'));
 const scope = join(home, 'node_modules/@vibebyte');
@@ -72,14 +73,21 @@ const unpack = (tgz, name) => {
 };
 unpack(daemonTgz, 'vibe3d-daemon');
 unpack(mcpTgz, 'vibe3d-mcp');
-const doctor = execFileSync(node, [join(home, 'node_modules/@vibebyte/vibe3d-mcp/dist/index.js'), '--doctor', '--json'], {
-  cwd: home,
-  encoding: 'utf8',
-  env: { ...process.env, VIBE3D_HOME: join(home, 'home') },
-});
+const doctor = execFileSync(
+  node,
+  [join(home, 'node_modules/@vibebyte/vibe3d-mcp/dist/index.js'), '--doctor', '--json'],
+  {
+    cwd: home,
+    encoding: 'utf8',
+    env: { ...process.env, VIBE3D_HOME: join(home, 'home') },
+  },
+);
 const report = JSON.parse(doctor);
 const entry = report.daemonEntry?.file ?? '';
-if (!entry.endsWith('node_modules/@vibebyte/vibe3d-daemon/dist/index.js') && !entry.includes('@vibebyte/vibe3d-daemon/dist/index.js')) {
+if (
+  !entry.endsWith('node_modules/@vibebyte/vibe3d-daemon/dist/index.js') &&
+  !entry.includes('@vibebyte/vibe3d-daemon/dist/index.js')
+) {
   throw new Error(`daemon entry not installed: ${entry} ${doctor}`);
 }
 if (!existsSync(join(home, 'node_modules/@vibebyte/vibe3d-daemon/dist/editor/index.html'))) {
@@ -111,7 +119,8 @@ const client = new Client({ name: 'release-check', version: '0' });
 await client.connect(transport);
 try {
   const status = await client.callTool({ name: 'vibe3d_status', arguments: {} });
-  if (status.isError) throw new Error(`vibe3d_status failed: ${JSON.stringify(status.content).slice(0, 400)}`);
+  if (status.isError)
+    throw new Error(`vibe3d_status failed: ${JSON.stringify(status.content).slice(0, 400)}`);
   const runs = readdirSync(join(dataHome, 'run')).filter((name) => name.endsWith('.json'));
   if (runs.length === 0) throw new Error('autostart did not write a daemon run file');
   const rec = JSON.parse(readFileSync(join(dataHome, 'run', runs[0]), 'utf8'));

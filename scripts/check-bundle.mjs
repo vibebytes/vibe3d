@@ -2,9 +2,9 @@
 // Usage: node scripts/check-bundle.mjs <dist-dir> [more-dirs...]
 // Fails when any bundled .js keeps a bare-specifier import — dist must run
 // without node_modules (e.g. copied into the fast install bundle).
-import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { builtinModules } from 'node:module';
+import { join } from 'node:path';
 
 // Bundlers emit real top-level imports at column 0; JSDoc examples like
 // ` * import { Hono } from 'hono'` keep a leading ` * ` and never match.

@@ -9,7 +9,9 @@ export const numIn = (min: number, max: number) => z.coerce.number().min(min).ma
 
 export const transformInput = z.object({
   p: vec3.optional(),
-  r: vec3.describe('欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]').optional(),
+  r: vec3
+    .describe('欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]')
+    .optional(),
   s: vec3.optional(),
 });
 

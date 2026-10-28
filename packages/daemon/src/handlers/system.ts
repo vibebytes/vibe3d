@@ -1,5 +1,5 @@
-import { DAEMON_VERSION, PROTOCOL_VERSION } from '@vibebyte/vibe3d-protocol';
 import { conventionMap } from '@vibebyte/vibe3d-capabilities';
+import { DAEMON_VERSION, PROTOCOL_VERSION } from '@vibebyte/vibe3d-protocol';
 import { MAX_SNAPSHOT_PIXELS, MAX_SNAPSHOT_TIMEOUT_MS } from '../render/editor';
 import { DEFAULT_WS_MAX_PAYLOAD_BYTES } from '../ws/attach';
 import type { HandlersFor } from './types';

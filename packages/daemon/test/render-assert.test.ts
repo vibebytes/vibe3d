@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { DispatchContext, SnapshotOptions } from '../src/context';
-import { type Harness, call, makeHarness } from './helpers/harness';
 import { anchorCases, idAnchorCases } from './helpers/assert-fixture';
+import { type Harness, call, makeHarness } from './helpers/harness';
 import { makePng } from './helpers/png';
 
 const codeOf = (body: any): string => body?.error?.data?.code ?? body?.error?.code;
@@ -86,7 +86,12 @@ describe('render.assert V2-12：project + pick 串联的锚点验收', () => {
     const h = makeHarness();
     const { body: rb } = await call(h, 'room.create', { name: 'assert-id' });
     const roomId = rb.result.roomId;
-    const created = await call(h, 'node.create', { roomId, kind: 'mesh', shape: 'box', name: 'hero' }, roomId);
+    const created = await call(
+      h,
+      'node.create',
+      { roomId, kind: 'mesh', shape: 'box', name: 'hero' },
+      roomId,
+    );
     const nodeId = created.body.result.nodeId;
     const view = await call(h, 'node.get', { roomId, nodeId }, roomId);
     const materialId = view.body.result.materialId;
@@ -152,12 +157,7 @@ describe('render.assert V2-12：project + pick 串联的锚点验收', () => {
     const empty = await call(h, 'render.assert', { roomId, anchors: [] }, roomId);
     expect(codeOf(empty.body)).toBe('E_INVALID_PARAMS');
 
-    const both = await call(
-      h,
-      'render.assert',
-      { roomId, anchors: [{ at: [300, 10] }] },
-      roomId,
-    );
+    const both = await call(h, 'render.assert', { roomId, anchors: [{ at: [300, 10] }] }, roomId);
     expect(both.body.error).toBeUndefined();
     const a = both.body.result.anchors[0];
     expect(a.ok).toBe(false);

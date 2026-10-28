@@ -158,7 +158,16 @@ const NEUTRAL_PARAMS: Partial<Material> = {
   roughness: 0.75,
 };
 
-const METAL_TOKENS = new Set(['metal', 'steel', 'iron', 'chrome', 'aluminium', 'aluminum', 'brass', 'copper']);
+const METAL_TOKENS = new Set([
+  'metal',
+  'steel',
+  'iron',
+  'chrome',
+  'aluminium',
+  'aluminum',
+  'brass',
+  'copper',
+]);
 const LIGHT_TOKENS = new Set(['white', 'matte', 'matt', 'light', 'bright', 'plaster', 'paper']);
 
 export function resolveMaterialPreset(raw?: string, params?: Partial<Material>): PresetResolution {

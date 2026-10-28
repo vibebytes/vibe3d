@@ -1,4 +1,5 @@
 import { CAPABILITIES } from '@vibebyte/vibe3d-capabilities';
+import type { AppError } from '@vibebyte/vibe3d-protocol';
 import { describe, expect, it } from 'vitest';
 import { dispatch } from '../src/dispatch';
 import { makeHarness } from './helpers/harness';
@@ -48,9 +49,7 @@ describe('参数校验错误的可诊断性', () => {
   });
 
   it('错误契约：data 附 hint 与 docRef，repair 可直接引用', async () => {
-    const err = (await dispatch('node.create', { kind: 'mesh' }, harness.ctx).catch(
-      (e) => e,
-    )) as import('@vibebyte/vibe3d-protocol').AppError;
+    const err = (await dispatch('node.create', { kind: 'mesh' }, harness.ctx).catch((e) => e)) as AppError;
     const data = err.data as { hint?: string; docRef?: string };
     expect(typeof data.hint).toBe('string');
     expect(data.hint!.length).toBeGreaterThan(0);

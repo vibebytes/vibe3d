@@ -22,7 +22,10 @@ const ANCHORS: [string, [number, number, number]][] = [
   ['画外', [HALF_W * D * 2, 0, 0]],
 ];
 
-async function roomWithBoxes(h: Harness, at: [number, number, number][]): Promise<{ roomId: string; ids: string[] }> {
+async function roomWithBoxes(
+  h: Harness,
+  at: [number, number, number][],
+): Promise<{ roomId: string; ids: string[] }> {
   const { body } = await call(h, 'room.create', { name: '投影锚点' });
   const roomId = body.result.roomId;
   const ids: string[] = [];
@@ -41,7 +44,10 @@ async function roomWithBoxes(h: Harness, at: [number, number, number][]): Promis
 describe('camera.project：世界坐标 → 像素（像素坐标系与 snapshot 一致）', () => {
   it('7 锚点 golden：精确像素、深度、in_view', async () => {
     const h = makeHarness();
-    const { roomId } = await roomWithBoxes(h, ANCHORS.map(([, p]) => p));
+    const { roomId } = await roomWithBoxes(
+      h,
+      ANCHORS.map(([, p]) => p),
+    );
     const { body } = await call(
       h,
       'camera.project',
@@ -95,11 +101,25 @@ describe('camera.project：世界坐标 → 像素（像素坐标系与 snapshot
 
   it('正交相机：zoom 换算与 golden', async () => {
     const h = makeHarness();
-    const { roomId } = await roomWithBoxes(h, [[0, 0, 0], [0.444444, 0, 0], [0, 0.25, 0]]);
+    const { roomId } = await roomWithBoxes(h, [
+      [0, 0, 0],
+      [0.444444, 0, 0],
+      [0, 0.25, 0],
+    ]);
     const { body } = await call(
       h,
       'camera.project',
-      { roomId, points: [[0, 0, 0], [0.444444, 0, 0], [0, 0.25, 0]], camera: ORTHO, width: W, height: H },
+      {
+        roomId,
+        points: [
+          [0, 0, 0],
+          [0.444444, 0, 0],
+          [0, 0.25, 0],
+        ],
+        camera: ORTHO,
+        width: W,
+        height: H,
+      },
       roomId,
     );
     const r = body.result;
@@ -142,7 +162,12 @@ describe('camera.project：世界坐标 → 像素（像素坐标系与 snapshot
     const { roomId } = await roomWithBoxes(h, [[0, 0, 0]]);
     const empty = await call(h, 'camera.project', { roomId, points: [], camera: PERSP }, roomId);
     expect(codeOf(empty.body)).toBe('E_INVALID_PARAMS');
-    const noRoom = await call(h, 'camera.project', { roomId: 'r_00000000', points: [[0, 0, 0]] }, 'r_00000000');
+    const noRoom = await call(
+      h,
+      'camera.project',
+      { roomId: 'r_00000000', points: [[0, 0, 0]] },
+      'r_00000000',
+    );
     expect(codeOf(noRoom.body)).toBe('E_ROOM_NOT_FOUND');
   });
 });
@@ -150,7 +175,10 @@ describe('camera.project：世界坐标 → 像素（像素坐标系与 snapshot
 describe('camera.unproject：像素 → 世界（往返 ≤1e-6）', () => {
   it('project → unproject 往返还原原点', async () => {
     const h = makeHarness();
-    const { roomId } = await roomWithBoxes(h, ANCHORS.map(([, p]) => p));
+    const { roomId } = await roomWithBoxes(
+      h,
+      ANCHORS.map(([, p]) => p),
+    );
     const inView = ANCHORS.slice(0, 4).map(([, p]) => p);
     const shot = await call(
       h,

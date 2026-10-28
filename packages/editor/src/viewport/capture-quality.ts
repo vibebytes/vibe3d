@@ -1,5 +1,5 @@
 import { type QualityPreset, resolveQuality } from '@vibebyte/vibe3d-scene';
-import * as THREE from 'three';
+import type * as THREE from 'three';
 
 type ShadowLight = THREE.Light & { shadow?: THREE.LightShadow };
 

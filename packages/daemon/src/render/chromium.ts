@@ -194,7 +194,9 @@ export class ChromiumRenderer implements Renderer {
         this.withRecovery(async () => {
           const page = await this.openPage(input.roomId, opts.width, opts.height, input.doc?.revision);
           const res = await this.cdp?.send<{
-            result: { value?: { points?: Array<{ px?: number[]; depth?: number; in_view?: boolean }> } | null };
+            result: {
+              value?: { points?: Array<{ px?: number[]; depth?: number; in_view?: boolean }> } | null;
+            };
           }>(
             'Runtime.evaluate',
             {

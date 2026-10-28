@@ -71,7 +71,9 @@ export function arrayPlacements(base: Transform, opts: ArrayOptions): Placement[
         const j = jitterAt(opts.jitter, i);
         out.push({
           translate: [col * offset[0] + j[0], row * offset[1] + j[1], row * offset[2] + j[2]],
-          rotate: opts.rotateStep ? [opts.rotateStep[0] * i, opts.rotateStep[1] * i, opts.rotateStep[2] * i] : [0, 0, 0],
+          rotate: opts.rotateStep
+            ? [opts.rotateStep[0] * i, opts.rotateStep[1] * i, opts.rotateStep[2] * i]
+            : [0, 0, 0],
         });
       }
       return out;
@@ -80,7 +82,9 @@ export function arrayPlacements(base: Transform, opts: ArrayOptions): Placement[
       const j = jitterAt(opts.jitter, i);
       out.push({
         translate: [offset[0] * i + j[0], offset[1] * i + j[1], offset[2] * i + j[2]],
-        rotate: opts.rotateStep ? [opts.rotateStep[0] * i, opts.rotateStep[1] * i, opts.rotateStep[2] * i] : [0, 0, 0],
+        rotate: opts.rotateStep
+          ? [opts.rotateStep[0] * i, opts.rotateStep[1] * i, opts.rotateStep[2] * i]
+          : [0, 0, 0],
       });
     }
     return out;
@@ -88,7 +92,7 @@ export function arrayPlacements(base: Transform, opts: ArrayOptions): Placement[
 
   const axis = opts.axis ?? 'y';
   const sweep = opts.sweep ?? 360;
-  if (!Number.isFinite(sweep) || sweep === 0) bad(`radial 阵列的 sweep 不能为 0`, { sweep });
+  if (!Number.isFinite(sweep) || sweep === 0) bad('radial 阵列的 sweep 不能为 0', { sweep });
   const center = opts.center;
   let radial: Vec3;
   if (center) {
@@ -116,7 +120,11 @@ export function arrayPlacements(base: Transform, opts: ArrayOptions): Placement[
     const v = spin(axis, radial, deg);
     const j = jitterAt(opts.jitter, i);
     out.push({
-      translate: [origin[0] + v[0] - base.p[0] + j[0], origin[1] + v[1] - base.p[1] + j[1], origin[2] + v[2] - base.p[2] + j[2]],
+      translate: [
+        origin[0] + v[0] - base.p[0] + j[0],
+        origin[1] + v[1] - base.p[1] + j[1],
+        origin[2] + v[2] - base.p[2] + j[2],
+      ],
       rotate: rotateDelta(axis, deg),
     });
   }

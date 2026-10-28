@@ -105,7 +105,13 @@ export function PlaybackBar() {
       <span className="divider-v !mx-0.5 !h-3" />
 
       <span className="shrink-0 text-base-content/45">帧</span>
-      <NumField label="当前帧" value={frame} min={start} max={end} onCommit={(n) => usePlayback.getState().seekFrame(n)} />
+      <NumField
+        label="当前帧"
+        value={frame}
+        min={start}
+        max={end}
+        onCommit={(n) => usePlayback.getState().seekFrame(n)}
+      />
       <span className="shrink-0 text-base-content/35">/</span>
       <NumField
         label="结束帧"

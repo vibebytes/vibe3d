@@ -8,6 +8,7 @@ import type {
   SceneDoc,
   SceneNode,
 } from '@vibebyte/vibe3d-protocol';
+import { viewportFogPlan } from '@vibebyte/vibe3d-scene';
 import {
   type ComponentRef,
   type ReactNode,
@@ -19,11 +20,9 @@ import {
 } from 'react';
 import * as THREE from 'three';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
-import { viewportFogPlan } from '@vibebyte/vibe3d-scene';
 import { assetUrl } from '../lib/rpc';
 import { usePlayback } from '../stores/playback';
 import { useSelection } from '../stores/selection';
-import { subjectSphere } from './capture-fog';
 import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
 import { buildMesh, disposeMesh } from '../three/build';
 import { createViewportEnvMap } from '../three/env-map-view';
@@ -39,6 +38,7 @@ import { Gizmo } from './Gizmo';
 import { GridFloor } from './GridFloor';
 import { PostPipeline } from './PostPipeline';
 import { SelectionOutline } from './SelectionOutline';
+import { subjectSphere } from './capture-fog';
 
 function MeshView({
   node,
@@ -189,6 +189,7 @@ function ViewportFog({ doc }: { doc: SceneDoc }) {
   const scene = useThree((s) => s.scene);
   const settings = fogSettings(doc.env.fog, doc.env.background);
   const radiusRef = useRef(0);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-run on every doc change; deps are intentionally broader
   useEffect(() => {
     radiusRef.current = subjectSphere(scene).radius;
   }, [scene, doc]);
@@ -353,6 +354,7 @@ function CameraRig({ doc }: { doc: SceneDoc }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const controls = useRef<ComponentRef<typeof OrbitControls>>(null);
   const scene = useThree((s) => s.scene);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-run on every doc change; deps are intentionally broader
   useEffect(() => {
     if (!controls.current) return;
     controls.current.maxDistance = Math.max(200, subjectSphere(scene).radius * 40);

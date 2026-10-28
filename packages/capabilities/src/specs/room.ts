@@ -81,7 +81,8 @@ export const roomCreate = {
     errors: ['E_ROOM_NOT_FOUND'] as const,
   },
   'room.close': {
-    title: '关闭房间（roomId 单个，或 ids 批量：先整体校验存在性再逐一关闭，任一不存在则全部不动），可选清除磁盘数据',
+    title:
+      '关闭房间（roomId 单个，或 ids 批量：先整体校验存在性再逐一关闭，任一不存在则全部不动），可选清除磁盘数据',
     input: z.object({
       roomId: roomId.optional(),
       ids: z.array(roomId).min(1).max(100).optional(),

@@ -18,7 +18,10 @@ const OP_PATTERN = /^[a-z][a-z0-9_]*$/;
 
 export const GROUP_BY_CAPABILITY = new Map<CapabilityName, { group: ToolGroup; op: string }>();
 export const LEGACY_OF = new Map<CapabilityName, string>();
-export const LEGACY_TOOL_ALIASES = new Map<string, { tool: string; op: string; capability: CapabilityName }>();
+export const LEGACY_TOOL_ALIASES = new Map<
+  string,
+  { tool: string; op: string; capability: CapabilityName }
+>();
 
 function fail(message: string): never {
   throw new Error(`tool-groups: ${message}`);

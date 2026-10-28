@@ -2,9 +2,9 @@ import type { Material } from '@vibebyte/vibe3d-protocol';
 import * as THREE from 'three';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  type MapTextureLoader,
   createMapTextureLoader,
   disposeMaterialCache,
-  type MapTextureLoader,
   setMapErrorHandler,
   toStandardMaterial,
 } from '../src/three/materials';
@@ -24,7 +24,13 @@ const IMAGE = { width: 4, height: 4, complete: true } as unknown as HTMLImageEle
 
 type Fetch = Parameters<typeof createMapTextureLoader>[0];
 
-function fakeFetch(): { fetch: Fetch; base: THREE.Texture; calls: () => number; fire: () => void; fail: () => void } {
+function fakeFetch(): {
+  fetch: Fetch;
+  base: THREE.Texture;
+  calls: () => number;
+  fire: () => void;
+  fail: () => void;
+} {
   const base = new THREE.Texture();
   let calls = 0;
   let onLoad: ((texture: THREE.Texture) => void) | null = null;
@@ -89,10 +95,7 @@ describe('attachMap waits for the decoded image', () => {
     const pending = fakeFetch();
     const load = createMapTextureLoader(pending.fetch);
     const a = toStandardMaterial({ ...BASE, map: SHA } as unknown as Material, load);
-    const b = toStandardMaterial(
-      { ...BASE, map: SHA, roughness: 0.9 } as unknown as Material,
-      load,
-    );
+    const b = toStandardMaterial({ ...BASE, map: SHA, roughness: 0.9 } as unknown as Material, load);
 
     expect(pending.calls()).toBe(1);
     pending.fire();

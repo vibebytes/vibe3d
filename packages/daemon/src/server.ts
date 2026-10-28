@@ -57,8 +57,12 @@ export function createApp(deps: AppDeps): Hono {
   };
   mountRoutes(app, routes);
 
-  app.get('/editor/*', allowSandboxedFrame(), (c) => serveEditorAsset(routes, c.req.path.slice('/editor/'.length)));
-  app.get('/vendor/*', allowSandboxedFrame(), (c) => serveVendorAsset(routes, c.req.path.slice('/vendor/'.length)));
+  app.get('/editor/*', allowSandboxedFrame(), (c) =>
+    serveEditorAsset(routes, c.req.path.slice('/editor/'.length)),
+  );
+  app.get('/vendor/*', allowSandboxedFrame(), (c) =>
+    serveVendorAsset(routes, c.req.path.slice('/vendor/'.length)),
+  );
 
   // Sandboxed iframes preflight every cross-origin POST; answer before auth so the
   // browser never sees a 401 on OPTIONS.

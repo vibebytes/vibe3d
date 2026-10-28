@@ -8,11 +8,7 @@ async function newRoom(h: Harness): Promise<string> {
   return body.result.roomId;
 }
 
-async function create(
-  h: Harness,
-  roomId: string,
-  input: Record<string, unknown>,
-): Promise<string> {
+async function create(h: Harness, roomId: string, input: Record<string, unknown>): Promise<string> {
   const { body } = await call(h, 'node.create', { roomId, kind: 'mesh', ...input }, roomId);
   return body.result.nodeId;
 }
@@ -21,7 +17,16 @@ async function tube(h: Harness, roomId: string): Promise<string> {
   const { body } = await call(
     h,
     'mesh.tube',
-    { roomId, name: 'pipe', points: [[-1, 0, 0], [0, 1, 0], [1, 0, 0]], radius: 0.2 },
+    {
+      roomId,
+      name: 'pipe',
+      points: [
+        [-1, 0, 0],
+        [0, 1, 0],
+        [1, 0, 0],
+      ],
+      radius: 0.2,
+    },
     roomId,
   );
   return body.result.nodeId;
@@ -103,12 +108,7 @@ describe('mesh.boolean 非 box 目标守卫', () => {
     const h = makeHarness();
     const roomId = await newRoom(h);
     const target = await create(h, roomId, { shape: 'box', size: [1, 1, 1] });
-    const { body: g } = await call(
-      h,
-      'node.create',
-      { roomId, kind: 'group', name: 'g' },
-      roomId,
-    );
+    const { body: g } = await call(h, 'node.create', { roomId, kind: 'group', name: 'g' }, roomId);
     const groupId = g.result.nodeId;
 
     const { body } = await call(

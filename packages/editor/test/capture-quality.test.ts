@@ -67,8 +67,8 @@ describe('qualityOf', () => {
   });
 
   it('passes through an explicit preset', () => {
-    expect(qualityOf({ level: 'high', pixelRatio: 2, samples: 4, shadowMapSize: 2048, supersample: true })).toMatchObject(
-      { level: 'high', pixelRatio: 2 },
-    );
+    expect(
+      qualityOf({ level: 'high', pixelRatio: 2, samples: 4, shadowMapSize: 2048, supersample: true }),
+    ).toMatchObject({ level: 'high', pixelRatio: 2 });
   });
 });

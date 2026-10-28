@@ -46,12 +46,15 @@ describe('applyGrant', () => {
         return true;
       },
     });
-    vi.stubGlobal('CustomEvent', class {
-      type: string;
-      constructor(type: string) {
-        this.type = type;
-      }
-    });
+    vi.stubGlobal(
+      'CustomEvent',
+      class {
+        type: string;
+        constructor(type: string) {
+          this.type = type;
+        }
+      },
+    );
     window.addEventListener('vibe3d:token', seen);
     applyGrant(grant(['tool.call']));
     expect(seen).toHaveBeenCalledTimes(1);

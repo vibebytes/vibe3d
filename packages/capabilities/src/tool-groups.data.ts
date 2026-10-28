@@ -1,7 +1,11 @@
 import type { ToolGroup } from './tool-groups';
 
 export const TOOL_GROUP_TABLE: readonly ToolGroup[] = [
-  { tool: 'vibe3d_status', title: '能力探测：渲染器是否就绪、能否出 ID 通道、快照上限与载荷上限', ops: [['status', 'system.status', 'status']] },
+  {
+    tool: 'vibe3d_status',
+    title: '能力探测：渲染器是否就绪、能否出 ID 通道、快照上限与载荷上限',
+    ops: [['status', 'system.status', 'status']],
+  },
   {
     tool: 'vibe3d_room',
     title: '房间：建 / 列 / 切绑定 / 看摘要 / 关 / 时间线',
@@ -16,7 +20,8 @@ export const TOOL_GROUP_TABLE: readonly ToolGroup[] = [
   },
   {
     tool: 'vibe3d_scene',
-    title: '场景：取整份 / 摘要 / 查询节点 / 统计 / 拾取 / 体检 / 撤销重做 / 差分 / 导入导出 / 检查点 / 当前选中',
+    title:
+      '场景：取整份 / 摘要 / 查询节点 / 统计 / 拾取 / 体检 / 撤销重做 / 差分 / 导入导出 / 检查点 / 当前选中',
     ops: [
       ['get', 'scene.get', 'get_scene'],
       ['summary', 'scene.summary', 'scene_summary'],
@@ -134,7 +139,11 @@ export const TOOL_GROUP_TABLE: readonly ToolGroup[] = [
       ['sequence', 'render.sequence', 'render_sequence'],
     ],
   },
-  { tool: 'vibe3d_export_glb', title: '导出 GLB（任务制，用 vibe3d_job 查进度）', ops: [['glb', 'export.glb', 'export_glb']] },
+  {
+    tool: 'vibe3d_export_glb',
+    title: '导出 GLB（任务制，用 vibe3d_job 查进度）',
+    ops: [['glb', 'export.glb', 'export_glb']],
+  },
   {
     tool: 'vibe3d_job',
     title: '导出任务：查询 / 列表 / 取消',
@@ -144,6 +153,14 @@ export const TOOL_GROUP_TABLE: readonly ToolGroup[] = [
       ['cancel', 'job.cancel', 'job_cancel'],
     ],
   },
-  { tool: 'vibe3d_open_editor', title: '打开房间编辑器（默认弹窗）', ops: [['open', 'editor.open', 'open_editor']] },
-  { tool: 'vibe3d_apply_ops', title: '原子批量 op（仅用于跨节点依赖；日常请用专用工具）', ops: [['apply', 'ops.apply', 'apply_ops']] },
+  {
+    tool: 'vibe3d_open_editor',
+    title: '打开房间编辑器（默认弹窗）',
+    ops: [['open', 'editor.open', 'open_editor']],
+  },
+  {
+    tool: 'vibe3d_apply_ops',
+    title: '原子批量 op（仅用于跨节点依赖；日常请用专用工具）',
+    ops: [['apply', 'ops.apply', 'apply_ops']],
+  },
 ];

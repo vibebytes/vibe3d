@@ -47,7 +47,9 @@ function add(doc: SceneDoc, nodes: SceneNode[]): void {
 }
 
 function codes(doc: SceneDoc): string[] {
-  return validateScene(doc, { checks: [], semantics: true }).issues.map((issue) => issue.code).sort();
+  return validateScene(doc, { checks: [], semantics: true })
+    .issues.map((issue) => issue.code)
+    .sort();
 }
 
 describe('scene.validate semantics audit', () => {
@@ -79,10 +81,7 @@ describe('scene.validate semantics audit', () => {
     add(doc, [scaled.parent, ...scaled.children]);
     add(doc, [mixed.parent, ...mixed.children]);
     add(doc, [bimodal.parent, ...bimodal.children]);
-    add(doc, [
-      mesh('n_solid001', null, [0, 0, 0], [1, 1, 1]),
-      mesh('n_orphan01', 'n_solid001', [5, 0, 0]),
-    ]);
+    add(doc, [mesh('n_solid001', null, [0, 0, 0], [1, 1, 1]), mesh('n_orphan01', 'n_solid001', [5, 0, 0])]);
 
     expect(codes(doc)).toEqual(['bimodal-local', 'mixed-semantics', 'orphan-child', 'suspect-scale']);
   });
@@ -132,9 +131,7 @@ describe('scene.validate semantics audit', () => {
 
   it('orphan-child 不误报 group 下的合法悬空', () => {
     const doc = emptyDoc('hang');
-    const hanging = group('n_group001', [0, 0, 0], [1, 1, 1], [
-      mesh('n_hang001', 'n_group001', [5, 3, 0]),
-    ]);
+    const hanging = group('n_group001', [0, 0, 0], [1, 1, 1], [mesh('n_hang001', 'n_group001', [5, 3, 0])]);
     add(doc, [hanging.parent, ...hanging.children]);
 
     expect(codes(doc)).toEqual([]);

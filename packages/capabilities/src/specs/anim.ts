@@ -1,6 +1,6 @@
 import { clipSchema, nodeIdSchema } from '@vibebyte/vibe3d-protocol';
 import { z } from 'zod';
-import { roomId, revisionOut } from './common';
+import { revisionOut, roomId } from './common';
 
 export const animOps = {
   'animation.play': {

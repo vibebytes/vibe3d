@@ -55,7 +55,9 @@ test('嵌入握手后 RPC 与 WS 仍用 daemon token（host token 不覆盖）',
   );
 
   await page.goto(`${BASE}/__host`);
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __seen: string[] }).__seen)).toContain('surface.ready');
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as { __seen: string[] }).__seen))
+    .toContain('surface.ready');
 
   const frame = page.frameLocator('#f');
   await expect(frame.locator('canvas').first()).toBeVisible({ timeout: 30_000 });

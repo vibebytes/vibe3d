@@ -28,7 +28,13 @@ function cookieToken(header: string | undefined): string | undefined {
   return undefined;
 }
 
-function reject(socket: Duplex, status: number, reason: string, logger?: Logger, detail?: Record<string, unknown>): void {
+function reject(
+  socket: Duplex,
+  status: number,
+  reason: string,
+  logger?: Logger,
+  detail?: Record<string, unknown>,
+): void {
   logger?.warn({ event: 'surface.ws.reject', status, reason, ...detail });
   socket.write(`HTTP/1.1 ${status} ${reason}\r\nconnection: close\r\n\r\n`);
   socket.destroy();

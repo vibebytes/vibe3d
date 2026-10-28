@@ -1,5 +1,5 @@
-import { assetOps } from './specs/asset';
 import { animOps } from './specs/anim';
+import { assetOps } from './specs/asset';
 import { renderOps } from './specs/render';
 import { roomCreate } from './specs/room';
 import { sceneIoOps, sceneOps } from './specs/scene';

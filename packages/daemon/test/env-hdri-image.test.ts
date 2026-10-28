@@ -19,7 +19,11 @@ function tmpFile(name: string, bytes: Buffer): string {
   return path;
 }
 
-const panoPng = (): string => tmpFile('pano.png', makePng(64, 32, (x, y) => (x + y) % 2 === 0 ? [40, 60, 90, 255] : [10, 20, 30, 255]));
+const panoPng = (): string =>
+  tmpFile(
+    'pano.png',
+    makePng(64, 32, (x, y) => ((x + y) % 2 === 0 ? [40, 60, 90, 255] : [10, 20, 30, 255])),
+  );
 
 const jpegBytes = (w: number, h: number): Buffer => {
   const b = Buffer.alloc(21);

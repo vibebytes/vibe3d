@@ -56,7 +56,8 @@ export function attachDelta(doc: SceneDoc, id: string, targetId: string, opts: A
   const spec = FACES[opts.face];
   if (!spec) bad(`未知的吸附面：${String(opts.face)}`, { face: opts.face });
   const anchors = opts.corner === undefined ? null : CORNERS[opts.corner];
-  if (opts.corner !== undefined && !anchors) bad(`未知的吸附角：${String(opts.corner)}`, { corner: opts.corner });
+  if (opts.corner !== undefined && !anchors)
+    bad(`未知的吸附角：${String(opts.corner)}`, { corner: opts.corner });
   const gap = opts.offset ?? 0;
   if (!Number.isFinite(gap)) bad(`offset 必须为有限数：${String(opts.offset)}`, { offset: opts.offset });
 

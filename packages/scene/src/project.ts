@@ -77,7 +77,8 @@ export function cameraBasis(camera: CameraState, width: number, height: number):
   let right = cross(forward, [0, 1, 0]);
   right = Math.hypot(right[0], right[1], right[2]) < 1e-6 ? [1, 0, 0] : norm(right);
   const up = cross(right, forward);
-  const halfH = camera.mode === 'ortho' ? 1 / camera.zoom : Math.tan((camera.fov * Math.PI) / 360) / camera.zoom;
+  const halfH =
+    camera.mode === 'ortho' ? 1 / camera.zoom : Math.tan((camera.fov * Math.PI) / 360) / camera.zoom;
   return { camera, forward, right, up, halfW: halfH * aspect, halfH, aspect };
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { usePlayback } from '../stores/playback';
 import { useDoc } from '../stores/doc';
+import { usePlayback } from '../stores/playback';
 import { useSelection } from '../stores/selection';
 import { useUi } from '../stores/ui';
 

@@ -92,9 +92,8 @@ describe('op field docs', () => {
     const patchR = opFieldDoc('node.update', ['patch', 'transform', 'r']);
     expect(patchR?.description).toContain('弧度');
     const fieldDesc = (op: keyof typeof sceneOps, field: string): string | undefined =>
-      (sceneOps[op].input as unknown as { shape: Record<string, { description?: string }> }).shape[
-        field
-      ]?.description;
+      (sceneOps[op].input as unknown as { shape: Record<string, { description?: string }> }).shape[field]
+        ?.description;
     expect(fieldDesc('node.transform_many', 'rotate')).toContain('度');
     expect(fieldDesc('node.array', 'rotateStep')).toContain('度');
     expect(fieldDesc('node.array', 'sweep')).toContain('度');

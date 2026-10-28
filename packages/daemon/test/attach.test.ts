@@ -57,7 +57,12 @@ describe('node.attach', () => {
     const roomId = await createRoom(h, '旋转父级吸附');
     const table = await mesh(h, roomId, [0, 1, 0], [2, 0.2, 2]);
     const group = (
-      await call(h, 'node.create', { roomId, kind: 'group', name: '组', transform: { p: [3, 0, 0], r: [0, Math.PI / 2, 0] } }, roomId)
+      await call(
+        h,
+        'node.create',
+        { roomId, kind: 'group', name: '组', transform: { p: [3, 0, 0], r: [0, Math.PI / 2, 0] } },
+        roomId,
+      )
     ).body.result.nodeId as string;
     const cup = await mesh(h, roomId, [1, 5, 0], [0.4, 0.4, 0.4], group);
     const res = await call(

@@ -72,7 +72,12 @@ describe('mesh.tube', () => {
     const d = await doc(h, roomId);
     expect(d.nodes[body.result.nodeId].transform.p).toEqual([1, 2, 3]);
 
-    const bad = await call(h, 'mesh.tube', { roomId, points: line, radius: 0.1, parent: 'n_zzzzzzzz' }, roomId);
+    const bad = await call(
+      h,
+      'mesh.tube',
+      { roomId, points: line, radius: 0.1, parent: 'n_zzzzzzzz' },
+      roomId,
+    );
     expect(codeOf(bad.body)).toBe('E_NODE_NOT_FOUND');
   });
 

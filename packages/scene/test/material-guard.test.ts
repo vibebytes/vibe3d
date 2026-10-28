@@ -23,9 +23,7 @@ describe('material.delete 引用守卫', () => {
 
   it('force:true 删除并把引用回落到默认材质，逆操作可完整还原', () => {
     const doc = cubeDoc();
-    const { doc: next, inverse } = applyOps(doc, [
-      { op: 'material.delete', id: 'm_00000001', force: true },
-    ]);
+    const { doc: next, inverse } = applyOps(doc, [{ op: 'material.delete', id: 'm_00000001', force: true }]);
     expect(next.materials.m_00000001).toBeUndefined();
     const fallback = next.nodes.n_00000001;
     expect(fallback?.kind === 'mesh' ? fallback.material : undefined).toBe('m_00000000');

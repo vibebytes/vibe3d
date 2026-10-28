@@ -55,10 +55,12 @@ describe('arrayPlacements', () => {
   });
 
   it('grid rejects cols < 1 and a missing offset', () => {
-    expect(codeOf(attempt(() => arrayPlacements(base, { mode: 'grid', count: 2, cols: 0, offset: [1, 0, 0] })))).toBe(
+    expect(
+      codeOf(attempt(() => arrayPlacements(base, { mode: 'grid', count: 2, cols: 0, offset: [1, 0, 0] }))),
+    ).toBe('E_INVALID_PARAMS');
+    expect(codeOf(attempt(() => arrayPlacements(base, { mode: 'grid', count: 2, cols: 2 })))).toBe(
       'E_INVALID_PARAMS',
     );
-    expect(codeOf(attempt(() => arrayPlacements(base, { mode: 'grid', count: 2, cols: 2 })))).toBe('E_INVALID_PARAMS');
   });
 
   it('radial spreads the source and the copies evenly over one turn by default', () => {
@@ -77,29 +79,33 @@ describe('arrayPlacements', () => {
     near(rot(half, 0), [0, 90, 0]);
 
     const zAxis = arrayPlacements(base, { mode: 'radial', count: 1, radius: 1, sweep: 90, axis: 'z' });
-    near(pos(zAxis, 0), [0.7071068, 0.7071068, 0]);
+    near(pos(zAxis, 0), [Math.SQRT1_2, Math.SQRT1_2, 0]);
     near(rot(zAxis, 0), [0, 0, 45]);
 
     const xAxis = arrayPlacements(base, { mode: 'radial', count: 1, radius: 1, sweep: 90, axis: 'x' });
-    near(pos(xAxis, 0), [0, 0.7071068, 0.7071068]);
+    near(pos(xAxis, 0), [0, Math.SQRT1_2, Math.SQRT1_2]);
     near(rot(xAxis, 0), [45, 0, 0]);
   });
 
   it('radial with a centre swings the source around it and keeps its radius', () => {
     const onRing: Transform = { p: [0, 0, 2], r: [0, 0, 0], s: [1, 1, 1] };
     const out = arrayPlacements(onRing, { mode: 'radial', count: 1, sweep: 90, center: [0, 0, 0] });
-    near(pos(out, 0), [1.4142136, 0, -0.5857864]);
+    near(pos(out, 0), [Math.SQRT2, 0, -0.5857864]);
     near(rot(out, 0), [0, 45, 0]);
   });
 
   it('radial rejects a missing radius, a non-positive radius, and a centre that contradicts radius', () => {
-    expect(codeOf(attempt(() => arrayPlacements(base, { mode: 'radial', count: 2 })))).toBe('E_INVALID_PARAMS');
+    expect(codeOf(attempt(() => arrayPlacements(base, { mode: 'radial', count: 2 })))).toBe(
+      'E_INVALID_PARAMS',
+    );
     expect(codeOf(attempt(() => arrayPlacements(base, { mode: 'radial', count: 2, radius: 0 })))).toBe(
       'E_INVALID_PARAMS',
     );
     const offRing: Transform = { p: [0, 0, 2], r: [0, 0, 0], s: [1, 1, 1] };
     expect(
-      codeOf(attempt(() => arrayPlacements(offRing, { mode: 'radial', count: 1, radius: 3, center: [0, 0, 0] }))),
+      codeOf(
+        attempt(() => arrayPlacements(offRing, { mode: 'radial', count: 1, radius: 3, center: [0, 0, 0] })),
+      ),
     ).toBe('E_INVALID_PARAMS');
   });
 

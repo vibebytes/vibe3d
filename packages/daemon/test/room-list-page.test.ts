@@ -59,11 +59,11 @@ describe('room.list 分页', () => {
     expect(p1.body.result.rooms).toHaveLength(2);
     expect(p1.body.result.nextCursor).toBeDefined();
 
-    const p2 = await call(
-      h,
-      'room.list',
-      { namePrefix: 'keep-', limit: 2, cursor: p1.body.result.nextCursor },
-    );
+    const p2 = await call(h, 'room.list', {
+      namePrefix: 'keep-',
+      limit: 2,
+      cursor: p1.body.result.nextCursor,
+    });
     expect(p2.body.result.rooms).toHaveLength(1);
     const names = [...p1.body.result.rooms, ...p2.body.result.rooms].map((r: any) => r.name);
     expect(new Set(names).size).toBe(3);

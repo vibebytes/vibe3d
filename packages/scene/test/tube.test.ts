@@ -30,8 +30,7 @@ const center = (ring: Vec3[]): Vec3 => {
   return [sum[0] / body.length, sum[1] / body.length, sum[2] / body.length];
 };
 
-const dist = (a: Vec3, b: Vec3): number =>
-  Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+const dist = (a: Vec3, b: Vec3): number => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 
 describe('tubeMesh', () => {
   it('直线：segments+1 个环，每环半径恒定，包围盒贴合', () => {

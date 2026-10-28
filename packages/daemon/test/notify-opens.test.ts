@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { call, makeHarness, type Harness } from './helpers/harness';
 import { notifyOpensOpener } from '../src/notify';
+import { type Harness, call, makeHarness } from './helpers/harness';
 
 type FetchCall = { input: string | URL; init?: RequestInit };
 
@@ -66,7 +66,10 @@ describe('autoOpen via notify-opens', () => {
     h.ctx.openExternal = notifyOpensOpener('http://127.0.0.1:9/vibe3d/opens', fetchImpl);
     const { body } = await call(h, 'room.create', { name: '文档' });
     const roomId = body.result.roomId;
-    await call(h, 'ops.apply', { roomId, ops: [{ op: 'stage.set', env: { background: [0.1, 0.1, 0.1, 1] } }] });
+    await call(h, 'ops.apply', {
+      roomId,
+      ops: [{ op: 'stage.set', env: { background: [0.1, 0.1, 0.1, 1] } }],
+    });
     expect(calls).toHaveLength(1);
   });
 

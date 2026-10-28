@@ -55,6 +55,10 @@ const got = await req('tools/call', { name: 'vibe3d_get_room', arguments: {} });
 console.log('get_room isError', Boolean(got.result.isError), JSON.stringify(got.result).slice(0, 320));
 
 const noArg = await req('tools/call', { name: 'vibe3d_use_room', arguments: {} });
-console.log('use_room(no arg) isError', Boolean(noArg.result.isError), JSON.stringify(noArg.result).slice(0, 240));
+console.log(
+  'use_room(no arg) isError',
+  Boolean(noArg.result.isError),
+  JSON.stringify(noArg.result).slice(0, 240),
+);
 
 child.kill();

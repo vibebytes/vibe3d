@@ -8,17 +8,17 @@ import type { BlobStore } from '../assets/blobstore';
 import { parseGltf } from '../assets/gltf-parse';
 import { classifyUpload } from '../assets/upload';
 import type { DispatchContext } from '../context';
-import { SANDBOX_FRAME_HEADERS, allowSandboxedFrame } from './middleware';
 import { dispatch, hello } from '../dispatch';
 import type { Logger } from '../logger';
+import type { WsHub } from '../ws/hub';
 import { toRpcFailure } from './errors';
 import { EXPORT_FILE_RE, exportMime, verifyExportSig } from './export-url';
 import { loadMcpSchema } from './mcp-schema';
-import { REPAIR_STATS_FILE, loadRepairStats } from './repair-stats';
+import { SANDBOX_FRAME_HEADERS, allowSandboxedFrame } from './middleware';
 import { TOKEN_COOKIE, bodyLimit, requireBearer, requireSurfaceToken, tokenMatches } from './middleware';
 import { rateLimiter } from './ratelimit';
+import { REPAIR_STATS_FILE, loadRepairStats } from './repair-stats';
 import { SHOT_META_HEADER, parseShotMetaHeader } from './shot-meta';
-import type { WsHub } from '../ws/hub';
 
 export interface RouteDeps {
   ctx: DispatchContext;
@@ -143,14 +143,14 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
 
   app.get('/api/mcp/schema', async (c) => {
     if (!deps.mcpSchemaFile) {
-      return writeJson(
-        { error: { code: 'E_SCHEMA_MISSING', message: '未配置 MCP schema 快照路径' } },
-        404,
-      );
+      return writeJson({ error: { code: 'E_SCHEMA_MISSING', message: '未配置 MCP schema 快照路径' } }, 404);
     }
     const loaded = await loadMcpSchema(deps.mcpSchemaFile);
     if (!loaded.ok) {
-      return writeJson({ error: { code: loaded.code, message: loaded.message } }, loaded.code === 'E_SCHEMA_MISSING' ? 404 : 500);
+      return writeJson(
+        { error: { code: loaded.code, message: loaded.message } },
+        loaded.code === 'E_SCHEMA_MISSING' ? 404 : 500,
+      );
     }
     const expand = ['1', 'true', 'yes', 'help', 'ops'].includes(String(c.req.query('expand') ?? ''));
     const pretty = c.req.query('pretty') !== '0';
@@ -184,9 +184,21 @@ export function mountRoutes(app: Hono, deps: RouteDeps): void {
     });
   });
 
-  app.post('/rpc', allowSandboxedFrame(), requireBearer(token), rateLimit, bodyLimit(8 * 1024 * 1024), rpc('control', deps));
-  app.post('/r/:roomId/rpc', allowSandboxedFrame(), requireBearer(token), rateLimit, bodyLimit(8 * 1024 * 1024), (c) =>
-    rpc('data', deps, c.req.param('roomId'))(c),
+  app.post(
+    '/rpc',
+    allowSandboxedFrame(),
+    requireBearer(token),
+    rateLimit,
+    bodyLimit(8 * 1024 * 1024),
+    rpc('control', deps),
+  );
+  app.post(
+    '/r/:roomId/rpc',
+    allowSandboxedFrame(),
+    requireBearer(token),
+    rateLimit,
+    bodyLimit(8 * 1024 * 1024),
+    (c) => rpc('data', deps, c.req.param('roomId'))(c),
   );
 
   app.post('/r/:roomId/snapshot/:requestId', requireBearer(token), bodyLimit(64 * 1024 * 1024), async (c) => {
@@ -377,11 +389,14 @@ export function serveEditorAsset(deps: RouteDeps, rel: string): Response {
   const target = clean && isFile(join(deps.editorDir, clean)) ? clean : 'index.html';
   const path = join(deps.editorDir, target);
   const ext = path.slice(path.lastIndexOf('.'));
-  const cacheControl =
-    ext === '.html' ? 'no-cache' : 'public, max-age=31536000, immutable';
+  const cacheControl = ext === '.html' ? 'no-cache' : 'public, max-age=31536000, immutable';
   try {
     return new Response(createReadStream(path) as unknown as ReadableStream, {
-      headers: { 'content-type': MIME[ext] ?? 'application/octet-stream', 'cache-control': cacheControl, ...SANDBOX_FRAME_HEADERS },
+      headers: {
+        'content-type': MIME[ext] ?? 'application/octet-stream',
+        'cache-control': cacheControl,
+        ...SANDBOX_FRAME_HEADERS,
+      },
     });
   } catch {
     throw new AppError('E_ASSET_MISSING', `editor 静态文件不存在：${clean}`);

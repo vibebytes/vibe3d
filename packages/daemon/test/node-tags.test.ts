@@ -12,7 +12,12 @@ async function room() {
 describe('node tags', () => {
   it('node.create stores tags and node.get returns them', async () => {
     const { h, roomId } = await room();
-    const created = await call(h, 'node.create', { roomId, kind: 'group', name: 'chair', tags: ['a', 'b'] }, roomId);
+    const created = await call(
+      h,
+      'node.create',
+      { roomId, kind: 'group', name: 'chair', tags: ['a', 'b'] },
+      roomId,
+    );
     const id = created.body.result.nodeId;
     expect(created.body.result.tags).toEqual(['a', 'b']);
     const got = await call(h, 'node.get', { roomId, nodeId: id }, roomId);
@@ -57,11 +62,16 @@ describe('node tags', () => {
     expect(codeOf(empty.body)).toBe('E_INVALID_PARAMS');
     const tooLong = await call(h, 'node.create', { roomId, kind: 'group', tags: ['x'.repeat(33)] }, roomId);
     expect(codeOf(tooLong.body)).toBe('E_INVALID_PARAMS');
-    const tooMany = await call(h, 'node.create', {
+    const tooMany = await call(
+      h,
+      'node.create',
+      {
+        roomId,
+        kind: 'group',
+        tags: Array.from({ length: 17 }, (_, i) => `t${i}`),
+      },
       roomId,
-      kind: 'group',
-      tags: Array.from({ length: 17 }, (_, i) => `t${i}`),
-    }, roomId);
+    );
     expect(codeOf(tooMany.body)).toBe('E_INVALID_PARAMS');
     const all = await call(h, 'scene.query', { roomId }, roomId);
     expect(all.body.result.total).toBe(0);

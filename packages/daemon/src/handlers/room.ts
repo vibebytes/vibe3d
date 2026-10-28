@@ -185,7 +185,9 @@ export const roomHandlers: HandlersFor<Keys> = {
     const before =
       p.updatedBefore === undefined
         ? undefined
-        : Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(p.updatedBefore) ? `${p.updatedBefore}T00:00:00Z` : p.updatedBefore);
+        : Date.parse(
+            /^\d{4}-\d{2}-\d{2}$/.test(p.updatedBefore) ? `${p.updatedBefore}T00:00:00Z` : p.updatedBefore,
+          );
     if (before !== undefined && Number.isNaN(before)) {
       throw new AppError('E_INVALID_PARAMS', `updatedBefore 无法解析：${p.updatedBefore}`, {
         hint: '传 ISO 时间（2026-01-01T00:00:00Z）或日期（2026-01-01）',

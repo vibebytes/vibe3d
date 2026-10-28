@@ -97,7 +97,12 @@ describe('GET /api/mcp/repair-stats', () => {
         count: 2,
         fixes: [{ fix: 'p,target,fov→camera.{p,target,fov}', count: 2 }],
       },
-      { tool: 'vibe3d_node', capability: 'node.create', count: 1, fixes: [{ fix: 'shape→geometry.type', count: 1 }] },
+      {
+        tool: 'vibe3d_node',
+        capability: 'node.create',
+        count: 1,
+        fixes: [{ fix: 'shape→geometry.type', count: 1 }],
+      },
     ],
   };
 

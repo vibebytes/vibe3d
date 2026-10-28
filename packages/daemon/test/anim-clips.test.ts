@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { resolveMaterialPreset } from '@vibebyte/vibe3d-scene';
+import { describe, expect, it } from 'vitest';
 import { type Harness, call, makeHarness } from './helpers/harness';
 
 const codeOf = (body: any): string => body?.error?.data?.code ?? body?.error?.code;
@@ -131,7 +131,13 @@ describe('animation.pose 姿势级定义', () => {
     const { body } = await call(
       h,
       'animation.pose',
-      { roomId, targets: [{ nodeId, clip: kf('rz', 0.5) }, { nodeId: other, clip: kf('ry', 0.3) }] },
+      {
+        roomId,
+        targets: [
+          { nodeId, clip: kf('rz', 0.5) },
+          { nodeId: other, clip: kf('ry', 0.3) },
+        ],
+      },
       roomId,
     );
     expect(body.error).toBeUndefined();

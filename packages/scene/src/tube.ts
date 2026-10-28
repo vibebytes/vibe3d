@@ -51,7 +51,8 @@ function crTangent(p0: Vec3, p1: Vec3, p2: Vec3, p3: Vec3, t: number): Vec3 {
   for (let i = 0; i < 3; i += 1) {
     out[i] =
       0.5 *
-      ((-p0[i]! + p2[i]!) +
+      (-p0[i]! +
+        p2[i]! +
         2 * (2 * p0[i]! - 5 * p1[i]! + 4 * p2[i]! - p3[i]!) * t +
         3 * (-p0[i]! + 3 * p1[i]! - 3 * p2[i]! + p3[i]!) * t * t);
   }
@@ -62,11 +63,7 @@ function crScalar(r0: number, r1: number, r2: number, r3: number, t: number): nu
   const t2 = t * t;
   const t3 = t2 * t;
   return (
-    0.5 *
-    (2 * r1 +
-      (-r0 + r2) * t +
-      (2 * r0 - 5 * r1 + 4 * r2 - r3) * t2 +
-      (-r0 + 3 * r1 - 3 * r2 + r3) * t3)
+    0.5 * (2 * r1 + (-r0 + r2) * t + (2 * r0 - 5 * r1 + 4 * r2 - r3) * t2 + (-r0 + 3 * r1 - 3 * r2 + r3) * t3)
   );
 }
 
@@ -120,7 +117,10 @@ export function tubeMesh(spec: TubeSpec): TubeMesh {
     const center = crPoint(at(span - 1), at(span), at(span + 1), at(span + 2), t);
     const tangent = crTangent(at(span - 1), at(span), at(span + 1), at(span + 2), t);
     const radius = radii
-      ? Math.max(1e-6, crScalar(radiusAt(span - 1), radiusAt(span), radiusAt(span + 1), radiusAt(span + 2), t))
+      ? Math.max(
+          1e-6,
+          crScalar(radiusAt(span - 1), radiusAt(span), radiusAt(span + 1), radiusAt(span + 2), t),
+        )
       : radiusStart + (radiusEnd - radiusStart) * (closed ? 0 : k / segments);
     return { center, tangent, radius };
   };
@@ -171,8 +171,8 @@ export function tubeMesh(spec: TubeSpec): TubeMesh {
     }
   }
 
-  const min: Vec3 = [Infinity, Infinity, Infinity];
-  const max: Vec3 = [-Infinity, -Infinity, -Infinity];
+  const min: Vec3 = [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
+  const max: Vec3 = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY];
   for (let i = 0; i < positions.length; i += 3) {
     for (let axis = 0; axis < 3; axis += 1) {
       const v = positions[i + axis]!;

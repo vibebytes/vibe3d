@@ -6,10 +6,7 @@ interface Saved {
   visible: boolean;
 }
 
-export function applyIdMaterials(
-  root: THREE.Object3D,
-  legend: Record<string, string>,
-): () => void {
+export function applyIdMaterials(root: THREE.Object3D, legend: Record<string, string>): () => void {
   const saved: Saved[] = [];
   const cache = new Map<string, THREE.MeshBasicMaterial>();
   root.traverse((obj) => {

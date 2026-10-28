@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { makeHarness, post, call, type Harness } from './helpers/harness';
+import { describe, expect, it } from 'vitest';
+import { type Harness, call, makeHarness, post } from './helpers/harness';
 
 async function roomIdOf(h: Harness): Promise<string> {
   const { body } = await call(h, 'room.create', { name: '无鉴权' });

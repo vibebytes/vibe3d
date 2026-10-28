@@ -1,5 +1,5 @@
-import type { HostGrant } from './surface-handshake';
 import { useSurface } from '../stores/surface';
+import type { HostGrant } from './surface-handshake';
 
 /**
  * Record a host grant. The grant's bearer is minted by the *host* engine and only authorises

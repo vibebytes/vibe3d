@@ -14,7 +14,12 @@ function recordingRenderer() {
     available: () => true,
     snapshot: async (_input: unknown, opts: SnapshotOptions = {}) => {
       shots.push(opts);
-      return { mime: 'image/png', base64: tinyPng().toString('base64'), width: opts.width ?? 1280, height: opts.height ?? 720 };
+      return {
+        mime: 'image/png',
+        base64: tinyPng().toString('base64'),
+        width: opts.width ?? 1280,
+        height: opts.height ?? 720,
+      };
     },
     exportGlb: async () => ({ jobId: 'j', url: '/exports/j.glb', bytes: 1 }),
   };

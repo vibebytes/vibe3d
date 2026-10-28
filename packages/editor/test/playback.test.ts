@@ -1,11 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import {
-  advanceTime,
-  durationOf,
-  frameOf,
-  frameToTime,
-  usePlayback,
-} from '../src/stores/playback';
+import { advanceTime, durationOf, frameOf, frameToTime, usePlayback } from '../src/stores/playback';
 
 const RANGE = { start: 1, end: 250, fps: 24 };
 

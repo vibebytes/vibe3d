@@ -32,12 +32,7 @@ interface Loaded {
 const MAX_REDIRECTS = 3;
 const FETCH_TIMEOUT_MS = 15_000;
 
-function settle(
-  bytes: Buffer,
-  name: string,
-  mime?: string | null,
-  opts: IngestOptions = {},
-): Loaded {
+function settle(bytes: Buffer, name: string, mime?: string | null, opts: IngestOptions = {}): Loaded {
   const info = classifyUpload({
     filename: name,
     mime: mime ?? undefined,

@@ -1,5 +1,5 @@
-import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 
 const require = createRequire(new URL('../packages/mcp/package.json', import.meta.url));
 const { Client } = await import(require.resolve('@modelcontextprotocol/client'));

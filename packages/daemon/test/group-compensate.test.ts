@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { worldMatrix } from '@vibebyte/vibe3d-scene';
+import { describe, expect, it } from 'vitest';
 import { type Harness, call, makeHarness } from './helpers/harness';
 
 const near = (a: number[], b: number[]) => {
@@ -27,7 +27,11 @@ async function fixture(h: Harness) {
   );
   const parentId = parent.body.result.nodeId;
   const ids: string[] = [];
-  for (const [i, p] of [[0, 0, 0], [1, 1, 1], [-2, 0.5, 1]].entries()) {
+  for (const [i, p] of [
+    [0, 0, 0],
+    [1, 1, 1],
+    [-2, 0.5, 1],
+  ].entries()) {
     const made = await call(
       h,
       'node.create',
@@ -67,7 +71,7 @@ describe('node.group：世界矩阵不变的编组', () => {
     const groupId = grouped.body.result.groupId;
     const after = await scene(h, roomId);
     expect(after.nodes[groupId]?.transform.s).toEqual([1, 1, 1]);
-    ids.forEach((id) => near(worldMatrix(after, id)!, worldMatrix(before, id)!));
+    for (const id of ids) near(worldMatrix(after, id)!, worldMatrix(before, id)!);
   });
 
   it('子节点 local 语义混合（p=0 绝对系与相对系）都保持世界位置', async () => {
@@ -79,6 +83,6 @@ describe('node.group：世界矩阵不变的编组', () => {
     const zero = ids[0]!;
     expect(before.nodes[zero]?.transform.p).toEqual([0, 0, 0]);
     near(worldMatrix(after, zero)!, worldMatrix(before, zero)!);
-    ids.slice(1).forEach((id) => near(worldMatrix(after, id)!, worldMatrix(before, id)!));
+    for (const id of ids.slice(1)) near(worldMatrix(after, id)!, worldMatrix(before, id)!);
   });
 });

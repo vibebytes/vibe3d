@@ -87,7 +87,11 @@ describe('room.timeline op 时间线', () => {
     await call(
       h,
       'ops.apply',
-      { roomId, opId: 'op_del', ops: [{ op: 'node.create', node: { ...base, id: 'n_y111aaa1', name: 'y' } }] },
+      {
+        roomId,
+        opId: 'op_del',
+        ops: [{ op: 'node.create', node: { ...base, id: 'n_y111aaa1', name: 'y' } }],
+      },
       roomId,
     );
     const undo = await call(h, 'scene.undo', { roomId, opId: 'op_del' }, roomId);

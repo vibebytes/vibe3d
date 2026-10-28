@@ -28,7 +28,8 @@ function unlitCopy(source: THREE.Material): THREE.MeshBasicMaterial {
 
 function shadingMaterial(mode: ShadingMode, source: THREE.Material): THREE.Material {
   if (mode === 'normals') return new THREE.MeshNormalMaterial();
-  if (mode === 'wireframe') return new THREE.MeshBasicMaterial({ color: 0x8fb7ff, wireframe: true, fog: false });
+  if (mode === 'wireframe')
+    return new THREE.MeshBasicMaterial({ color: 0x8fb7ff, wireframe: true, fog: false });
   if (mode === 'material') return unlitCopy(source);
   return new THREE.MeshBasicMaterial({ color: 0xc9d3dd, fog: false });
 }

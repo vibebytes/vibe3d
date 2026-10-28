@@ -1,6 +1,5 @@
-import { describe, expect, it } from 'vitest';
 import { type SceneDoc, emptyDoc } from '@vibebyte/vibe3d-protocol';
-import { CUBE, MAT, cubeDoc } from './helpers';
+import { describe, expect, it } from 'vitest';
 import {
   ID_PASS_MAX_NODES,
   ID_PASS_MAX_PIXELS,
@@ -8,6 +7,7 @@ import {
   decodeIdMask,
   fitsIdPass,
 } from '../src/id-pass';
+import { CUBE, MAT, cubeDoc } from './helpers';
 
 function docWith(n: number): SceneDoc {
   const doc = emptyDoc('id');
@@ -68,11 +68,7 @@ describe('decodeIdMask', () => {
     const r = Number.parseInt(hex.slice(1, 3), 16);
     const g = Number.parseInt(hex.slice(3, 5), 16);
     const b = Number.parseInt(hex.slice(5, 7), 16);
-    const rgba = new Uint8Array([
-      r, g, b, 255,
-      0, 0, 0, 255,
-      9, 9, 9, 255,
-    ]);
+    const rgba = new Uint8Array([r, g, b, 255, 0, 0, 0, 255, 9, 9, 9, 255]);
     const out = decodeIdMask(rgba, legend);
     expect([...out.index]).toEqual([1, 0, 0]);
     expect(out.unknown).toBe(1);
