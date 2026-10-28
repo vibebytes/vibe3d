@@ -1,6 +1,6 @@
 {
   "name": "@vibebyte/vibe3d-daemon",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Local vibe3d daemon: rooms, editor UI, and Chromium-backed 3D rendering for MCP.",
   "type": "module",
   "main": "./dist/index.js",
