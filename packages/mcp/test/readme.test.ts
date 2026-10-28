@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 const readme = readFileSync(new URL('../../../README.md', import.meta.url), 'utf8');
+const readmeCn = readFileSync(new URL('../../../README_CN.md', import.meta.url), 'utf8');
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { name: string };
 
 describe('README', () => {
@@ -18,5 +19,14 @@ describe('README', () => {
     expect(readme).not.toMatch(/--token\s/);
     expect(readme).toContain('Windows');
     expect(readme).toContain('Not verified');
+  });
+
+  it('中英文 README 可互相跳转', () => {
+    expect(readme).toContain('href="./README_CN.md"');
+    expect(readme).toContain('简体中文');
+    expect(readmeCn).toContain('href="./README.md"');
+    expect(readmeCn).toContain('English');
+    expect(readmeCn).toContain('Node.js >= 22');
+    expect(readmeCn).toContain('VIBE3D_TOKEN');
   });
 });
