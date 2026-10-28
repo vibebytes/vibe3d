@@ -90,7 +90,7 @@ npx @modelcontextprotocol/inspector --cli npx -y @vibebyte/vibe3d-mcp@latest --m
 | `VIBE3D_MCP_LOG` | Set to `0` to disable `mcp.log` |
 | `VIBE3D_RESTART_DAEMON` | Set to `1` (or pass `--restart-daemon`) to restart the local daemon every time the MCP process starts |
 
-When the MCP process starts and finds a local daemon of a different version, it stops that daemon (SIGTERM, data is flushed) and starts a matching one. Restarting the MCP therefore picks up an upgraded daemon. Rooms are stored on disk and survive the restart. `--url` remote daemons are never touched.
+When the MCP process starts and finds a local daemon of a different version, it stops that daemon (SIGTERM, data is flushed) and starts a matching one. Restarting the MCP therefore picks up an upgraded daemon. Rooms live only in daemon memory unless it runs with `--persist` (`VIBE3D_PERSIST=1`), so restarting a non-persistent daemon discards its rooms. `--url` remote daemons are never touched.
 
 Rendering uses a system Chrome, Chromium, or Edge. The package does not download a browser. Without one, scene editing still works and `vibe3d_status` reports that rendering is unavailable.
 

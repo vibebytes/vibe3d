@@ -32,4 +32,26 @@ describe('daemon idle exit', () => {
     const runDir = join(home, 'run');
     if (existsSync(runDir)) expect(readdirSync(runDir)).toEqual([]);
   }, 20_000);
+
+  it('ephemeral daemon 没有房间时也会空闲退出', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'vibe3d-idle-eph-'));
+    const child = spawn(
+      process.execPath,
+      [
+        entry,
+        '--renderer',
+        'none',
+        '--home',
+        home,
+        '--daemon-idle-ms=2500',
+        '--port=0',
+        '--open-editor=false',
+      ],
+      { stdio: 'ignore' },
+    );
+    const [code] = (await once(child, 'exit')) as [number, string | null];
+    expect(code).toBe(0);
+    const runDir = join(home, 'run');
+    if (existsSync(runDir)) expect(readdirSync(runDir)).toEqual([]);
+  }, 20_000);
 });

@@ -29,6 +29,8 @@ const EDITOR_DIST = resolveEditorDir(here);
 const editorWarning = editorMissingWarning(EDITOR_DIST);
 if (editorWarning) process.stderr.write(`${editorWarning}\n`);
 
+const EPHEMERAL_ROOMS_IDLE_MS = 12 * 60 * 60 * 1000;
+
 async function main(): Promise<void> {
   let config: ReturnType<typeof parseConfig>;
   try {
@@ -248,12 +250,18 @@ async function main(): Promise<void> {
   process.on('SIGINT', () => void shutdown('SIGINT'));
   server.on('close', () => process.exit(0));
 
-  if (config.persist && config.daemonIdleMs > 0) {
+  if (config.daemonIdleMs > 0) {
+    // ephemeral daemon 的房间只在内存里：有房间时放宽到至少 12h 才退出，避免用户停一会儿就丢场景
+    const idleLimit = (): number =>
+      config.persist || rooms.list().length === 0
+        ? config.daemonIdleMs
+        : Math.max(config.daemonIdleMs, EPHEMERAL_ROOMS_IDLE_MS);
     const idleTimer = setInterval(() => {
       if (hub.total() > 0) return;
       const idleFor = Date.now() - lastActivity;
-      if (idleFor < config.daemonIdleMs) return;
-      logger.warn({ event: 'daemon.idle_exit', idleFor, idleMs: config.daemonIdleMs });
+      const limit = idleLimit();
+      if (idleFor < limit) return;
+      logger.warn({ event: 'daemon.idle_exit', idleFor, idleMs: limit, persist: config.persist });
       clearInterval(idleTimer);
       void shutdown('idle');
     }, 5_000);

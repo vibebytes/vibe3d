@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- daemon 空闲退出覆盖 ephemeral 模式：没有房间时按 `--daemon-idle-ms`（默认 30 分钟）退出；有房间（只在内存里）时至少空闲 12 小时才退出，避免孤儿 daemon 无限存活。
 - MCP 启动时发现本地 daemon 版本不一致会自动重启它；`--restart-daemon` / `VIBE3D_RESTART_DAEMON=1` 可强制每次启动都重启。
 - 多房间/多聊天：所有房间级工具接受可选 `room_id`（只路由本次调用）；进程接触多个房间后不带 `room_id` 的调用被拒绝并列出候选；隐式调用在结果里标注所用房间；`open_editor` 已有房间时不再新建。
 - MCP 协议壳改为官方 SDK v2 低层 Server。`instructions` 与真实分组工具名对齐，`serverInfo.version` 与包版本一致。
