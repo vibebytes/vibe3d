@@ -86,6 +86,9 @@ npx @modelcontextprotocol/inspector --cli npx -y @vibebyte/vibe3d-mcp --method t
 | `VIBE3D_CHROME` | 用于渲染的 Chrome / Chromium 可执行文件 |
 | `VIBE3D_ROOM` | 进程启动时绑定的房间 |
 | `VIBE3D_MCP_LOG` | 设为 `0` 可关闭 `mcp.log` |
+| `VIBE3D_RESTART_DAEMON` | 设为 `1`（或传 `--restart-daemon`）：每次 MCP 进程启动都重启本地 daemon |
+
+MCP 进程启动时若发现本地 daemon 版本与自己不同，会先停掉它（SIGTERM，数据会落盘）再拉起匹配版本，所以重启 MCP 就能用上升级后的 daemon。房间存在磁盘上，重启后仍在。`--url` 指向的远程 daemon 不会被动。
 
 渲染依赖系统里的 Chrome、Chromium 或 Edge，包内不会下载浏览器。没有浏览器时仍可编辑场景，`vibe3d_status` 会报告渲染不可用。
 

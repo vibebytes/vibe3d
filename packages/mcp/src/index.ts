@@ -8,6 +8,7 @@ import { assertNode } from './node-check';
 import { createServer } from './server';
 import { ToolRuntime } from './tools';
 import { startStdio } from './transport';
+import { mcpVersion } from './version';
 
 process.on('uncaughtException', (err) => {
   logEvent({ event: 'uncaught', err: err.stack ?? String(err) });
@@ -51,16 +52,24 @@ const opts: StudioOptions = {
   token: typeof flags.token === 'string' ? flags.token : undefined,
   autostart: flags.autostart !== false && flags['no-autostart'] !== true,
 };
+const forceRestart = flags['restart-daemon'] === true || process.env.VIBE3D_RESTART_DAEMON === '1';
 const legacyRoom = typeof flags.room === 'string' ? flags.room : undefined;
 
-const memo = createMemoRuntime<ToolRuntime>(() =>
-  Studio.connect(opts).then((studio) => {
+// 只在进程启动后的第一次连接刷新 daemon；运行中因报错重连不能反复重启它
+let firstConnect = true;
+const memo = createMemoRuntime<ToolRuntime>(() => {
+  const fresh = firstConnect;
+  firstConnect = false;
+  const connectOpts: StudioOptions = fresh
+    ? { ...opts, expectVersion: mcpVersion(), restart: forceRestart }
+    : opts;
+  return Studio.connect(connectOpts).then((studio) => {
     process.stderr.write(
       `${JSON.stringify({ level: 'info', msg: 'vibe3d mcp 已连接 daemon', url: studio.url })}\n`,
     );
     return new ToolRuntime(studio, legacyRoom);
-  }),
-);
+  });
+});
 
 const server = createServer({ runtime: memo.get, onRuntimeError: () => memo.reset() });
 

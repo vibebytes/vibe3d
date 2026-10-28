@@ -26,6 +26,10 @@ export interface ConnectOptions {
   token?: string;
   autostart?: boolean;
   spawnArgs?: string[];
+  /** 连上后若运行中的 daemon 版本与此不同，先停掉它再拉起新的（仅本地 daemon） */
+  expectVersion?: string;
+  /** 无条件重启运行中的本地 daemon */
+  restart?: boolean;
 }
 
 export function defaultHome(): string {
@@ -205,6 +209,32 @@ export async function probeRemoteHome(url: string, budgetMs = 1500): Promise<str
   }
 }
 
+/** 对本地 daemon 发 SIGTERM（它会落盘后退出），等到进程消失；超时直接报错，不强杀 */
+export async function stopDaemon(run: RunRecord, budgetMs = 10_000): Promise<void> {
+  try {
+    process.kill(run.pid, 'SIGTERM');
+  } catch (err) {
+    // 另一个客户端可能刚把它停掉：进程已不存在就等于目标达成
+    if ((err as NodeJS.ErrnoException).code !== 'ESRCH') throw err;
+  }
+  const deadline = Date.now() + budgetMs;
+  while (Date.now() < deadline) {
+    if (!alive(run.pid)) return;
+    await delay(100);
+  }
+  throw new Vibe3DError(
+    'E_TIMEOUT',
+    `旧 daemon（pid ${run.pid}）在 ${Math.round(budgetMs / 1000)}s 内没有退出`,
+  );
+}
+
+export function needsRestart(
+  run: RunRecord,
+  opts: Pick<ConnectOptions, 'restart' | 'expectVersion'>,
+): boolean {
+  return opts.restart === true || (opts.expectVersion !== undefined && run.version !== opts.expectVersion);
+}
+
 export async function connect(opts: ConnectOptions = {}): Promise<RunRecord & { client: RpcClient }> {
   if (opts.url) {
     const token = opts.token ?? process.env.VIBE3D_TOKEN;
@@ -223,6 +253,13 @@ export async function connect(opts: ConnectOptions = {}): Promise<RunRecord & { 
   }
   const home = opts.home ?? defaultHome();
   let run = await findRunning(home);
+  if (run && opts.autostart !== false && needsRestart(run, opts)) {
+    process.stderr.write(
+      `${JSON.stringify({ level: 'info', msg: '重启 daemon', pid: run.pid, running: run.version, expect: opts.expectVersion ?? null, forced: opts.restart === true })}\n`,
+    );
+    await stopDaemon(run);
+    run = await findRunning(home); // 并发的另一个客户端可能已拉起新的，先复用
+  }
   if (!run && opts.autostart !== false) {
     try {
       run = await startDaemon(opts);

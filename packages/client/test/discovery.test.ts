@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   connect,
   listRuns,
+  needsRestart,
   probeRemoteHome,
   resetSpawnGate,
   resolveDaemonEntry,
@@ -175,5 +176,15 @@ describe('startDaemon 失败诊断与冷却门闩', () => {
     spawnMock.mockReturnValue(child);
     setTimeout(() => child.emit('error', new Error('spawn ENOENT')), 30);
     await expect(startDaemon({ home })).rejects.toThrow(/spawn ENOENT/);
+  });
+});
+
+describe('needsRestart', () => {
+  const run = { version: '0.2.4' } as Parameters<typeof needsRestart>[0];
+  it('版本不同或强制时重启，版本相同不重启', () => {
+    expect(needsRestart(run, { expectVersion: '0.2.5' })).toBe(true);
+    expect(needsRestart(run, { expectVersion: '0.2.4' })).toBe(false);
+    expect(needsRestart(run, { restart: true, expectVersion: '0.2.4' })).toBe(true);
+    expect(needsRestart(run, {})).toBe(false);
   });
 });
