@@ -540,6 +540,7 @@ export const renderHandlers: HandlersFor<Keys> = {
           points: [a.p],
         });
         const pt = pr.points[0];
+        if (!pt) throw new AppError('E_INVALID_PARAMS', `锚点 ${name} 投影结果为空`);
         inView = pt.in_view;
         if (!pt.in_view) return fail(null, inView, ['out_of_view']);
         px = [Math.round(pt.px[0]), Math.round(pt.px[1])];
@@ -631,6 +632,7 @@ export const renderHandlers: HandlersFor<Keys> = {
           reasons: ['colour_mismatch'],
         };
       }
+      if (!best) return fail(px, inView, ['colour_mismatch']);
       passed += 1;
       return {
         ...base,
