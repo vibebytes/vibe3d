@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { deflateRawSync } from 'node:zlib';
 import { AppError, type CameraState, type SceneDoc } from '@vibebyte/vibe3d-protocol';
@@ -25,6 +25,7 @@ import type {
 import { signExportUrl } from '../http/export-url';
 import { type JobError, toView } from '../jobs/store';
 import {
+  blendReferenceImage,
   clampRect,
   cropImage,
   decodeShot,
@@ -34,7 +35,7 @@ import {
   pixelAt,
   regionStats,
 } from '../render/pick';
-import { encodePng } from '../render/png';
+import { decodePng, encodePng } from '../render/png';
 import { editorUrl } from './editor-url';
 import type { HandlersFor } from './types';
 
@@ -314,10 +315,34 @@ export const renderHandlers: HandlersFor<Keys> = {
     const room = ctx.rooms.get(p.roomId);
     const renderer = requireRenderer(ctx, room.id);
     const quality = resolveQuality(p.quality);
-    const shot = await renderer.snapshot(
+    let shot = await renderer.snapshot(
       { roomId: room.id, doc: room.doc },
-      imageOptions(p, room.doc, quality),
+      imageOptions(p.reference ? { ...p, format: 'png' } : p, room.doc, quality),
     );
+    let referenceDiff: number | undefined;
+    if (p.reference) {
+      let refBuf: Buffer;
+      try {
+        refBuf = await readFile(p.reference.src);
+      } catch (err) {
+        throw new AppError(
+          'E_INVALID_PARAMS',
+          `无法读取参考图文件 ${p.reference.src}：${err instanceof Error ? err.message : String(err)}`,
+        );
+      }
+      const refPng = decodePng(refBuf);
+      const shotPng = decodeShot(shot.base64);
+      const blended = blendReferenceImage(shotPng, refPng, {
+        opacity: p.reference.opacity,
+        mode: p.reference.mode,
+      });
+      shot = {
+        ...shot,
+        mime: 'image/png',
+        base64: encodePng(blended.image).toString('base64'),
+      };
+      referenceDiff = blended.meanDiff;
+    }
     return {
       revision: room.revision,
       mime: shot.mime,
@@ -326,6 +351,7 @@ export const renderHandlers: HandlersFor<Keys> = {
       height: shot.height,
       quality,
       framing: framingEchoOf(p, room.doc),
+      ...(referenceDiff !== undefined ? { referenceDiff } : {}),
       ...presentShot(shot, quality),
       ...roiFields(shot, p.roi),
     };

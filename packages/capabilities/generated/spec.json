@@ -22455,6 +22455,43 @@
             ],
             "description": "两点连杆终点（cylinder/capsule 沿 Y 轴从 from 指向 to）"
           },
+          "screenAt": {
+            "type": "object",
+            "properties": {
+              "u": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 2,
+                "description": "屏幕水平归一化坐标 0..1（0=左缘，0.5=中心，1=右缘）"
+              },
+              "v": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 2,
+                "description": "屏幕垂直归一化坐标 0..1（0=上缘，0.5=中心，1=下缘）"
+              },
+              "depth": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "description": "距当前相机的深度（米），省略则取相机到 target 的距离"
+              },
+              "groundY": {
+                "type": "number",
+                "description": "给定地面高度时，沿(u,v)视线射线与 y=groundY 平面求交定位"
+              },
+              "aspect": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "description": "视口宽高比（默认 16/9 = 1.7778）"
+              }
+            },
+            "required": [
+              "u",
+              "v"
+            ],
+            "additionalProperties": false,
+            "description": "按当前相机屏幕 UV + 深度（或地面高度 groundY）反投影自动定位节点世界坐标"
+          },
           "anchor": {
             "type": "string",
             "enum": [
@@ -22990,6 +23027,38 @@
                   }
                 },
                 "additionalProperties": false
+              },
+              "screenAt": {
+                "type": "object",
+                "properties": {
+                  "u": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 2
+                  },
+                  "v": {
+                    "type": "number",
+                    "minimum": -1,
+                    "maximum": 2
+                  },
+                  "depth": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "groundY": {
+                    "type": "number"
+                  },
+                  "aspect": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                },
+                "required": [
+                  "u",
+                  "v"
+                ],
+                "additionalProperties": false,
+                "description": "按当前相机屏幕 UV + 深度（或地面高度 groundY）反投影自动更新节点位置"
               },
               "light": {
                 "type": "object",
@@ -42073,6 +42142,150 @@
               "top",
               "three_quarter"
             ]
+          },
+          "solve": {
+            "type": "object",
+            "properties": {
+              "anchors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "p": {
+                      "type": "array",
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "items": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "nodeId": {
+                      "type": "string",
+                      "pattern": "^n_[a-z0-9]{8}$"
+                    },
+                    "anchor": {
+                      "type": "string",
+                      "enum": [
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                      ]
+                    },
+                    "uv": {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 2,
+                      "items": [
+                        {
+                          "type": "number",
+                          "minimum": -1,
+                          "maximum": 2
+                        },
+                        {
+                          "type": "number",
+                          "minimum": -1,
+                          "maximum": 2
+                        }
+                      ],
+                      "description": "参考图归一化坐标 [u, v]（0..1，左上原点）"
+                    },
+                    "weight": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "required": [
+                    "uv"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 64
+              },
+              "fitBoxes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "nodeId": {
+                      "type": "string",
+                      "pattern": "^n_[a-z0-9]{8}$",
+                      "description": "要拟合屏幕框的节点或分组 id（如主角 group）"
+                    },
+                    "rect": {
+                      "type": "object",
+                      "properties": {
+                        "u": {
+                          "type": "number",
+                          "minimum": -1,
+                          "maximum": 2,
+                          "description": "目标框左缘归一化坐标 u (0..1)"
+                        },
+                        "v": {
+                          "type": "number",
+                          "minimum": -1,
+                          "maximum": 2,
+                          "description": "目标框上缘归一化坐标 v (0..1)"
+                        },
+                        "w": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "maximum": 2,
+                          "description": "目标框归一化宽度 w (0..1)"
+                        },
+                        "h": {
+                          "type": "number",
+                          "exclusiveMinimum": 0,
+                          "maximum": 2,
+                          "description": "目标框归一化高度 h (0..1)"
+                        }
+                      },
+                      "required": [
+                        "u",
+                        "v"
+                      ],
+                      "additionalProperties": false,
+                      "description": "参考图中该节点对应的归一化矩形框"
+                    },
+                    "weight": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "required": [
+                    "nodeId",
+                    "rect"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 16
+              },
+              "width": {
+                "type": "integer",
+                "minimum": 64,
+                "maximum": 8192
+              },
+              "height": {
+                "type": "integer",
+                "minimum": 64,
+                "maximum": 8192
+              },
+              "fixFov": {
+                "type": "boolean",
+                "description": "true 时保持当前 fov 不变，只反解 p 与 target"
+              }
+            },
+            "additionalProperties": false,
+            "description": "根据 2D 参考图归一化锚点 anchors 或包围框 fitBoxes 自动反解相机 p/target/fov"
           }
         },
         "required": [
@@ -42230,6 +42443,23 @@
               "diag",
               "view",
               "padding"
+            ],
+            "additionalProperties": false
+          },
+          "solved": {
+            "type": "object",
+            "properties": {
+              "rmsePx": {
+                "type": "number"
+              },
+              "iterations": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "rmsePx",
+              "iterations"
             ],
             "additionalProperties": false
           }
@@ -43255,6 +43485,35 @@
             "default": "camera",
             "description": "取景来源：camera=尊重 doc 当前机位（默认，不自动取景）；scene=按场景 bbox 自动取景。显式传 camera 时优先于 framing。"
           },
+          "reference": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "type": "string",
+                "minLength": 1,
+                "description": "参考图本地路径（PNG）或已上传图片资产 sha"
+              },
+              "opacity": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "参考图叠合不透明度（默认 0.45）"
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "blend",
+                  "diff"
+                ],
+                "description": "blend=半透明叠图对比；diff=像素绝对差热力图"
+              }
+            },
+            "required": [
+              "src"
+            ],
+            "additionalProperties": false,
+            "description": "叠合参考图（PNG 路径或资产 sha）：直接输出半透明叠图或像素差值图，并返回 meanDiff"
+          },
           "width": {
             "type": "integer",
             "minimum": 64,
@@ -43603,6 +43862,9 @@
               "source"
             ],
             "additionalProperties": false
+          },
+          "referenceDiff": {
+            "type": "number"
           },
           "frame": {
             "type": "object",

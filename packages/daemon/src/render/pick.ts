@@ -137,3 +137,54 @@ export function regionStats(
     mean: [sum[0] / pixels, sum[1] / pixels, sum[2] / pixels],
   };
 }
+
+export function blendReferenceImage(
+  shot: PngImage,
+  ref: PngImage,
+  opts: { opacity?: number; mode?: 'blend' | 'diff' } = {},
+): { image: PngImage; meanDiff: number } {
+  const opacity = Math.min(1, Math.max(0, opts.opacity ?? 0.45));
+  const mode = opts.mode ?? 'blend';
+  const w = shot.width;
+  const h = shot.height;
+  const out = Buffer.alloc(w * h * 4);
+  let diffSum = 0;
+
+  for (let y = 0; y < h; y++) {
+    const ry = Math.min(ref.height - 1, Math.floor((y * ref.height) / h));
+    for (let x = 0; x < w; x++) {
+      const rx = Math.min(ref.width - 1, Math.floor((x * ref.width) / w));
+      const sIdx = (y * w + x) * shot.channels;
+      const rIdx = (ry * ref.width + rx) * ref.channels;
+      const sr = shot.data[sIdx]!;
+      const sg = shot.data[sIdx + 1]!;
+      const sb = shot.data[sIdx + 2]!;
+      const rr = ref.data[rIdx]!;
+      const rg = ref.data[rIdx + 1]!;
+      const rb = ref.data[rIdx + 2]!;
+
+      const dr = Math.abs(sr - rr);
+      const dg = Math.abs(sg - rg);
+      const db = Math.abs(sb - rb);
+      diffSum += (dr + dg + db) / (3 * 255);
+
+      const oIdx = (y * w + x) * 4;
+      if (mode === 'diff') {
+        out[oIdx] = Math.min(255, dr * 2);
+        out[oIdx + 1] = Math.min(255, dg * 2);
+        out[oIdx + 2] = Math.min(255, db * 2);
+        out[oIdx + 3] = 255;
+      } else {
+        out[oIdx] = Math.round(sr * (1 - opacity) + rr * opacity);
+        out[oIdx + 1] = Math.round(sg * (1 - opacity) + rg * opacity);
+        out[oIdx + 2] = Math.round(sb * (1 - opacity) + rb * opacity);
+        out[oIdx + 3] = 255;
+      }
+    }
+  }
+
+  return {
+    image: { width: w, height: h, channels: 4, data: out },
+    meanDiff: Math.round((diffSum / (w * h)) * 1e4) / 1e4,
+  };
+}

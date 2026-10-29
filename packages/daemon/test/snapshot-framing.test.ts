@@ -1,6 +1,10 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { frameCamera } from '@vibebyte/vibe3d-scene';
 import { describe, expect, it } from 'vitest';
 import type { DispatchContext, SnapshotOptions } from '../src/context';
+import { decodePng } from '../src/render/png';
 import { type Harness, call, makeHarness } from './helpers/harness';
 import { makePng } from './helpers/png';
 
@@ -100,5 +104,42 @@ describe('render.snapshot 默认取景语义（V2-01）', () => {
     );
     expect(body.error).toBeUndefined();
     expect(shots[0]?.camera?.p).toEqual([1, 2, 3]);
+  });
+
+  it('reference 叠图对比：支持本地 PNG 垫图 blend/diff 并回传 referenceDiff', async () => {
+    const h = makeHarness();
+    const { renderer } = recordingRenderer();
+    h.ctx.renderer = renderer;
+    const roomId = await roomWithBox(h);
+
+    const dir = mkdtempSync(join(tmpdir(), 'vibe3d-ref-'));
+    try {
+      const refPath = join(dir, 'ref.png');
+      writeFileSync(
+        refPath,
+        makePng(8, 8, () => [200, 100, 50, 255]),
+      );
+
+      const { body } = await call(
+        h,
+        'render.snapshot',
+        {
+          roomId,
+          width: 64,
+          height: 64,
+          reference: { src: refPath, opacity: 0.5, mode: 'blend' },
+        },
+        roomId,
+      );
+      expect(body.error).toBeUndefined();
+      expect(body.result.referenceDiff).toBeGreaterThan(0);
+      const outPng = decodePng(body.result.base64);
+      // 渲染图 [128,128,128] 与参考图 [200,100,50] 按 0.5 混合 → [164, 114, 89]
+      expect(outPng.data[0]).toBe(164);
+      expect(outPng.data[1]).toBe(114);
+      expect(outPng.data[2]).toBe(89);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

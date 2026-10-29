@@ -50,6 +50,16 @@ const nodePatch = z.object({
   name: z.string().min(1).max(200).optional(),
   visible: z.boolean().optional(),
   transform: transformInput.optional(),
+  screenAt: z
+    .object({
+      u: z.number().min(-1).max(2),
+      v: z.number().min(-1).max(2),
+      depth: z.number().positive().optional(),
+      groundY: z.number().finite().optional(),
+      aspect: z.number().positive().optional(),
+    })
+    .optional()
+    .describe('按当前相机屏幕 UV + 深度（或地面高度 groundY）反投影自动更新节点位置'),
   light: lightSpecSchema.optional(),
   anim: modelAnimSchema.nullable().optional(),
   tags: tagsSchema.nullable().optional(),
@@ -526,6 +536,24 @@ export const sceneOps = {
         .optional()
         .describe('两点连杆起点（与 to 成对给出时，自动计算中心 p、长度 height 与朝向 r）'),
       to: vec3.optional().describe('两点连杆终点（cylinder/capsule 沿 Y 轴从 from 指向 to）'),
+      screenAt: z
+        .object({
+          u: z.number().min(-1).max(2).describe('屏幕水平归一化坐标 0..1（0=左缘，0.5=中心，1=右缘）'),
+          v: z.number().min(-1).max(2).describe('屏幕垂直归一化坐标 0..1（0=上缘，0.5=中心，1=下缘）'),
+          depth: z
+            .number()
+            .positive()
+            .optional()
+            .describe('距当前相机的深度（米），省略则取相机到 target 的距离'),
+          groundY: z
+            .number()
+            .finite()
+            .optional()
+            .describe('给定地面高度时，沿(u,v)视线射线与 y=groundY 平面求交定位'),
+          aspect: z.number().positive().optional().describe('视口宽高比（默认 16/9 = 1.7778）'),
+        })
+        .optional()
+        .describe('按当前相机屏幕 UV + 深度（或地面高度 groundY）反投影自动定位节点世界坐标'),
       anchor: z
         .enum(['center', 'bottom', 'top'])
         .optional()

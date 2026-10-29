@@ -32,6 +32,7 @@ import {
   relativeTransform,
   resolveMaterialPreset,
   sceneStats,
+  solveCamera,
   subtreeIds,
   unprojectPoints,
   validateScene,
@@ -151,24 +152,14 @@ function spanOrientation(from: Vec, to: Vec): { center: Vec; length: number; r: 
   const ux = dx / length;
   const uy = dy / length;
   const uz = dz / length;
-  // 构建以 Y 轴为 (ux, uy, uz) 的正交旋转基 R = [X, Y, Z]，并按 XYZ 欧拉角提取 (rx, ry, rz)
-  const ref: Vec = Math.abs(uy) < 0.99 ? [0, 1, 0] : [1, 0, 0];
-  let xx = uy * ref[2] - uz * ref[1];
-  let xy = uz * ref[0] - ux * ref[2];
-  let xz = ux * ref[1] - uy * ref[0];
-  const xLen = Math.hypot(xx, xy, xz) || 1;
-  xx /= xLen;
-  xy /= xLen;
-  xz /= xLen;
-  const zx = xx * uy - xy * ux;
-  const zy = xy * uz - xz * uy;
-  const zz = xz * ux - xx * uz;
-  // R column 0 = X=(xx,xy,xz), col 1 = Y=(ux,uy,uz), col 2 = Z=(zx,zy,zz)
-  // eulerOf 约定：r02 = Z.x = zx, r12 = Z.y = zy, r22 = Z.z = zz, r01 = Y.x = ux, r00 = X.x = xx
-  const ry = Math.asin(Math.max(-1, Math.min(1, zx)));
-  const r: Vec =
-    Math.abs(zx) < 0.999999 ? [Math.atan2(-zy, zz), ry, Math.atan2(-ux, xx)] : [Math.atan2(uz, uy), ry, 0];
-  return { center, length, r };
+  // R = Rx · Ry · Rz 的第 1 列（Y 轴）为：
+  //   ux = -cy * sz
+  //   uy =  cx * cz - sx * sy * sz
+  //   uz =  sx * cz + cx * sy * sz
+  // 取 ry = 0，则 ux = -sin(rz), uy = cos(rx)*cos(rz), uz = sin(rx)*cos(rz)
+  const rz = Math.asin(Math.max(-1, Math.min(1, -ux)));
+  const rx = Math.abs(ux) < 0.999999 ? Math.atan2(uz, uy) : 0;
+  return { center, length, r: [rx, 0, rz] };
 }
 
 function geometryHalfHeight(g: Geometry): number {
@@ -181,12 +172,36 @@ function geometryHalfHeight(g: Geometry): number {
   return (g.bbox.max[1] - g.bbox.min[1]) / 2;
 }
 
+function resolveScreenAt(
+  doc: SceneDoc,
+  spec: { u: number; v: number; depth?: number; groundY?: number; aspect?: number },
+): Vec {
+  const cam = doc.camera;
+  const w = 1280;
+  const h = w / (spec.aspect ?? 16 / 9);
+  const near = unprojectPoints(doc, {
+    camera: cam,
+    width: w,
+    height: h,
+    points: [[spec.u * w, spec.v * h]],
+    depth: [
+      spec.depth ?? Math.hypot(cam.target[0] - cam.p[0], cam.target[1] - cam.p[1], cam.target[2] - cam.p[2]),
+    ],
+  }).points[0]!;
+  if (spec.groundY === undefined) return near.p;
+  const dy = near.p[1] - cam.p[1];
+  if (Math.abs(dy) < 1e-6) return [near.p[0], spec.groundY, near.p[2]];
+  const t = (spec.groundY - cam.p[1]) / dy;
+  if (t <= 0) return [near.p[0], spec.groundY, near.p[2]];
+  return [cam.p[0] + (near.p[0] - cam.p[0]) * t, spec.groundY, cam.p[2] + (near.p[2] - cam.p[2]) * t];
+}
+
 function resolvePlacement(doc: SceneDoc, p: NodeCreateParams): { transform: Transform; geometry?: Geometry } {
   if ((p.from === undefined) !== (p.to === undefined)) {
     throw new AppError('E_INVALID_PARAMS', 'from 与 to 必须成对给出', { from: p.from, to: p.to });
   }
   const baseTransform = mergeTransform(p.transform);
-  let targetP: Vec = [...baseTransform.p];
+  let targetP: Vec = p.screenAt ? resolveScreenAt(doc, p.screenAt) : [...baseTransform.p];
   let targetR: Vec = [...baseTransform.r];
   const targetS: Vec = [...baseTransform.s];
   let heightOverride = p.height;
@@ -219,7 +234,7 @@ function resolvePlacement(doc: SceneDoc, p: NodeCreateParams): { transform: Tran
   }
 
   const parentId = p.parent ?? null;
-  if (p.transform?.space === 'world' && parentId && doc.nodes[parentId]) {
+  if ((p.transform?.space === 'world' || p.screenAt !== undefined) && parentId && doc.nodes[parentId]) {
     targetP = worldPointToLocal(doc, parentId, targetP);
   }
 
@@ -674,17 +689,23 @@ export const sceneHandlers: HandlersFor<Keys> = {
     if (p.patch.light !== undefined) patch.light = p.patch.light;
     if (p.patch.anim !== undefined) patch.anim = p.patch.anim;
     if (p.patch.tags !== undefined) patch.tags = p.patch.tags;
-    if (p.patch.transform) {
+    if (p.patch.transform || p.patch.screenAt) {
       const node = room.doc.nodes[p.nodeId];
       const current = node?.transform ?? IDENTITY;
-      let nextP = p.patch.transform.p ?? current.p;
-      if (p.patch.transform.space === 'world' && node?.parent && room.doc.nodes[node.parent]) {
+      let nextP = p.patch.screenAt
+        ? resolveScreenAt(room.doc, p.patch.screenAt)
+        : (p.patch.transform?.p ?? current.p);
+      if (
+        (p.patch.transform?.space === 'world' || p.patch.screenAt !== undefined) &&
+        node?.parent &&
+        room.doc.nodes[node.parent]
+      ) {
         nextP = worldPointToLocal(room.doc, node.parent, nextP);
       }
       patch.transform = {
         p: nextP,
-        r: p.patch.transform.r ?? current.r,
-        s: p.patch.transform.s ?? current.s,
+        r: p.patch.transform?.r ?? current.r,
+        s: p.patch.transform?.s ?? current.s,
       };
     }
     const result = await room.run(() => room.apply([{ op: 'node.update', id: p.nodeId, patch }]));
@@ -957,10 +978,14 @@ export const sceneHandlers: HandlersFor<Keys> = {
   'camera.set': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     const camera = lensToState(p.camera);
-    const framed = p.bbox ? frameTarget(room.doc, { bbox: p.bbox, padding: p.padding, view: p.view }) : null;
-    const op: Op = framed
-      ? { op: 'camera.set', camera: { ...camera, ...framed.camera } }
-      : { op: 'camera.set', camera, frame: p.frame, name: p.name, preset: p.preset };
+    const solved = p.solve ? solveCamera(room.doc, p.solve) : null;
+    const framed =
+      !solved && p.bbox ? frameTarget(room.doc, { bbox: p.bbox, padding: p.padding, view: p.view }) : null;
+    const op: Op = solved
+      ? { op: 'camera.set', camera: { ...solved.camera, ...camera } }
+      : framed
+        ? { op: 'camera.set', camera: { ...camera, ...framed.camera } }
+        : { op: 'camera.set', camera, frame: p.frame, name: p.name, preset: p.preset };
     const result = await room.run(() => room.apply([op]));
     return {
       revision: result.revision,
@@ -977,6 +1002,7 @@ export const sceneHandlers: HandlersFor<Keys> = {
             },
           }
         : {}),
+      ...(solved ? { solved: { rmsePx: solved.rmsePx, iterations: solved.iterations } } : {}),
     };
   },
 

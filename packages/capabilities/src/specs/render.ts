@@ -147,6 +147,51 @@ const cameraInput = cameraStateSchema
     }
   });
 
+const solveAnchorSchema = z
+  .object({
+    p: z.tuple([z.number().finite(), z.number().finite(), z.number().finite()]).optional(),
+    nodeId: nodeIdSchema.optional(),
+    anchor: z.enum(['center', 'top', 'bottom', 'left', 'right']).optional(),
+    uv: z
+      .tuple([z.number().min(-1).max(2), z.number().min(-1).max(2)])
+      .describe('参考图归一化坐标 [u, v]（0..1，左上原点）'),
+    weight: z.number().positive().optional(),
+  })
+  .refine((v) => Boolean(v.p) || Boolean(v.nodeId), {
+    message: 'solve.anchors 每项需给出世界坐标 p 或节点 id nodeId',
+  });
+
+const solveFitBoxSchema = z.object({
+  nodeId: nodeIdSchema.describe('要拟合屏幕框的节点或分组 id（如主角 group）'),
+  rect: z
+    .object({
+      u: z.number().min(-1).max(2).describe('目标框左缘归一化坐标 u (0..1)'),
+      v: z.number().min(-1).max(2).describe('目标框上缘归一化坐标 v (0..1)'),
+      w: z.number().positive().max(2).optional().describe('目标框归一化宽度 w (0..1)'),
+      h: z.number().positive().max(2).optional().describe('目标框归一化高度 h (0..1)'),
+    })
+    .describe('参考图中该节点对应的归一化矩形框'),
+  weight: z.number().positive().optional(),
+});
+
+const solveSpecSchema = z
+  .object({
+    anchors: z.array(solveAnchorSchema).max(64).optional(),
+    fitBoxes: z.array(solveFitBoxSchema).max(16).optional(),
+    width: intIn(64, 8192).optional(),
+    height: intIn(64, 8192).optional(),
+    fixFov: z.boolean().optional().describe('true 时保持当前 fov 不变，只反解 p 与 target'),
+  })
+  .refine((v) => (v.anchors?.length ?? 0) + (v.fitBoxes?.length ?? 0) > 0, {
+    message: 'solve 至少需要 anchors 或 fitBoxes 之一',
+  });
+
+const referenceOverlaySchema = z.object({
+  src: z.string().min(1).describe('参考图本地路径（PNG）或已上传图片资产 sha'),
+  opacity: z.number().min(0).max(1).optional().describe('参考图叠合不透明度（默认 0.45）'),
+  mode: z.enum(['blend', 'diff']).optional().describe('blend=半透明叠图对比；diff=像素绝对差热力图'),
+});
+
 export const jobStateSchema = z.enum(['queued', 'running', 'done', 'failed', 'cancelled']);
 
 export const jobKindSchema = z.enum(['export.glb', 'render.sequence']);
@@ -179,6 +224,9 @@ export const renderOps = {
       bbox: targetBox.optional(),
       padding: numIn(0.2, 5).optional(),
       view: viewName.optional(),
+      solve: solveSpecSchema
+        .optional()
+        .describe('根据 2D 参考图归一化锚点 anchors 或包围框 fitBoxes 自动反解相机 p/target/fov'),
     }),
     output: revisionOut.extend({
       camera: cameraStateSchema,
@@ -194,6 +242,12 @@ export const renderOps = {
           diag: z.number().finite(),
           view: viewName,
           padding: z.number().finite(),
+        })
+        .optional(),
+      solved: z
+        .object({
+          rmsePx: z.number().finite(),
+          iterations: z.number().int().min(0),
         })
         .optional(),
     }),
@@ -304,6 +358,9 @@ export const renderOps = {
       roomId,
       camera: cameraOverride.optional(),
       framing: framingParam,
+      reference: referenceOverlaySchema
+        .optional()
+        .describe('叠合参考图（PNG 路径或资产 sha）：直接输出半透明叠图或像素差值图，并返回 meanDiff'),
       ...imageOpts,
     }),
     output: z.object({
@@ -316,6 +373,7 @@ export const renderOps = {
       ...shotReport,
       camera: shotCamera.nullable(),
       framing: framingEcho.optional(),
+      referenceDiff: z.number().finite().optional(),
       ...roiEcho,
     }),
     scope: 'room' as const,

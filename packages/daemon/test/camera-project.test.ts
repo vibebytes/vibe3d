@@ -215,4 +215,54 @@ describe('camera.unproject：像素 → 世界（往返 ≤1e-6）', () => {
     expect(body.result.points[0].p[1]).toBeCloseTo(0, 6);
     expect(body.result.points[0].p[2]).toBeCloseTo(0, 6);
   });
+
+  it('camera.set solve：根据 fitBoxes 与 anchors 自动反解相机 Zoom 与视角，且 screenAt 按屏幕 UV 精准落点', async () => {
+    const h = makeHarness();
+    const { roomId, ids } = await roomWithBoxes(h, [[0.2, 0.8, 0]]);
+    const heroId = ids[0]!;
+
+    const solved = await call(
+      h,
+      'camera.set',
+      {
+        roomId,
+        solve: {
+          fitBoxes: [{ nodeId: heroId, rect: { u: 0.4, v: 0.3, w: 0.3 } }],
+          anchors: [{ nodeId: heroId, anchor: 'top', uv: [0.55, 0.3] }],
+        },
+      },
+      roomId,
+    );
+    expect(solved.body.error).toBeUndefined();
+    expect(solved.body.result.solved.rmsePx).toBeLessThan(25);
+
+    // 使用 screenAt 在当前相机画面左侧 u=0.1, v=0.45, depth=20m 处创建一个纪念碑节点
+    const monument = await call(
+      h,
+      'node.create',
+      {
+        roomId,
+        kind: 'mesh',
+        name: 'monument-in-view',
+        shape: 'box',
+        size: [1, 1, 1],
+        screenAt: { u: 0.1, v: 0.45, depth: 20 },
+      },
+      roomId,
+    );
+    expect(monument.body.error).toBeUndefined();
+    const monId = monument.body.result.nodeId;
+
+    // 投影验证该纪念碑中心严格落在屏幕 u=0.1, v=0.45 (即 128px, 324px)
+    const nodeRes = await call(h, 'node.get', { roomId, nodeId: monId }, roomId);
+    const monP = nodeRes.body.result.transform.p;
+    const proj = await call(
+      h,
+      'camera.project',
+      { roomId, points: [monP], width: 1280, height: 720 },
+      roomId,
+    );
+    expect(proj.body.result.points[0].px[0]).toBeCloseTo(1280 * 0.1, 1);
+    expect(proj.body.result.points[0].px[1]).toBeCloseTo(720 * 0.45, 1);
+  });
 });

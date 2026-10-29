@@ -26,6 +26,7 @@ export {
 export {
   projectPoints,
   unprojectPoints,
+  solveCamera,
   cameraBasis,
   type CameraBasis,
   type ProjectedPoint,
@@ -34,6 +35,10 @@ export {
   type UnprojectedPoint,
   type UnprojectOptions,
   type UnprojectResult,
+  type SolveAnchor,
+  type SolveFitBox,
+  type SolveCameraOptions,
+  type SolveCameraResult,
 } from './project';
 export { changedPaths, type ChangedPathOptions, type ChangedPaths } from './changed';
 export { mergeSubtrees, type MergeSubtreesResult } from './restore';

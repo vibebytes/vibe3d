@@ -1,4 +1,4 @@
-import { deflateRawSync, inflateSync } from 'node:zlib';
+import { deflateSync, inflateSync } from 'node:zlib';
 
 export interface PngImage {
   width: number;
@@ -133,7 +133,7 @@ export function encodePng(img: PngImage): Buffer {
   return Buffer.concat([
     SIGNATURE,
     chunk('IHDR', ihdr),
-    chunk('IDAT', deflateRawSync(raw)),
+    chunk('IDAT', deflateSync(raw)),
     chunk('IEND', Buffer.alloc(0)),
   ]);
 }

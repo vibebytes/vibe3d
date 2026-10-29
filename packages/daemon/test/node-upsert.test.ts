@@ -219,6 +219,9 @@ describe('node.create upsert_by_name（V2-09 幂等重建）', () => {
     expect(doc.nodes[branchId].material).toBe(matId);
     expect(doc.nodes[branchId].transform.p).toEqual([1, 3, 0]);
     expect(doc.nodes[branchId].geometry.height).toBeCloseTo(Math.hypot(2, 2, 0), 5);
+    expect(doc.nodes[branchId].transform.r[0]).toBeCloseTo(0, 5);
+    expect(doc.nodes[branchId].transform.r[1]).toBeCloseTo(0, 5);
+    expect(doc.nodes[branchId].transform.r[2]).toBeCloseTo(-Math.PI / 4, 5);
     expect(doc.nodes[childId].transform.p).toEqual([2, 1, 0]);
   });
 });
