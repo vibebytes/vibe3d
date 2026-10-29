@@ -9,6 +9,11 @@ vibe3d is an MCP server for building and rendering 3D scenes. One command starts
 
 Requires **Node.js >= 20** (same as the [MCP TypeScript SDK v2](https://github.com/modelcontextprotocol/typescript-sdk)). Licensed under [Apache-2.0](./LICENSE).
 
+<p align="center">
+  <img src="./docs/wechat-core-group.jpg" alt="vibe3D核心用户讨论群" width="360"><br>
+  <strong>vibe3D核心用户讨论群</strong>
+</p>
+
 ## Identity
 
 | Surface | Value |
@@ -132,10 +137,3 @@ pnpm --filter @vibebyte/vibe3d-mcp build
 `pnpm install` may ask to reinstall `node_modules` from scratch. `CI=true` accepts that prompt.
 
 Security reports: [SECURITY.md](./SECURITY.md).
-
-## Community
-
-<p align="center">
-  <img src="./docs/wechat-core-group.jpg" alt="vibe3D核心用户讨论群" width="360"><br>
-  <strong>vibe3D核心用户讨论群</strong>
-</p>
