@@ -10,8 +10,8 @@ vibe3d 是一个用于构建与渲染 3D 场景的 MCP 服务。一条命令即�
 需要 **Node.js >= 20**（与 [MCP TypeScript SDK v2](https://github.com/modelcontextprotocol/typescript-sdk) 官方要求一致）。采用 [Apache-2.0](./LICENSE) 开源许可。
 
 <p align="center">
-  <img src="./docs/wechat-core-group.jpg" alt="vibe3D核心用户讨论群" width="252"><br>
-  <strong>vibe3D核心用户讨论群</strong>
+  <img src="./docs/wechat-core-group.jpg" alt="vibe3D和Blender交流群" width="252"><br>
+  <strong>vibe3D + Blender 交流群</strong>
 </p>
 
 ## 对外身份
