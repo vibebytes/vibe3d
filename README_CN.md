@@ -132,3 +132,10 @@ pnpm --filter @vibebyte/vibe3d-mcp build
 `pnpm install` 可能提示重建 `node_modules`；`CI=true` 会自动接受该提示。
 
 安全问题请见 [SECURITY.md](./SECURITY.md)。
+
+## 社区
+
+<p align="center">
+  <img src="./docs/wechat-core-group.jpg" alt="vibe3D核心用户讨论群" width="360"><br>
+  <strong>vibe3D核心用户讨论群</strong>
+</p>

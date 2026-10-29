@@ -132,3 +132,10 @@ pnpm --filter @vibebyte/vibe3d-mcp build
 `pnpm install` may ask to reinstall `node_modules` from scratch. `CI=true` accepts that prompt.
 
 Security reports: [SECURITY.md](./SECURITY.md).
+
+## Community
+
+<p align="center">
+  <img src="./docs/wechat-core-group.jpg" alt="vibe3D核心用户讨论群" width="360"><br>
+  <strong>vibe3D核心用户讨论群</strong>
+</p>
