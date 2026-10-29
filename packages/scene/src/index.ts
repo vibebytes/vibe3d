@@ -14,6 +14,7 @@ export {
   sceneBounds,
   nodeBounds,
   nodeOwnBounds,
+  meshLocalBounds,
   frameCamera,
   frameNode,
   frameTarget,
@@ -27,6 +28,7 @@ export {
   projectPoints,
   unprojectPoints,
   solveCamera,
+  solveFitTransform,
   cameraBasis,
   type CameraBasis,
   type ProjectedPoint,
@@ -39,6 +41,9 @@ export {
   type SolveFitBox,
   type SolveCameraOptions,
   type SolveCameraResult,
+  type FitRect,
+  type FitTransform,
+  type SolveFitTransformOptions,
 } from './project';
 export { changedPaths, type ChangedPathOptions, type ChangedPaths } from './changed';
 export { mergeSubtrees, type MergeSubtreesResult } from './restore';
@@ -104,6 +109,9 @@ export {
   type QualityPreset,
 } from './quality';
 export { tubeMesh, type TubeMesh, type TubeSpec } from './tube';
+export { bevelMesh, latheMesh, organicMesh, smoothMerge, type SculptMesh } from './sculpt';
+export { treeMesh, type TreeMesh } from './tree';
+export { mannequinMesh, type Mannequin } from './mannequin';
 export {
   BACKDROP_DEFAULTS,
   backdropSweep,

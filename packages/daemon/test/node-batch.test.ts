@@ -173,3 +173,127 @@ describe('旋转增量以度为单位', () => {
     expect(ry[1]).toBeCloseTo(Math.PI / 3, 6);
   });
 });
+
+describe('node.create items', () => {
+  it('20 个带 anchor 与 screenAt 的 items 只增加 1 次 revision，名称唯一', async () => {
+    const h = makeHarness();
+    const { body: created } = await call(h, 'room.create', { name: '批量建' });
+    const roomId = created.result.roomId as string;
+    await call(
+      h,
+      'camera.set',
+      { roomId, camera: { mode: 'persp', p: [0, 2, 12], target: [0, 0, 0], fov: 40, zoom: 1 } },
+      roomId,
+    );
+    const before = (await call(h, 'scene.get', { roomId }, roomId)).body.result.revision as number;
+    const items = Array.from({ length: 20 }, (_, i) => ({
+      kind: 'mesh' as const,
+      name: `批-${i}`,
+      shape: 'box' as const,
+      size: [0.4, 0.8, 0.4] as [number, number, number],
+      anchor: 'bottom' as const,
+      screenAt: { u: 0.15 + (i % 10) * 0.07, v: 0.4 + Math.floor(i / 10) * 0.2, depth: 8 },
+    }));
+    const { body } = await call(h, 'node.create', { roomId, kind: 'mesh', items }, roomId);
+    expect(body.error).toBeUndefined();
+    expect(body.result.revision).toBe(before + 1);
+    const doc = (await call(h, 'scene.get', { roomId }, roomId)).body.result.doc;
+    const names = Object.values(doc.nodes).map((node: any) => node.name as string);
+    expect(names).toHaveLength(20);
+    expect(new Set(names).size).toBe(20);
+  });
+
+  it('items 与 upsertByName 同传，或超过 200 项，返回 E_INVALID_PARAMS', async () => {
+    const h = makeHarness();
+    const { body: created } = await call(h, 'room.create', { name: '批量拒' });
+    const roomId = created.result.roomId as string;
+    const item = {
+      kind: 'mesh' as const,
+      name: 'a',
+      shape: 'box' as const,
+      size: [1, 1, 1] as [number, number, number],
+    };
+    const both = await call(
+      h,
+      'node.create',
+      { roomId, items: [item], upsertByName: true, kind: 'mesh' },
+      roomId,
+    );
+    expect(codeOf(both.body)).toBe('E_INVALID_PARAMS');
+    const tooMany = await call(
+      h,
+      'node.create',
+      { roomId, kind: 'mesh', items: Array.from({ length: 201 }, (_, i) => ({ ...item, name: `n-${i}` })) },
+      roomId,
+    );
+    expect(codeOf(tooMany.body)).toBe('E_INVALID_PARAMS');
+  });
+
+  it('ops.apply 里的裸 node.create 不接受 screenAt', async () => {
+    const h = makeHarness();
+    const { body: created } = await call(h, 'room.create', { name: '裸 op' });
+    const roomId = created.result.roomId as string;
+    const mat = await call(h, 'material.create', { roomId, preset: 'concrete' }, roomId);
+    const { body } = await call(
+      h,
+      'ops.apply',
+      {
+        roomId,
+        ops: [
+          {
+            op: 'node.create',
+            node: {
+              kind: 'mesh',
+              name: '裸',
+              parent: null,
+              visible: true,
+              geometry: { type: 'box', size: [1, 1, 1] },
+              material: mat.body.result.materialId,
+              transform: { p: [1, 2, 3], r: [0, 0, 0], s: [1, 1, 1] },
+              screenAt: { u: 0.2, v: 0.2, depth: 6 },
+            },
+          },
+        ],
+      },
+      roomId,
+    );
+    expect(body.error).toBeUndefined();
+    const doc = (await call(h, 'scene.get', { roomId }, roomId)).body.result.doc;
+    const node = Object.values(doc.nodes)[0] as { transform: { p: number[] } };
+    expect(node.transform.p).toEqual([1, 2, 3]);
+  });
+
+  it('items 里的 from/to 生成斜向连杆', async () => {
+    const h = makeHarness();
+    const { body: created } = await call(h, 'room.create', { name: '批量连杆' });
+    const roomId = created.result.roomId as string;
+    const made = await call(
+      h,
+      'node.create',
+      {
+        roomId,
+        kind: 'mesh',
+        items: [
+          {
+            kind: 'mesh',
+            name: '连杆',
+            shape: 'cylinder',
+            radius: 0.1,
+            from: [0, 2, 0],
+            to: [2, 4, 0],
+          },
+        ],
+      },
+      roomId,
+    );
+    expect(made.body.error).toBeUndefined();
+    const doc = (await call(h, 'scene.get', { roomId }, roomId)).body.result.doc;
+    const node = Object.values(doc.nodes)[0] as {
+      geometry: { height: number };
+      transform: { p: number[]; r: number[] };
+    };
+    expect(node.transform.p).toEqual([1, 3, 0]);
+    expect(node.geometry.height).toBeCloseTo(Math.hypot(2, 2), 5);
+    expect(node.transform.r[2]).toBeCloseTo(-Math.PI / 4, 5);
+  });
+});

@@ -1,16 +1,23 @@
 import { useThree } from '@react-three/fiber';
 import type { CameraState } from '@vibebyte/vibe3d-protocol';
 import type { FogMode, QualityPreset, ShotMeta } from '@vibebyte/vibe3d-scene';
-import { autoClipRange, shotMetaOf } from '@vibebyte/vibe3d-scene';
+import { autoClipRange, nodeOwnBounds, shotMetaOf } from '@vibebyte/vibe3d-scene';
 import { useEffect } from 'react';
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
+import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { useDoc } from '../stores/doc';
 import { useSelection } from '../stores/selection';
 import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
 import { applyFxAt, fogSettings } from '../three/fx';
 import { applyIdMaterials } from '../three/id-pass-materials';
 import { missingModelIds } from '../three/model-ready';
+import { type PostPlan, needsPost, postPasses, postPlan } from '../three/post';
 import { alphaRendererCache, alphaRendererOptions } from './alpha-cache';
 import { applyCaptureFog, applyClipRange, captureFogPlan, subjectSphere } from './capture-fog';
 import { addOverlays, applyHighlight, applyIsolate, applyShading, shadingNeedsShadows } from './capture-look';
@@ -120,7 +127,45 @@ function alphaPool(antialias: boolean) {
   return pool;
 }
 
-function captureFrame(
+function snapshotComposer(
+  gl: THREE.WebGLRenderer,
+  scene: THREE.Scene,
+  camera: THREE.Camera,
+  plan: PostPlan,
+  width: number,
+  height: number,
+): EffectComposer {
+  const composer = new EffectComposer(gl);
+  composer.setSize(width, height);
+  for (const kind of postPasses(plan)) {
+    if (kind === 'render') composer.addPass(new RenderPass(scene, camera));
+    else if (kind === 'ssao' && plan.ssao) {
+      const pass = new SSAOPass(scene, camera, width, height);
+      pass.kernelRadius = 8 * plan.ssao.radius * Math.max(0.2, plan.ssao.intensity);
+      composer.addPass(pass);
+    } else if (kind === 'dof' && plan.dof) {
+      composer.addPass(
+        new BokehPass(scene, camera, {
+          focus: plan.dof.focus,
+          aperture: plan.dof.aperture,
+          maxblur: plan.dof.maxBlur,
+        }),
+      );
+    } else if (kind === 'bloom' && plan.bloom) {
+      composer.addPass(
+        new UnrealBloomPass(
+          new THREE.Vector2(width, height),
+          plan.bloom.strength,
+          plan.bloom.radius,
+          plan.bloom.threshold,
+        ),
+      );
+    } else if (kind === 'output') composer.addPass(new OutputPass());
+  }
+  return composer;
+}
+
+export function captureFrame(
   gl: THREE.WebGLRenderer,
   scene: THREE.Scene,
   camera: THREE.Camera,
@@ -257,10 +302,19 @@ function captureFrame(
     gl.setPixelRatio(preset.pixelRatio);
     gl.setSize(width, height, false);
     setAspect();
+    const focusNode = doc?.stage.post?.dof?.focusNode;
+    const bounds = doc && focusNode ? (nodeOwnBounds(doc, focusNode) ?? undefined) : undefined;
+    const plan = doc ? postPlan(doc.stage, { camera: opts.camera ?? doc.camera, bounds }) : null;
+    const composer =
+      opts.shading === 'rendered' && needsPost(plan)
+        ? snapshotComposer(gl, scene, camera, plan, width, height)
+        : null;
     try {
-      gl.render(scene, camera);
+      if (composer) composer.render();
+      else gl.render(scene, camera);
       dataUrl = gl.domElement.toDataURL(mime, quality);
     } finally {
+      composer?.dispose();
       restoreLook();
       restoreAspect();
       restoreCamera();
@@ -279,7 +333,7 @@ function captureFrame(
   };
 }
 
-function captureIdPass(
+export function captureIdPass(
   gl: THREE.WebGLRenderer,
   scene: THREE.Scene,
   camera: THREE.Camera,

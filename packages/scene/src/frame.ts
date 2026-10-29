@@ -94,33 +94,36 @@ function applyPoint(m: Mat4, p: readonly [number, number, number]): [number, num
   ];
 }
 
-function localBox(doc: SceneDoc, node: SceneNode): Aabb | null {
-  if (node.kind === 'mesh') {
-    const g = node.geometry;
-    let hx = 0;
-    let hy = 0;
-    let hz = 0;
-    if (g.type === 'box') {
-      [hx, hy, hz] = [g.size[0] / 2, g.size[1] / 2, g.size[2] / 2];
-    } else if (g.type === 'sphere') {
-      hx = hy = hz = g.radius;
-    } else if (g.type === 'cylinder') {
-      hx = hz = Math.max(g.radiusTop, g.radiusBottom);
-      hy = g.height / 2;
-    } else if (g.type === 'torus') {
-      hx = hz = g.radius + g.tube;
-      hy = g.tube;
-    } else if (g.type === 'capsule') {
-      hx = hz = g.radius;
-      hy = g.height / 2 + g.radius;
-    } else if (g.type === 'baked') {
-      return { min: [...g.bbox.min], max: [...g.bbox.max] };
-    } else {
-      hx = g.width / 2;
-      hy = g.height / 2;
-    }
-    return { min: [-hx, -hy, -hz], max: [hx, hy, hz] };
+export function meshLocalBounds(node: SceneNode): Aabb | null {
+  if (node.kind !== 'mesh') return null;
+  const g = node.geometry;
+  let hx = 0;
+  let hy = 0;
+  let hz = 0;
+  if (g.type === 'box') {
+    [hx, hy, hz] = [g.size[0] / 2, g.size[1] / 2, g.size[2] / 2];
+  } else if (g.type === 'sphere') {
+    hx = hy = hz = g.radius;
+  } else if (g.type === 'cylinder') {
+    hx = hz = Math.max(g.radiusTop, g.radiusBottom);
+    hy = g.height / 2;
+  } else if (g.type === 'torus') {
+    hx = hz = g.radius + g.tube;
+    hy = g.tube;
+  } else if (g.type === 'capsule') {
+    hx = hz = g.radius;
+    hy = g.height / 2 + g.radius;
+  } else if (g.type === 'baked') {
+    return { min: [...g.bbox.min], max: [...g.bbox.max] };
+  } else {
+    hx = g.width / 2;
+    hy = g.height / 2;
   }
+  return { min: [-hx, -hy, -hz], max: [hx, hy, hz] };
+}
+
+function localBox(doc: SceneDoc, node: SceneNode): Aabb | null {
+  if (node.kind === 'mesh') return meshLocalBounds(node);
   if (node.kind === 'model') {
     const size = doc.assets[node.sha]?.gltf?.size;
     if (!size) return null;

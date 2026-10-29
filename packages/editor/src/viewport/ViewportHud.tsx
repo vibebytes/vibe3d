@@ -11,6 +11,8 @@ interface ViewportHudProps {
 export function ViewportHud({ nodeCount, cameras = [], onFit, onUseCamera }: ViewportHudProps) {
   const grid = useUi((s) => s.grid);
   const setGrid = useUi((s) => s.setGrid);
+  const letterbox = useUi((s) => s.letterbox);
+  const setLetterbox = useUi((s) => s.setLetterbox);
   const gizmoMode = useUi((s) => s.gizmoMode);
   const setGizmoMode = useUi((s) => s.setGizmoMode);
 
@@ -29,6 +31,16 @@ export function ViewportHud({ nodeCount, cameras = [], onFit, onUseCamera }: Vie
             aria-label="网格"
           >
             <Icon name="grid" size={13} />
+          </button>
+          <button
+            type="button"
+            className="hud-btn px-1.5 text-[10.5px]"
+            data-active={letterbox ? 'true' : 'false'}
+            onClick={() => setLetterbox(!letterbox)}
+            title="16:9 遮幅"
+            aria-label="16:9"
+          >
+            16:9
           </button>
           <span className="num px-1 text-[10.5px] text-base-content/60">{nodeCount} 节点</span>
         </div>

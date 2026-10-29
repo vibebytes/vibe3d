@@ -246,6 +246,16 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
         material: str(flags, 'material'),
       } as never);
     }
+    if (command === 'fit-screen') {
+      return room.fitScreen({
+        nodeId: need(rest[1], 'node fit-screen 需要 nodeId'),
+        rect: jsonArg(str(flags, 'rect')),
+        anchor: str(flags, 'anchor'),
+        uniform: flags.uniform === undefined ? undefined : bool(flags, 'uniform'),
+        width: num(flags, 'width'),
+        height: num(flags, 'height'),
+      } as never);
+    }
     if (command === 'group') {
       const ids = str(flags, 'ids')?.split(',');
       return room.group({

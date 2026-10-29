@@ -23,6 +23,7 @@ import { editorUrl } from './handlers/editor-url';
 import { renderHandlers } from './handlers/render';
 import { roomHandlers } from './handlers/room';
 import { sceneHandlers } from './handlers/scene';
+import { sculptHandlers } from './handlers/sculpt';
 import { systemHandlers } from './handlers/system';
 import { tubeHandlers } from './handlers/tube';
 
@@ -36,6 +37,7 @@ const VISUAL_MUTATIONS = new Set<CapabilityName>([
   'node.delete',
   'node.clone',
   'node.merge',
+  'node.fit_screen',
   'node.import',
   'stage.set',
   'camera.set',
@@ -51,6 +53,11 @@ const VISUAL_MUTATIONS = new Set<CapabilityName>([
   'mesh.boolean',
   'mesh.tube',
   'mesh.backdrop',
+  'mesh.lathe',
+  'mesh.organic',
+  'mesh.bevel',
+  'mesh.tree',
+  'mesh.mannequin',
 ]);
 
 // Routes build a fresh ctx per request (spread), so dedupe must key on a stable instance.
@@ -116,6 +123,7 @@ const HANDLERS = {
   ...booleanHandlers,
   ...tubeHandlers,
   ...backdropHandlers,
+  ...sculptHandlers,
   ...renderHandlers,
 } as unknown as Record<CapabilityName, AnyHandler>;
 

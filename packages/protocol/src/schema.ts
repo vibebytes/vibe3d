@@ -288,6 +288,8 @@ export const postSchema = z.object({
     .object({
       aperture: finite.min(0).max(1).optional(),
       focusDistance: finite.min(0).max(100).optional(),
+      fStop: finite.min(1.4).max(16).optional(),
+      focusNode: nodeIdSchema.optional(),
     })
     .optional(),
   bloom: z

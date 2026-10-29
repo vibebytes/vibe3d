@@ -402,6 +402,8 @@ export const sceneOps = {
       roomId,
       nodeId: nodeIdSchema,
       material: materialIdSchema.optional(),
+      smooth: z.boolean().optional(),
+      resolution: z.number().int().min(4).max(80).optional(),
     }),
     output: z.object({
       revision: z.number().int().min(0),
@@ -409,12 +411,45 @@ export const sceneOps = {
       sources: z.array(nodeIdSchema),
       tris: z.number().int().min(0),
       vertices: z.number().int().min(0),
+      warning: z.string().optional(),
     }),
     scope: 'room' as const,
     mutating: true,
     wire: 'node.merge' as const,
     mcp: { annotations: { readOnlyHint: false } },
     cli: { command: 'node merge', args: '<roomId> <nodeId> [--material <id>]' },
+    errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_UNSUPPORTED', 'E_ROOM_NOT_FOUND'] as const,
+  },
+  'node.fit_screen': {
+    title: '按当前相机把节点的位置和缩放拟合到归一化画面框，保留旋转，视线深度保持不变',
+    input: z.object({
+      roomId,
+      nodeId: nodeIdSchema,
+      rect: z
+        .object({
+          u: z.number().finite().min(0).max(1),
+          v: z.number().finite().min(0).max(1),
+          w: z.number().finite().positive().max(1).optional(),
+          h: z.number().finite().positive().max(1).optional(),
+        })
+        .refine((rect) => rect.w != null || rect.h != null, { message: 'rect 需要 w 或 h' }),
+      anchor: z.enum(['center', 'bottom', 'top']).optional(),
+      uniform: z.boolean().optional(),
+      width: z.number().int().min(64).max(4096).optional(),
+      height: z.number().int().min(64).max(4096).optional(),
+    }),
+    output: revisionOut.extend({
+      depth: z.number().finite(),
+      transform: z.object({ p: vec3, s: vec3 }),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'node.fit_screen' as const,
+    mcp: { annotations: { readOnlyHint: false } },
+    cli: {
+      command: 'node fit-screen',
+      args: '<roomId> <nodeId> --rect <json> [--anchor center|bottom|top]',
+    },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_UNSUPPORTED', 'E_ROOM_NOT_FOUND'] as const,
   },
   'node.reparent': {
@@ -571,12 +606,49 @@ export const sceneOps = {
       light: lightSpecSchema.optional(),
       transform: transformInput.optional(),
       tags: tagsSchema.optional(),
+      items: z
+        .array(
+          z.object({
+            kind: z.enum(['mesh', 'group', 'light']),
+            name: z.string().min(1).max(200).optional(),
+            parent: nodeIdSchema.nullable().optional(),
+            shape: z.enum(['box', 'sphere', 'cylinder', 'torus', 'capsule', 'plane']).optional(),
+            size: vec3.optional(),
+            radius: z.number().positive().optional(),
+            height: z.number().positive().optional(),
+            segments: z.number().int().min(3).max(128).optional(),
+            radiusTop: z.number().min(0).optional(),
+            radiusBottom: z.number().min(0).optional(),
+            tube: z.number().positive().optional(),
+            from: vec3.optional().describe('两点连杆起点，须与 to 成对'),
+            to: vec3.optional().describe('两点连杆终点，cylinder/capsule 沿 Y 轴从 from 指向 to'),
+            anchor: z.enum(['center', 'bottom', 'top']).optional(),
+            screenAt: z
+              .object({
+                u: z.number().min(-1).max(2),
+                v: z.number().min(-1).max(2),
+                depth: z.number().positive().optional(),
+                groundY: z.number().finite().optional(),
+                aspect: z.number().positive().optional(),
+              })
+              .optional(),
+            color: z
+              .string()
+              .regex(/^#[0-9a-fA-F]{6}$/)
+              .optional(),
+            material: z.union([materialIdSchema, materialSchema]).optional(),
+            transform: transformInput.optional(),
+          }),
+        )
+        .max(200)
+        .optional(),
     }),
     output: z.object({
       nodeId: nodeIdSchema,
       revision: z.number().int().min(0),
       upserted: z.boolean().optional(),
       tags: tagsSchema.optional(),
+      nodeIds: z.array(nodeIdSchema).optional(),
     }),
     scope: 'room' as const,
     mutating: true,
@@ -670,6 +742,15 @@ export const sceneOps = {
         .partial()
         .optional()
         .describe('显式参数，覆盖顺序 params > preset 默认值；响应 material 字段回读最终参数'),
+      pattern: z
+        .object({
+          fill: z.tuple([z.number().min(0).max(1), z.number().min(0).max(1), z.number().min(0).max(1)]),
+          line: z.tuple([z.number().min(0).max(1), z.number().min(0).max(1), z.number().min(0).max(1)]),
+          size: z.number().int().min(8).max(256).optional(),
+          gap: z.number().int().min(2).max(64).optional(),
+        })
+        .optional()
+        .describe('程序化铺装：生成可重复的缝线 PNG，经 asset.register 挂到 material.map'),
     }),
     output: revisionOut.extend({
       materialId: materialIdSchema,
@@ -1032,6 +1113,147 @@ export const sceneIoOps = {
       command: 'mesh backdrop',
       args: '<roomId> [--width 10] [--depth 4] [--height 6] [--curve 1.2] [--segments 16] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]',
     },
+    errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
+  },
+  'mesh.lathe': {
+    title: '车削：轮廓绕 Y 轴生成回转体，单节点 baked 几何',
+    input: z.object({
+      roomId,
+      name: z.string().min(1).max(200).optional(),
+      profile: z
+        .array(z.tuple([z.number().min(0).max(50), z.number().finite()]))
+        .min(2)
+        .max(64),
+      segments: z.number().int().min(3).max(64).optional(),
+      transform: transformInput.optional(),
+      color: z
+        .string()
+        .regex(/^#[0-9a-fA-F]{6}$/)
+        .optional(),
+      parent: nodeIdSchema.nullable().optional(),
+    }),
+    output: z.object({
+      nodeId: nodeIdSchema,
+      materialId: materialIdSchema,
+      revision: z.number().int().min(0),
+      tris: z.number().int().min(0),
+      vertices: z.number().int().min(0),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'mesh.lathe' as const,
+    cli: { command: 'mesh lathe', args: '<roomId> --profile <json> [--segments 16]' },
+    errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
+  },
+  'mesh.organic': {
+    title: '有机体：带种子的椭球位移，可选平底，单节点 baked 几何',
+    input: z.object({
+      roomId,
+      name: z.string().min(1).max(200).optional(),
+      radius: vec3,
+      seed: z.number().int(),
+      amplitude: z.number().min(0).max(2).optional(),
+      segments: z.number().int().min(3).max(48).optional(),
+      flatBottom: z.boolean().optional(),
+      transform: transformInput.optional(),
+      color: z
+        .string()
+        .regex(/^#[0-9a-fA-F]{6}$/)
+        .optional(),
+      parent: nodeIdSchema.nullable().optional(),
+    }),
+    output: z.object({
+      nodeId: nodeIdSchema,
+      materialId: materialIdSchema,
+      revision: z.number().int().min(0),
+      tris: z.number().int().min(0),
+      vertices: z.number().int().min(0),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'mesh.organic' as const,
+    cli: { command: 'mesh organic', args: '<roomId> --radius x,y,z --seed n [--flat-bottom]' },
+    errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
+  },
+  'mesh.bevel': {
+    title: '倒角盒：圆角后包围盒仍约等于原尺寸，单节点 baked 几何',
+    input: z.object({
+      roomId,
+      name: z.string().min(1).max(200).optional(),
+      size: vec3,
+      radius: z.number().positive().max(10),
+      segments: z.number().int().min(2).max(16).optional(),
+      transform: transformInput.optional(),
+      color: z
+        .string()
+        .regex(/^#[0-9a-fA-F]{6}$/)
+        .optional(),
+      parent: nodeIdSchema.nullable().optional(),
+    }),
+    output: z.object({
+      nodeId: nodeIdSchema,
+      materialId: materialIdSchema,
+      revision: z.number().int().min(0),
+      tris: z.number().int().min(0),
+      vertices: z.number().int().min(0),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'mesh.bevel' as const,
+    cli: { command: 'mesh bevel', args: '<roomId> --size x,y,z --radius r [--segments 4]' },
+    errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
+  },
+  'mesh.tree': {
+    title: '树：递归样条收成一个 baked 网格，相同 seed 稳定',
+    input: z.object({
+      roomId,
+      name: z.string().min(1).max(200).optional(),
+      height: z.number().positive().max(80),
+      spread: z.number().positive().max(40),
+      levels: z.number().int().min(1).max(6),
+      seed: z.number().int(),
+      style: z.enum(['round', 'column']).optional(),
+      transform: transformInput.optional(),
+      color: z
+        .string()
+        .regex(/^#[0-9a-fA-F]{6}$/)
+        .optional(),
+      parent: nodeIdSchema.nullable().optional(),
+    }),
+    output: z.object({
+      nodeId: nodeIdSchema,
+      materialId: materialIdSchema,
+      revision: z.number().int().min(0),
+      tris: z.number().int().min(0),
+      vertices: z.number().int().min(0),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'mesh.tree' as const,
+    cli: { command: 'mesh tree', args: '<roomId> --height 4 --spread 2 --levels 3 --seed 1' },
+    errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
+  },
+  'mesh.mannequin': {
+    title: '人体：胶囊四肢、车削躯干和球头，衣服是另一块 baked',
+    input: z.object({
+      roomId,
+      name: z.string().min(1).max(200).optional(),
+      pose: z.enum(['stand', 'jog_away']).optional(),
+      seed: z.number().int().optional(),
+      transform: transformInput.optional(),
+      parent: nodeIdSchema.nullable().optional(),
+    }),
+    output: z.object({
+      nodeId: nodeIdSchema,
+      clothNodeId: nodeIdSchema,
+      materialId: materialIdSchema,
+      clothMaterialId: materialIdSchema,
+      revision: z.number().int().min(0),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'mesh.mannequin' as const,
+    cli: { command: 'mesh mannequin', args: '<roomId> [--pose jog_away]' },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
   },
 };

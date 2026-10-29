@@ -1,10 +1,13 @@
 import { AppError, type SceneDoc, type SceneNode } from '@vibebyte/vibe3d-protocol';
 import { type Vec3, bakeGeometry } from './bake';
 import { type Mat4, localToAncestor } from './frame';
+import { smoothMerge } from './sculpt';
 
 export interface MergeOptions {
   nodeId: string;
   material?: string;
+  smooth?: boolean;
+  resolution?: number;
 }
 
 export interface MergePlan {
@@ -16,6 +19,7 @@ export interface MergePlan {
   tris: number;
   vertices: number;
   material: string;
+  warning?: string;
 }
 
 type BlockerReason = 'light' | 'model' | 'animation' | 'decal';
@@ -110,10 +114,7 @@ export function mergeGroup(doc: SceneDoc, opts: MergeOptions): MergePlan {
   const sources: string[] = [];
   const blockers: { nodeId: string; reason: string }[] = [];
   const materials = new Set<string>();
-  const positions: number[] = [];
-  const normals: number[] = [];
-  const indices: number[] = [];
-  let tris = 0;
+  const parts: { positions: number[]; normals: number[]; indices: number[] }[] = [];
 
   for (const id of ids) {
     const node = doc.nodes[id]!;
@@ -129,11 +130,11 @@ export function mergeGroup(doc: SceneDoc, opts: MergeOptions): MergePlan {
     if (!m) continue;
     const baked = bakeGeometry(node.geometry);
     const nm = cofactor(m);
-    const offset = positions.length / 3;
+    const positions: number[] = [];
+    const normals: number[] = [];
     for (let i = 0; i < baked.positions.length; i += 3) pushPoint(positions, m, baked.positions, i);
     for (let i = 0; i < baked.normals.length; i += 3) pushNormal(normals, nm, baked.normals, i);
-    for (const index of baked.indices) indices.push(index + offset);
-    tris += baked.indices.length / 3;
+    parts.push({ positions, normals, indices: [...baked.indices] });
     sources.push(id);
     materials.add(node.material);
   }
@@ -160,6 +161,24 @@ export function mergeGroup(doc: SceneDoc, opts: MergeOptions): MergePlan {
     });
   }
 
+  const fused = opts.smooth ? smoothMerge(parts, { resolution: opts.resolution }) : undefined;
+  const positions: number[] = [];
+  const normals: number[] = [];
+  const indices: number[] = [];
+  if (fused) {
+    positions.push(...fused.positions);
+    normals.push(...fused.normals);
+    indices.push(...fused.indices);
+  } else {
+    let offset = 0;
+    for (const part of parts) {
+      positions.push(...part.positions);
+      normals.push(...part.normals);
+      for (const index of part.indices) indices.push(index + offset);
+      offset += part.positions.length / 3;
+    }
+  }
+
   const vertices = positions.length / 3;
   if (vertices === 0) {
     throw new AppError('E_INVALID_PARAMS', `组 ${root.id} 内没有可烘焙的网格`, { nodeId: root.id });
@@ -181,8 +200,9 @@ export function mergeGroup(doc: SceneDoc, opts: MergeOptions): MergePlan {
     normals,
     indices,
     bbox: { min, max },
-    tris,
+    tris: indices.length / 3,
     vertices,
     material: opts.material ?? distinct[0]!,
+    ...(fused?.warning ? { warning: fused.warning } : {}),
   };
 }

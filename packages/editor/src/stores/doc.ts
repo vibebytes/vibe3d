@@ -30,6 +30,7 @@ import type {
 import { useConn } from './conn';
 import { useSelection } from './selection';
 import { parseSnapshotCamera } from './snapshot-camera';
+import { useUi } from './ui';
 
 const SHADING_MODES: readonly ShadingMode[] = ['flat', 'wireframe', 'normals', 'material', 'rendered'];
 const FOG_MODES: readonly FogMode[] = ['doc', 'off', 'auto'];
@@ -465,6 +466,7 @@ export const useDoc = create<DocStore>((set, get) => ({
   async setCamera(camera) {
     const roomId = get().roomId;
     if (!roomId) return;
+    useSelection.getState().reset();
     await rpc('camera.set', { camera }, roomId);
     await get().refresh();
   },
@@ -472,6 +474,7 @@ export const useDoc = create<DocStore>((set, get) => ({
   async frameCamera(mode) {
     const roomId = get().roomId;
     if (!roomId) return;
+    useSelection.getState().reset();
     await rpc('camera.set', { frame: mode }, roomId);
     await get().refresh();
   },
@@ -494,6 +497,8 @@ export const useDoc = create<DocStore>((set, get) => ({
   async useCamera(name) {
     const roomId = get().roomId;
     if (!roomId) return;
+    useSelection.getState().reset();
+    useUi.getState().setLetterbox(true);
     await rpc('camera.set', { name }, roomId);
     await get().refresh();
   },
@@ -501,6 +506,7 @@ export const useDoc = create<DocStore>((set, get) => ({
   async applyCameraPreset(preset) {
     const roomId = get().roomId;
     if (!roomId) return;
+    useSelection.getState().reset();
     await rpc('camera.set', { preset }, roomId);
     await get().refresh();
   },

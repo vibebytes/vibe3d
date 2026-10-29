@@ -3076,6 +3076,15 @@
                             "type": "number",
                             "minimum": 0,
                             "maximum": 100
+                          },
+                          "fStop": {
+                            "type": "number",
+                            "minimum": 1.4,
+                            "maximum": 16
+                          },
+                          "focusNode": {
+                            "type": "string",
+                            "pattern": "^n_[a-z0-9]{8}$"
                           }
                         },
                         "additionalProperties": false
@@ -3637,6 +3646,15 @@
                         "type": "number",
                         "minimum": 0,
                         "maximum": 100
+                      },
+                      "fStop": {
+                        "type": "number",
+                        "minimum": 1.4,
+                        "maximum": 16
+                      },
+                      "focusNode": {
+                        "type": "string",
+                        "pattern": "^n_[a-z0-9]{8}$"
                       }
                     },
                     "additionalProperties": false
@@ -6739,6 +6757,14 @@
           "material": {
             "type": "string",
             "pattern": "^m_[a-z0-9]{8}$"
+          },
+          "smooth": {
+            "type": "boolean"
+          },
+          "resolution": {
+            "type": "integer",
+            "minimum": 4,
+            "maximum": 80
           }
         },
         "required": [
@@ -6773,6 +6799,9 @@
           "vertices": {
             "type": "integer",
             "minimum": 0
+          },
+          "warning": {
+            "type": "string"
           }
         },
         "required": [
@@ -6781,6 +6810,165 @@
           "sources",
           "tris",
           "vertices"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "node.fit_screen",
+      "title": "按当前相机把节点的位置和缩放拟合到归一化画面框，保留旋转，视线深度保持不变",
+      "wire": "node.fit_screen",
+      "scope": "room",
+      "mutating": true,
+      "hostCoupled": false,
+      "errors": [
+        "E_INVALID_PARAMS",
+        "E_NODE_NOT_FOUND",
+        "E_UNSUPPORTED",
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_node",
+        "op": "fit_screen",
+        "legacy": "vibe3d_fit_screen",
+        "annotations": {
+          "readOnlyHint": false
+        },
+        "roomArg": false
+      },
+      "cli": {
+        "command": "node fit-screen",
+        "args": "<roomId> <nodeId> --rect <json> [--anchor center|bottom|top]"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "nodeId": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "rect": {
+            "type": "object",
+            "properties": {
+              "u": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "v": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "w": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1
+              },
+              "h": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "maximum": 1
+              }
+            },
+            "required": [
+              "u",
+              "v"
+            ],
+            "additionalProperties": false
+          },
+          "anchor": {
+            "type": "string",
+            "enum": [
+              "center",
+              "bottom",
+              "top"
+            ]
+          },
+          "uniform": {
+            "type": "boolean"
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 64,
+            "maximum": 4096
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 64,
+            "maximum": 4096
+          }
+        },
+        "required": [
+          "roomId",
+          "nodeId",
+          "rect"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "depth": {
+            "type": "number"
+          },
+          "transform": {
+            "type": "object",
+            "properties": {
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "s": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "p",
+              "s"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "revision",
+          "depth",
+          "transform"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -10733,6 +10921,15 @@
                                       "type": "number",
                                       "minimum": 0,
                                       "maximum": 100
+                                    },
+                                    "fStop": {
+                                      "type": "number",
+                                      "minimum": 1.4,
+                                      "maximum": 16
+                                    },
+                                    "focusNode": {
+                                      "type": "string",
+                                      "pattern": "^n_[a-z0-9]{8}$"
                                     }
                                   },
                                   "additionalProperties": false
@@ -14187,6 +14384,15 @@
                                       "type": "number",
                                       "minimum": 0,
                                       "maximum": 100
+                                    },
+                                    "fStop": {
+                                      "type": "number",
+                                      "minimum": 1.4,
+                                      "maximum": 16
+                                    },
+                                    "focusNode": {
+                                      "type": "string",
+                                      "pattern": "^n_[a-z0-9]{8}$"
                                     }
                                   },
                                   "additionalProperties": false
@@ -18360,6 +18566,15 @@
                                       "type": "number",
                                       "minimum": 0,
                                       "maximum": 100
+                                    },
+                                    "fStop": {
+                                      "type": "number",
+                                      "minimum": 1.4,
+                                      "maximum": 16
+                                    },
+                                    "focusNode": {
+                                      "type": "string",
+                                      "pattern": "^n_[a-z0-9]{8}$"
                                     }
                                   },
                                   "additionalProperties": false
@@ -21814,6 +22029,15 @@
                                       "type": "number",
                                       "minimum": 0,
                                       "maximum": 100
+                                    },
+                                    "fStop": {
+                                      "type": "number",
+                                      "minimum": 1.4,
+                                      "maximum": 16
+                                    },
+                                    "focusNode": {
+                                      "type": "string",
+                                      "pattern": "^n_[a-z0-9]{8}$"
                                     }
                                   },
                                   "additionalProperties": false
@@ -22880,6 +23104,433 @@
               "maxLength": 32
             },
             "maxItems": 16
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "mesh",
+                    "group",
+                    "light"
+                  ]
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "parent": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^n_[a-z0-9]{8}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "shape": {
+                  "type": "string",
+                  "enum": [
+                    "box",
+                    "sphere",
+                    "cylinder",
+                    "torus",
+                    "capsule",
+                    "plane"
+                  ]
+                },
+                "size": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "radius": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "height": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "segments": {
+                  "type": "integer",
+                  "minimum": 3,
+                  "maximum": 128
+                },
+                "radiusTop": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "radiusBottom": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "tube": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "from": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "description": "两点连杆起点，须与 to 成对"
+                },
+                "to": {
+                  "type": "array",
+                  "minItems": 3,
+                  "maxItems": 3,
+                  "items": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "description": "两点连杆终点，cylinder/capsule 沿 Y 轴从 from 指向 to"
+                },
+                "anchor": {
+                  "type": "string",
+                  "enum": [
+                    "center",
+                    "bottom",
+                    "top"
+                  ]
+                },
+                "screenAt": {
+                  "type": "object",
+                  "properties": {
+                    "u": {
+                      "type": "number",
+                      "minimum": -1,
+                      "maximum": 2
+                    },
+                    "v": {
+                      "type": "number",
+                      "minimum": -1,
+                      "maximum": 2
+                    },
+                    "depth": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    },
+                    "groundY": {
+                      "type": "number"
+                    },
+                    "aspect": {
+                      "type": "number",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "required": [
+                    "u",
+                    "v"
+                  ],
+                  "additionalProperties": false
+                },
+                "color": {
+                  "type": "string",
+                  "pattern": "^#[0-9a-fA-F]{6}$"
+                },
+                "material": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^m_[a-z0-9]{8}$"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "baseColor": {
+                          "type": "array",
+                          "minItems": 4,
+                          "maxItems": 4,
+                          "items": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
+                          ]
+                        },
+                        "metalness": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "roughness": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "emissive": {
+                          "type": "array",
+                          "minItems": 3,
+                          "maxItems": 3,
+                          "items": [
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
+                          ]
+                        },
+                        "emissiveIntensity": {
+                          "type": "number",
+                          "minimum": 0
+                        },
+                        "opacity": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        },
+                        "doubleSided": {
+                          "type": "boolean"
+                        },
+                        "map": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[0-9a-f]{64}$"
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "sha": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-f]{64}$"
+                                },
+                                "tiling": {
+                                  "type": "array",
+                                  "minItems": 2,
+                                  "maxItems": 2,
+                                  "items": [
+                                    {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
+                                    },
+                                    {
+                                      "type": "number",
+                                      "exclusiveMinimum": 0
+                                    }
+                                  ]
+                                },
+                                "offset": {
+                                  "type": "array",
+                                  "minItems": 2,
+                                  "maxItems": 2,
+                                  "items": [
+                                    {
+                                      "type": "number"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                },
+                                "rotation": {
+                                  "type": "number",
+                                  "description": "贴图旋转，弧度（THREE.Texture.rotation 同域）；转 45° 传 0.7854"
+                                },
+                                "channel": {
+                                  "type": "number",
+                                  "enum": [
+                                    0,
+                                    1
+                                  ]
+                                },
+                                "uv": {
+                                  "type": "object",
+                                  "properties": {
+                                    "offset": {
+                                      "type": "array",
+                                      "minItems": 2,
+                                      "maxItems": 2,
+                                      "items": [
+                                        {
+                                          "type": "number"
+                                        },
+                                        {
+                                          "type": "number"
+                                        }
+                                      ]
+                                    },
+                                    "repeat": {
+                                      "type": "array",
+                                      "minItems": 2,
+                                      "maxItems": 2,
+                                      "items": [
+                                        {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0
+                                        },
+                                        {
+                                          "type": "number",
+                                          "exclusiveMinimum": 0
+                                        }
+                                      ]
+                                    },
+                                    "rotation": {
+                                      "type": "number"
+                                    },
+                                    "channel": {
+                                      "type": "number",
+                                      "enum": [
+                                        0,
+                                        1
+                                      ]
+                                    }
+                                  },
+                                  "additionalProperties": false
+                                }
+                              },
+                              "required": [
+                                "sha"
+                              ],
+                              "additionalProperties": false
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "baseColor",
+                        "metalness",
+                        "roughness",
+                        "emissive",
+                        "emissiveIntensity",
+                        "opacity",
+                        "doubleSided"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "transform": {
+                  "type": "object",
+                  "properties": {
+                    "p": {
+                      "type": "array",
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "items": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "r": {
+                      "type": "array",
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "items": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ],
+                      "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
+                    },
+                    "s": {
+                      "type": "array",
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "items": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    },
+                    "space": {
+                      "type": "string",
+                      "enum": [
+                        "local",
+                        "world"
+                      ],
+                      "description": "坐标空间：local（默认，相对父节点）或 world（世界坐标，自动换算为父节点局部 TRS）"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 200
           }
         },
         "required": [
@@ -22911,6 +23562,13 @@
               "maxLength": 32
             },
             "maxItems": 16
+          },
+          "nodeIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            }
           }
         },
         "required": [
@@ -23536,6 +24194,15 @@
                                 "type": "number",
                                 "minimum": 0,
                                 "maximum": 100
+                              },
+                              "fStop": {
+                                "type": "number",
+                                "minimum": 1.4,
+                                "maximum": 16
+                              },
+                              "focusNode": {
+                                "type": "string",
+                                "pattern": "^n_[a-z0-9]{8}$"
                               }
                             },
                             "additionalProperties": false
@@ -23717,6 +24384,15 @@
                         "type": "number",
                         "minimum": 0,
                         "maximum": 100
+                      },
+                      "fStop": {
+                        "type": "number",
+                        "minimum": 1.4,
+                        "maximum": 16
+                      },
+                      "focusNode": {
+                        "type": "string",
+                        "pattern": "^n_[a-z0-9]{8}$"
                       }
                     },
                     "additionalProperties": false
@@ -24299,6 +24975,71 @@
             },
             "additionalProperties": false,
             "description": "显式参数，覆盖顺序 params > preset 默认值；响应 material 字段回读最终参数"
+          },
+          "pattern": {
+            "type": "object",
+            "properties": {
+              "fill": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                ]
+              },
+              "line": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                ]
+              },
+              "size": {
+                "type": "integer",
+                "minimum": 8,
+                "maximum": 256
+              },
+              "gap": {
+                "type": "integer",
+                "minimum": 2,
+                "maximum": 64
+              }
+            },
+            "required": [
+              "fill",
+              "line"
+            ],
+            "additionalProperties": false,
+            "description": "程序化铺装：生成可重复的缝线 PNG，经 asset.register 挂到 material.map"
           }
         },
         "required": [
@@ -29635,6 +30376,15 @@
                                       "type": "number",
                                       "minimum": 0,
                                       "maximum": 100
+                                    },
+                                    "fStop": {
+                                      "type": "number",
+                                      "minimum": 1.4,
+                                      "maximum": 16
+                                    },
+                                    "focusNode": {
+                                      "type": "string",
+                                      "pattern": "^n_[a-z0-9]{8}$"
                                     }
                                   },
                                   "additionalProperties": false
@@ -33089,6 +33839,15 @@
                                       "type": "number",
                                       "minimum": 0,
                                       "maximum": 100
+                                    },
+                                    "fStop": {
+                                      "type": "number",
+                                      "minimum": 1.4,
+                                      "maximum": 16
+                                    },
+                                    "focusNode": {
+                                      "type": "string",
+                                      "pattern": "^n_[a-z0-9]{8}$"
                                     }
                                   },
                                   "additionalProperties": false
@@ -36637,6 +37396,15 @@
                             "type": "number",
                             "minimum": 0,
                             "maximum": 100
+                          },
+                          "fStop": {
+                            "type": "number",
+                            "minimum": 1.4,
+                            "maximum": 16
+                          },
+                          "focusNode": {
+                            "type": "string",
+                            "pattern": "^n_[a-z0-9]{8}$"
                           }
                         },
                         "additionalProperties": false
@@ -39475,6 +40243,15 @@
                             "type": "number",
                             "minimum": 0,
                             "maximum": 100
+                          },
+                          "fStop": {
+                            "type": "number",
+                            "minimum": 1.4,
+                            "maximum": 16
+                          },
+                          "focusNode": {
+                            "type": "string",
+                            "pattern": "^n_[a-z0-9]{8}$"
                           }
                         },
                         "additionalProperties": false
@@ -40802,6 +41579,909 @@
           "revision",
           "tris",
           "vertices"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "mesh.lathe",
+      "title": "车削：轮廓绕 Y 轴生成回转体，单节点 baked 几何",
+      "wire": "mesh.lathe",
+      "scope": "room",
+      "mutating": true,
+      "hostCoupled": false,
+      "errors": [
+        "E_INVALID_PARAMS",
+        "E_NODE_NOT_FOUND",
+        "E_PAYLOAD_TOO_LARGE",
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_mesh",
+        "op": "lathe",
+        "legacy": "vibe3d_lathe_mesh",
+        "annotations": {},
+        "roomArg": false
+      },
+      "cli": {
+        "command": "mesh lathe",
+        "args": "<roomId> --profile <json> [--segments 16]"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "profile": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": [
+                {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 50
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "minItems": 2,
+            "maxItems": 64
+          },
+          "segments": {
+            "type": "integer",
+            "minimum": 3,
+            "maximum": 64
+          },
+          "transform": {
+            "type": "object",
+            "properties": {
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "r": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
+              },
+              "s": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "space": {
+                "type": "string",
+                "enum": [
+                  "local",
+                  "world"
+                ],
+                "description": "坐标空间：local（默认，相对父节点）或 world（世界坐标，自动换算为父节点局部 TRS）"
+              }
+            },
+            "additionalProperties": false
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "roomId",
+          "profile"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "nodeId": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "materialId": {
+            "type": "string",
+            "pattern": "^m_[a-z0-9]{8}$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "tris": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "vertices": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "nodeId",
+          "materialId",
+          "revision",
+          "tris",
+          "vertices"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "mesh.organic",
+      "title": "有机体：带种子的椭球位移，可选平底，单节点 baked 几何",
+      "wire": "mesh.organic",
+      "scope": "room",
+      "mutating": true,
+      "hostCoupled": false,
+      "errors": [
+        "E_INVALID_PARAMS",
+        "E_NODE_NOT_FOUND",
+        "E_PAYLOAD_TOO_LARGE",
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_mesh",
+        "op": "organic",
+        "legacy": "vibe3d_organic_mesh",
+        "annotations": {},
+        "roomArg": false
+      },
+      "cli": {
+        "command": "mesh organic",
+        "args": "<roomId> --radius x,y,z --seed n [--flat-bottom]"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "radius": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "seed": {
+            "type": "integer"
+          },
+          "amplitude": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2
+          },
+          "segments": {
+            "type": "integer",
+            "minimum": 3,
+            "maximum": 48
+          },
+          "flatBottom": {
+            "type": "boolean"
+          },
+          "transform": {
+            "type": "object",
+            "properties": {
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "r": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
+              },
+              "s": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "space": {
+                "type": "string",
+                "enum": [
+                  "local",
+                  "world"
+                ],
+                "description": "坐标空间：local（默认，相对父节点）或 world（世界坐标，自动换算为父节点局部 TRS）"
+              }
+            },
+            "additionalProperties": false
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "roomId",
+          "radius",
+          "seed"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "nodeId": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "materialId": {
+            "type": "string",
+            "pattern": "^m_[a-z0-9]{8}$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "tris": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "vertices": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "nodeId",
+          "materialId",
+          "revision",
+          "tris",
+          "vertices"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "mesh.bevel",
+      "title": "倒角盒：圆角后包围盒仍约等于原尺寸，单节点 baked 几何",
+      "wire": "mesh.bevel",
+      "scope": "room",
+      "mutating": true,
+      "hostCoupled": false,
+      "errors": [
+        "E_INVALID_PARAMS",
+        "E_NODE_NOT_FOUND",
+        "E_PAYLOAD_TOO_LARGE",
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_mesh",
+        "op": "bevel",
+        "legacy": "vibe3d_bevel_mesh",
+        "annotations": {},
+        "roomArg": false
+      },
+      "cli": {
+        "command": "mesh bevel",
+        "args": "<roomId> --size x,y,z --radius r [--segments 4]"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "size": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ]
+          },
+          "radius": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 10
+          },
+          "segments": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 16
+          },
+          "transform": {
+            "type": "object",
+            "properties": {
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "r": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
+              },
+              "s": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "space": {
+                "type": "string",
+                "enum": [
+                  "local",
+                  "world"
+                ],
+                "description": "坐标空间：local（默认，相对父节点）或 world（世界坐标，自动换算为父节点局部 TRS）"
+              }
+            },
+            "additionalProperties": false
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "roomId",
+          "size",
+          "radius"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "nodeId": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "materialId": {
+            "type": "string",
+            "pattern": "^m_[a-z0-9]{8}$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "tris": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "vertices": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "nodeId",
+          "materialId",
+          "revision",
+          "tris",
+          "vertices"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "mesh.tree",
+      "title": "树：递归样条收成一个 baked 网格，相同 seed 稳定",
+      "wire": "mesh.tree",
+      "scope": "room",
+      "mutating": true,
+      "hostCoupled": false,
+      "errors": [
+        "E_INVALID_PARAMS",
+        "E_NODE_NOT_FOUND",
+        "E_PAYLOAD_TOO_LARGE",
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_mesh",
+        "op": "tree",
+        "legacy": "vibe3d_tree_mesh",
+        "annotations": {},
+        "roomArg": false
+      },
+      "cli": {
+        "command": "mesh tree",
+        "args": "<roomId> --height 4 --spread 2 --levels 3 --seed 1"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "height": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 80
+          },
+          "spread": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 40
+          },
+          "levels": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 6
+          },
+          "seed": {
+            "type": "integer"
+          },
+          "style": {
+            "type": "string",
+            "enum": [
+              "round",
+              "column"
+            ]
+          },
+          "transform": {
+            "type": "object",
+            "properties": {
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "r": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
+              },
+              "s": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "space": {
+                "type": "string",
+                "enum": [
+                  "local",
+                  "world"
+                ],
+                "description": "坐标空间：local（默认，相对父节点）或 world（世界坐标，自动换算为父节点局部 TRS）"
+              }
+            },
+            "additionalProperties": false
+          },
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "roomId",
+          "height",
+          "spread",
+          "levels",
+          "seed"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "nodeId": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "materialId": {
+            "type": "string",
+            "pattern": "^m_[a-z0-9]{8}$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "tris": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "vertices": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "nodeId",
+          "materialId",
+          "revision",
+          "tris",
+          "vertices"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "mesh.mannequin",
+      "title": "人体：胶囊四肢、车削躯干和球头，衣服是另一块 baked",
+      "wire": "mesh.mannequin",
+      "scope": "room",
+      "mutating": true,
+      "hostCoupled": false,
+      "errors": [
+        "E_INVALID_PARAMS",
+        "E_NODE_NOT_FOUND",
+        "E_PAYLOAD_TOO_LARGE",
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_mesh",
+        "op": "mannequin",
+        "legacy": "vibe3d_mannequin_mesh",
+        "annotations": {},
+        "roomArg": false
+      },
+      "cli": {
+        "command": "mesh mannequin",
+        "args": "<roomId> [--pose jog_away]"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "pose": {
+            "type": "string",
+            "enum": [
+              "stand",
+              "jog_away"
+            ]
+          },
+          "seed": {
+            "type": "integer"
+          },
+          "transform": {
+            "type": "object",
+            "properties": {
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "r": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "description": "欧拉角，弧度；XYZ 顺序（R = Rx·Ry·Rz，先绕固定轴 Z、再 Y、再 X）；绕 Z 转 30° 即 [0,0,0.5236]"
+              },
+              "s": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "space": {
+                "type": "string",
+                "enum": [
+                  "local",
+                  "world"
+                ],
+                "description": "坐标空间：local（默认，相对父节点）或 world（世界坐标，自动换算为父节点局部 TRS）"
+              }
+            },
+            "additionalProperties": false
+          },
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "roomId"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "nodeId": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "clothNodeId": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "materialId": {
+            "type": "string",
+            "pattern": "^m_[a-z0-9]{8}$"
+          },
+          "clothMaterialId": {
+            "type": "string",
+            "pattern": "^m_[a-z0-9]{8}$"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "nodeId",
+          "clothNodeId",
+          "materialId",
+          "clothMaterialId",
+          "revision"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"

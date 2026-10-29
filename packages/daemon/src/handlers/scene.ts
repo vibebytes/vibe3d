@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
   AppError,
   type FxSpec,
@@ -22,6 +25,7 @@ import {
   clipChannelOf,
   frameTarget,
   mergeGroup,
+  meshLocalBounds,
   nodeBounds,
   nodeClipsOf,
   nodeOwnBounds,
@@ -33,12 +37,14 @@ import {
   resolveMaterialPreset,
   sceneStats,
   solveCamera,
+  solveFitTransform,
   subtreeIds,
   unprojectPoints,
   validateScene,
   worldMatrix,
   worldPointToLocal,
 } from '@vibebyte/vibe3d-scene';
+import { patternPng } from '../render/pattern';
 import type { HandlersFor } from './types';
 
 const RAD2DEG = 180 / Math.PI;
@@ -65,6 +71,7 @@ type Keys =
   | 'node.reparent'
   | 'node.group'
   | 'node.merge'
+  | 'node.fit_screen'
   | 'material.assign'
   | 'material.create'
   | 'material.patch'
@@ -626,7 +633,12 @@ export const sceneHandlers: HandlersFor<Keys> = {
   'node.merge': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
     const group = room.doc.nodes[p.nodeId];
-    const plan = mergeGroup(room.doc, { nodeId: p.nodeId, material: p.material });
+    const plan = mergeGroup(room.doc, {
+      nodeId: p.nodeId,
+      material: p.material,
+      smooth: p.smooth,
+      resolution: p.resolution,
+    });
     const nodeId = makeNodeId();
     const merged: SceneNode = {
       id: nodeId,
@@ -655,7 +667,32 @@ export const sceneHandlers: HandlersFor<Keys> = {
       sources: plan.sources,
       tris: plan.tris,
       vertices: plan.vertices,
+      ...(plan.warning ? { warning: plan.warning } : {}),
     };
+  },
+  'node.fit_screen': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const node = room.doc.nodes[p.nodeId];
+    if (!node) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.nodeId} 不存在`);
+    const bbox = meshLocalBounds(node);
+    if (!bbox) throw new AppError('E_UNSUPPORTED', `节点 ${p.nodeId} 没有可拟合的网格`);
+    const parent = node.parent ? worldMatrix(room.doc, node.parent) : undefined;
+    const fit = solveFitTransform({
+      camera: room.doc.camera,
+      bbox,
+      rect: p.rect,
+      anchor: p.anchor,
+      uniform: p.uniform,
+      width: p.width,
+      height: p.height,
+      pose: { p: node.transform.p, r: node.transform.r, s: node.transform.s },
+      parent: parent ?? undefined,
+    });
+    const transform = { ...node.transform, p: fit.p, s: fit.s };
+    const result = await room.run(() =>
+      room.apply([{ op: 'node.update', id: node.id, patch: { transform } }]),
+    );
+    return { revision: result.revision, depth: fit.depth, transform: { p: fit.p, s: fit.s } };
   },
   'material.assign': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
@@ -673,6 +710,24 @@ export const sceneHandlers: HandlersFor<Keys> = {
   },
   'node.create': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
+    if (p.items?.length) {
+      if (p.upsertByName) throw new AppError('E_INVALID_PARAMS', 'items 与 upsertByName 不能同时使用');
+      const ops: Op[] = [];
+      const ids: string[] = [];
+      const names = new Set<string>();
+      for (const item of p.items) {
+        if (item.name) {
+          if (names.has(item.name)) throw new AppError('E_INVALID_PARAMS', `名称重复：${item.name}`);
+          names.add(item.name);
+        }
+        const built = buildCreateOps(room.doc, { ...p, ...item, items: undefined, upsertByName: undefined });
+        ops.push(...built.ops);
+        ids.push(built.id);
+      }
+      const result = await room.run(() => room.apply(ops));
+      return { nodeId: ids[0]!, nodeIds: ids, revision: result.revision };
+    }
+    if (!p.kind) throw new AppError('E_INVALID_PARAMS', '需要 kind 或 items');
     const { id, ops, hit } = p.upsertByName ? buildUpsertOps(room.doc, p) : buildCreateOps(room.doc, p);
     const upserted = hit ? { upserted: true } : {};
     const tags = p.tags === undefined ? {} : { tags: [...p.tags] };
@@ -929,11 +984,22 @@ export const sceneHandlers: HandlersFor<Keys> = {
     const room = ctx.rooms.get(p.roomId);
     const materialId = makeMaterialId();
     const resolved = resolveMaterialPreset(p.preset, p.params);
-    const result = await room.run(() =>
-      room.apply([
-        { op: 'material.create', id: materialId, preset: resolved.preset, params: resolved.params },
-      ]),
-    );
+    const ops: Op[] = [];
+    let params = resolved.params;
+    if (p.pattern) {
+      const dir = mkdtempSync(join(tmpdir(), 'vibe3d-pattern-'));
+      const file = join(dir, 'pattern.png');
+      writeFileSync(file, patternPng(p.pattern));
+      try {
+        const { meta } = await ctx.ingest(file);
+        ops.push({ op: 'asset.register', asset: meta });
+        params = { ...params, map: meta.sha };
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
+    }
+    ops.push({ op: 'material.create', id: materialId, preset: resolved.preset, params });
+    const result = await room.run(() => room.apply(ops));
     const final = room.doc.materials[materialId];
     return {
       revision: result.revision,

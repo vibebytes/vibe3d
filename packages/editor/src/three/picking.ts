@@ -49,9 +49,17 @@ export function pickAt(
   clientX: number,
   clientY: number,
   el: HTMLElement,
+  frame?: { x: number; y: number; w: number; h: number },
 ): PickResult | null {
+  const rect = el.getBoundingClientRect();
+  const x = clientX - rect.left;
+  const y = clientY - rect.top;
+  if (frame && (x < frame.x || y < frame.y || x > frame.x + frame.w || y > frame.y + frame.h)) return null;
+  const ndc = frame
+    ? new THREE.Vector2(((x - frame.x) / frame.w) * 2 - 1, -((y - frame.y) / frame.h) * 2 + 1)
+    : ndcFromPointer(clientX, clientY, el);
   const raycaster = new THREE.Raycaster();
-  raycaster.setFromCamera(ndcFromPointer(clientX, clientY, el), camera);
+  raycaster.setFromCamera(ndc, camera);
   const hits = raycaster.intersectObjects(scene.children, true);
   for (const hit of hits) {
     if (hit.object.name === OUTLINE_NAME) continue;

@@ -132,6 +132,10 @@ export class RoomHandle {
     return this.invoke('node.merge', params);
   }
 
+  fitScreen(params: Omit<CapParams<'node.fit_screen'>, 'roomId'>): Promise<CapResult<'node.fit_screen'>> {
+    return this.invoke('node.fit_screen', params);
+  }
+
   assignMaterial(
     params: Omit<CapParams<'material.assign'>, 'roomId'>,
   ): Promise<CapResult<'material.assign'>> {

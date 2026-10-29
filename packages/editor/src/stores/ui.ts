@@ -9,6 +9,7 @@ interface Persistent {
   panel: SideTab;
   panelOpen: boolean;
   grid: boolean;
+  letterbox: boolean;
   showStats: boolean;
   viewMode: ViewMode;
 }
@@ -22,6 +23,7 @@ interface UiStore extends Persistent {
   setPanelOpen(open: boolean): void;
   togglePanel(): void;
   setGrid(on: boolean): void;
+  setLetterbox(on: boolean): void;
   toggleStats(): void;
   setViewMode(mode: ViewMode): void;
   setPalette(open: boolean): void;
@@ -36,6 +38,7 @@ const defaults: Persistent = {
   panel: 'scene',
   panelOpen: false,
   grid: true,
+  letterbox: true,
   showStats: true,
   viewMode: 'perspective',
 };
@@ -70,6 +73,9 @@ export const useUi = create<UiStore>((set, get) => ({
   setGrid(grid) {
     set({ grid });
   },
+  setLetterbox(letterbox) {
+    set({ letterbox });
+  },
   toggleStats() {
     set({ showStats: !get().showStats });
   },
@@ -93,6 +99,7 @@ useUi.subscribe((s) => {
     panel: s.panel,
     panelOpen: s.panelOpen,
     grid: s.grid,
+    letterbox: s.letterbox,
     showStats: s.showStats,
     viewMode: s.viewMode,
   };

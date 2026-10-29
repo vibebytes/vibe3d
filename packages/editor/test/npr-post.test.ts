@@ -42,10 +42,10 @@ describe('stage.post 渲染计划', () => {
 
   it('dof 由焦距与光圈推出 focus/maxBlur', () => {
     expect(postPlan(stage({ post: { dof: { aperture: 0.03, focusDistance: 4 } } }))).toEqual({
-      dof: { focus: 4, aperture: 0.03, maxBlur: 0.03 },
+      dof: { focus: 4, aperture: 0.03, maxBlur: 0.06 },
       tonemap: 'aces',
     });
-    expect(postPlan(stage({ post: { dof: {} } }))?.dof).toEqual({ focus: 6, aperture: 0.02, maxBlur: 0.02 });
+    expect(postPlan(stage({ post: { dof: {} } }))?.dof).toEqual({ focus: 6, aperture: 0.02, maxBlur: 0.04 });
   });
 
   it('ssao 缺省半径与强度', () => {

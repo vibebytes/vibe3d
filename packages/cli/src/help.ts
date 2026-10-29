@@ -16,6 +16,7 @@ export const HELP = `vibe3d — 专家级 3D 场景 CLI（与 MCP / HTTP 同一�
   node rm <roomId> <nodeId> [--no-cascade]
   node clone <roomId> <nodeId> [--count 2] [--parent <id>] [--transform <json>]
   node merge <roomId> <nodeId> [--material <id>]
+  node fit-screen <roomId> <nodeId> --rect <json> [--anchor center|bottom|top]
   stage set <roomId> --preset <name> | --stage <json|@file>   # npr / post 走 --stage
   anim play <roomId> <nodeId> [--clip n] [--speed 1]
   camera set <roomId> [--frame fit|close|wide] [--preset miniature_45] [--name hero] [--p x,y,z] [--target x,y,z]

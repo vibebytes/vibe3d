@@ -56,11 +56,17 @@ export const WIRE_METHODS = [
   'node.reparent',
   'node.group',
   'node.merge',
+  'node.fit_screen',
   'material.assign',
   'decal.create',
   'mesh.boolean',
   'mesh.tube',
   'mesh.backdrop',
+  'mesh.lathe',
+  'mesh.organic',
+  'mesh.bevel',
+  'mesh.tree',
+  'mesh.mannequin',
 ] as const;
 
 export type WireMethod = (typeof WIRE_METHODS)[number];

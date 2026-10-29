@@ -1,5 +1,5 @@
 import type { CameraState, SceneDoc } from '@vibebyte/vibe3d-protocol';
-import { nodeBounds } from './frame';
+import { nodeBounds, worldMatrix, worldPointToLocal } from './frame';
 
 type Vec3 = [number, number, number];
 
@@ -388,4 +388,238 @@ export function solveCamera(doc: SceneDoc, opts: SolveCameraOptions): SolveCamer
     rmsePx: Math.round(Math.sqrt(bestEval.cost / bestEval.count) * 100) / 100,
     iterations,
   };
+}
+
+export interface FitRect {
+  u: number;
+  v: number;
+  w?: number;
+  h?: number;
+}
+
+export interface SolveFitTransformOptions {
+  camera: CameraState;
+  bbox: { min: Vec3; max: Vec3 };
+  rect: FitRect;
+  anchor?: 'center' | 'bottom' | 'top';
+  uniform?: boolean;
+  width?: number;
+  height?: number;
+  doc?: SceneDoc;
+  parentId?: string;
+  pose?: { p: Vec3; r?: Vec3; s: Vec3 };
+  parent?: readonly number[];
+}
+
+export interface FitTransform {
+  p: Vec3;
+  s: Vec3;
+  depth: number;
+}
+
+function add(a: Vec3, b: Vec3): Vec3 {
+  return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+}
+
+function scaleVec(a: Vec3, k: number): Vec3 {
+  return [a[0] * k, a[1] * k, a[2] * k];
+}
+
+function parentScale(doc: SceneDoc, parentId: string): Vec3 {
+  const m = worldMatrix(doc, parentId);
+  if (!m) return [1, 1, 1];
+  const len = (i: number) => Math.hypot(m[i]!, m[i + 1]!, m[i + 2]!) || 1;
+  return [len(0), len(4), len(8)];
+}
+
+export function solveFitTransform(opts: SolveFitTransformOptions): FitTransform {
+  const width = opts.width ?? 1280;
+  const height = opts.height ?? 720;
+  const basis = cameraBasis(opts.camera, width, height);
+  const { min, max } = opts.bbox;
+  const center: Vec3 = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2];
+  const anchorLocal: Vec3 =
+    opts.anchor === 'bottom'
+      ? [center[0], min[1], center[2]]
+      : opts.anchor === 'top'
+        ? [center[0], max[1], center[2]]
+        : center;
+  const poseP = opts.pose?.p ?? ([0, 0, 0] as Vec3);
+  const poseS = opts.pose?.s ?? ([1, 1, 1] as Vec3);
+  const rot = opts.pose?.r ?? ([0, 0, 0] as Vec3);
+  const frame = opts.parent;
+  let s: Vec3 = [poseS[0], poseS[1], poseS[2]];
+  let origin: Vec3 = [poseP[0], poseP[1], poseP[2]];
+
+  const rotateEuler = (v: Vec3): Vec3 => {
+    const [rx, ry, rz] = rot;
+    const cx = Math.cos(rx);
+    const sx = Math.sin(rx);
+    const cy = Math.cos(ry);
+    const sy = Math.sin(ry);
+    const cz = Math.cos(rz);
+    const sz = Math.sin(rz);
+    const x = v[0];
+    const y = v[1];
+    const z = v[2];
+    return [
+      cy * cz * x - cy * sz * y + sy * z,
+      (cx * sz + sx * sy * cz) * x + (cx * cz - sx * sy * sz) * y - sx * cy * z,
+      (sx * sz - cx * sy * cz) * x + (sx * cz + cx * sy * sz) * y + cx * cy * z,
+    ];
+  };
+  const orient = (local: Vec3, scale: Vec3): Vec3 =>
+    rotateEuler([local[0] * scale[0], local[1] * scale[1], local[2] * scale[2]]);
+  const toWorld = (local: Vec3, scale: Vec3, at: Vec3): Vec3 => {
+    const inParent = add(orient(local, scale), at);
+    if (!frame) return inParent;
+    return [
+      frame[0]! * inParent[0] + frame[4]! * inParent[1] + frame[8]! * inParent[2] + frame[12]!,
+      frame[1]! * inParent[0] + frame[5]! * inParent[1] + frame[9]! * inParent[2] + frame[13]!,
+      frame[2]! * inParent[0] + frame[6]! * inParent[1] + frame[10]! * inParent[2] + frame[14]!,
+    ];
+  };
+  const invertLinear = (v: Vec3): Vec3 => {
+    if (!frame) return v;
+    const c0: Vec3 = [frame[0]!, frame[1]!, frame[2]!];
+    const c1: Vec3 = [frame[4]!, frame[5]!, frame[6]!];
+    const c2: Vec3 = [frame[8]!, frame[9]!, frame[10]!];
+    const det = dot(c0, cross(c1, c2));
+    if (Math.abs(det) < EPS) return v;
+    const inv = 1 / det;
+    return [dot(v, cross(c1, c2)) * inv, dot(v, cross(c2, c0)) * inv, dot(v, cross(c0, c1)) * inv];
+  };
+  const depth0 = dot(sub(toWorld(center, s, origin), opts.camera.p), basis.forward);
+
+  const spanOf = (scale: Vec3, at: Vec3) => {
+    const corners: Vec3[] = [];
+    for (let i = 0; i < 8; i += 1) {
+      corners.push(
+        toWorld([i & 1 ? max[0] : min[0], i & 2 ? max[1] : min[1], i & 4 ? max[2] : min[2]], scale, at),
+      );
+    }
+    const shot = projectPoints({ camera: opts.camera } as SceneDoc, {
+      camera: opts.camera,
+      width,
+      height,
+      points: corners,
+    });
+    const front = shot.points.filter(
+      (pt) => pt.depth > EPS && Number.isFinite(pt.px[0]) && Number.isFinite(pt.px[1]),
+    );
+    const us = front.map((pt) => pt.px[0] / width);
+    const vs = front.map((pt) => pt.px[1] / height);
+    if (us.length === 0)
+      return {
+        minU: Number.POSITIVE_INFINITY,
+        maxU: Number.NEGATIVE_INFINITY,
+        minV: Number.POSITIVE_INFINITY,
+        maxV: Number.NEGATIVE_INFINITY,
+      };
+    return {
+      minU: Math.min(...us),
+      maxU: Math.max(...us),
+      minV: Math.min(...vs),
+      maxV: Math.max(...vs),
+    };
+  };
+
+  const anchorUv = (scale: Vec3, at: Vec3): [number, number] => {
+    const world = toWorld(anchorLocal, scale, at);
+    const shot = projectPoints({ camera: opts.camera } as SceneDoc, {
+      camera: opts.camera,
+      width,
+      height,
+      points: [world],
+    });
+    return [shot.points[0]!.px[0] / width, shot.points[0]!.px[1] / height];
+  };
+
+  const clampStep = (k: number) => Math.min(2, Math.max(0.5, k));
+  const holdCenter = () => add(orient(center, s), origin);
+  const fitScaleBinary = () => {
+    const target = opts.rect.w ?? opts.rect.h;
+    if (!target) return;
+    const hold = holdCenter();
+    const placed = (scale: number) => {
+      const sc: Vec3 = [scale, scale, scale];
+      return { sc, at: sub(hold, orient(center, sc)) };
+    };
+    const sizeOf = (scale: number) => {
+      const { sc, at } = placed(scale);
+      const span = spanOf(sc, at);
+      const size = opts.rect.w ? span.maxU - span.minU : span.maxV - span.minV;
+      return Number.isFinite(size) ? size : Number.POSITIVE_INFINITY;
+    };
+    let lo = 1e-4;
+    let hi = Math.max(1, Math.max(s[0], s[1], s[2]));
+    for (let i = 0; i < 24 && sizeOf(hi) < target; i += 1) hi *= 2;
+    for (let i = 0; i < 32; i += 1) {
+      const mid = (lo + hi) / 2;
+      if (sizeOf(mid) > target) hi = mid;
+      else lo = mid;
+    }
+    const next = placed((lo + hi) / 2);
+    s = next.sc;
+    origin = next.at;
+  };
+  const fitScale = () => {
+    const span = spanOf(s, origin);
+    const curW = span.maxU - span.minU;
+    const curH = span.maxV - span.minV;
+    const kx = opts.rect.w ? (Number.isFinite(curW) && curW > EPS ? clampStep(opts.rect.w / curW) : 0.5) : 1;
+    const ky = opts.rect.h ? (Number.isFinite(curH) && curH > EPS ? clampStep(opts.rect.h / curH) : 0.5) : kx;
+    const k = opts.uniform === false ? 1 : opts.rect.w ? kx : ky;
+    const nextS: Vec3 =
+      opts.uniform === false ? [s[0] * kx, s[1] * ky, s[2] * kx] : [s[0] * k, s[1] * k, s[2] * k];
+    origin = add(origin, sub(orient(center, s), orient(center, nextS)));
+    s = nextS;
+  };
+  const fitPosition = (gain: number) => {
+    const span = spanOf(s, origin);
+    const depth = dot(sub(toWorld(center, s, origin), opts.camera.p), basis.forward);
+    if (!Number.isFinite(depth) || depth <= EPS) return;
+    let du: number;
+    let dv: number;
+    if (opts.anchor === 'bottom' || opts.anchor === 'top') {
+      const [u, v] = anchorUv(s, origin);
+      const targetU = opts.rect.u + (opts.rect.w ?? span.maxU - span.minU) / 2;
+      const targetV =
+        opts.anchor === 'bottom' ? opts.rect.v + (opts.rect.h ?? span.maxV - span.minV) : opts.rect.v;
+      du = targetU - u;
+      dv = targetV - v;
+    } else {
+      du = opts.rect.u - span.minU;
+      dv = opts.rect.v - span.minV;
+    }
+    if (!Number.isFinite(du) || !Number.isFinite(dv)) return;
+    origin = add(
+      origin,
+      invertLinear(
+        add(
+          scaleVec(basis.right, gain * du * 2 * depth * basis.halfW),
+          scaleVec(basis.up, -gain * dv * 2 * depth * basis.halfH),
+        ),
+      ),
+    );
+    const drift = dot(sub(toWorld(center, s, origin), opts.camera.p), basis.forward) - depth0;
+    origin = sub(origin, invertLinear(scaleVec(basis.forward, drift)));
+  };
+  const scaleOnce = () => {
+    if (opts.uniform === false) fitScale();
+    else fitScaleBinary();
+  };
+  for (let i = 0; i < 6; i += 1) {
+    scaleOnce();
+    for (let k = 0; k < 8; k += 1) fitPosition(0.5);
+  }
+  scaleOnce();
+
+  let p = origin;
+  if (opts.doc && opts.parentId) {
+    const ps = parentScale(opts.doc, opts.parentId);
+    p = worldPointToLocal(opts.doc, opts.parentId, p);
+    s = [s[0] / ps[0], s[1] / ps[1], s[2] / ps[2]];
+  }
+  return { p, s, depth: depth0 };
 }

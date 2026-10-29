@@ -17,12 +17,14 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import * as THREE from 'three';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
 import { assetUrl } from '../lib/rpc';
 import { usePlayback } from '../stores/playback';
 import { useSelection } from '../stores/selection';
+import { useUi } from '../stores/ui';
 import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
 import { buildMesh, disposeMesh } from '../three/build';
 import { createViewportEnvMap } from '../three/env-map-view';
@@ -39,6 +41,7 @@ import { GridFloor } from './GridFloor';
 import { PostPipeline } from './PostPipeline';
 import { SelectionOutline } from './SelectionOutline';
 import { subjectSphere } from './capture-fog';
+import { FRAME_ASPECT, letterbox } from './letterbox';
 
 function MeshView({
   node,
@@ -361,17 +364,19 @@ function CameraRig({ doc }: { doc: SceneDoc }) {
   }, [scene, doc]);
   const [px, py, pz] = doc.camera.p;
   const [tx, ty, tz] = doc.camera.target;
+  const letterboxOn = useUi((s) => s.letterbox);
   useEffect(() => {
     camera.position.set(px, py, pz);
     camera.fov = doc.camera.fov;
     camera.zoom = doc.camera.mode === 'ortho' ? doc.camera.zoom : 1;
+    if (letterboxOn) camera.aspect = FRAME_ASPECT;
     camera.updateProjectionMatrix();
     const ctl = controls.current;
     if (ctl) {
       ctl.target.set(tx, ty, tz);
       ctl.update();
     }
-  }, [camera, px, py, pz, tx, ty, tz, doc.camera.fov, doc.camera.mode, doc.camera.zoom]);
+  }, [camera, px, py, pz, tx, ty, tz, doc.camera.fov, doc.camera.mode, doc.camera.zoom, letterboxOn]);
   return (
     <OrbitControls ref={controls} makeDefault target={[tx, ty, tz]} enableDamping dampingFactor={0.12} />
   );
@@ -386,39 +391,60 @@ export function SceneCanvas({
   const roots = doc.roots.filter((id) => ids.has(id));
   const npr = useMemo(() => nprPlan(doc.stage) ?? undefined, [doc.stage]);
   const post = useMemo(() => postPlan(doc.stage), [doc.stage]);
+  const host = useRef<HTMLDivElement>(null);
+  const [view, setView] = useState({ w: 0, h: 0 });
+  const letterboxOn = useUi((s) => s.letterbox);
+  useLayoutEffect(() => {
+    const el = host.current;
+    if (!el) return;
+    const measure = () => {
+      const r = el.getBoundingClientRect();
+      setView({ w: r.width, h: r.height });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const frame = letterboxOn && view.w > 0 && view.h > 0 ? letterbox(view.w, view.h) : null;
 
   return (
-    <div className="viewport h-full w-full">
-      <Canvas
-        shadows
-        dpr={headless ? 1 : [1, 2]}
-        frameloop={headless ? 'demand' : 'always'}
-        camera={{ position: doc.camera.p, fov: doc.camera.fov, near: 0.05, far: 500 }}
-        gl={canvasGlOptions({ headless })}
+    <div ref={host} className="viewport relative h-full w-full bg-black">
+      <div
+        className="absolute"
+        style={frame ? { left: frame.x, top: frame.y, width: frame.w, height: frame.h } : { inset: 0 }}
       >
-        <Backdrop doc={doc} />
-        <EnvironmentMap doc={doc} />
-        <ViewportFog doc={doc} />
-        <StageLights doc={doc} />
-        <StageEffects doc={doc} headless={headless} />
-        <PlaybackDriver />
-        <AnimationDriver enabled={!headless} />
-        <ClipDriver doc={doc} enabled={!headless} />
-        <FxLayer doc={doc} enabled={!headless} />
-        <Picking enabled={!headless} />
-        <group name="vibe3d-export">
-          {roots.map((id) => {
-            const node = doc.nodes[id];
-            return node ? <NodeView key={id} node={node} doc={doc} npr={npr} /> : null;
-          })}
-        </group>
-        <GridFloor visible={doc.stage.ground} />
-        <SelectionOutline enabled={!headless} />
-        <Gizmo enabled={!headless} />
-        <PostPipeline plan={post} />
-        <CameraRig doc={doc} />
-        {children}
-      </Canvas>
+        <Canvas
+          shadows
+          dpr={headless ? 1 : [1, 2]}
+          frameloop={headless ? 'demand' : 'always'}
+          camera={{ position: doc.camera.p, fov: doc.camera.fov, near: 0.05, far: 500 }}
+          gl={canvasGlOptions({ headless })}
+        >
+          <Backdrop doc={doc} />
+          <EnvironmentMap doc={doc} />
+          <ViewportFog doc={doc} />
+          <StageLights doc={doc} />
+          <StageEffects doc={doc} headless={headless} />
+          <PlaybackDriver />
+          <AnimationDriver enabled={!headless} />
+          <ClipDriver doc={doc} enabled={!headless} />
+          <FxLayer doc={doc} enabled={!headless} />
+          <Picking enabled={!headless} />
+          <group name="vibe3d-export">
+            {roots.map((id) => {
+              const node = doc.nodes[id];
+              return node ? <NodeView key={id} node={node} doc={doc} npr={npr} /> : null;
+            })}
+          </group>
+          <GridFloor visible={doc.stage.ground} />
+          <SelectionOutline enabled={!headless} />
+          <Gizmo enabled={!headless} />
+          <PostPipeline plan={post} />
+          <CameraRig doc={doc} />
+          {children}
+        </Canvas>
+      </div>
     </div>
   );
 }

@@ -122,7 +122,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
   },
   {
     name: "vibe3d_node",
-    title: "节点：建 / 改 / 删 / 克隆 / 读 / 换父 / 批量变换 / 阵列 / 吸附 / 编组 / 合并烘焙 / 导入模型",
+    title: "节点：建 / 改 / 删 / 克隆 / 读 / 换父 / 批量变换 / 阵列 / 吸附 / 编组 / 合并烘焙 / 按画面框拟合 / 导入模型",
     ops: [
       { op: "create", capability: "node.create", title: "建节点：基础体 / 组 / 灯光；upsert_by_name=true 时按 name 幂等重建（同参零 op、不推进 revision），适合可重复运行的装配脚本" },
       { op: "update", capability: "node.update", title: "改节点：名称、可见、变换、灯光、动画参数、标签" },
@@ -135,6 +135,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
       { op: "attach", capability: "node.attach", title: "吸附：按目标包围盒的面对齐，可用 corner 贴角、gap 留缝，世界位置写回节点 TRS" },
       { op: "group", capability: "node.group", title: "编组：按选区包围盒中心建组，keepWorld 保持世界位置" },
       { op: "merge", capability: "node.merge", title: "合并烘焙：把整组网格烘成单个 baked 节点，降 draw call" },
+      { op: "fit_screen", capability: "node.fit_screen", title: "按当前相机把节点的位置和缩放拟合到归一化画面框，保留旋转，视线深度保持不变" },
       { op: "import", capability: "node.import", title: "导入 glTF/GLB 为 model 节点" },
     ],
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
@@ -156,13 +157,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
             "attach",
             "group",
             "merge",
+            "fit_screen",
             "import"
           ],
           "description": "node 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
-          "description": "必填字段：create{kind} update{node_id,patch} delete{node_id} clone{node_id} get{node_id} reparent{node_id,parent} array{node_id,count} attach{node_id,target_id,face} group{ids,name} merge{node_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "必填字段：create{kind} update{node_id,patch} delete{node_id} clone{node_id} get{node_id} reparent{node_id,parent} array{node_id,count} attach{node_id,target_id,face} group{ids,name} merge{node_id} fit_screen{node_id,rect}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -327,11 +329,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
   },
   {
     name: "vibe3d_mesh",
-    title: "网格构造：布尔 / 管体扫掠 / 背板扫掠 / 文字图片贴花",
+    title: "网格构造：布尔 / 管体 / 背板 / 车削 / 有机体 / 倒角 / 贴花",
     ops: [
       { op: "boolean", capability: "mesh.boolean", title: "布尔：按轴对齐包围盒做 subtract / union / intersect（原生 box 精确，其它几何需 force 近似）" },
       { op: "tube", capability: "mesh.tube", title: "管体：沿点序列扫掠圆管（Catmull-Rom + 平行传输标架），radius 可为逐点半径数组（与 points 等长），单节点 baked 几何" },
       { op: "backdrop", capability: "mesh.backdrop", title: "背板：地面→四分之一弧→立墙的无缝扫掠曲面，法线两端连续，单节点 baked 几何" },
+      { op: "lathe", capability: "mesh.lathe", title: "车削：轮廓绕 Y 轴生成回转体，单节点 baked 几何" },
+      { op: "organic", capability: "mesh.organic", title: "有机体：带种子的椭球位移，可选平底，单节点 baked 几何" },
+      { op: "bevel", capability: "mesh.bevel", title: "倒角盒：圆角后包围盒仍约等于原尺寸，单节点 baked 几何" },
+      { op: "tree", capability: "mesh.tree", title: "树：递归样条收成一个 baked 网格，相同 seed 稳定" },
+      { op: "mannequin", capability: "mesh.mannequin", title: "人体：胶囊四肢、车削躯干和球头，衣服是另一块 baked" },
       { op: "decal", capability: "decal.create", title: "文字 / 图片贴花：真字形（canvas 生成，无需字体文件）或图片贴到平面上" },
     ],
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},
@@ -345,13 +352,18 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
             "boolean",
             "tube",
             "backdrop",
+            "lathe",
+            "organic",
+            "bevel",
+            "tree",
+            "mannequin",
             "decal"
           ],
           "description": "mesh 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
-          "description": "必填字段：boolean{target,tool} tube{points,radius}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "必填字段：boolean{target,tool} tube{points,radius} lathe{profile} organic{radius,seed} bevel{size,radius} tree{height,spread,levels,seed}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -3749,6 +3761,15 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "type": "number",
                                     "minimum": 0,
                                     "maximum": 100
+                                  },
+                                  "f_stop": {
+                                    "type": "number",
+                                    "minimum": 1.4,
+                                    "maximum": 16
+                                  },
+                                  "focus_node": {
+                                    "type": "string",
+                                    "pattern": "^n_[a-z0-9]{8}$"
                                   }
                                 },
                                 "additionalProperties": false
@@ -6756,6 +6777,15 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "type": "number",
                                     "minimum": 0,
                                     "maximum": 100
+                                  },
+                                  "f_stop": {
+                                    "type": "number",
+                                    "minimum": 1.4,
+                                    "maximum": 16
+                                  },
+                                  "focus_node": {
+                                    "type": "string",
+                                    "pattern": "^n_[a-z0-9]{8}$"
                                   }
                                 },
                                 "additionalProperties": false
@@ -7134,6 +7164,7 @@ export const MCP_LEGACY_ALIASES: Readonly<Record<string, { tool: string; op: str
   "vibe3d_attach_node": { tool: "vibe3d_node", op: "attach" },
   "vibe3d_group_nodes": { tool: "vibe3d_node", op: "group" },
   "vibe3d_merge_nodes": { tool: "vibe3d_node", op: "merge" },
+  "vibe3d_fit_screen": { tool: "vibe3d_node", op: "fit_screen" },
   "vibe3d_import_asset": { tool: "vibe3d_node", op: "import" },
   "vibe3d_create_material": { tool: "vibe3d_material", op: "create" },
   "vibe3d_patch_material": { tool: "vibe3d_material", op: "patch" },
@@ -7151,6 +7182,11 @@ export const MCP_LEGACY_ALIASES: Readonly<Record<string, { tool: string; op: str
   "vibe3d_boolean_mesh": { tool: "vibe3d_mesh", op: "boolean" },
   "vibe3d_tube_mesh": { tool: "vibe3d_mesh", op: "tube" },
   "vibe3d_backdrop_mesh": { tool: "vibe3d_mesh", op: "backdrop" },
+  "vibe3d_lathe_mesh": { tool: "vibe3d_mesh", op: "lathe" },
+  "vibe3d_organic_mesh": { tool: "vibe3d_mesh", op: "organic" },
+  "vibe3d_bevel_mesh": { tool: "vibe3d_mesh", op: "bevel" },
+  "vibe3d_tree_mesh": { tool: "vibe3d_mesh", op: "tree" },
+  "vibe3d_mannequin_mesh": { tool: "vibe3d_mesh", op: "mannequin" },
   "vibe3d_create_decal": { tool: "vibe3d_mesh", op: "decal" },
   "vibe3d_inspect_asset": { tool: "vibe3d_asset", op: "inspect" },
   "vibe3d_put_asset": { tool: "vibe3d_asset", op: "put" },

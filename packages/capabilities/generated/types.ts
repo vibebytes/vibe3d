@@ -22,6 +22,7 @@ export type CapabilityName =
   | "node.attach"
   | "node.group"
   | "node.merge"
+  | "node.fit_screen"
   | "node.reparent"
   | "material.assign"
   | "ops.apply"
@@ -54,6 +55,11 @@ export type CapabilityName =
   | "mesh.boolean"
   | "mesh.tube"
   | "mesh.backdrop"
+  | "mesh.lathe"
+  | "mesh.organic"
+  | "mesh.bevel"
+  | "mesh.tree"
+  | "mesh.mannequin"
   | "node.import"
   | "asset.inspect"
   | "asset.put"
@@ -97,6 +103,7 @@ export type InputOf<N extends CapabilityName> = {
   "node.attach": z.infer<(typeof CAPABILITIES)["node.attach"]['input']>;
   "node.group": z.infer<(typeof CAPABILITIES)["node.group"]['input']>;
   "node.merge": z.infer<(typeof CAPABILITIES)["node.merge"]['input']>;
+  "node.fit_screen": z.infer<(typeof CAPABILITIES)["node.fit_screen"]['input']>;
   "node.reparent": z.infer<(typeof CAPABILITIES)["node.reparent"]['input']>;
   "material.assign": z.infer<(typeof CAPABILITIES)["material.assign"]['input']>;
   "ops.apply": z.infer<(typeof CAPABILITIES)["ops.apply"]['input']>;
@@ -129,6 +136,11 @@ export type InputOf<N extends CapabilityName> = {
   "mesh.boolean": z.infer<(typeof CAPABILITIES)["mesh.boolean"]['input']>;
   "mesh.tube": z.infer<(typeof CAPABILITIES)["mesh.tube"]['input']>;
   "mesh.backdrop": z.infer<(typeof CAPABILITIES)["mesh.backdrop"]['input']>;
+  "mesh.lathe": z.infer<(typeof CAPABILITIES)["mesh.lathe"]['input']>;
+  "mesh.organic": z.infer<(typeof CAPABILITIES)["mesh.organic"]['input']>;
+  "mesh.bevel": z.infer<(typeof CAPABILITIES)["mesh.bevel"]['input']>;
+  "mesh.tree": z.infer<(typeof CAPABILITIES)["mesh.tree"]['input']>;
+  "mesh.mannequin": z.infer<(typeof CAPABILITIES)["mesh.mannequin"]['input']>;
   "node.import": z.infer<(typeof CAPABILITIES)["node.import"]['input']>;
   "asset.inspect": z.infer<(typeof CAPABILITIES)["asset.inspect"]['input']>;
   "asset.put": z.infer<(typeof CAPABILITIES)["asset.put"]['input']>;
@@ -173,6 +185,7 @@ export type OutputOf<N extends CapabilityName> = {
   "node.attach": z.infer<(typeof CAPABILITIES)["node.attach"]['output']>;
   "node.group": z.infer<(typeof CAPABILITIES)["node.group"]['output']>;
   "node.merge": z.infer<(typeof CAPABILITIES)["node.merge"]['output']>;
+  "node.fit_screen": z.infer<(typeof CAPABILITIES)["node.fit_screen"]['output']>;
   "node.reparent": z.infer<(typeof CAPABILITIES)["node.reparent"]['output']>;
   "material.assign": z.infer<(typeof CAPABILITIES)["material.assign"]['output']>;
   "ops.apply": z.infer<(typeof CAPABILITIES)["ops.apply"]['output']>;
@@ -205,6 +218,11 @@ export type OutputOf<N extends CapabilityName> = {
   "mesh.boolean": z.infer<(typeof CAPABILITIES)["mesh.boolean"]['output']>;
   "mesh.tube": z.infer<(typeof CAPABILITIES)["mesh.tube"]['output']>;
   "mesh.backdrop": z.infer<(typeof CAPABILITIES)["mesh.backdrop"]['output']>;
+  "mesh.lathe": z.infer<(typeof CAPABILITIES)["mesh.lathe"]['output']>;
+  "mesh.organic": z.infer<(typeof CAPABILITIES)["mesh.organic"]['output']>;
+  "mesh.bevel": z.infer<(typeof CAPABILITIES)["mesh.bevel"]['output']>;
+  "mesh.tree": z.infer<(typeof CAPABILITIES)["mesh.tree"]['output']>;
+  "mesh.mannequin": z.infer<(typeof CAPABILITIES)["mesh.mannequin"]['output']>;
   "node.import": z.infer<(typeof CAPABILITIES)["node.import"]['output']>;
   "asset.inspect": z.infer<(typeof CAPABILITIES)["asset.inspect"]['output']>;
   "asset.put": z.infer<(typeof CAPABILITIES)["asset.put"]['output']>;

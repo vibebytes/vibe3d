@@ -27,6 +27,8 @@ const RIGS: Record<StagePreset, StageLight[]> = {
 
 export const BASE_EXPOSURE: Record<StagePreset, number> = { flat: 1.15, clean: 1, cine: 0.92 };
 
+export const cineLook = { fog: { near: 80, far: 320 }, blur: 'dof' as const };
+
 export function stageLights(preset: StagePreset): StageLight[] {
   return RIGS[preset];
 }

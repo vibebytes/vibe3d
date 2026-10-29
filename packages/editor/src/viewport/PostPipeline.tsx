@@ -1,4 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber';
+import { nodeOwnBounds } from '@vibebyte/vibe3d-scene';
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { BokehPass } from 'three/examples/jsm/postprocessing/BokehPass.js';
@@ -7,7 +8,8 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { type PostPlan, needsPost, postPasses, toneMappingOf } from '../three/post';
+import { useDoc } from '../stores/doc';
+import { type PostPlan, dofMap, needsPost, postPasses, syncDofFocus, toneMappingOf } from '../three/post';
 
 function buildComposer(
   gl: THREE.WebGLRenderer,
@@ -72,7 +74,14 @@ export function PostPipeline({ plan }: { plan: PostPlan | null }) {
 
   useFrame(
     () => {
-      if (composer) composer.render();
+      if (!composer) return;
+      const doc = useDoc.getState().doc;
+      const dof = doc?.stage.post?.dof;
+      if (dof?.focusNode && doc) {
+        const box = nodeOwnBounds(doc, dof.focusNode);
+        if (box) syncDofFocus(composer.passes, dofMap({ ...dof, camera: doc.camera, bounds: box }).focus);
+      }
+      composer.render();
     },
     composer ? 1 : 0,
   );

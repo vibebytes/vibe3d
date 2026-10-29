@@ -42,7 +42,8 @@ export const TOOL_GROUP_TABLE: readonly ToolGroup[] = [
   },
   {
     tool: 'vibe3d_node',
-    title: '节点：建 / 改 / 删 / 克隆 / 读 / 换父 / 批量变换 / 阵列 / 吸附 / 编组 / 合并烘焙 / 导入模型',
+    title:
+      '节点：建 / 改 / 删 / 克隆 / 读 / 换父 / 批量变换 / 阵列 / 吸附 / 编组 / 合并烘焙 / 按画面框拟合 / 导入模型',
     ops: [
       ['create', 'node.create', 'create_node'],
       ['update', 'node.update', 'update_node'],
@@ -55,6 +56,7 @@ export const TOOL_GROUP_TABLE: readonly ToolGroup[] = [
       ['attach', 'node.attach', 'attach_node'],
       ['group', 'node.group', 'group_nodes'],
       ['merge', 'node.merge', 'merge_nodes'],
+      ['fit_screen', 'node.fit_screen', 'fit_screen'],
       ['import', 'node.import', 'import_asset'],
     ],
   },
@@ -97,11 +99,16 @@ export const TOOL_GROUP_TABLE: readonly ToolGroup[] = [
   },
   {
     tool: 'vibe3d_mesh',
-    title: '网格构造：布尔 / 管体扫掠 / 背板扫掠 / 文字图片贴花',
+    title: '网格构造：布尔 / 管体 / 背板 / 车削 / 有机体 / 倒角 / 贴花',
     ops: [
       ['boolean', 'mesh.boolean', 'boolean_mesh'],
       ['tube', 'mesh.tube', 'tube_mesh'],
       ['backdrop', 'mesh.backdrop', 'backdrop_mesh'],
+      ['lathe', 'mesh.lathe', 'lathe_mesh'],
+      ['organic', 'mesh.organic', 'organic_mesh'],
+      ['bevel', 'mesh.bevel', 'bevel_mesh'],
+      ['tree', 'mesh.tree', 'tree_mesh'],
+      ['mannequin', 'mesh.mannequin', 'mannequin_mesh'],
       ['decal', 'decal.create', 'create_decal'],
     ],
   },
