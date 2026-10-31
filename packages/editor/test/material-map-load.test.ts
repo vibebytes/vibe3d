@@ -88,6 +88,8 @@ describe('attachMap waits for the decoded image', () => {
     expect(mat.map?.offset.toArray()).toEqual([0.25, 0.5]);
     expect(mat.map?.rotation).toBeCloseTo(0.5, 12);
     expect(mat.map?.channel).toBe(0);
+    expect(mat.map?.wrapS).toBe(THREE.RepeatWrapping);
+    expect(mat.map?.wrapT).toBe(THREE.RepeatWrapping);
     expect(mat.map?.image).toBe(IMAGE);
   });
 

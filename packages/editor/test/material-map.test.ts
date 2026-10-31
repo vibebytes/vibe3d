@@ -36,6 +36,8 @@ describe('toStandardMaterial map', () => {
     expect(mat.map?.rotation).toBeCloseTo(0.5, 12);
     expect(mat.map?.center.toArray()).toEqual([0.5, 0.5]);
     expect(mat.map?.channel).toBe(1);
+    expect(mat.map?.wrapS).toBe(THREE.RepeatWrapping);
+    expect(mat.map?.wrapT).toBe(THREE.RepeatWrapping);
   });
 
   it('accepts the legacy flat fields', () => {
@@ -48,6 +50,15 @@ describe('toStandardMaterial map', () => {
     expect(mat.map?.repeat.toArray()).toEqual([4, 0.5]);
     expect(mat.map?.offset.toArray()).toEqual([-0.25, 0.75]);
     expect(mat.map?.channel).toBe(0);
+    expect(mat.map?.wrapS).toBe(THREE.RepeatWrapping);
+    expect(mat.map?.wrapT).toBe(THREE.RepeatWrapping);
+  });
+
+  it('keeps clamp wrapping when the map is shown once', () => {
+    const mat = toStandardMaterial({ ...BASE, map: { sha: 'e'.repeat(64) } }, loader);
+    expect(mat.map?.repeat.toArray()).toEqual([1, 1]);
+    expect(mat.map?.wrapS).toBe(THREE.ClampToEdgeWrapping);
+    expect(mat.map?.wrapT).toBe(THREE.ClampToEdgeWrapping);
   });
 
   it('keeps an untextured material texture-free', () => {
@@ -70,5 +81,7 @@ describe('toToonMaterial map', () => {
     expect(mat.map).not.toBeNull();
     expect(mat.map?.repeat.toArray()).toEqual([1, 2]);
     expect(mat.map?.offset.toArray()).toEqual([0.5, 0]);
+    expect(mat.map?.wrapS).toBe(THREE.RepeatWrapping);
+    expect(mat.map?.wrapT).toBe(THREE.RepeatWrapping);
   });
 });

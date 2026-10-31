@@ -104,11 +104,18 @@ function attachMap(
   if (!map) return;
   load(map.sha, (base) => {
     const texture = base.clone();
+    const tiling = map.tiling ?? [1, 1];
+    const offset = map.offset ?? [0, 0];
+    const rotation = map.rotation ?? 0;
     texture.center.set(0.5, 0.5);
-    texture.repeat.set(...(map.tiling ?? [1, 1]));
-    texture.offset.set(...(map.offset ?? [0, 0]));
-    texture.rotation = map.rotation ?? 0;
+    texture.repeat.set(tiling[0], tiling[1]);
+    texture.offset.set(offset[0], offset[1]);
+    texture.rotation = rotation;
     texture.channel = map.channel ?? 0;
+    // repeat 只在 RepeatWrapping 下才会重复；默认 ClampToEdge 会把超出 0..1 的 UV 钉在边缘，平铺看起来像拉伸。
+    const wraps = tiling[0] !== 1 || tiling[1] !== 1 || offset[0] !== 0 || offset[1] !== 0 || rotation !== 0;
+    texture.wrapS = wraps ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping;
+    texture.wrapT = texture.wrapS;
     texture.needsUpdate = true;
     target.map = texture;
     target.needsUpdate = true;
