@@ -1,0 +1,15 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build", "@vibebyte/vibe3d-editor#build"],
+      "inputs": [
+        "src/**",
+        "tsup.config.ts",
+        "scripts/copy-editor.mjs",
+        "../../editor/dist/**"
+      ],
+      "outputs": ["dist/**"]
+    }
+  }
+}
