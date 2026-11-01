@@ -416,14 +416,18 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
         );
       }
       const report = doc.assets[node.sha]?.gltf ?? fail('模型资产缺少 gltf 报告', { sha: node.sha });
-      const clip = op.clip ?? report.animations[0]?.name;
+      const names = op.clips ?? (op.clip ? [op.clip] : []);
+      const clip = names[0] ?? report.animations[0]?.name;
       if (!clip) fail('资产没有动画', { sha: node.sha });
-      if (!report.animations.some((a) => a.name === clip)) fail('clip 不存在', { clip });
+      for (const name of names.length > 0 ? names : [clip]) {
+        if (!report.animations.some((a) => a.name === name)) fail('clip 不存在', { clip: name });
+      }
       if (report.skins === 0) fail('资产没有蒙皮，不能播放动画', { sha: node.sha });
       const previous: ModelAnim | null = node.anim ? clone(node.anim) : null;
       node.anim = {
         playing: true,
         clip,
+        ...(names.length > 1 ? { clips: names } : {}),
         speed: op.speed ?? previous?.speed ?? 1,
         loop: op.loop ?? previous?.loop ?? true,
         direction: op.direction ?? previous?.direction ?? 'forward',

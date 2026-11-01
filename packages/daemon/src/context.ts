@@ -113,6 +113,11 @@ export interface Jobs {
   queue: JobQueue;
 }
 
+export interface Ffmpeg {
+  available(): Promise<boolean>;
+  run(args: string[], cwd: string): Promise<void>;
+}
+
 export type AutoOpenState = 'pending' | 'opened' | 'failed';
 
 export interface DispatchContext {
@@ -121,6 +126,7 @@ export interface DispatchContext {
   token?: string;
   renderer?: Renderer;
   jobs?: Jobs;
+  ffmpeg?: Ffmpeg;
   exportsDir?: string;
   signExport?: (file: string) => string;
   ingest: (

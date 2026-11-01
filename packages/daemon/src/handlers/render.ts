@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { deflateRawSync } from 'node:zlib';
@@ -24,6 +25,7 @@ import type {
 } from '../context';
 import { signExportUrl } from '../http/export-url';
 import { type JobError, toView } from '../jobs/store';
+import { systemFfmpeg } from '../render/ffmpeg';
 import {
   blendReferenceImage,
   clampRect,
@@ -106,6 +108,7 @@ type Keys =
   | 'render.assert'
   | 'render.id-pass'
   | 'render.sequence'
+  | 'render.video'
   | 'export.glb'
   | 'job.get'
   | 'job.list'
@@ -133,6 +136,15 @@ function requireRenderer(ctx: DispatchContext, roomId?: string): Renderer {
 function requireJobs(ctx: DispatchContext): NonNullable<DispatchContext['jobs']> {
   if (!ctx.jobs) throw new AppError('E_INTERNAL', '任务队列未初始化');
   return ctx.jobs;
+}
+
+function assertRoomIdle(jobs: NonNullable<DispatchContext['jobs']>, roomId: string): void {
+  if (!jobs.queue.isRoomBusy(roomId)) return;
+  throw new AppError('E_BUSY', `房间 ${roomId} 已有渲染任务在运行，请等待完成或取消后再提交`, {
+    roomId,
+    hint: '用 vibe3d_job.list 查看该房间的任务，vibe3d_job.get 轮询进度，vibe3d_job.cancel 取消',
+    next: { tool: 'vibe3d_job_list', params: { roomId } },
+  });
 }
 
 interface ImageParams {
@@ -757,15 +769,19 @@ export const renderHandlers: HandlersFor<Keys> = {
     const jobs = requireJobs(ctx);
     const dir = ctx.exportsDir;
     if (!dir) throw new AppError('E_INTERNAL', '导出目录未配置');
+    assertRoomIdle(jobs, room.id);
     const snapshot = structuredClone(room.doc);
     const revision = room.revision;
     const job = jobs.store.create('render.sequence', room.id);
-    const options = imageOptions({ ...p, format: 'png' }, snapshot);
+    const settleMs = Math.max(p.settleMs ?? 0, Math.ceil((2 * 1000) / p.fps));
+    const options = { ...imageOptions({ ...p, format: 'png' }, snapshot), settleMs };
     try {
       jobs.queue.enqueue(job, async (record, report) => {
         report(0.02, 'prepare');
         await mkdir(dir, { recursive: true });
         const frames: { index: number; at: number; file: string; bytes: number }[] = [];
+        const hashes = new Set<string>();
+        let warning: string | undefined;
         const file = `${record.id}.json`;
         const writeManifest = async (status: 'done' | 'cancelled' | 'failed', error?: JobError) => {
           const manifest = {
@@ -779,7 +795,9 @@ export const renderHandlers: HandlersFor<Keys> = {
             expectedFrames: count,
             width: options.width,
             height: options.height,
+            settleMs,
             frames,
+            ...(warning ? { warning } : {}),
             ...(error ? { error } : {}),
           };
           const body = Buffer.from(JSON.stringify(manifest, null, 2), 'utf8');
@@ -792,6 +810,7 @@ export const renderHandlers: HandlersFor<Keys> = {
             const frameFile = `${record.id}-${String(i).padStart(4, '0')}.png`;
             const bytes = Buffer.from(shot.base64, 'base64');
             await writeFile(join(dir, frameFile), bytes);
+            hashes.add(createHash('md5').update(bytes).digest('hex'));
             frames.push({ index: i, at, file: frameFile, bytes: bytes.length });
           };
           for (let i = 0; i < count; i += 1) {
@@ -801,6 +820,7 @@ export const renderHandlers: HandlersFor<Keys> = {
             await persist(i, at, shot);
             report(0.05 + (0.85 * (i + 1)) / count, `frame ${i + 1}/${count}`);
           }
+          if (frames.length > 1 && hashes.size === 1) warning = 'animation not advancing';
           const body = await writeManifest(record.cancelRequested ? 'cancelled' : 'done');
           report(0.98, 'manifest');
           return {
@@ -808,6 +828,123 @@ export const renderHandlers: HandlersFor<Keys> = {
             bytes: body.length + frames.reduce((sum, f) => sum + f.bytes, 0),
             revision,
             frames: frames.length,
+            ...(warning ? { warning } : {}),
+          };
+        } catch (err) {
+          await writeManifest('failed', {
+            code: err instanceof AppError ? err.code : 'E_INTERNAL',
+            message: err instanceof Error ? err.message : String(err),
+          }).catch(() => undefined);
+          throw err;
+        }
+      });
+    } catch (err) {
+      jobs.store.cancel(job.id);
+      throw err;
+    }
+    return { jobId: job.id, state: job.state };
+  },
+
+  'render.video': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    if (p.to < p.from) {
+      throw new AppError('E_INVALID_PARAMS', `to(${p.to}) 不能小于 from(${p.from})`);
+    }
+    const count = Math.floor((p.to - p.from) * p.fps + 1e-6) + 1;
+    if (count > 600) {
+      throw new AppError('E_INVALID_PARAMS', `帧数 ${count} 超过上限 600，请缩小 from/to 区间或降低 fps`);
+    }
+    const renderer = requireRenderer(ctx, room.id);
+    const jobs = requireJobs(ctx);
+    const dir = ctx.exportsDir;
+    if (!dir) throw new AppError('E_INTERNAL', '导出目录未配置');
+    const ffmpeg = ctx.ffmpeg ?? systemFfmpeg();
+    assertRoomIdle(jobs, room.id);
+    const snapshot = structuredClone(room.doc);
+    const revision = room.revision;
+    const job = jobs.store.create('render.video', room.id);
+    const settleMs = Math.max(p.settleMs ?? 0, Math.ceil((2 * 1000) / p.fps));
+    const options = { ...imageOptions({ ...p, format: 'png' }, snapshot), settleMs };
+    try {
+      jobs.queue.enqueue(job, async (record, report) => {
+        report(0.02, 'prepare');
+        if (!(await ffmpeg.available())) {
+          throw new AppError('E_FFMPEG_MISSING', '未找到 ffmpeg，无法编码视频', {
+            hint: '安装 ffmpeg（brew install ffmpeg）或用 VIBE3D_FFMPEG 指定可执行文件路径；只要帧序列可用 vibe3d_render_sequence',
+          });
+        }
+        await mkdir(dir, { recursive: true });
+        const frames: { index: number; at: number; file: string; bytes: number }[] = [];
+        const hashes = new Set<string>();
+        let warning: string | undefined;
+        const video = `${record.id}.mp4`;
+        const file = `${record.id}.json`;
+        const writeManifest = async (status: 'done' | 'cancelled' | 'failed', error?: JobError) => {
+          const manifest = {
+            jobId: record.id,
+            roomId: room.id,
+            revision,
+            status,
+            fps: p.fps,
+            from: p.from,
+            to: p.to,
+            expectedFrames: count,
+            width: options.width,
+            height: options.height,
+            settleMs,
+            ...(status === 'done' ? { video } : {}),
+            frames,
+            ...(warning ? { warning } : {}),
+            ...(error ? { error } : {}),
+          };
+          const body = Buffer.from(JSON.stringify(manifest, null, 2), 'utf8');
+          await writeFile(join(dir, file), body);
+          return body;
+        };
+        try {
+          const frameAt = (i: number): number => Math.min(p.from + i / p.fps, p.to);
+          for (let i = 0; i < count; i += 1) {
+            if (record.cancelRequested) break;
+            const at = frameAt(i);
+            const shot = await renderer.snapshot({ roomId: room.id, doc: snapshot }, { ...options, at });
+            const frameFile = `${record.id}-${String(i).padStart(4, '0')}.png`;
+            const bytes = Buffer.from(shot.base64, 'base64');
+            await writeFile(join(dir, frameFile), bytes);
+            hashes.add(createHash('md5').update(bytes).digest('hex'));
+            frames.push({ index: i, at, file: frameFile, bytes: bytes.length });
+            report(0.05 + (0.75 * (i + 1)) / count, `frame ${i + 1}/${count}`);
+          }
+          if (frames.length > 1 && hashes.size === 1) warning = 'animation not advancing';
+          if (record.cancelRequested) {
+            await writeManifest('cancelled');
+            return { url: '', bytes: 0, revision, frames: frames.length };
+          }
+          report(0.85, 'encode');
+          await ffmpeg.run(
+            [
+              '-y',
+              '-framerate',
+              String(p.fps),
+              '-i',
+              `${record.id}-%04d.png`,
+              '-c:v',
+              'libx264',
+              '-pix_fmt',
+              'yuv420p',
+              '-vf',
+              'scale=trunc(iw/2)*2:trunc(ih/2)*2',
+              video,
+            ],
+            dir,
+          );
+          const body = await writeManifest('done');
+          report(0.98, 'manifest');
+          return {
+            url: ctx.signExport?.(video) ?? signExportUrl(ctx.token ?? '', video),
+            bytes: body.length + frames.reduce((sum, f) => sum + f.bytes, 0),
+            revision,
+            frames: frames.length,
+            ...(warning ? { warning } : {}),
           };
         } catch (err) {
           await writeManifest('failed', {

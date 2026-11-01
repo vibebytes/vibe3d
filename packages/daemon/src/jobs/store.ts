@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { readdir, stat, unlink } from 'node:fs/promises';
 import { join } from 'node:path';
 
-export type JobKind = 'export.glb' | 'render.sequence';
+export type JobKind = 'export.glb' | 'render.sequence' | 'render.video';
 export type JobState = 'queued' | 'running' | 'done' | 'failed' | 'cancelled';
 
 export interface JobResult {
@@ -10,6 +10,7 @@ export interface JobResult {
   bytes: number;
   revision: number;
   frames?: number;
+  warning?: string;
 }
 
 export interface JobError {
@@ -44,6 +45,7 @@ export interface JobView {
   bytes?: number;
   revision?: number;
   frames?: number;
+  warning?: string;
   error?: JobError;
   createdAt: string;
   expiresAt: string;
@@ -66,6 +68,7 @@ export function toView(job: JobRecord): JobView {
           bytes: job.result.bytes,
           revision: job.result.revision,
           ...(job.result.frames === undefined ? {} : { frames: job.result.frames }),
+          ...(job.result.warning === undefined ? {} : { warning: job.result.warning }),
         }
       : {}),
     ...(job.error ? { error: job.error } : {}),

@@ -13,25 +13,25 @@
       "preset": null,
       "width": 1280,
       "height": 720,
-      "bytes": 148680,
-      "sha256": "06eb49c398f6c6a72cfb00ef0937ed1529a9d71453afcfcaf09de71fae1a3b59"
+      "bytes": 330095,
+      "sha256": "892f04c039fb80d41275fa18ab093eaa8db191d72a7a6f8a2f0d07a5d870210b"
     },
     {
       "file": "1280x720-stage-cine.png",
       "preset": "cine",
       "width": 1280,
       "height": 720,
-      "bytes": 329725,
-      "sha256": "2bf1ec54388f97e6039db214f46c4a5a2a11f032f142fa7cb21d6cee297cc69f"
+      "bytes": 328461,
+      "sha256": "0ad9aab6aa45f59b42ffed0deb995394c7dad9e0f9c6ab0bb17e7b703d0bf0d9"
     },
     {
       "file": "1280x720-stage-flat.png",
       "preset": "flat",
       "width": 1280,
       "height": 720,
-      "bytes": 343711,
-      "sha256": "0232d41d97bf806446389eaed3da3c79cb5654954178ff841041dbce92598c0e"
+      "bytes": 342900,
+      "sha256": "b896d0768072ed7059f6e6ecf9457b1607384c044c9f1df436a47fb12b43dbf5"
     }
   ],
-  "generatedAt": "2026-10-23T11:44:30.992Z"
+  "generatedAt": "2026-11-01T20:36:24.501Z"
 }

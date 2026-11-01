@@ -86,6 +86,12 @@ export const opSchema = z.discriminatedUnion('op', [
     op: z.literal('animation.play'),
     target: nodeIdSchema,
     clip: z.string().min(1).optional(),
+    clips: z
+      .array(z.string().min(1))
+      .min(1)
+      .max(8)
+      .optional()
+      .describe('多 clip 叠加：按顺序同时播放，weight 为各自权重（缺省均分）'),
     speed: z.number().finite().positive().optional(),
     loop: z.boolean().optional(),
     direction: z.enum(['forward', 'reverse']).optional(),

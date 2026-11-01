@@ -35,6 +35,7 @@ export const ERROR_CODES = [
   'E_EXPORT_DRIFT',
   'E_BUDGET_EXCEEDED',
   'E_THUMB_MISSING',
+  'E_FFMPEG_MISSING',
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
@@ -168,6 +169,13 @@ export const ERROR_SPECS: Record<ErrorCode, ErrorSpec> = {
     retryable: false,
     message: '缩略图不存在或已过期',
     hint: '缩略图按读路径懒生成：先调 get_room 触发生成，用返回的 thumbUrl 取图',
+  },
+  E_FFMPEG_MISSING: {
+    rpc: -32028,
+    http: 503,
+    retryable: false,
+    message: '未找到 ffmpeg，无法编码视频',
+    hint: '安装 ffmpeg（brew install ffmpeg）或用 VIBE3D_FFMPEG 指定路径；只要帧序列可用 render.sequence',
   },
 };
 

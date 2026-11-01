@@ -144,6 +144,7 @@ export const TOOL_GROUP_TABLE: readonly ToolGroup[] = [
       ['assert', 'render.assert', 'render_assert'],
       ['id_pass', 'render.id-pass', 'render_id_pass'],
       ['sequence', 'render.sequence', 'render_sequence'],
+      ['video', 'render.video', 'render_video'],
     ],
   },
   {

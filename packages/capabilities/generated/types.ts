@@ -77,6 +77,7 @@ export type CapabilityName =
   | "render.assert"
   | "render.id-pass"
   | "render.sequence"
+  | "render.video"
   | "export.glb"
   | "job.get"
   | "job.list"
@@ -158,6 +159,7 @@ export type InputOf<N extends CapabilityName> = {
   "render.assert": z.infer<(typeof CAPABILITIES)["render.assert"]['input']>;
   "render.id-pass": z.infer<(typeof CAPABILITIES)["render.id-pass"]['input']>;
   "render.sequence": z.infer<(typeof CAPABILITIES)["render.sequence"]['input']>;
+  "render.video": z.infer<(typeof CAPABILITIES)["render.video"]['input']>;
   "export.glb": z.infer<(typeof CAPABILITIES)["export.glb"]['input']>;
   "job.get": z.infer<(typeof CAPABILITIES)["job.get"]['input']>;
   "job.list": z.infer<(typeof CAPABILITIES)["job.list"]['input']>;
@@ -240,6 +242,7 @@ export type OutputOf<N extends CapabilityName> = {
   "render.assert": z.infer<(typeof CAPABILITIES)["render.assert"]['output']>;
   "render.id-pass": z.infer<(typeof CAPABILITIES)["render.id-pass"]['output']>;
   "render.sequence": z.infer<(typeof CAPABILITIES)["render.sequence"]['output']>;
+  "render.video": z.infer<(typeof CAPABILITIES)["render.video"]['output']>;
   "export.glb": z.infer<(typeof CAPABILITIES)["export.glb"]['output']>;
   "job.get": z.infer<(typeof CAPABILITIES)["job.get"]['output']>;
   "job.list": z.infer<(typeof CAPABILITIES)["job.list"]['output']>;

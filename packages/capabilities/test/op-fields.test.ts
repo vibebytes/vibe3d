@@ -47,7 +47,7 @@ describe('op field docs', () => {
     expect(paths).toContain('node.geometry.type');
     expect(paths).toContain('node.light.type');
     expect(paths).toContain('node.material');
-    expect(merged.length).toBeLessThanOrEqual(60);
+    expect(merged.length).toBeLessThanOrEqual(96);
     expect(opFieldDocs('node.create').length).toBeGreaterThan(merged.length);
     const parent = merged.find((doc) => doc.path === 'node.parent');
     expect(parent?.type).toBe('string');
@@ -83,6 +83,21 @@ describe('op field docs', () => {
     expect(paths).toContain('material.roughness');
     const example = JSON.parse(opExample('material.set') ?? '{}');
     expect(example.material.opacity).toBe(1);
+  });
+
+  it('expands clip payloads so keyframe shape is visible', () => {
+    const paths = mergedFieldDocs('animation.define').map((doc) => doc.path);
+    expect(paths).toContain('clip.type');
+    expect(paths).toContain('clip.channel');
+    expect(paths).toContain('clip.keys');
+    expect(paths).toContain('clip.keys[].t');
+    expect(paths).toContain('clip.keys[].v');
+    const v = opFieldDoc('animation.define', ['clip', 'keys', 'v']);
+    expect(v?.type).toBe('number');
+    expect(v?.description).toContain('增量');
+    const channel = opFieldDoc('animation.define', ['clip', 'channel']);
+    expect(channel?.type).toContain('rz');
+    expect(channel?.description).toContain('缺省');
   });
 
   it('documents rotation units and euler order on every transform field', () => {

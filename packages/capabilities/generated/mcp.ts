@@ -255,8 +255,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
     name: "vibe3d_animation",
     title: "程序化动画：定义轨道 / 播放 / 停止 / 清除 / 批量摆姿势",
     ops: [
-      { op: "define", capability: "animation.define", title: "定义程序化动画：位移 / 旋转 / 缩放轨道" },
-      { op: "play", capability: "animation.play", title: "播放模型动画，默认取首条 clip" },
+      { op: "define", capability: "animation.define", title: "定义程序化动画：周期函数（sway/ripple/float/flicker/spin）、标量关键帧（keyframes），或任意属性轨道（tracks）" },
+      { op: "play", capability: "animation.play", title: "播放模型动画，默认取首条 clip；clips 可多 clip 叠加" },
       { op: "stop", capability: "animation.stop", title: "停止模型动画；程序化 clip 节点为幂等空操作" },
       { op: "clear", capability: "animation.clear", title: "清除节点上的程序化动画" },
       { op: "pose", capability: "animation.pose", title: "一次性摆姿势：批量写入多个节点的 keyframes 姿态" },
@@ -467,6 +467,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
       { op: "assert", capability: "render.assert", title: "视觉验收锚点：一张截图上按锚点断言颜色 / 节点 / 材质；at 用像素坐标，p 用世界坐标自动投影（与截图同机位），容差半径内搜索最近匹配并按 ΔE（CIE76）评分" },
       { op: "id_pass", capability: "render.id-pass", title: "ID 通道：每个节点刷成唯一色，回传像素覆盖与可选索引掩码（framing 语义与 snapshot 一致）" },
       { op: "sequence", capability: "render.sequence", title: "按 from/to/fps 采样动画，输出 PNG 帧序列 + manifest（任务制，用 job.get 取进度）" },
+      { op: "video", capability: "render.video", title: "按 from/to/fps 采样动画并编码为 MP4（任务制，用 job.get 取进度；需要本机 ffmpeg）" },
     ],
     annotations: {"readOnlyHint":true,"destructiveHint":false,"idempotentHint":true,"openWorldHint":false},
     inputSchema: {
@@ -482,13 +483,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
             "pick",
             "assert",
             "id_pass",
-            "sequence"
+            "sequence",
+            "video"
           ],
           "description": "render 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
-          "description": "必填字段：node{node_id} assert{anchors} sequence{from,to,fps}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "必填字段：node{node_id} assert{anchors} sequence{from,to,fps} video{from,to,fps}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -715,7 +717,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "flicker",
                                   "spin",
                                   "keyframes"
-                                ]
+                                ],
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                               },
                               "channel": {
                                 "type": "string",
@@ -729,7 +732,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "sx",
                                   "sy",
                                   "sz"
-                                ]
+                                ],
+                                "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                               },
                               "axis": {
                                 "type": "string",
@@ -737,31 +741,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "x",
                                   "y",
                                   "z"
-                                ]
+                                ],
+                                "description": "仅 sway：等价于 channel=r<axis>"
                               },
                               "amplitude": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "周期函数振幅，缺省 1"
                               },
                               "frequency": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "Hz，缺省 0.5"
                               },
                               "phase": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "弧度"
                               },
                               "speed": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "时间轴倍率，缺省 1"
                               },
                               "loop": {
-                                "type": "boolean"
+                                "type": "boolean",
+                                "description": "配合 duration 取模循环"
                               },
                               "duration": {
                                 "type": "number",
-                                "exclusiveMinimum": 0
+                                "exclusiveMinimum": 0,
+                                "description": "秒"
                               },
                               "gust": {
                                 "type": "number",
                                 "minimum": 0,
-                                "maximum": 1
+                                "maximum": 1,
+                                "description": "仅 sway：阵风包络强度"
                               },
                               "keys": {
                                 "type": "array",
@@ -770,10 +782,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "properties": {
                                     "t": {
                                       "type": "number",
-                                      "minimum": 0
+                                      "minimum": 0,
+                                      "description": "秒"
                                     },
                                     "v": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                     },
                                     "ease": {
                                       "type": "string",
@@ -790,7 +804,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "v"
                                   ],
                                   "additionalProperties": false
-                                }
+                                },
+                                "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                              },
+                              "tracks": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "path": {
+                                      "type": "string",
+                                      "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                      "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                    },
+                                    "interp": {
+                                      "type": "string",
+                                      "enum": [
+                                        "linear",
+                                        "step",
+                                        "ease",
+                                        "cubic"
+                                      ],
+                                      "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                    },
+                                    "keys": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "t": {
+                                            "type": "number",
+                                            "minimum": 0,
+                                            "description": "秒"
+                                          },
+                                          "v": {
+                                            "anyOf": [
+                                              {
+                                                "type": "array",
+                                                "minItems": 3,
+                                                "maxItems": 3,
+                                                "items": {
+                                                  "type": "number"
+                                                }
+                                              },
+                                              {
+                                                "type": "number"
+                                              },
+                                              {
+                                                "type": "boolean"
+                                              }
+                                            ],
+                                            "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                          },
+                                          "ease": {
+                                            "type": "string",
+                                            "enum": [
+                                              "linear",
+                                              "easeIn",
+                                              "easeOut",
+                                              "easeInOut"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "t",
+                                          "v"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "minItems": 1,
+                                      "description": "按 t 升序；超出末帧保持末值"
+                                    }
+                                  },
+                                  "required": [
+                                    "path",
+                                    "keys"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "minItems": 1,
+                                "maxItems": 16,
+                                "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
                             "required": [
@@ -812,7 +906,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "flicker",
                                     "spin",
                                     "keyframes"
-                                  ]
+                                  ],
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -826,7 +921,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "sx",
                                     "sy",
                                     "sz"
-                                  ]
+                                  ],
+                                  "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                                 },
                                 "axis": {
                                   "type": "string",
@@ -834,31 +930,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "x",
                                     "y",
                                     "z"
-                                  ]
+                                  ],
+                                  "description": "仅 sway：等价于 channel=r<axis>"
                                 },
                                 "amplitude": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "周期函数振幅，缺省 1"
                                 },
                                 "frequency": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "Hz，缺省 0.5"
                                 },
                                 "phase": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "弧度"
                                 },
                                 "speed": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "时间轴倍率，缺省 1"
                                 },
                                 "loop": {
-                                  "type": "boolean"
+                                  "type": "boolean",
+                                  "description": "配合 duration 取模循环"
                                 },
                                 "duration": {
                                   "type": "number",
-                                  "exclusiveMinimum": 0
+                                  "exclusiveMinimum": 0,
+                                  "description": "秒"
                                 },
                                 "gust": {
                                   "type": "number",
                                   "minimum": 0,
-                                  "maximum": 1
+                                  "maximum": 1,
+                                  "description": "仅 sway：阵风包络强度"
                                 },
                                 "keys": {
                                   "type": "array",
@@ -867,10 +971,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "properties": {
                                       "t": {
                                         "type": "number",
-                                        "minimum": 0
+                                        "minimum": 0,
+                                        "description": "秒"
                                       },
                                       "v": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                       },
                                       "ease": {
                                         "type": "string",
@@ -887,7 +993,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "v"
                                     ],
                                     "additionalProperties": false
-                                  }
+                                  },
+                                  "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                                },
+                                "tracks": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "path": {
+                                        "type": "string",
+                                        "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                        "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                      },
+                                      "interp": {
+                                        "type": "string",
+                                        "enum": [
+                                          "linear",
+                                          "step",
+                                          "ease",
+                                          "cubic"
+                                        ],
+                                        "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                      },
+                                      "keys": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "t": {
+                                              "type": "number",
+                                              "minimum": 0,
+                                              "description": "秒"
+                                            },
+                                            "v": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "minItems": 3,
+                                                  "maxItems": 3,
+                                                  "items": {
+                                                    "type": "number"
+                                                  }
+                                                },
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "type": "boolean"
+                                                }
+                                              ],
+                                              "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                            },
+                                            "ease": {
+                                              "type": "string",
+                                              "enum": [
+                                                "linear",
+                                                "easeIn",
+                                                "easeOut",
+                                                "easeInOut"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "t",
+                                            "v"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "minItems": 1,
+                                        "description": "按 t 升序；超出末帧保持末值"
+                                      }
+                                    },
+                                    "required": [
+                                      "path",
+                                      "keys"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "minItems": 1,
+                                  "maxItems": 16,
+                                  "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
                               "required": [
@@ -1004,7 +1190,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "flicker",
                                   "spin",
                                   "keyframes"
-                                ]
+                                ],
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                               },
                               "channel": {
                                 "type": "string",
@@ -1018,7 +1205,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "sx",
                                   "sy",
                                   "sz"
-                                ]
+                                ],
+                                "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                               },
                               "axis": {
                                 "type": "string",
@@ -1026,31 +1214,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "x",
                                   "y",
                                   "z"
-                                ]
+                                ],
+                                "description": "仅 sway：等价于 channel=r<axis>"
                               },
                               "amplitude": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "周期函数振幅，缺省 1"
                               },
                               "frequency": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "Hz，缺省 0.5"
                               },
                               "phase": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "弧度"
                               },
                               "speed": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "时间轴倍率，缺省 1"
                               },
                               "loop": {
-                                "type": "boolean"
+                                "type": "boolean",
+                                "description": "配合 duration 取模循环"
                               },
                               "duration": {
                                 "type": "number",
-                                "exclusiveMinimum": 0
+                                "exclusiveMinimum": 0,
+                                "description": "秒"
                               },
                               "gust": {
                                 "type": "number",
                                 "minimum": 0,
-                                "maximum": 1
+                                "maximum": 1,
+                                "description": "仅 sway：阵风包络强度"
                               },
                               "keys": {
                                 "type": "array",
@@ -1059,10 +1255,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "properties": {
                                     "t": {
                                       "type": "number",
-                                      "minimum": 0
+                                      "minimum": 0,
+                                      "description": "秒"
                                     },
                                     "v": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                     },
                                     "ease": {
                                       "type": "string",
@@ -1079,7 +1277,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "v"
                                   ],
                                   "additionalProperties": false
-                                }
+                                },
+                                "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                              },
+                              "tracks": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "path": {
+                                      "type": "string",
+                                      "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                      "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                    },
+                                    "interp": {
+                                      "type": "string",
+                                      "enum": [
+                                        "linear",
+                                        "step",
+                                        "ease",
+                                        "cubic"
+                                      ],
+                                      "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                    },
+                                    "keys": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "t": {
+                                            "type": "number",
+                                            "minimum": 0,
+                                            "description": "秒"
+                                          },
+                                          "v": {
+                                            "anyOf": [
+                                              {
+                                                "type": "array",
+                                                "minItems": 3,
+                                                "maxItems": 3,
+                                                "items": {
+                                                  "type": "number"
+                                                }
+                                              },
+                                              {
+                                                "type": "number"
+                                              },
+                                              {
+                                                "type": "boolean"
+                                              }
+                                            ],
+                                            "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                          },
+                                          "ease": {
+                                            "type": "string",
+                                            "enum": [
+                                              "linear",
+                                              "easeIn",
+                                              "easeOut",
+                                              "easeInOut"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "t",
+                                          "v"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "minItems": 1,
+                                      "description": "按 t 升序；超出末帧保持末值"
+                                    }
+                                  },
+                                  "required": [
+                                    "path",
+                                    "keys"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "minItems": 1,
+                                "maxItems": 16,
+                                "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
                             "required": [
@@ -1101,7 +1379,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "flicker",
                                     "spin",
                                     "keyframes"
-                                  ]
+                                  ],
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -1115,7 +1394,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "sx",
                                     "sy",
                                     "sz"
-                                  ]
+                                  ],
+                                  "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                                 },
                                 "axis": {
                                   "type": "string",
@@ -1123,31 +1403,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "x",
                                     "y",
                                     "z"
-                                  ]
+                                  ],
+                                  "description": "仅 sway：等价于 channel=r<axis>"
                                 },
                                 "amplitude": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "周期函数振幅，缺省 1"
                                 },
                                 "frequency": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "Hz，缺省 0.5"
                                 },
                                 "phase": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "弧度"
                                 },
                                 "speed": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "时间轴倍率，缺省 1"
                                 },
                                 "loop": {
-                                  "type": "boolean"
+                                  "type": "boolean",
+                                  "description": "配合 duration 取模循环"
                                 },
                                 "duration": {
                                   "type": "number",
-                                  "exclusiveMinimum": 0
+                                  "exclusiveMinimum": 0,
+                                  "description": "秒"
                                 },
                                 "gust": {
                                   "type": "number",
                                   "minimum": 0,
-                                  "maximum": 1
+                                  "maximum": 1,
+                                  "description": "仅 sway：阵风包络强度"
                                 },
                                 "keys": {
                                   "type": "array",
@@ -1156,10 +1444,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "properties": {
                                       "t": {
                                         "type": "number",
-                                        "minimum": 0
+                                        "minimum": 0,
+                                        "description": "秒"
                                       },
                                       "v": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                       },
                                       "ease": {
                                         "type": "string",
@@ -1176,7 +1466,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "v"
                                     ],
                                     "additionalProperties": false
-                                  }
+                                  },
+                                  "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                                },
+                                "tracks": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "path": {
+                                        "type": "string",
+                                        "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                        "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                      },
+                                      "interp": {
+                                        "type": "string",
+                                        "enum": [
+                                          "linear",
+                                          "step",
+                                          "ease",
+                                          "cubic"
+                                        ],
+                                        "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                      },
+                                      "keys": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "t": {
+                                              "type": "number",
+                                              "minimum": 0,
+                                              "description": "秒"
+                                            },
+                                            "v": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "minItems": 3,
+                                                  "maxItems": 3,
+                                                  "items": {
+                                                    "type": "number"
+                                                  }
+                                                },
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "type": "boolean"
+                                                }
+                                              ],
+                                              "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                            },
+                                            "ease": {
+                                              "type": "string",
+                                              "enum": [
+                                                "linear",
+                                                "easeIn",
+                                                "easeOut",
+                                                "easeInOut"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "t",
+                                            "v"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "minItems": 1,
+                                        "description": "按 t 升序；超出末帧保持末值"
+                                      }
+                                    },
+                                    "required": [
+                                      "path",
+                                      "keys"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "minItems": 1,
+                                  "maxItems": 16,
+                                  "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
                               "required": [
@@ -1590,7 +1960,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "flicker",
                                   "spin",
                                   "keyframes"
-                                ]
+                                ],
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                               },
                               "channel": {
                                 "type": "string",
@@ -1604,7 +1975,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "sx",
                                   "sy",
                                   "sz"
-                                ]
+                                ],
+                                "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                               },
                               "axis": {
                                 "type": "string",
@@ -1612,31 +1984,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "x",
                                   "y",
                                   "z"
-                                ]
+                                ],
+                                "description": "仅 sway：等价于 channel=r<axis>"
                               },
                               "amplitude": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "周期函数振幅，缺省 1"
                               },
                               "frequency": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "Hz，缺省 0.5"
                               },
                               "phase": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "弧度"
                               },
                               "speed": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "时间轴倍率，缺省 1"
                               },
                               "loop": {
-                                "type": "boolean"
+                                "type": "boolean",
+                                "description": "配合 duration 取模循环"
                               },
                               "duration": {
                                 "type": "number",
-                                "exclusiveMinimum": 0
+                                "exclusiveMinimum": 0,
+                                "description": "秒"
                               },
                               "gust": {
                                 "type": "number",
                                 "minimum": 0,
-                                "maximum": 1
+                                "maximum": 1,
+                                "description": "仅 sway：阵风包络强度"
                               },
                               "keys": {
                                 "type": "array",
@@ -1645,10 +2025,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "properties": {
                                     "t": {
                                       "type": "number",
-                                      "minimum": 0
+                                      "minimum": 0,
+                                      "description": "秒"
                                     },
                                     "v": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                     },
                                     "ease": {
                                       "type": "string",
@@ -1665,7 +2047,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "v"
                                   ],
                                   "additionalProperties": false
-                                }
+                                },
+                                "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                              },
+                              "tracks": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "path": {
+                                      "type": "string",
+                                      "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                      "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                    },
+                                    "interp": {
+                                      "type": "string",
+                                      "enum": [
+                                        "linear",
+                                        "step",
+                                        "ease",
+                                        "cubic"
+                                      ],
+                                      "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                    },
+                                    "keys": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "t": {
+                                            "type": "number",
+                                            "minimum": 0,
+                                            "description": "秒"
+                                          },
+                                          "v": {
+                                            "anyOf": [
+                                              {
+                                                "type": "array",
+                                                "minItems": 3,
+                                                "maxItems": 3,
+                                                "items": {
+                                                  "type": "number"
+                                                }
+                                              },
+                                              {
+                                                "type": "number"
+                                              },
+                                              {
+                                                "type": "boolean"
+                                              }
+                                            ],
+                                            "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                          },
+                                          "ease": {
+                                            "type": "string",
+                                            "enum": [
+                                              "linear",
+                                              "easeIn",
+                                              "easeOut",
+                                              "easeInOut"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "t",
+                                          "v"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "minItems": 1,
+                                      "description": "按 t 升序；超出末帧保持末值"
+                                    }
+                                  },
+                                  "required": [
+                                    "path",
+                                    "keys"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "minItems": 1,
+                                "maxItems": 16,
+                                "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
                             "required": [
@@ -1687,7 +2149,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "flicker",
                                     "spin",
                                     "keyframes"
-                                  ]
+                                  ],
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -1701,7 +2164,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "sx",
                                     "sy",
                                     "sz"
-                                  ]
+                                  ],
+                                  "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                                 },
                                 "axis": {
                                   "type": "string",
@@ -1709,31 +2173,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "x",
                                     "y",
                                     "z"
-                                  ]
+                                  ],
+                                  "description": "仅 sway：等价于 channel=r<axis>"
                                 },
                                 "amplitude": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "周期函数振幅，缺省 1"
                                 },
                                 "frequency": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "Hz，缺省 0.5"
                                 },
                                 "phase": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "弧度"
                                 },
                                 "speed": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "时间轴倍率，缺省 1"
                                 },
                                 "loop": {
-                                  "type": "boolean"
+                                  "type": "boolean",
+                                  "description": "配合 duration 取模循环"
                                 },
                                 "duration": {
                                   "type": "number",
-                                  "exclusiveMinimum": 0
+                                  "exclusiveMinimum": 0,
+                                  "description": "秒"
                                 },
                                 "gust": {
                                   "type": "number",
                                   "minimum": 0,
-                                  "maximum": 1
+                                  "maximum": 1,
+                                  "description": "仅 sway：阵风包络强度"
                                 },
                                 "keys": {
                                   "type": "array",
@@ -1742,10 +2214,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "properties": {
                                       "t": {
                                         "type": "number",
-                                        "minimum": 0
+                                        "minimum": 0,
+                                        "description": "秒"
                                       },
                                       "v": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                       },
                                       "ease": {
                                         "type": "string",
@@ -1762,7 +2236,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "v"
                                     ],
                                     "additionalProperties": false
-                                  }
+                                  },
+                                  "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                                },
+                                "tracks": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "path": {
+                                        "type": "string",
+                                        "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                        "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                      },
+                                      "interp": {
+                                        "type": "string",
+                                        "enum": [
+                                          "linear",
+                                          "step",
+                                          "ease",
+                                          "cubic"
+                                        ],
+                                        "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                      },
+                                      "keys": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "t": {
+                                              "type": "number",
+                                              "minimum": 0,
+                                              "description": "秒"
+                                            },
+                                            "v": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "minItems": 3,
+                                                  "maxItems": 3,
+                                                  "items": {
+                                                    "type": "number"
+                                                  }
+                                                },
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "type": "boolean"
+                                                }
+                                              ],
+                                              "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                            },
+                                            "ease": {
+                                              "type": "string",
+                                              "enum": [
+                                                "linear",
+                                                "easeIn",
+                                                "easeOut",
+                                                "easeInOut"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "t",
+                                            "v"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "minItems": 1,
+                                        "description": "按 t 升序；超出末帧保持末值"
+                                      }
+                                    },
+                                    "required": [
+                                      "path",
+                                      "keys"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "minItems": 1,
+                                  "maxItems": 16,
+                                  "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
                               "required": [
@@ -1952,7 +2506,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "flicker",
                                   "spin",
                                   "keyframes"
-                                ]
+                                ],
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                               },
                               "channel": {
                                 "type": "string",
@@ -1966,7 +2521,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "sx",
                                   "sy",
                                   "sz"
-                                ]
+                                ],
+                                "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                               },
                               "axis": {
                                 "type": "string",
@@ -1974,31 +2530,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "x",
                                   "y",
                                   "z"
-                                ]
+                                ],
+                                "description": "仅 sway：等价于 channel=r<axis>"
                               },
                               "amplitude": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "周期函数振幅，缺省 1"
                               },
                               "frequency": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "Hz，缺省 0.5"
                               },
                               "phase": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "弧度"
                               },
                               "speed": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "时间轴倍率，缺省 1"
                               },
                               "loop": {
-                                "type": "boolean"
+                                "type": "boolean",
+                                "description": "配合 duration 取模循环"
                               },
                               "duration": {
                                 "type": "number",
-                                "exclusiveMinimum": 0
+                                "exclusiveMinimum": 0,
+                                "description": "秒"
                               },
                               "gust": {
                                 "type": "number",
                                 "minimum": 0,
-                                "maximum": 1
+                                "maximum": 1,
+                                "description": "仅 sway：阵风包络强度"
                               },
                               "keys": {
                                 "type": "array",
@@ -2007,10 +2571,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "properties": {
                                     "t": {
                                       "type": "number",
-                                      "minimum": 0
+                                      "minimum": 0,
+                                      "description": "秒"
                                     },
                                     "v": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                     },
                                     "ease": {
                                       "type": "string",
@@ -2027,7 +2593,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "v"
                                   ],
                                   "additionalProperties": false
-                                }
+                                },
+                                "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                              },
+                              "tracks": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "path": {
+                                      "type": "string",
+                                      "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                      "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                    },
+                                    "interp": {
+                                      "type": "string",
+                                      "enum": [
+                                        "linear",
+                                        "step",
+                                        "ease",
+                                        "cubic"
+                                      ],
+                                      "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                    },
+                                    "keys": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "t": {
+                                            "type": "number",
+                                            "minimum": 0,
+                                            "description": "秒"
+                                          },
+                                          "v": {
+                                            "anyOf": [
+                                              {
+                                                "type": "array",
+                                                "minItems": 3,
+                                                "maxItems": 3,
+                                                "items": {
+                                                  "type": "number"
+                                                }
+                                              },
+                                              {
+                                                "type": "number"
+                                              },
+                                              {
+                                                "type": "boolean"
+                                              }
+                                            ],
+                                            "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                          },
+                                          "ease": {
+                                            "type": "string",
+                                            "enum": [
+                                              "linear",
+                                              "easeIn",
+                                              "easeOut",
+                                              "easeInOut"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "t",
+                                          "v"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "minItems": 1,
+                                      "description": "按 t 升序；超出末帧保持末值"
+                                    }
+                                  },
+                                  "required": [
+                                    "path",
+                                    "keys"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "minItems": 1,
+                                "maxItems": 16,
+                                "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
                             "required": [
@@ -2049,7 +2695,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "flicker",
                                     "spin",
                                     "keyframes"
-                                  ]
+                                  ],
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -2063,7 +2710,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "sx",
                                     "sy",
                                     "sz"
-                                  ]
+                                  ],
+                                  "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                                 },
                                 "axis": {
                                   "type": "string",
@@ -2071,31 +2719,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "x",
                                     "y",
                                     "z"
-                                  ]
+                                  ],
+                                  "description": "仅 sway：等价于 channel=r<axis>"
                                 },
                                 "amplitude": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "周期函数振幅，缺省 1"
                                 },
                                 "frequency": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "Hz，缺省 0.5"
                                 },
                                 "phase": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "弧度"
                                 },
                                 "speed": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "时间轴倍率，缺省 1"
                                 },
                                 "loop": {
-                                  "type": "boolean"
+                                  "type": "boolean",
+                                  "description": "配合 duration 取模循环"
                                 },
                                 "duration": {
                                   "type": "number",
-                                  "exclusiveMinimum": 0
+                                  "exclusiveMinimum": 0,
+                                  "description": "秒"
                                 },
                                 "gust": {
                                   "type": "number",
                                   "minimum": 0,
-                                  "maximum": 1
+                                  "maximum": 1,
+                                  "description": "仅 sway：阵风包络强度"
                                 },
                                 "keys": {
                                   "type": "array",
@@ -2104,10 +2760,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "properties": {
                                       "t": {
                                         "type": "number",
-                                        "minimum": 0
+                                        "minimum": 0,
+                                        "description": "秒"
                                       },
                                       "v": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                       },
                                       "ease": {
                                         "type": "string",
@@ -2124,7 +2782,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "v"
                                     ],
                                     "additionalProperties": false
-                                  }
+                                  },
+                                  "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                                },
+                                "tracks": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "path": {
+                                        "type": "string",
+                                        "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                        "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                      },
+                                      "interp": {
+                                        "type": "string",
+                                        "enum": [
+                                          "linear",
+                                          "step",
+                                          "ease",
+                                          "cubic"
+                                        ],
+                                        "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                      },
+                                      "keys": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "t": {
+                                              "type": "number",
+                                              "minimum": 0,
+                                              "description": "秒"
+                                            },
+                                            "v": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "minItems": 3,
+                                                  "maxItems": 3,
+                                                  "items": {
+                                                    "type": "number"
+                                                  }
+                                                },
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "type": "boolean"
+                                                }
+                                              ],
+                                              "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                            },
+                                            "ease": {
+                                              "type": "string",
+                                              "enum": [
+                                                "linear",
+                                                "easeIn",
+                                                "easeOut",
+                                                "easeInOut"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "t",
+                                            "v"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "minItems": 1,
+                                        "description": "按 t 升序；超出末帧保持末值"
+                                      }
+                                    },
+                                    "required": [
+                                      "path",
+                                      "keys"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "minItems": 1,
+                                  "maxItems": 16,
+                                  "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
                               "required": [
@@ -2160,6 +2898,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                               "clip": {
                                 "type": "string",
                                 "minLength": 1
+                              },
+                              "clips": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "minItems": 1,
+                                "maxItems": 8,
+                                "description": "多 clip 叠加播放列表"
                               },
                               "speed": {
                                 "type": "number",
@@ -2351,6 +3099,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                               "clip": {
                                 "type": "string",
                                 "minLength": 1
+                              },
+                              "clips": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "minItems": 1,
+                                "maxItems": 8,
+                                "description": "多 clip 叠加播放列表"
                               },
                               "speed": {
                                 "type": "number",
@@ -2646,7 +3404,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "flicker",
                                   "spin",
                                   "keyframes"
-                                ]
+                                ],
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                               },
                               "channel": {
                                 "type": "string",
@@ -2660,7 +3419,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "sx",
                                   "sy",
                                   "sz"
-                                ]
+                                ],
+                                "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                               },
                               "axis": {
                                 "type": "string",
@@ -2668,31 +3428,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "x",
                                   "y",
                                   "z"
-                                ]
+                                ],
+                                "description": "仅 sway：等价于 channel=r<axis>"
                               },
                               "amplitude": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "周期函数振幅，缺省 1"
                               },
                               "frequency": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "Hz，缺省 0.5"
                               },
                               "phase": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "弧度"
                               },
                               "speed": {
-                                "type": "number"
+                                "type": "number",
+                                "description": "时间轴倍率，缺省 1"
                               },
                               "loop": {
-                                "type": "boolean"
+                                "type": "boolean",
+                                "description": "配合 duration 取模循环"
                               },
                               "duration": {
                                 "type": "number",
-                                "exclusiveMinimum": 0
+                                "exclusiveMinimum": 0,
+                                "description": "秒"
                               },
                               "gust": {
                                 "type": "number",
                                 "minimum": 0,
-                                "maximum": 1
+                                "maximum": 1,
+                                "description": "仅 sway：阵风包络强度"
                               },
                               "keys": {
                                 "type": "array",
@@ -2701,10 +3469,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "properties": {
                                     "t": {
                                       "type": "number",
-                                      "minimum": 0
+                                      "minimum": 0,
+                                      "description": "秒"
                                     },
                                     "v": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                     },
                                     "ease": {
                                       "type": "string",
@@ -2721,7 +3491,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "v"
                                   ],
                                   "additionalProperties": false
-                                }
+                                },
+                                "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                              },
+                              "tracks": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "path": {
+                                      "type": "string",
+                                      "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                      "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                    },
+                                    "interp": {
+                                      "type": "string",
+                                      "enum": [
+                                        "linear",
+                                        "step",
+                                        "ease",
+                                        "cubic"
+                                      ],
+                                      "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                    },
+                                    "keys": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "t": {
+                                            "type": "number",
+                                            "minimum": 0,
+                                            "description": "秒"
+                                          },
+                                          "v": {
+                                            "anyOf": [
+                                              {
+                                                "type": "array",
+                                                "minItems": 3,
+                                                "maxItems": 3,
+                                                "items": {
+                                                  "type": "number"
+                                                }
+                                              },
+                                              {
+                                                "type": "number"
+                                              },
+                                              {
+                                                "type": "boolean"
+                                              }
+                                            ],
+                                            "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                          },
+                                          "ease": {
+                                            "type": "string",
+                                            "enum": [
+                                              "linear",
+                                              "easeIn",
+                                              "easeOut",
+                                              "easeInOut"
+                                            ]
+                                          }
+                                        },
+                                        "required": [
+                                          "t",
+                                          "v"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "minItems": 1,
+                                      "description": "按 t 升序；超出末帧保持末值"
+                                    }
+                                  },
+                                  "required": [
+                                    "path",
+                                    "keys"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "minItems": 1,
+                                "maxItems": 16,
+                                "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
                             "required": [
@@ -2750,7 +3600,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "flicker",
                                     "spin",
                                     "keyframes"
-                                  ]
+                                  ],
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -2764,7 +3615,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "sx",
                                     "sy",
                                     "sz"
-                                  ]
+                                  ],
+                                  "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                                 },
                                 "axis": {
                                   "type": "string",
@@ -2772,31 +3624,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "x",
                                     "y",
                                     "z"
-                                  ]
+                                  ],
+                                  "description": "仅 sway：等价于 channel=r<axis>"
                                 },
                                 "amplitude": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "周期函数振幅，缺省 1"
                                 },
                                 "frequency": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "Hz，缺省 0.5"
                                 },
                                 "phase": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "弧度"
                                 },
                                 "speed": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "时间轴倍率，缺省 1"
                                 },
                                 "loop": {
-                                  "type": "boolean"
+                                  "type": "boolean",
+                                  "description": "配合 duration 取模循环"
                                 },
                                 "duration": {
                                   "type": "number",
-                                  "exclusiveMinimum": 0
+                                  "exclusiveMinimum": 0,
+                                  "description": "秒"
                                 },
                                 "gust": {
                                   "type": "number",
                                   "minimum": 0,
-                                  "maximum": 1
+                                  "maximum": 1,
+                                  "description": "仅 sway：阵风包络强度"
                                 },
                                 "keys": {
                                   "type": "array",
@@ -2805,10 +3665,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "properties": {
                                       "t": {
                                         "type": "number",
-                                        "minimum": 0
+                                        "minimum": 0,
+                                        "description": "秒"
                                       },
                                       "v": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                       },
                                       "ease": {
                                         "type": "string",
@@ -2825,7 +3687,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "v"
                                     ],
                                     "additionalProperties": false
-                                  }
+                                  },
+                                  "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                                },
+                                "tracks": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "path": {
+                                        "type": "string",
+                                        "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                        "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                      },
+                                      "interp": {
+                                        "type": "string",
+                                        "enum": [
+                                          "linear",
+                                          "step",
+                                          "ease",
+                                          "cubic"
+                                        ],
+                                        "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                      },
+                                      "keys": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "t": {
+                                              "type": "number",
+                                              "minimum": 0,
+                                              "description": "秒"
+                                            },
+                                            "v": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "minItems": 3,
+                                                  "maxItems": 3,
+                                                  "items": {
+                                                    "type": "number"
+                                                  }
+                                                },
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "type": "boolean"
+                                                }
+                                              ],
+                                              "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                            },
+                                            "ease": {
+                                              "type": "string",
+                                              "enum": [
+                                                "linear",
+                                                "easeIn",
+                                                "easeOut",
+                                                "easeInOut"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "t",
+                                            "v"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "minItems": 1,
+                                        "description": "按 t 升序；超出末帧保持末值"
+                                      }
+                                    },
+                                    "required": [
+                                      "path",
+                                      "keys"
+                                    ],
+                                    "additionalProperties": false
+                                  },
+                                  "minItems": 1,
+                                  "maxItems": 16,
+                                  "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
                               "required": [
@@ -3891,6 +4833,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                     "type": "string",
                     "minLength": 1
                   },
+                  "clips": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "maxItems": 8,
+                    "description": "多 clip 叠加：按顺序同时播放，weight 为各自权重（缺省均分）"
+                  },
                   "speed": {
                     "type": "number",
                     "exclusiveMinimum": 0
@@ -3958,7 +4910,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                           "flicker",
                           "spin",
                           "keyframes"
-                        ]
+                        ],
+                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                       },
                       "channel": {
                         "type": "string",
@@ -3972,7 +4925,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                           "sx",
                           "sy",
                           "sz"
-                        ]
+                        ],
+                        "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                       },
                       "axis": {
                         "type": "string",
@@ -3980,31 +4934,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                           "x",
                           "y",
                           "z"
-                        ]
+                        ],
+                        "description": "仅 sway：等价于 channel=r<axis>"
                       },
                       "amplitude": {
-                        "type": "number"
+                        "type": "number",
+                        "description": "周期函数振幅，缺省 1"
                       },
                       "frequency": {
-                        "type": "number"
+                        "type": "number",
+                        "description": "Hz，缺省 0.5"
                       },
                       "phase": {
-                        "type": "number"
+                        "type": "number",
+                        "description": "弧度"
                       },
                       "speed": {
-                        "type": "number"
+                        "type": "number",
+                        "description": "时间轴倍率，缺省 1"
                       },
                       "loop": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "配合 duration 取模循环"
                       },
                       "duration": {
                         "type": "number",
-                        "exclusiveMinimum": 0
+                        "exclusiveMinimum": 0,
+                        "description": "秒"
                       },
                       "gust": {
                         "type": "number",
                         "minimum": 0,
-                        "maximum": 1
+                        "maximum": 1,
+                        "description": "仅 sway：阵风包络强度"
                       },
                       "keys": {
                         "type": "array",
@@ -4013,10 +4975,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                           "properties": {
                             "t": {
                               "type": "number",
-                              "minimum": 0
+                              "minimum": 0,
+                              "description": "秒"
                             },
                             "v": {
-                              "type": "number"
+                              "type": "number",
+                              "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                             },
                             "ease": {
                               "type": "string",
@@ -4033,7 +4997,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                             "v"
                           ],
                           "additionalProperties": false
-                        }
+                        },
+                        "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                      },
+                      "tracks": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string",
+                              "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                              "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                            },
+                            "interp": {
+                              "type": "string",
+                              "enum": [
+                                "linear",
+                                "step",
+                                "ease",
+                                "cubic"
+                              ],
+                              "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                            },
+                            "keys": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "t": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "description": "秒"
+                                  },
+                                  "v": {
+                                    "anyOf": [
+                                      {
+                                        "type": "array",
+                                        "minItems": 3,
+                                        "maxItems": 3,
+                                        "items": {
+                                          "type": "number"
+                                        }
+                                      },
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "type": "boolean"
+                                      }
+                                    ],
+                                    "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                  },
+                                  "ease": {
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "easeIn",
+                                      "easeOut",
+                                      "easeInOut"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "t",
+                                  "v"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "minItems": 1,
+                              "description": "按 t 升序；超出末帧保持末值"
+                            }
+                          },
+                          "required": [
+                            "path",
+                            "keys"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "minItems": 1,
+                        "maxItems": 16,
+                        "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                       }
                     },
                     "required": [
@@ -4123,7 +5167,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                 "flicker",
                                 "spin",
                                 "keyframes"
-                              ]
+                              ],
+                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                             },
                             "channel": {
                               "type": "string",
@@ -4137,7 +5182,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                 "sx",
                                 "sy",
                                 "sz"
-                              ]
+                              ],
+                              "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                             },
                             "axis": {
                               "type": "string",
@@ -4145,31 +5191,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                 "x",
                                 "y",
                                 "z"
-                              ]
+                              ],
+                              "description": "仅 sway：等价于 channel=r<axis>"
                             },
                             "amplitude": {
-                              "type": "number"
+                              "type": "number",
+                              "description": "周期函数振幅，缺省 1"
                             },
                             "frequency": {
-                              "type": "number"
+                              "type": "number",
+                              "description": "Hz，缺省 0.5"
                             },
                             "phase": {
-                              "type": "number"
+                              "type": "number",
+                              "description": "弧度"
                             },
                             "speed": {
-                              "type": "number"
+                              "type": "number",
+                              "description": "时间轴倍率，缺省 1"
                             },
                             "loop": {
-                              "type": "boolean"
+                              "type": "boolean",
+                              "description": "配合 duration 取模循环"
                             },
                             "duration": {
                               "type": "number",
-                              "exclusiveMinimum": 0
+                              "exclusiveMinimum": 0,
+                              "description": "秒"
                             },
                             "gust": {
                               "type": "number",
                               "minimum": 0,
-                              "maximum": 1
+                              "maximum": 1,
+                              "description": "仅 sway：阵风包络强度"
                             },
                             "keys": {
                               "type": "array",
@@ -4178,10 +5232,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                 "properties": {
                                   "t": {
                                     "type": "number",
-                                    "minimum": 0
+                                    "minimum": 0,
+                                    "description": "秒"
                                   },
                                   "v": {
-                                    "type": "number"
+                                    "type": "number",
+                                    "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                   },
                                   "ease": {
                                     "type": "string",
@@ -4198,7 +5254,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "v"
                                 ],
                                 "additionalProperties": false
-                              }
+                              },
+                              "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                            },
+                            "tracks": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "path": {
+                                    "type": "string",
+                                    "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                    "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                  },
+                                  "interp": {
+                                    "type": "string",
+                                    "enum": [
+                                      "linear",
+                                      "step",
+                                      "ease",
+                                      "cubic"
+                                    ],
+                                    "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                  },
+                                  "keys": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "t": {
+                                          "type": "number",
+                                          "minimum": 0,
+                                          "description": "秒"
+                                        },
+                                        "v": {
+                                          "anyOf": [
+                                            {
+                                              "type": "array",
+                                              "minItems": 3,
+                                              "maxItems": 3,
+                                              "items": {
+                                                "type": "number"
+                                              }
+                                            },
+                                            {
+                                              "type": "number"
+                                            },
+                                            {
+                                              "type": "boolean"
+                                            }
+                                          ],
+                                          "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                        },
+                                        "ease": {
+                                          "type": "string",
+                                          "enum": [
+                                            "linear",
+                                            "easeIn",
+                                            "easeOut",
+                                            "easeInOut"
+                                          ]
+                                        }
+                                      },
+                                      "required": [
+                                        "t",
+                                        "v"
+                                      ],
+                                      "additionalProperties": false
+                                    },
+                                    "minItems": 1,
+                                    "description": "按 t 升序；超出末帧保持末值"
+                                  }
+                                },
+                                "required": [
+                                  "path",
+                                  "keys"
+                                ],
+                                "additionalProperties": false
+                              },
+                              "minItems": 1,
+                              "maxItems": 16,
+                              "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                             }
                           },
                           "required": [
@@ -4815,7 +5951,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "flicker",
                                         "spin",
                                         "keyframes"
-                                      ]
+                                      ],
+                                      "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                                     },
                                     "channel": {
                                       "type": "string",
@@ -4829,7 +5966,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "sx",
                                         "sy",
                                         "sz"
-                                      ]
+                                      ],
+                                      "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                                     },
                                     "axis": {
                                       "type": "string",
@@ -4837,31 +5975,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "x",
                                         "y",
                                         "z"
-                                      ]
+                                      ],
+                                      "description": "仅 sway：等价于 channel=r<axis>"
                                     },
                                     "amplitude": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "周期函数振幅，缺省 1"
                                     },
                                     "frequency": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "Hz，缺省 0.5"
                                     },
                                     "phase": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "弧度"
                                     },
                                     "speed": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "时间轴倍率，缺省 1"
                                     },
                                     "loop": {
-                                      "type": "boolean"
+                                      "type": "boolean",
+                                      "description": "配合 duration 取模循环"
                                     },
                                     "duration": {
                                       "type": "number",
-                                      "exclusiveMinimum": 0
+                                      "exclusiveMinimum": 0,
+                                      "description": "秒"
                                     },
                                     "gust": {
                                       "type": "number",
                                       "minimum": 0,
-                                      "maximum": 1
+                                      "maximum": 1,
+                                      "description": "仅 sway：阵风包络强度"
                                     },
                                     "keys": {
                                       "type": "array",
@@ -4870,10 +6016,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "properties": {
                                           "t": {
                                             "type": "number",
-                                            "minimum": 0
+                                            "minimum": 0,
+                                            "description": "秒"
                                           },
                                           "v": {
-                                            "type": "number"
+                                            "type": "number",
+                                            "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                           },
                                           "ease": {
                                             "type": "string",
@@ -4890,7 +6038,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "v"
                                         ],
                                         "additionalProperties": false
-                                      }
+                                      },
+                                      "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                                    },
+                                    "tracks": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "path": {
+                                            "type": "string",
+                                            "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                            "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                          },
+                                          "interp": {
+                                            "type": "string",
+                                            "enum": [
+                                              "linear",
+                                              "step",
+                                              "ease",
+                                              "cubic"
+                                            ],
+                                            "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                          },
+                                          "keys": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object",
+                                              "properties": {
+                                                "t": {
+                                                  "type": "number",
+                                                  "minimum": 0,
+                                                  "description": "秒"
+                                                },
+                                                "v": {
+                                                  "anyOf": [
+                                                    {
+                                                      "type": "array",
+                                                      "minItems": 3,
+                                                      "maxItems": 3,
+                                                      "items": {
+                                                        "type": "number"
+                                                      }
+                                                    },
+                                                    {
+                                                      "type": "number"
+                                                    },
+                                                    {
+                                                      "type": "boolean"
+                                                    }
+                                                  ],
+                                                  "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                                },
+                                                "ease": {
+                                                  "type": "string",
+                                                  "enum": [
+                                                    "linear",
+                                                    "easeIn",
+                                                    "easeOut",
+                                                    "easeInOut"
+                                                  ]
+                                                }
+                                              },
+                                              "required": [
+                                                "t",
+                                                "v"
+                                              ],
+                                              "additionalProperties": false
+                                            },
+                                            "minItems": 1,
+                                            "description": "按 t 升序；超出末帧保持末值"
+                                          }
+                                        },
+                                        "required": [
+                                          "path",
+                                          "keys"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "minItems": 1,
+                                      "maxItems": 16,
+                                      "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                     }
                                   },
                                   "required": [
@@ -4912,7 +6140,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "flicker",
                                           "spin",
                                           "keyframes"
-                                        ]
+                                        ],
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -4926,7 +6155,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "sx",
                                           "sy",
                                           "sz"
-                                        ]
+                                        ],
+                                        "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                                       },
                                       "axis": {
                                         "type": "string",
@@ -4934,31 +6164,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "x",
                                           "y",
                                           "z"
-                                        ]
+                                        ],
+                                        "description": "仅 sway：等价于 channel=r<axis>"
                                       },
                                       "amplitude": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "周期函数振幅，缺省 1"
                                       },
                                       "frequency": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "Hz，缺省 0.5"
                                       },
                                       "phase": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "弧度"
                                       },
                                       "speed": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "时间轴倍率，缺省 1"
                                       },
                                       "loop": {
-                                        "type": "boolean"
+                                        "type": "boolean",
+                                        "description": "配合 duration 取模循环"
                                       },
                                       "duration": {
                                         "type": "number",
-                                        "exclusiveMinimum": 0
+                                        "exclusiveMinimum": 0,
+                                        "description": "秒"
                                       },
                                       "gust": {
                                         "type": "number",
                                         "minimum": 0,
-                                        "maximum": 1
+                                        "maximum": 1,
+                                        "description": "仅 sway：阵风包络强度"
                                       },
                                       "keys": {
                                         "type": "array",
@@ -4967,10 +6205,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "properties": {
                                             "t": {
                                               "type": "number",
-                                              "minimum": 0
+                                              "minimum": 0,
+                                              "description": "秒"
                                             },
                                             "v": {
-                                              "type": "number"
+                                              "type": "number",
+                                              "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                             },
                                             "ease": {
                                               "type": "string",
@@ -4987,7 +6227,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             "v"
                                           ],
                                           "additionalProperties": false
-                                        }
+                                        },
+                                        "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                                      },
+                                      "tracks": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "path": {
+                                              "type": "string",
+                                              "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                              "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                            },
+                                            "interp": {
+                                              "type": "string",
+                                              "enum": [
+                                                "linear",
+                                                "step",
+                                                "ease",
+                                                "cubic"
+                                              ],
+                                              "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                            },
+                                            "keys": {
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "t": {
+                                                    "type": "number",
+                                                    "minimum": 0,
+                                                    "description": "秒"
+                                                  },
+                                                  "v": {
+                                                    "anyOf": [
+                                                      {
+                                                        "type": "array",
+                                                        "minItems": 3,
+                                                        "maxItems": 3,
+                                                        "items": {
+                                                          "type": "number"
+                                                        }
+                                                      },
+                                                      {
+                                                        "type": "number"
+                                                      },
+                                                      {
+                                                        "type": "boolean"
+                                                      }
+                                                    ],
+                                                    "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                                  },
+                                                  "ease": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "linear",
+                                                      "easeIn",
+                                                      "easeOut",
+                                                      "easeInOut"
+                                                    ]
+                                                  }
+                                                },
+                                                "required": [
+                                                  "t",
+                                                  "v"
+                                                ],
+                                                "additionalProperties": false
+                                              },
+                                              "minItems": 1,
+                                              "description": "按 t 升序；超出末帧保持末值"
+                                            }
+                                          },
+                                          "required": [
+                                            "path",
+                                            "keys"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "minItems": 1,
+                                        "maxItems": 16,
+                                        "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
                                     "required": [
@@ -5098,7 +6418,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "flicker",
                                         "spin",
                                         "keyframes"
-                                      ]
+                                      ],
+                                      "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                                     },
                                     "channel": {
                                       "type": "string",
@@ -5112,7 +6433,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "sx",
                                         "sy",
                                         "sz"
-                                      ]
+                                      ],
+                                      "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                                     },
                                     "axis": {
                                       "type": "string",
@@ -5120,31 +6442,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "x",
                                         "y",
                                         "z"
-                                      ]
+                                      ],
+                                      "description": "仅 sway：等价于 channel=r<axis>"
                                     },
                                     "amplitude": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "周期函数振幅，缺省 1"
                                     },
                                     "frequency": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "Hz，缺省 0.5"
                                     },
                                     "phase": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "弧度"
                                     },
                                     "speed": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "时间轴倍率，缺省 1"
                                     },
                                     "loop": {
-                                      "type": "boolean"
+                                      "type": "boolean",
+                                      "description": "配合 duration 取模循环"
                                     },
                                     "duration": {
                                       "type": "number",
-                                      "exclusiveMinimum": 0
+                                      "exclusiveMinimum": 0,
+                                      "description": "秒"
                                     },
                                     "gust": {
                                       "type": "number",
                                       "minimum": 0,
-                                      "maximum": 1
+                                      "maximum": 1,
+                                      "description": "仅 sway：阵风包络强度"
                                     },
                                     "keys": {
                                       "type": "array",
@@ -5153,10 +6483,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "properties": {
                                           "t": {
                                             "type": "number",
-                                            "minimum": 0
+                                            "minimum": 0,
+                                            "description": "秒"
                                           },
                                           "v": {
-                                            "type": "number"
+                                            "type": "number",
+                                            "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                           },
                                           "ease": {
                                             "type": "string",
@@ -5173,7 +6505,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "v"
                                         ],
                                         "additionalProperties": false
-                                      }
+                                      },
+                                      "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                                    },
+                                    "tracks": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "path": {
+                                            "type": "string",
+                                            "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                            "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                          },
+                                          "interp": {
+                                            "type": "string",
+                                            "enum": [
+                                              "linear",
+                                              "step",
+                                              "ease",
+                                              "cubic"
+                                            ],
+                                            "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                          },
+                                          "keys": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object",
+                                              "properties": {
+                                                "t": {
+                                                  "type": "number",
+                                                  "minimum": 0,
+                                                  "description": "秒"
+                                                },
+                                                "v": {
+                                                  "anyOf": [
+                                                    {
+                                                      "type": "array",
+                                                      "minItems": 3,
+                                                      "maxItems": 3,
+                                                      "items": {
+                                                        "type": "number"
+                                                      }
+                                                    },
+                                                    {
+                                                      "type": "number"
+                                                    },
+                                                    {
+                                                      "type": "boolean"
+                                                    }
+                                                  ],
+                                                  "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                                },
+                                                "ease": {
+                                                  "type": "string",
+                                                  "enum": [
+                                                    "linear",
+                                                    "easeIn",
+                                                    "easeOut",
+                                                    "easeInOut"
+                                                  ]
+                                                }
+                                              },
+                                              "required": [
+                                                "t",
+                                                "v"
+                                              ],
+                                              "additionalProperties": false
+                                            },
+                                            "minItems": 1,
+                                            "description": "按 t 升序；超出末帧保持末值"
+                                          }
+                                        },
+                                        "required": [
+                                          "path",
+                                          "keys"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "minItems": 1,
+                                      "maxItems": 16,
+                                      "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                     }
                                   },
                                   "required": [
@@ -5195,7 +6607,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "flicker",
                                           "spin",
                                           "keyframes"
-                                        ]
+                                        ],
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -5209,7 +6622,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "sx",
                                           "sy",
                                           "sz"
-                                        ]
+                                        ],
+                                        "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                                       },
                                       "axis": {
                                         "type": "string",
@@ -5217,31 +6631,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "x",
                                           "y",
                                           "z"
-                                        ]
+                                        ],
+                                        "description": "仅 sway：等价于 channel=r<axis>"
                                       },
                                       "amplitude": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "周期函数振幅，缺省 1"
                                       },
                                       "frequency": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "Hz，缺省 0.5"
                                       },
                                       "phase": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "弧度"
                                       },
                                       "speed": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "时间轴倍率，缺省 1"
                                       },
                                       "loop": {
-                                        "type": "boolean"
+                                        "type": "boolean",
+                                        "description": "配合 duration 取模循环"
                                       },
                                       "duration": {
                                         "type": "number",
-                                        "exclusiveMinimum": 0
+                                        "exclusiveMinimum": 0,
+                                        "description": "秒"
                                       },
                                       "gust": {
                                         "type": "number",
                                         "minimum": 0,
-                                        "maximum": 1
+                                        "maximum": 1,
+                                        "description": "仅 sway：阵风包络强度"
                                       },
                                       "keys": {
                                         "type": "array",
@@ -5250,10 +6672,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "properties": {
                                             "t": {
                                               "type": "number",
-                                              "minimum": 0
+                                              "minimum": 0,
+                                              "description": "秒"
                                             },
                                             "v": {
-                                              "type": "number"
+                                              "type": "number",
+                                              "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                             },
                                             "ease": {
                                               "type": "string",
@@ -5270,7 +6694,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             "v"
                                           ],
                                           "additionalProperties": false
-                                        }
+                                        },
+                                        "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                                      },
+                                      "tracks": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "path": {
+                                              "type": "string",
+                                              "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                              "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                            },
+                                            "interp": {
+                                              "type": "string",
+                                              "enum": [
+                                                "linear",
+                                                "step",
+                                                "ease",
+                                                "cubic"
+                                              ],
+                                              "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                            },
+                                            "keys": {
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "t": {
+                                                    "type": "number",
+                                                    "minimum": 0,
+                                                    "description": "秒"
+                                                  },
+                                                  "v": {
+                                                    "anyOf": [
+                                                      {
+                                                        "type": "array",
+                                                        "minItems": 3,
+                                                        "maxItems": 3,
+                                                        "items": {
+                                                          "type": "number"
+                                                        }
+                                                      },
+                                                      {
+                                                        "type": "number"
+                                                      },
+                                                      {
+                                                        "type": "boolean"
+                                                      }
+                                                    ],
+                                                    "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                                  },
+                                                  "ease": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "linear",
+                                                      "easeIn",
+                                                      "easeOut",
+                                                      "easeInOut"
+                                                    ]
+                                                  }
+                                                },
+                                                "required": [
+                                                  "t",
+                                                  "v"
+                                                ],
+                                                "additionalProperties": false
+                                              },
+                                              "minItems": 1,
+                                              "description": "按 t 升序；超出末帧保持末值"
+                                            }
+                                          },
+                                          "required": [
+                                            "path",
+                                            "keys"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "minItems": 1,
+                                        "maxItems": 16,
+                                        "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
                                     "required": [
@@ -5679,7 +7183,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "flicker",
                                         "spin",
                                         "keyframes"
-                                      ]
+                                      ],
+                                      "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                                     },
                                     "channel": {
                                       "type": "string",
@@ -5693,7 +7198,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "sx",
                                         "sy",
                                         "sz"
-                                      ]
+                                      ],
+                                      "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                                     },
                                     "axis": {
                                       "type": "string",
@@ -5701,31 +7207,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "x",
                                         "y",
                                         "z"
-                                      ]
+                                      ],
+                                      "description": "仅 sway：等价于 channel=r<axis>"
                                     },
                                     "amplitude": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "周期函数振幅，缺省 1"
                                     },
                                     "frequency": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "Hz，缺省 0.5"
                                     },
                                     "phase": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "弧度"
                                     },
                                     "speed": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "时间轴倍率，缺省 1"
                                     },
                                     "loop": {
-                                      "type": "boolean"
+                                      "type": "boolean",
+                                      "description": "配合 duration 取模循环"
                                     },
                                     "duration": {
                                       "type": "number",
-                                      "exclusiveMinimum": 0
+                                      "exclusiveMinimum": 0,
+                                      "description": "秒"
                                     },
                                     "gust": {
                                       "type": "number",
                                       "minimum": 0,
-                                      "maximum": 1
+                                      "maximum": 1,
+                                      "description": "仅 sway：阵风包络强度"
                                     },
                                     "keys": {
                                       "type": "array",
@@ -5734,10 +7248,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "properties": {
                                           "t": {
                                             "type": "number",
-                                            "minimum": 0
+                                            "minimum": 0,
+                                            "description": "秒"
                                           },
                                           "v": {
-                                            "type": "number"
+                                            "type": "number",
+                                            "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                           },
                                           "ease": {
                                             "type": "string",
@@ -5754,7 +7270,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "v"
                                         ],
                                         "additionalProperties": false
-                                      }
+                                      },
+                                      "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                                    },
+                                    "tracks": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "path": {
+                                            "type": "string",
+                                            "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                            "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                          },
+                                          "interp": {
+                                            "type": "string",
+                                            "enum": [
+                                              "linear",
+                                              "step",
+                                              "ease",
+                                              "cubic"
+                                            ],
+                                            "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                          },
+                                          "keys": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object",
+                                              "properties": {
+                                                "t": {
+                                                  "type": "number",
+                                                  "minimum": 0,
+                                                  "description": "秒"
+                                                },
+                                                "v": {
+                                                  "anyOf": [
+                                                    {
+                                                      "type": "array",
+                                                      "minItems": 3,
+                                                      "maxItems": 3,
+                                                      "items": {
+                                                        "type": "number"
+                                                      }
+                                                    },
+                                                    {
+                                                      "type": "number"
+                                                    },
+                                                    {
+                                                      "type": "boolean"
+                                                    }
+                                                  ],
+                                                  "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                                },
+                                                "ease": {
+                                                  "type": "string",
+                                                  "enum": [
+                                                    "linear",
+                                                    "easeIn",
+                                                    "easeOut",
+                                                    "easeInOut"
+                                                  ]
+                                                }
+                                              },
+                                              "required": [
+                                                "t",
+                                                "v"
+                                              ],
+                                              "additionalProperties": false
+                                            },
+                                            "minItems": 1,
+                                            "description": "按 t 升序；超出末帧保持末值"
+                                          }
+                                        },
+                                        "required": [
+                                          "path",
+                                          "keys"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "minItems": 1,
+                                      "maxItems": 16,
+                                      "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                     }
                                   },
                                   "required": [
@@ -5776,7 +7372,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "flicker",
                                           "spin",
                                           "keyframes"
-                                        ]
+                                        ],
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -5790,7 +7387,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "sx",
                                           "sy",
                                           "sz"
-                                        ]
+                                        ],
+                                        "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                                       },
                                       "axis": {
                                         "type": "string",
@@ -5798,31 +7396,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "x",
                                           "y",
                                           "z"
-                                        ]
+                                        ],
+                                        "description": "仅 sway：等价于 channel=r<axis>"
                                       },
                                       "amplitude": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "周期函数振幅，缺省 1"
                                       },
                                       "frequency": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "Hz，缺省 0.5"
                                       },
                                       "phase": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "弧度"
                                       },
                                       "speed": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "时间轴倍率，缺省 1"
                                       },
                                       "loop": {
-                                        "type": "boolean"
+                                        "type": "boolean",
+                                        "description": "配合 duration 取模循环"
                                       },
                                       "duration": {
                                         "type": "number",
-                                        "exclusiveMinimum": 0
+                                        "exclusiveMinimum": 0,
+                                        "description": "秒"
                                       },
                                       "gust": {
                                         "type": "number",
                                         "minimum": 0,
-                                        "maximum": 1
+                                        "maximum": 1,
+                                        "description": "仅 sway：阵风包络强度"
                                       },
                                       "keys": {
                                         "type": "array",
@@ -5831,10 +7437,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "properties": {
                                             "t": {
                                               "type": "number",
-                                              "minimum": 0
+                                              "minimum": 0,
+                                              "description": "秒"
                                             },
                                             "v": {
-                                              "type": "number"
+                                              "type": "number",
+                                              "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                             },
                                             "ease": {
                                               "type": "string",
@@ -5851,7 +7459,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             "v"
                                           ],
                                           "additionalProperties": false
-                                        }
+                                        },
+                                        "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                                      },
+                                      "tracks": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "path": {
+                                              "type": "string",
+                                              "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                              "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                            },
+                                            "interp": {
+                                              "type": "string",
+                                              "enum": [
+                                                "linear",
+                                                "step",
+                                                "ease",
+                                                "cubic"
+                                              ],
+                                              "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                            },
+                                            "keys": {
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "t": {
+                                                    "type": "number",
+                                                    "minimum": 0,
+                                                    "description": "秒"
+                                                  },
+                                                  "v": {
+                                                    "anyOf": [
+                                                      {
+                                                        "type": "array",
+                                                        "minItems": 3,
+                                                        "maxItems": 3,
+                                                        "items": {
+                                                          "type": "number"
+                                                        }
+                                                      },
+                                                      {
+                                                        "type": "number"
+                                                      },
+                                                      {
+                                                        "type": "boolean"
+                                                      }
+                                                    ],
+                                                    "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                                  },
+                                                  "ease": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "linear",
+                                                      "easeIn",
+                                                      "easeOut",
+                                                      "easeInOut"
+                                                    ]
+                                                  }
+                                                },
+                                                "required": [
+                                                  "t",
+                                                  "v"
+                                                ],
+                                                "additionalProperties": false
+                                              },
+                                              "minItems": 1,
+                                              "description": "按 t 升序；超出末帧保持末值"
+                                            }
+                                          },
+                                          "required": [
+                                            "path",
+                                            "keys"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "minItems": 1,
+                                        "maxItems": 16,
+                                        "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
                                     "required": [
@@ -6035,7 +7723,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "flicker",
                                         "spin",
                                         "keyframes"
-                                      ]
+                                      ],
+                                      "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                                     },
                                     "channel": {
                                       "type": "string",
@@ -6049,7 +7738,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "sx",
                                         "sy",
                                         "sz"
-                                      ]
+                                      ],
+                                      "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                                     },
                                     "axis": {
                                       "type": "string",
@@ -6057,31 +7747,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "x",
                                         "y",
                                         "z"
-                                      ]
+                                      ],
+                                      "description": "仅 sway：等价于 channel=r<axis>"
                                     },
                                     "amplitude": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "周期函数振幅，缺省 1"
                                     },
                                     "frequency": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "Hz，缺省 0.5"
                                     },
                                     "phase": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "弧度"
                                     },
                                     "speed": {
-                                      "type": "number"
+                                      "type": "number",
+                                      "description": "时间轴倍率，缺省 1"
                                     },
                                     "loop": {
-                                      "type": "boolean"
+                                      "type": "boolean",
+                                      "description": "配合 duration 取模循环"
                                     },
                                     "duration": {
                                       "type": "number",
-                                      "exclusiveMinimum": 0
+                                      "exclusiveMinimum": 0,
+                                      "description": "秒"
                                     },
                                     "gust": {
                                       "type": "number",
                                       "minimum": 0,
-                                      "maximum": 1
+                                      "maximum": 1,
+                                      "description": "仅 sway：阵风包络强度"
                                     },
                                     "keys": {
                                       "type": "array",
@@ -6090,10 +7788,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "properties": {
                                           "t": {
                                             "type": "number",
-                                            "minimum": 0
+                                            "minimum": 0,
+                                            "description": "秒"
                                           },
                                           "v": {
-                                            "type": "number"
+                                            "type": "number",
+                                            "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                           },
                                           "ease": {
                                             "type": "string",
@@ -6110,7 +7810,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "v"
                                         ],
                                         "additionalProperties": false
-                                      }
+                                      },
+                                      "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                                    },
+                                    "tracks": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "path": {
+                                            "type": "string",
+                                            "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                            "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                          },
+                                          "interp": {
+                                            "type": "string",
+                                            "enum": [
+                                              "linear",
+                                              "step",
+                                              "ease",
+                                              "cubic"
+                                            ],
+                                            "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                          },
+                                          "keys": {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object",
+                                              "properties": {
+                                                "t": {
+                                                  "type": "number",
+                                                  "minimum": 0,
+                                                  "description": "秒"
+                                                },
+                                                "v": {
+                                                  "anyOf": [
+                                                    {
+                                                      "type": "array",
+                                                      "minItems": 3,
+                                                      "maxItems": 3,
+                                                      "items": {
+                                                        "type": "number"
+                                                      }
+                                                    },
+                                                    {
+                                                      "type": "number"
+                                                    },
+                                                    {
+                                                      "type": "boolean"
+                                                    }
+                                                  ],
+                                                  "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                                },
+                                                "ease": {
+                                                  "type": "string",
+                                                  "enum": [
+                                                    "linear",
+                                                    "easeIn",
+                                                    "easeOut",
+                                                    "easeInOut"
+                                                  ]
+                                                }
+                                              },
+                                              "required": [
+                                                "t",
+                                                "v"
+                                              ],
+                                              "additionalProperties": false
+                                            },
+                                            "minItems": 1,
+                                            "description": "按 t 升序；超出末帧保持末值"
+                                          }
+                                        },
+                                        "required": [
+                                          "path",
+                                          "keys"
+                                        ],
+                                        "additionalProperties": false
+                                      },
+                                      "minItems": 1,
+                                      "maxItems": 16,
+                                      "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                     }
                                   },
                                   "required": [
@@ -6132,7 +7912,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "flicker",
                                           "spin",
                                           "keyframes"
-                                        ]
+                                        ],
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -6146,7 +7927,8 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "sx",
                                           "sy",
                                           "sz"
-                                        ]
+                                        ],
+                                        "description": "作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换"
                                       },
                                       "axis": {
                                         "type": "string",
@@ -6154,31 +7936,39 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "x",
                                           "y",
                                           "z"
-                                        ]
+                                        ],
+                                        "description": "仅 sway：等价于 channel=r<axis>"
                                       },
                                       "amplitude": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "周期函数振幅，缺省 1"
                                       },
                                       "frequency": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "Hz，缺省 0.5"
                                       },
                                       "phase": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "弧度"
                                       },
                                       "speed": {
-                                        "type": "number"
+                                        "type": "number",
+                                        "description": "时间轴倍率，缺省 1"
                                       },
                                       "loop": {
-                                        "type": "boolean"
+                                        "type": "boolean",
+                                        "description": "配合 duration 取模循环"
                                       },
                                       "duration": {
                                         "type": "number",
-                                        "exclusiveMinimum": 0
+                                        "exclusiveMinimum": 0,
+                                        "description": "秒"
                                       },
                                       "gust": {
                                         "type": "number",
                                         "minimum": 0,
-                                        "maximum": 1
+                                        "maximum": 1,
+                                        "description": "仅 sway：阵风包络强度"
                                       },
                                       "keys": {
                                         "type": "array",
@@ -6187,10 +7977,12 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "properties": {
                                             "t": {
                                               "type": "number",
-                                              "minimum": 0
+                                              "minimum": 0,
+                                              "description": "秒"
                                             },
                                             "v": {
-                                              "type": "number"
+                                              "type": "number",
+                                              "description": "该通道的增量：位移/旋转(弧度)相加，缩放相乘"
                                             },
                                             "ease": {
                                               "type": "string",
@@ -6207,7 +7999,87 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             "v"
                                           ],
                                           "additionalProperties": false
-                                        }
+                                        },
+                                        "description": "仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v"
+                                      },
+                                      "tracks": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "path": {
+                                              "type": "string",
+                                              "pattern": "^(position|rotation|scale|visible|opacity|bone\\.[A-Za-z0-9_.-]+\\.(rotation|position|scale))$",
+                                              "description": "position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼"
+                                            },
+                                            "interp": {
+                                              "type": "string",
+                                              "enum": [
+                                                "linear",
+                                                "step",
+                                                "ease",
+                                                "cubic"
+                                              ],
+                                              "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
+                                            },
+                                            "keys": {
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "t": {
+                                                    "type": "number",
+                                                    "minimum": 0,
+                                                    "description": "秒"
+                                                  },
+                                                  "v": {
+                                                    "anyOf": [
+                                                      {
+                                                        "type": "array",
+                                                        "minItems": 3,
+                                                        "maxItems": 3,
+                                                        "items": {
+                                                          "type": "number"
+                                                        }
+                                                      },
+                                                      {
+                                                        "type": "number"
+                                                      },
+                                                      {
+                                                        "type": "boolean"
+                                                      }
+                                                    ],
+                                                    "description": "position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字"
+                                                  },
+                                                  "ease": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "linear",
+                                                      "easeIn",
+                                                      "easeOut",
+                                                      "easeInOut"
+                                                    ]
+                                                  }
+                                                },
+                                                "required": [
+                                                  "t",
+                                                  "v"
+                                                ],
+                                                "additionalProperties": false
+                                              },
+                                              "minItems": 1,
+                                              "description": "按 t 升序；超出末帧保持末值"
+                                            }
+                                          },
+                                          "required": [
+                                            "path",
+                                            "keys"
+                                          ],
+                                          "additionalProperties": false
+                                        },
+                                        "minItems": 1,
+                                        "maxItems": 16,
+                                        "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
                                     "required": [
@@ -6243,6 +8115,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "clip": {
                                       "type": "string",
                                       "minLength": 1
+                                    },
+                                    "clips": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      },
+                                      "minItems": 1,
+                                      "maxItems": 8,
+                                      "description": "多 clip 叠加播放列表"
                                     },
                                     "speed": {
                                       "type": "number",
@@ -7204,6 +9086,7 @@ export const MCP_LEGACY_ALIASES: Readonly<Record<string, { tool: string; op: str
   "vibe3d_render_assert": { tool: "vibe3d_render", op: "assert" },
   "vibe3d_render_id_pass": { tool: "vibe3d_render", op: "id_pass" },
   "vibe3d_render_sequence": { tool: "vibe3d_render", op: "sequence" },
+  "vibe3d_render_video": { tool: "vibe3d_render", op: "video" },
   "vibe3d_job_get": { tool: "vibe3d_job", op: "get" },
   "vibe3d_job_list": { tool: "vibe3d_job", op: "list" },
   "vibe3d_job_cancel": { tool: "vibe3d_job", op: "cancel" },

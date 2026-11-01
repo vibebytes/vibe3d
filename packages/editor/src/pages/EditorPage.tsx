@@ -17,11 +17,13 @@ import { TopBar } from '../layout/TopBar';
 import { AssetsPanel } from '../scene/AssetsPanel';
 import { SceneTree } from '../scene/SceneTree';
 import { useDoc } from '../stores/doc';
+import { useModelErrors } from '../stores/modelErrors';
 import { useSelection } from '../stores/selection';
 import { useUi } from '../stores/ui';
 import { setMapErrorHandler } from '../three/materials';
 import { CaptureBridge } from '../viewport/CaptureBridge';
 import { EmptyViewport } from '../viewport/EmptyViewport';
+import { ModelErrorsBar } from '../viewport/ModelErrorsBar';
 import { SceneCanvas } from '../viewport/SceneCanvas';
 import { ViewportHud } from '../viewport/ViewportHud';
 import { HeadlessPage } from './HeadlessPage';
@@ -67,6 +69,17 @@ export function EditorPage() {
     });
     return () => setMapErrorHandler(null);
   }, [push]);
+
+  const modelErrors = useModelErrors((s) => s.errors);
+  const reportedModels = useRef(new Set<string>());
+  useEffect(() => {
+    for (const err of Object.values(modelErrors)) {
+      const key = `${err.nodeId}:${err.message}`;
+      if (reportedModels.current.has(key)) continue;
+      reportedModels.current.add(key);
+      push('error', `模型资源加载失败（服务可能已重启）: ${err.message}`);
+    }
+  }, [modelErrors, push]);
 
   useEffect(() => {
     if (roomId) void load(roomId);
@@ -256,6 +269,7 @@ export function EditorPage() {
         }}
       />
       <Toaster items={items} onDismiss={dismiss} />
+      <ModelErrorsBar />
       <ImportOverlay dragging={importer.dragging} importing={importer.importing} />
       {importer.input}
     </ErrorBoundary>

@@ -26,6 +26,7 @@ import {
   vec3,
 } from '@vibebyte/vibe3d-protocol';
 import { z } from 'zod';
+import { defineCapabilities } from '../types';
 import { revisionOut, roomId, transformInput } from './common';
 
 const stagePatch = stageStateSchema.partial().extend({
@@ -84,7 +85,7 @@ const nodeBriefOut = z.object({
   tags: tagsSchema.optional(),
 });
 
-export const sceneOps = {
+export const sceneOps = defineCapabilities({
   'scene.get': {
     title: '取整份场景文档',
     input: z.object({ roomId }),
@@ -888,7 +889,7 @@ export const sceneOps = {
     mcp: { annotations: { readOnlyHint: true } },
     cli: { command: 'selection get', args: '<roomId>' },
   },
-};
+});
 
 export const sceneIoOps = {
   'scene.export': {

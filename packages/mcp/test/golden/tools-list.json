@@ -92,6 +92,7 @@
             "assert",
             "id_pass",
             "sequence",
+            "video",
             "glb",
             "cancel",
             "open",
@@ -467,19 +468,19 @@
   },
   {
     "name": "vibe3d_render",
-    "description": "[render] 渲染：快照 / 多视角 / 单资产特写 / 像素取色 / ID 通道 / 序列帧｜op: snapshot views node pick assert id_pass sequence｜必填见 params 描述，字段见 vibe3d_help {tool, op}｜snapshot / views 前先 vibe3d_status 探能力",
+    "description": "[render] 渲染：快照 / 多视角 / 单资产特写 / 像素取色 / ID 通道 / 序列帧｜op: snapshot views node pick assert id_pass sequence video｜必填见 params 描述，字段见 vibe3d_help {tool, op}｜snapshot / views 前先 vibe3d_status 探能力",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
       "properties": {
         "op": {
           "type": "string",
-          "enum": ["snapshot", "views", "node", "pick", "assert", "id_pass", "sequence"],
+          "enum": ["snapshot", "views", "node", "pick", "assert", "id_pass", "sequence", "video"],
           "description": "render 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
-          "description": "必填字段：node{node_id} assert{anchors} sequence{from,to,fps}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "必填字段：node{node_id} assert{anchors} sequence{from,to,fps} video{from,to,fps}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -606,7 +607,7 @@
       "properties": {
         "ops": {
           "type": "array",
-          "description": "按顺序原子执行；每个元素是 {op:\"名字\", ...字段}。复合载荷要包在同名字段里，不能平铺在 op 顶层：node.create 传 {op,node:{…}}、env.set 传 {op,env:{…}}、stage.set 传 {op,stage:{…}}、camera.set 传 {op,camera:{…}}、fx.create 传 {op,fx:{…}}。op 与顶层字段：node.create{node:{…}} node.update{id:{…},patch:{…}} node.delete{id:{…},cascade?} node.reparent{id:{…},parent:{…},index?} material.set{id,material:{…}} material.delete{id,force?} material.create{id,preset?,params?:{…}} material.patch{id,patch:{…}} material.map{id,map:{…}} env.set{env:{…}} stage.set{stage:{…}} animation.play{target,clip?,speed?,loop?,direction?,weight?} animation.stop{target} animation.define{target,clip:{…},applyTo?} animation.clear{target,applyTo?,channel?} animation.pose{targets} fx.create{fx:{…}} fx.delete{id} camera.set{camera?:{…},frame?,name?,preset?} camera.save{name,camera?:{…}} camera.delete{name} asset.register{asset:{…}} asset.unregister{sha} scene.replace{doc:{…}}。字段细节见 vibe3d_help {tool:\"vibe3d_apply_ops\", op:\"node.create\"}。",
+          "description": "按顺序原子执行；每个元素是 {op:\"名字\", ...字段}。复合载荷要包在同名字段里，不能平铺在 op 顶层：node.create 传 {op,node:{…}}、env.set 传 {op,env:{…}}、stage.set 传 {op,stage:{…}}、camera.set 传 {op,camera:{…}}、fx.create 传 {op,fx:{…}}。op 与顶层字段：node.create{node:{…}} node.update{id:{…},patch:{…}} node.delete{id:{…},cascade?} node.reparent{id:{…},parent:{…},index?} material.set{id,material:{…}} material.delete{id,force?} material.create{id,preset?,params?:{…}} material.patch{id,patch:{…}} material.map{id,map:{…}} env.set{env:{…}} stage.set{stage:{…}} animation.play{target,clip?,clips?,speed?,loop?,direction?,weight?} animation.stop{target} animation.define{target,clip:{…},applyTo?} animation.clear{target,applyTo?,channel?} animation.pose{targets} fx.create{fx:{…}} fx.delete{id} camera.set{camera?:{…},frame?,name?,preset?} camera.save{name,camera?:{…}} camera.delete{name} asset.register{asset:{…}} asset.unregister{sha} scene.replace{doc:{…}}。字段细节见 vibe3d_help {tool:\"vibe3d_apply_ops\", op:\"node.create\"}。",
           "items": {
             "type": "object",
             "properties": {

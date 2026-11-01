@@ -1,5 +1,5 @@
 import { OrbitControls } from '@react-three/drei';
-import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import type {
   LightNode,
   Material,
@@ -8,7 +8,7 @@ import type {
   SceneDoc,
   SceneNode,
 } from '@vibebyte/vibe3d-protocol';
-import { viewportFogPlan } from '@vibebyte/vibe3d-scene';
+import { nodeClipsOf, viewportFogPlan } from '@vibebyte/vibe3d-scene';
 import {
   type ComponentRef,
   type ReactNode,
@@ -21,7 +21,9 @@ import {
 } from 'react';
 import * as THREE from 'three';
 import { RectAreaLightUniformsLib } from 'three/examples/jsm/lights/RectAreaLightUniformsLib.js';
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { assetUrl } from '../lib/rpc';
+import { useModelErrors } from '../stores/modelErrors';
 import { usePlayback } from '../stores/playback';
 import { useSelection } from '../stores/selection';
 import { useUi } from '../stores/ui';
@@ -31,6 +33,7 @@ import { createViewportEnvMap } from '../three/env-map-view';
 import { applyFxAt, buildFxObject, disposeFxObject, fogSettings } from '../three/fx';
 import { animationClips, cloneGltfScene, gltfLoader } from '../three/gltf';
 import { type LightPlan, lightPlan } from '../three/lights';
+import { createModelCache } from '../three/model-cache';
 import { type NprPlan, nprPlan } from '../three/npr';
 import { pickAt } from '../three/picking';
 import { postPlan } from '../three/post';
@@ -53,20 +56,55 @@ function MeshView({
   return <primitive object={mesh} />;
 }
 
+const modelCache = createModelCache((sha, url) => gltfLoader().loadAsync(url));
+
 function ModelView({ node }: { node: ModelNode }) {
-  const gltf = useLoader(gltfLoader(), assetUrl(node.sha));
+  const retryOf = useModelErrors((s) => s.retries[node.id] ?? 0);
+  const [gltf, setGltf] = useState<GLTF | null>(null);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: retryOf re-runs the load when the user clicks retry
+  useEffect(() => {
+    let live = true;
+    setGltf(null);
+    modelCache
+      .load(node.sha, assetUrl(node.sha))
+      .then((loaded) => {
+        if (!live) return;
+        useModelErrors.getState().clear(node.id);
+        setGltf(loaded);
+      })
+      .catch((error: unknown) => {
+        if (!live) return;
+        const message = error instanceof Error ? error.message : String(error);
+        useModelErrors.getState().report(node.id, node.sha, message);
+      });
+    return () => {
+      live = false;
+      useModelErrors.getState().clear(node.id);
+    };
+  }, [node.id, node.sha, retryOf]);
+
   const scene = useMemo(() => {
+    if (!gltf) return null;
     const cloned = cloneGltfScene(gltf);
     cloned.userData.nodeId = node.id;
     return cloned;
   }, [gltf, node.id]);
 
   useEffect(() => {
+    if (!scene || !gltf) return;
     animations.register(node.id, scene, animationClips(gltf));
     animations.apply(node.id, node.anim);
     return () => animations.unregister(node.id);
   }, [node.id, node.anim, scene, gltf]);
 
+  const boneClips = useMemo(() => nodeClipsOf(node), [node]);
+  useFrame(() => {
+    if (boneClips.length === 0 || !scene) return;
+    applyBoneTracks(scene, boneClips, usePlayback.getState().time);
+  });
+
+  if (!scene) return null;
   return <primitive object={scene} />;
 }
 

@@ -97,7 +97,9 @@ const imageOpts = {
   height: intIn(64, 4096).optional(),
   format: z.enum(['png', 'jpeg']).optional(),
   settleMs: intIn(0, 10_000).optional(),
-  at: numIn(0, 3600).optional(),
+  at: numIn(0, 3600)
+    .optional()
+    .describe('动画时间轴上的采样时刻（秒）；给定后先 seek 到该时刻再出图，同一 at 结果确定'),
   transparent: z.boolean().optional(),
   shading: shadingMode.optional(),
   overlay: z.array(overlayKind).max(8).optional(),
@@ -194,7 +196,7 @@ const referenceOverlaySchema = z.object({
 
 export const jobStateSchema = z.enum(['queued', 'running', 'done', 'failed', 'cancelled']);
 
-export const jobKindSchema = z.enum(['export.glb', 'render.sequence']);
+export const jobKindSchema = z.enum(['export.glb', 'render.sequence', 'render.video']);
 
 export const jobViewSchema = z.object({
   jobId: z.string().min(1),
@@ -207,6 +209,7 @@ export const jobViewSchema = z.object({
   bytes: z.number().int().min(0).optional(),
   revision: z.number().int().min(0).optional(),
   frames: z.number().int().min(0).optional(),
+  warning: z.string().optional().describe('例如 animation not advancing：所有帧字节相同，动画没有推进'),
   error: z.object({ code: z.string(), message: z.string() }).optional(),
   createdAt: z.string(),
   expiresAt: z.string(),
@@ -655,8 +658,8 @@ export const renderOps = {
     title: '按 from/to/fps 采样动画，输出 PNG 帧序列 + manifest（任务制，用 job.get 取进度）',
     input: z.object({
       roomId,
-      from: numIn(0, 3600),
-      to: numIn(0, 3600),
+      from: numIn(0, 3600).describe('起始时间（秒，动画时间轴）'),
+      to: numIn(0, 3600).describe('结束时间（秒，动画时间轴）'),
       fps: intIn(1, 60),
       width: imageOpts.width,
       height: imageOpts.height,
@@ -683,6 +686,40 @@ export const renderOps = {
       'E_INVALID_PARAMS',
       'E_BUSY',
       'E_JOB_NOT_FOUND',
+    ] as const,
+  },
+  'render.video': {
+    title: '按 from/to/fps 采样动画并编码为 MP4（任务制，用 job.get 取进度；需要本机 ffmpeg）',
+    input: z.object({
+      roomId,
+      from: numIn(0, 3600).describe('起始时间（秒，动画时间轴）'),
+      to: numIn(0, 3600).describe('结束时间（秒，动画时间轴）'),
+      fps: intIn(1, 60),
+      width: imageOpts.width,
+      height: imageOpts.height,
+      shading: imageOpts.shading,
+      overlay: imageOpts.overlay,
+      settleMs: imageOpts.settleMs,
+    }),
+    output: z.object({
+      jobId: z.string().min(1),
+      state: jobStateSchema,
+    }),
+    scope: 'room' as const,
+    mutating: false,
+    wire: 'render.video' as const,
+    mcp: { annotations: { readOnlyHint: true } },
+    cli: {
+      command: 'render video',
+      args: '<roomId> --from s --to s [--fps 24] [--size 1280x720] [--shading flat] [--wait]',
+    },
+    errors: [
+      'E_RENDER_UNAVAILABLE',
+      'E_ROOM_NOT_FOUND',
+      'E_INVALID_PARAMS',
+      'E_BUSY',
+      'E_JOB_NOT_FOUND',
+      'E_FFMPEG_MISSING',
     ] as const,
   },
   'export.glb': {

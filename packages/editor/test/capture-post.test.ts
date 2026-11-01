@@ -137,12 +137,12 @@ describe('快照后处理门控', () => {
     useDoc.setState({ doc: emptyDoc('plain') });
   });
 
-  it('rendered 且需要后处理时，缓冲来自一次性 Composer，并用本次相机', () => {
+  it('rendered 且需要后处理时，缓冲来自一次性 Composer，并用本次相机', async () => {
     withDof();
     const gl = fakeGl();
     const camera = new THREE.PerspectiveCamera(40, 16 / 9, 0.1, 100);
     camera.position.set(0, 0, 20);
-    captureFrame(
+    await captureFrame(
       gl as never,
       sceneOf(),
       camera,
@@ -161,11 +161,11 @@ describe('快照后处理门控', () => {
     expect(bag.bokeh[0]?.position.map((n) => Math.round(n * 100) / 100)).toEqual(CAM.p);
   });
 
-  it('transparent、id_pass、无 post 时不创建 Composer', () => {
+  it('transparent、id_pass、无 post 时不创建 Composer', async () => {
     withDof();
     const gl = fakeGl();
     const camera = new THREE.PerspectiveCamera(40, 16 / 9, 0.1, 100);
-    captureFrame(
+    await captureFrame(
       gl as never,
       sceneOf(),
       camera,
@@ -190,7 +190,7 @@ describe('快照后处理门控', () => {
       },
     );
     useDoc.setState({ doc: emptyDoc('plain') });
-    captureFrame(
+    await captureFrame(
       gl as never,
       sceneOf(),
       camera,

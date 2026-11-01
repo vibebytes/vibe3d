@@ -1,14 +1,20 @@
-import { clipSchema, nodeIdSchema } from '@vibebyte/vibe3d-protocol';
+import { clipChannelSchema, clipSchema, nodeIdSchema } from '@vibebyte/vibe3d-protocol';
 import { z } from 'zod';
 import { revisionOut, roomId } from './common';
 
 export const animOps = {
   'animation.play': {
-    title: '播放模型动画，默认取首条 clip',
+    title: '播放模型动画，默认取首条 clip；clips 可多 clip 叠加',
     input: z.object({
       roomId,
       nodeId: nodeIdSchema,
       clip: z.string().optional(),
+      clips: z
+        .array(z.string().min(1))
+        .min(1)
+        .max(8)
+        .optional()
+        .describe('多 clip 叠加：按顺序同时播放，weight 为各自权重（缺省均分）'),
       speed: z.number().positive().optional(),
       loop: z.boolean().optional(),
       direction: z.enum(['forward', 'reverse']).optional(),
@@ -20,7 +26,7 @@ export const animOps = {
     wire: 'scene.apply' as const,
     cli: {
       command: 'anim play',
-      args: '<roomId> <nodeId> [--clip <name>] [--speed 1] [--loop false] [--direction reverse] [--weight 0.5]',
+      args: '<roomId> <nodeId> [--clip <name>] [--clips idle,wave] [--speed 1] [--loop false] [--direction reverse] [--weight 0.5]',
     },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
@@ -35,7 +41,8 @@ export const animOps = {
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'animation.define': {
-    title: '定义程序化动画：位移 / 旋转 / 缩放轨道',
+    title:
+      '定义程序化动画：周期函数（sway/ripple/float/flicker/spin）、标量关键帧（keyframes），或任意属性轨道（tracks）',
     input: z.object({
       roomId,
       nodeId: nodeIdSchema,
@@ -48,7 +55,7 @@ export const animOps = {
     wire: 'scene.apply' as const,
     cli: {
       command: 'anim define',
-      args: '<roomId> <nodeId> --type sway [--axis x|y|z] [--gust0..1] [--apply-to subtree]',
+      args: '<roomId> <nodeId> --type sway [--axis x|y|z] [--gust 0..1] [--apply-to subtree]；任意属性用 --clip-json \'{"tracks":[{"path":"position","keys":[{"t":0,"v":[0,0,0]}]}]}\'',
     },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
@@ -58,7 +65,7 @@ export const animOps = {
       roomId,
       nodeId: nodeIdSchema,
       applyTo: z.enum(['node', 'subtree']).optional(),
-      channel: z.enum(['px', 'py', 'pz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz']).optional(),
+      channel: clipChannelSchema.optional(),
     }),
     output: revisionOut.extend({ cleared: z.boolean(), appliedTo: z.array(nodeIdSchema) }),
     scope: 'room' as const,

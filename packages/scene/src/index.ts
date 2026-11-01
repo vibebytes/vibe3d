@@ -8,7 +8,15 @@ export {
   type AttachOptions,
 } from './attach';
 export { applyOps, inverseOps, type OpSummary, type ReduceResult } from './reduce';
-export { applyClipTransform, applyNodeClips, clipChannelOf, nodeClipsOf, sampleClip } from './anim';
+export {
+  applyClipTransform,
+  applyNodeClips,
+  boneTracksOf,
+  clipChannelOf,
+  nodeClipsOf,
+  sampleClip,
+  sampleTrack,
+} from './anim';
 export { MAX_PARTICLES, particleCount, sampleParticles, type ParticleSample } from './fx';
 export {
   sceneBounds,

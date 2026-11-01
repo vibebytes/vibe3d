@@ -39,6 +39,7 @@ export const WIRE_METHODS = [
   'job.get',
   'job.list',
   'job.cancel',
+  'render.video',
   'editor.open',
   'scene.export',
   'scene.import',

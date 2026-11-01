@@ -43,6 +43,10 @@ export class JobQueue {
     return this.active.size;
   }
 
+  isRoomBusy(roomId: string): boolean {
+    return this.busyRooms().has(roomId);
+  }
+
   enqueue(job: JobRecord, run: JobRunner): JobRecord {
     if (this.pending.length + this.active.size >= this.limit) {
       throw new AppError('E_BUSY', `任务队列已满（上限 ${this.limit}），请稍后重试`);

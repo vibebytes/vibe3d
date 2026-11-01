@@ -54,7 +54,7 @@ export type StagePatch = Partial<Omit<StageState, 'npr' | 'post'>> & {
 
 declare global {
   interface Window {
-    __vibe3dCapture?: (opts?: CaptureOptions) => CaptureResult | null;
+    __vibe3dCapture?: (opts?: CaptureOptions) => Promise<CaptureResult | null>;
     __vibe3dReady?: boolean;
     __vibe3dRevision?: number;
     __vibe3dExport?: (nodeIds?: string[] | null) => Promise<string>;
@@ -206,7 +206,7 @@ export const useDoc = create<DocStore>((set, get) => ({
                 highlight: highlight && highlight.length > 0 ? highlight : undefined,
                 isolate: isolate && isolate.length > 0 ? isolate : undefined,
               };
-              let shot = window.__vibe3dCapture?.({
+              let shot = await window.__vibe3dCapture?.({
                 ...base,
                 width: num('width'),
                 height: num('height'),
@@ -214,7 +214,7 @@ export const useDoc = create<DocStore>((set, get) => ({
               for (let attempt = 0; attempt < 2 && shot; attempt += 1) {
                 if (fitsMaxBytes(shot.base64.length, maxBytes)) break;
                 const smaller = shrinkCapture(shot.width, shot.height);
-                shot = window.__vibe3dCapture?.({
+                shot = await window.__vibe3dCapture?.({
                   ...base,
                   width: smaller.width,
                   height: smaller.height,

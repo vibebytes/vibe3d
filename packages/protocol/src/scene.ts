@@ -24,31 +24,99 @@ import {
 export const modelAnimSchema = z.object({
   playing: z.boolean(),
   clip: z.string().min(1).optional(),
+  clips: z.array(z.string().min(1)).min(1).max(8).optional().describe('多 clip 叠加播放列表'),
   speed: z.number().finite().positive(),
   loop: z.boolean().optional(),
   direction: z.enum(['forward', 'reverse']).optional(),
   weight: z.number().finite().min(0).max(1).optional(),
 });
 
+export const clipChannelSchema = z.enum(['px', 'py', 'pz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz']);
+
 export const clipKeySchema = z.object({
-  t: z.number().finite().min(0),
-  v: z.number().finite(),
+  t: z.number().finite().min(0).describe('秒'),
+  v: z.number().finite().describe('该通道的增量：位移/旋转(弧度)相加，缩放相乘'),
   ease: z.enum(['linear', 'easeIn', 'easeOut', 'easeInOut']).optional(),
 });
 
-export const clipSchema = z.object({
-  type: z.enum(['sway', 'ripple', 'float', 'flicker', 'spin', 'keyframes']),
-  channel: z.enum(['px', 'py', 'pz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz']).optional(),
-  axis: z.enum(['x', 'y', 'z']).optional(),
-  amplitude: z.number().finite().optional(),
-  frequency: z.number().finite().optional(),
-  phase: z.number().finite().optional(),
-  speed: z.number().finite().optional(),
-  loop: z.boolean().optional(),
-  duration: z.number().finite().positive().optional(),
-  gust: z.number().finite().min(0).max(1).optional(),
-  keys: z.array(clipKeySchema).optional(),
+export const trackPathSchema = z
+  .string()
+  .regex(/^(position|rotation|scale|visible|opacity|bone\.[A-Za-z0-9_.-]+\.(rotation|position|scale))$/)
+  .describe(
+    'position/rotation/scale 为绝对 3 元数组（rotation 用弧度）；visible 为布尔；opacity 为 0..1；bone.<骨骼名>.rotation|position|scale 驱动 glTF 骨骼',
+  ) as unknown as z.ZodString;
+
+export const trackInterpSchema = z
+  .enum(['linear', 'step', 'ease', 'cubic'])
+  .describe('缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom');
+
+export const trackKeySchema = z.object({
+  t: z.number().finite().min(0).describe('秒'),
+  v: z
+    .union([vec3, z.number().finite(), z.boolean()])
+    .describe('position/rotation/scale 传 [x,y,z]；visible 传布尔；opacity 传数字'),
+  ease: z.enum(['linear', 'easeIn', 'easeOut', 'easeInOut']).optional(),
 });
+
+export const trackSchema = z
+  .object({
+    path: trackPathSchema,
+    interp: trackInterpSchema.optional(),
+    keys: z.array(trackKeySchema).min(1).describe('按 t 升序；超出末帧保持末值'),
+  })
+  .superRefine((track, ctx) => {
+    const vector =
+      track.path === 'position' ||
+      track.path === 'rotation' ||
+      track.path === 'scale' ||
+      track.path.startsWith('bone.');
+    for (const [index, key] of track.keys.entries()) {
+      const ok = vector
+        ? Array.isArray(key.v)
+        : track.path === 'visible'
+          ? typeof key.v === 'boolean'
+          : typeof key.v === 'number';
+      if (!ok) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['keys', index, 'v'],
+          message: `${track.path} 轨道的 v 类型不匹配`,
+        });
+      }
+    }
+  });
+
+const clipSchemaRuntime = z
+  .object({
+    type: z
+      .enum(['sway', 'ripple', 'float', 'flicker', 'spin', 'keyframes'])
+      .describe('sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值'),
+    channel: clipChannelSchema
+      .optional()
+      .describe('作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换'),
+    axis: z.enum(['x', 'y', 'z']).optional().describe('仅 sway：等价于 channel=r<axis>'),
+    amplitude: z.number().finite().optional().describe('周期函数振幅，缺省 1'),
+    frequency: z.number().finite().optional().describe('Hz，缺省 0.5'),
+    phase: z.number().finite().optional().describe('弧度'),
+    speed: z.number().finite().optional().describe('时间轴倍率，缺省 1'),
+    loop: z.boolean().optional().describe('配合 duration 取模循环'),
+    duration: z.number().finite().positive().optional().describe('秒'),
+    gust: z.number().finite().min(0).max(1).optional().describe('仅 sway：阵风包络强度'),
+    keys: z
+      .array(clipKeySchema)
+      .optional()
+      .describe('仅 keyframes：按 t 升序插值，超出末帧保持末值；每帧只给一个标量 v'),
+    tracks: z
+      .array(trackSchema)
+      .min(1)
+      .max(16)
+      .optional()
+      .describe('通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）'),
+  })
+  .strict();
+
+export type ClipSpec = z.infer<typeof clipSchemaRuntime>;
+export const clipSchema: z.ZodType<ClipSpec> = clipSchemaRuntime;
 
 export const fxSchema = z.object({
   id: fxIdSchema,
@@ -154,7 +222,7 @@ export const assetMetaSchema = z.object({
   image: assetImageSchema.optional(),
 });
 
-export const sceneDocSchema = z.object({
+const sceneDocRuntime = z.object({
   schemaVersion: z.literal(DOC_SCHEMA_VERSION),
   revision: z.number().int().min(0),
   name: z.string().max(120),
@@ -170,6 +238,9 @@ export const sceneDocSchema = z.object({
   updatedAt: z.string().min(1),
 });
 
+export type SceneDoc = z.infer<typeof sceneDocRuntime>;
+export const sceneDocSchema: z.ZodType<SceneDoc, z.ZodTypeDef, unknown> = sceneDocRuntime;
+
 export type ModelAnim = z.infer<typeof modelAnimSchema>;
 export type DecalSpec = z.infer<typeof decalSchema>;
 export type GroupNode = z.infer<typeof groupNodeSchema>;
@@ -180,9 +251,9 @@ export type SceneNode = z.infer<typeof sceneNodeSchema>;
 export type GltfAnimation = z.infer<typeof gltfAnimationSchema>;
 export type GltfReport = z.infer<typeof gltfReportSchema>;
 export type AssetMeta = z.infer<typeof assetMetaSchema>;
-export type SceneDoc = z.infer<typeof sceneDocSchema>;
-export type ClipSpec = z.infer<typeof clipSchema>;
 export type ClipKey = z.infer<typeof clipKeySchema>;
+export type TrackSpec = z.infer<typeof trackSchema>;
+export type TrackKey = z.infer<typeof trackKeySchema>;
 export type FxSpec = z.infer<typeof fxSchema>;
 
 export const DEFAULT_STAGE: z.infer<typeof stageStateSchema> = {

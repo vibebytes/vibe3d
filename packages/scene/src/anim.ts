@@ -1,4 +1,4 @@
-import type { ClipKey, ClipSpec, Transform } from '@vibebyte/vibe3d-protocol';
+import type { ClipKey, ClipSpec, TrackSpec, Transform } from '@vibebyte/vibe3d-protocol';
 
 const TAU = Math.PI * 2;
 
@@ -80,12 +80,116 @@ export function sampleClip(clip: ClipSpec, t: number): number {
   }
 }
 
-export function applyClipTransform(base: Transform, clip: ClipSpec, t: number): Transform {
-  const channel = clipChannelOf(clip);
-  const value = sampleClip(clip, t);
+type TrackValue = number | boolean | [number, number, number];
+
+function lerpVec(
+  a: [number, number, number],
+  b: [number, number, number],
+  u: number,
+): [number, number, number] {
+  return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, a[2] + (b[2] - a[2]) * u];
+}
+
+function catmullRom(
+  p0: [number, number, number],
+  p1: [number, number, number],
+  p2: [number, number, number],
+  p3: [number, number, number],
+  u: number,
+): [number, number, number] {
+  const out: [number, number, number] = [0, 0, 0];
+  for (let i = 0; i < 3; i += 1) {
+    const a = p0[i] ?? 0;
+    const b = p1[i] ?? 0;
+    const c = p2[i] ?? 0;
+    const d = p3[i] ?? 0;
+    const u2 = u * u;
+    const u3 = u2 * u;
+    out[i] = 0.5 * (2 * b + (-a + c) * u + (2 * a - 5 * b + 4 * c - d) * u2 + (-a + 3 * b - 3 * c + d) * u3);
+  }
+  return out;
+}
+
+function asVec(v: TrackValue): [number, number, number] {
+  return Array.isArray(v) ? v : [0, 0, 0];
+}
+
+export function sampleTrack(track: TrackSpec, t: number): TrackValue {
+  const sorted = [...track.keys].sort((a, b) => a.t - b.t);
+  const first = sorted[0];
+  if (!first) return 0;
+  if (t <= first.t) return first.v as TrackValue;
+  const last = sorted[sorted.length - 1];
+  if (!last) return 0;
+  if (t >= last.t) return last.v as TrackValue;
+  const interp = track.interp ?? 'linear';
+  for (let i = 0; i < sorted.length - 1; i += 1) {
+    const a = sorted[i];
+    const b = sorted[i + 1];
+    if (!a || !b) continue;
+    if (t > b.t) continue;
+    if (interp === 'step') return a.v as TrackValue;
+    const span = b.t - a.t;
+    const u = span <= 0 ? 1 : (t - a.t) / span;
+    if (Array.isArray(a.v) && Array.isArray(b.v)) {
+      if (interp === 'cubic') {
+        const prev = sorted[i - 1] ?? a;
+        const next = sorted[i + 2] ?? b;
+        return catmullRom(asVec(prev.v as TrackValue), a.v, b.v, asVec(next.v as TrackValue), u);
+      }
+      return lerpVec(a.v, b.v, interp === 'ease' ? ease(u, 'easeInOut') : u);
+    }
+    if (typeof a.v === 'number' && typeof b.v === 'number') {
+      return a.v + (b.v - a.v) * (interp === 'ease' ? ease(u, 'easeInOut') : u);
+    }
+    return a.v as TrackValue;
+  }
+  return last.v as TrackValue;
+}
+
+export interface BoneTrack {
+  bone: string;
+  property: 'rotation' | 'position' | 'scale';
+  track: TrackSpec;
+}
+
+export function boneTracksOf(clip: ClipSpec): BoneTrack[] {
+  const out: BoneTrack[] = [];
+  for (const track of clip.tracks ?? []) {
+    const match = /^bone\.(.+)\.(rotation|position|scale)$/.exec(track.path);
+    if (!match) continue;
+    out.push({
+      bone: match[1] ?? '',
+      property: match[2] as BoneTrack['property'],
+      track,
+    });
+  }
+  return out;
+}
+
+function applyTracks(base: Transform, clip: ClipSpec, t: number): Transform {
+  const tracks = clip.tracks;
+  if (!tracks || tracks.length === 0) return base;
+  const time = clipTime(clip, t);
   const p: [number, number, number] = [...base.p];
   const r: [number, number, number] = [...base.r];
   const s: [number, number, number] = [...base.s];
+  for (const track of tracks) {
+    const value = sampleTrack(track, time);
+    if (track.path === 'position' && Array.isArray(value)) p.splice(0, 3, ...value);
+    else if (track.path === 'rotation' && Array.isArray(value)) r.splice(0, 3, ...value);
+    else if (track.path === 'scale' && Array.isArray(value)) s.splice(0, 3, ...value);
+  }
+  return { p, r, s };
+}
+
+export function applyClipTransform(base: Transform, clip: ClipSpec, t: number): Transform {
+  const channel = clipChannelOf(clip);
+  const value = sampleClip(clip, t);
+  const tracked = applyTracks(base, clip, t);
+  const p: [number, number, number] = [...tracked.p];
+  const r: [number, number, number] = [...tracked.r];
+  const s: [number, number, number] = [...tracked.s];
   const axis = channel[1];
   const index = axis === 'x' ? 0 : axis === 'y' ? 1 : 2;
   if (channel[0] === 'p') p[index] += value;

@@ -12,8 +12,9 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { SSAOPass } from 'three/examples/jsm/postprocessing/SSAOPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { useDoc } from '../stores/doc';
+import { useModelErrors } from '../stores/modelErrors';
 import { useSelection } from '../stores/selection';
-import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
+import { animations, applyBoneTracks, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
 import { applyFxAt, fogSettings } from '../three/fx';
 import { applyIdMaterials } from '../three/id-pass-materials';
 import { missingModelIds } from '../three/model-ready';
@@ -165,13 +166,19 @@ function snapshotComposer(
   return composer;
 }
 
-export function captureFrame(
+function nextFrame(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => resolve());
+  });
+}
+
+export async function captureFrame(
   gl: THREE.WebGLRenderer,
   scene: THREE.Scene,
   camera: THREE.Camera,
   viewport: Size,
   opts: CaptureOptions = {},
-): CaptureResult {
+): Promise<CaptureResult> {
   const format = opts.format === 'jpeg' ? 'jpeg' : 'png';
   const mime = `image/${format}`;
   const quality = format === 'jpeg' ? 0.9 : undefined;
@@ -179,13 +186,17 @@ export function captureFrame(
   const { width, height } = resolveCaptureSize({ width: opts.width, height: opts.height }, viewport, {
     ratio: preset.pixelRatio,
   });
-  if (typeof opts.at === 'number') animations.seekAll(opts.at);
-
   const doc = useDoc.getState().doc;
-  if (doc && typeof opts.at === 'number') {
-    applyProceduralClips(scene, clipsOf(doc), opts.at, clipBasesOf(doc));
-    const fx = doc.fx ?? [];
-    if (fx.length > 0) applyFxAt(scene, fx, opts.at);
+  if (typeof opts.at === 'number') {
+    animations.seekAll(opts.at);
+    if (doc) {
+      applyProceduralClips(scene, clipsOf(doc), opts.at, clipBasesOf(doc));
+      applyBoneTracks(scene, Object.values(clipsOf(doc)).flat(), opts.at);
+      const fx = doc.fx ?? [];
+      if (fx.length > 0) applyFxAt(scene, fx, opts.at);
+    }
+    scene.updateMatrixWorld(true);
+    await nextFrame();
   }
 
   const perspective = camera as THREE.PerspectiveCamera;
@@ -431,7 +442,7 @@ export function CaptureBridge({ roomId, headless = false }: { roomId: string; he
   const revision = useDoc((s) => s.doc?.revision ?? 0);
 
   useEffect(() => {
-    const capture = (opts?: CaptureOptions): CaptureResult => {
+    const capture = async (opts?: CaptureOptions): Promise<CaptureResult> => {
       if (headless && opts?.at === undefined) animations.seekAll(0);
       return captureFrame(gl, scene, camera, size, opts);
     };
@@ -439,6 +450,13 @@ export function CaptureBridge({ roomId, headless = false }: { roomId: string; he
       const deadline = Date.now() + 12_000;
       let target = exportRoot(scene, nodeIds);
       let missing = pendingModels(target, nodeIds);
+      if (missing.length > 0) {
+        const errors = useModelErrors.getState().errors;
+        const failed = missing.filter((id) => errors[id]);
+        if (failed.length > 0) {
+          throw new Error(`模型资源加载失败，无法导出：${failed.join(', ')}`);
+        }
+      }
       while (missing.length > 0 && Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 120));
         target = exportRoot(scene, nodeIds);

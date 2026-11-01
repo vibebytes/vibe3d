@@ -125,6 +125,48 @@ describe('applyOps', () => {
     expect(code(() => applyOps(doc, [{ op: 'animation.play', target: CUBE.id }]))).toBe('E_INVALID_PARAMS');
   });
 
+  it('animation.play 支持 clips 多 clip 叠加，未知 clip 报错，逆操作还原', () => {
+    const doc = cubeDoc();
+    const node = modelNode('n_00000002', SHA_A);
+    doc.nodes[node.id] = node;
+    doc.roots.push(node.id);
+    doc.assets[SHA_A] = {
+      sha: SHA_A,
+      bytes: 10,
+      name: 'm.glb',
+      mime: 'model/gltf-binary',
+      kind: 'gltf',
+      gltf: {
+        version: '2.0',
+        selfContained: true,
+        missing: [],
+        extensions: [],
+        unsupported: [],
+        meshes: 1,
+        prims: 1,
+        tris: 12,
+        materials: 1,
+        textures: 0,
+        animations: [
+          { name: 'idle', durationSec: 2, channels: 3 },
+          { name: 'wave', durationSec: 1, channels: 2 },
+        ],
+        skins: 1,
+        size: { min: [0, 0, 0], max: [1, 1, 1], diag: 1.732 },
+      },
+    };
+    const played = applyOps(doc, [
+      { op: 'animation.play', target: node.id, clips: ['idle', 'wave'], weight: 0.5 },
+    ]);
+    expect(played.doc.nodes[node.id]).toMatchObject({
+      anim: { playing: true, clip: 'idle', clips: ['idle', 'wave'], weight: 0.5 },
+    });
+    expect(applyOps(played.doc, played.inverse).doc.nodes[node.id]).toEqual(node);
+    expect(
+      code(() => applyOps(doc, [{ op: 'animation.play', target: node.id, clips: ['idle', 'nope'] }])),
+    ).toBe('E_INVALID_PARAMS');
+  });
+
   it('camera.set frame 由场景包围盒算出具体相机', () => {
     const doc = cubeDoc();
     const { doc: next } = applyOps(doc, [{ op: 'camera.set', frame: 'fit' }]);

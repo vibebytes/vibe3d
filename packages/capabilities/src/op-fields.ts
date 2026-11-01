@@ -37,6 +37,17 @@ function unwrap(schema: z.ZodTypeAny): z.ZodTypeAny {
   return current;
 }
 
+function descriptionOf(schema: z.ZodTypeAny): string | undefined {
+  let current: z.ZodTypeAny | undefined = schema;
+  for (let i = 0; i < 8 && current; i += 1) {
+    const def = defOf(current);
+    if (typeof def.description === 'string' && def.description) return def.description;
+    if (!def.typeName || !WRAPPERS.has(def.typeName)) return undefined;
+    current = (def.innerType ?? def.schema) as z.ZodTypeAny | undefined;
+  }
+  return undefined;
+}
+
 function isRequiredField(schema: z.ZodTypeAny): boolean {
   let current = schema;
   for (let i = 0; i < 8; i += 1) {
@@ -103,7 +114,7 @@ function armFor(op: string): Record<string, z.ZodTypeAny> | undefined {
 }
 
 const MAX_FIELDS = 400;
-const DISPLAY_FIELDS = 60;
+const DISPLAY_FIELDS = 96;
 
 const EXPAND = new Set([
   'node',
@@ -121,6 +132,8 @@ const EXPAND = new Set([
   'params',
   'preset',
   'material',
+  'clip',
+  'tracks',
 ]);
 
 function collect(
@@ -133,17 +146,24 @@ function collect(
     if (out.length >= MAX_FIELDS) return;
     const path = prefix ? `${prefix}.${name}` : name;
     const def = defOf(unwrap(schema));
-    const description = typeof def.description === 'string' ? def.description : undefined;
+    const description = descriptionOf(schema);
     out.push({
       path,
       type: typeText(schema),
       required: isRequiredField(schema),
       ...(description ? { description } : {}),
     });
-    if (depth >= 3 || !EXPAND.has(name)) continue;
+    if (depth >= 4) continue;
     const child = shapeOf(schema);
     if (child && def.typeName === 'ZodObject') {
+      if (!EXPAND.has(name)) continue;
       collect(child, path, depth + 1, out);
+      continue;
+    }
+    if (def.typeName === 'ZodArray') {
+      const item = def.type as z.ZodTypeAny | undefined;
+      const itemShape = item ? shapeOf(item) : undefined;
+      if (itemShape) collect(itemShape, `${path}[]`, depth, out);
       continue;
     }
     if (def.typeName === 'ZodDiscriminatedUnion') {
@@ -165,6 +185,12 @@ function collect(
         const tag = tagNode ? defOf(tagNode).value : undefined;
         collect(armShape, `${path}[type=${String(tag ?? '?')}]`, depth + 1, out);
       }
+      continue;
+    }
+    if (def.typeName === 'ZodRecord') {
+      const value = def.valueType as z.ZodTypeAny | undefined;
+      const valueShape = value ? shapeOf(value) : undefined;
+      if (valueShape) collect(valueShape, `${path}{}`, depth, out);
     }
   }
 }

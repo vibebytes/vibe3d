@@ -115,8 +115,8 @@ describe('render.sequence', () => {
     let first = true;
     h.ctx.renderer = {
       ...frameRenderer([]),
-      snapshot: async () => {
-        if (first) {
+      snapshot: async (_input, opts) => {
+        if (first && opts?.at !== undefined) {
           first = false;
           await gate;
         }
@@ -145,6 +145,83 @@ describe('render.sequence', () => {
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
     expect(manifest.status).toBe('cancelled');
     expect(manifest.frames).toHaveLength(1);
+  });
+
+  it('帧字节全同时给出 animation not advancing 告警', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    const store = new JobStore();
+    const queue = new JobQueue(store);
+    h.ctx.renderer = frameRenderer([]);
+    h.ctx.jobs = { store, queue };
+
+    const started = await call(
+      h,
+      'render.sequence',
+      { roomId, from: 0, to: 1, fps: 2, width: 160, height: 90 },
+      roomId,
+    );
+    const jobId = started.body.result.jobId as string;
+    await queue.idle();
+
+    const done = await call(h, 'job.get', { jobId });
+    expect(done.body.result.state).toBe('done');
+    expect(done.body.result.warning).toBe('animation not advancing');
+    const manifest = JSON.parse(readFileSync(join(h.dirs.exports, `${jobId}.json`), 'utf8'));
+    expect(manifest.warning).toBe('animation not advancing');
+    expect(manifest.frames).toHaveLength(3);
+  });
+
+  it('同一房间已有渲染任务在跑时立即报 E_BUSY，且不写 undo 历史', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    const store = new JobStore();
+    const queue = new JobQueue(store);
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let first = true;
+    h.ctx.renderer = {
+      ...frameRenderer([]),
+      snapshot: async (_input, opts) => {
+        if (first && opts?.at !== undefined) {
+          first = false;
+          await gate;
+        }
+        return { mime: 'image/png', base64: 'QUJD', width: 160, height: 90 };
+      },
+    };
+    h.ctx.jobs = { store, queue };
+
+    const before = await call(h, 'room.get', { roomId }, roomId);
+    const revision = before.body.result.revision as number;
+    const started = await call(
+      h,
+      'render.sequence',
+      { roomId, from: 0, to: 1, fps: 2, width: 160, height: 90 },
+      roomId,
+    );
+    expect(started.body.error).toBeUndefined();
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    const busy = await call(
+      h,
+      'render.sequence',
+      { roomId, from: 0, to: 1, fps: 2, width: 160, height: 90 },
+      roomId,
+    );
+    expect(codeOf(busy.body)).toBe('E_BUSY');
+    expect(busy.body.error.data?.hint ?? busy.body.error.hint).toContain('job.get');
+
+    const after = await call(h, 'room.get', { roomId }, roomId);
+    expect(after.body.result.revision).toBe(revision);
+    expect(store.list().filter((job) => job.state === 'queued')).toHaveLength(0);
+
+    release();
+    await queue.idle();
+    const done = await call(h, 'job.get', { jobId: started.body.result.jobId });
+    expect(done.body.result.state).toBe('done');
   });
 
   it('fps 越界时报 E_INVALID_PARAMS', async () => {
