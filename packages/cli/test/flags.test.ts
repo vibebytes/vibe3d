@@ -29,7 +29,7 @@ describe('paramsFromFlags', () => {
   });
 
   it('R5 点路径：env set --fog.color', () => {
-    const fog = params('env.set', ['r1'], { 'fog.color': '#fff' }).fog as { color: number[] };
+    const fog = params('env.set', ['r1'], { 'Fog.Color': '#fff' }).fog as { color: number[] };
     expect(fog.color[0]).toBe(1);
     expect(fog.color[3]).toBe(1);
   });

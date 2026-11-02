@@ -56,7 +56,7 @@ describe('cli output', () => {
         },
       }),
     );
-    const job = await settleJob(studio, { jobId: 'j1' }, 'file', {});
+    const job = await settleJob(studio, { jobId: 'j1' }, 'file', {}, fetch, 20);
     expect(job).toMatchObject({ state: 'done' });
     expect(calls.filter((method) => method === 'job.get').length).toBeGreaterThan(1);
   });
@@ -74,5 +74,99 @@ describe('cli output', () => {
     const job = await settleJob(studio, { jobId: 'j1', state: 'running' }, 'file', { wait: false });
     expect(job).toMatchObject({ state: 'running' });
     expect(calls).toEqual([]);
+  });
+
+  it('--timeout 超时报错', async () => {
+    const studio = Studio.over(
+      mockTransport({
+        dispatch: async () => ({ jobId: 'j1', state: 'running' }),
+      }),
+    );
+    await expect(
+      settleJob(studio, { jobId: 'j1' }, 'file', { timeout: '0.05' }, fetch, 20),
+    ).rejects.toMatchObject({
+      code: 'E_TIMEOUT',
+    });
+  });
+
+  it('job file + --out 下载产物', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'vibe3d-glb-'));
+    const out = join(dir, 'a.glb');
+    const studio = Studio.over(
+      mockTransport({
+        dispatch: async () => ({ jobId: 'j1', state: 'done', url: '/a.glb', revision: 3 }),
+      }),
+    );
+    const fetchImpl = async () => new Response(new Uint8Array([9, 8, 7]));
+    const result = await settleJob(
+      studio,
+      { jobId: 'j1', state: 'done', url: '/a.glb', revision: 3 },
+      'file',
+      { out },
+      fetchImpl as typeof fetch,
+      20,
+    );
+    expect(result).toMatchObject({ path: out, bytes: 3, jobId: 'j1', revision: 3 });
+    expect((await readFile(out)).equals(Buffer.from([9, 8, 7]))).toBe(true);
+  });
+
+  it('job frames + --out 下载 manifest 与全部帧', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'vibe3d-seq-'));
+    const studio = Studio.over(
+      mockTransport({
+        dispatch: async () => ({ jobId: 'j1', state: 'done', url: '/manifest' }),
+      }),
+    );
+    const manifest = {
+      frames: [
+        { url: '/f0.png', file: 'f0.png' },
+        { url: '/f1.png', file: 'f1.png' },
+      ],
+    };
+    const fetchImpl = async (input: string | URL) => {
+      const url = String(input);
+      if (url.endsWith('.json') || url.endsWith('/manifest')) {
+        return new Response(JSON.stringify(manifest));
+      }
+      return new Response(new Uint8Array([1]));
+    };
+    const result = (await settleJob(
+      studio,
+      { jobId: 'j1', state: 'done', url: '/manifest' },
+      'frames',
+      { out: dir },
+      fetchImpl as typeof fetch,
+      20,
+    )) as { files: string[] };
+    expect(await readFile(join(dir, 'manifest.json'), 'utf8')).toContain('f0.png');
+    expect(result.files).toHaveLength(2);
+  });
+
+  it('任务失败时报错而不是成功输出', async () => {
+    const studio = Studio.over(
+      mockTransport({
+        dispatch: async () => ({ jobId: 'j1', state: 'failed', error: { message: '渲染失败' } }),
+      }),
+    );
+    await expect(settleJob(studio, { jobId: 'j1' }, 'file', {}, fetch, 20)).rejects.toThrow(/渲染失败/);
+  });
+
+  it('下载 HTTP 非 2xx 报错', async () => {
+    const studio = Studio.over(
+      mockTransport({
+        dispatch: async () => ({ jobId: 'j1', state: 'done', url: '/missing.glb' }),
+      }),
+    );
+    const fetchImpl = async () => new Response('no', { status: 404 });
+    await expect(
+      settleJob(
+        studio,
+        { jobId: 'j1', state: 'done', url: '/missing.glb' },
+        'file',
+        { out: '/tmp/missing.glb' },
+        fetchImpl as typeof fetch,
+        20,
+      ),
+    ).rejects.toThrow(/下载失败：HTTP 404/);
   });
 });

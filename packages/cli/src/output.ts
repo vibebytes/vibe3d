@@ -68,13 +68,14 @@ export async function settleJob(
   kind: 'file' | 'frames' | undefined,
   flags: ParsedArgs['flags'],
   fetchImpl: FetchImpl = fetch,
+  pollMs?: number,
 ): Promise<unknown> {
   if (!kind || !isRecord(result) || typeof result.jobId !== 'string') return result;
   if (flags.wait === false) return result;
   const timeout = typeof flags.timeout === 'string' ? Number(flags.timeout) : undefined;
   const job = await studio.job(result.jobId).wait({
     timeoutMs: timeout ? timeout * 1000 : undefined,
-    pollMs: 20,
+    ...(pollMs === undefined ? {} : { pollMs }),
   });
   const out = typeof flags.out === 'string' ? flags.out : undefined;
   if (!out || !job.url) return job;

@@ -15,8 +15,9 @@ describe('cli help', () => {
     expect(text).toContain('job wait <jobId>');
   });
 
-  it('详细帮助包含参数和示例', () => {
+  it('详细帮助包含位置参数、参数、示例三段', () => {
     const text = helpText(['anim', 'gait']);
+    expect(text).toContain('位置参数');
     expect(text).toContain('参数');
     expect(text).toContain('示例');
     expect(text).toContain('vibe3d anim gait');
@@ -26,8 +27,9 @@ describe('cli help', () => {
     expect(helpText(['anim', 'gait'])).toBe(helpText(['help', 'anim', 'gait']));
   });
 
-  it('详细帮助列出同义命令', () => {
-    expect(helpText(['room', 'ls'])).toContain('room list');
+  it('详细帮助列出别名与同义命令', () => {
+    expect(helpText(['scene', 'query'])).toContain('--material → --material-id');
+    expect(helpText(['room', 'ls'])).toContain('同义：room list');
   });
 
   it('未知命令的帮助报错', () => {

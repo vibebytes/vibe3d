@@ -107,6 +107,20 @@ MCP 进程启动时若发现本地 daemon 版本与自己不同，会先停掉�
 | Linux | 系统默认路径有 Chrome / Chromium 时预期可用；此处未复测 |
 | Windows | 尚未验证。可尝试设置 `VIBE3D_CHROME` |
 
+## CLI 参数
+
+`vibe3d` 命令行和 MCP 使用同一份 capability spec。字段名是规范名（camelCase）；CLI 把它显示成 kebab-case，例如 `rotateStep` 写成 `--rotate-step`，`withinBBox` 写成 `--within-bbox`。
+
+逗号分隔的列表会按字段类型拆开：`--tags a,b`，`--offset 1,0,0`。同时有 `width` 和 `height` 的命令可以写 `--size 1280x720`。对象可以写 JSON，也可以 `@文件`。
+
+```bash
+vibe3d node create r1 --shape box --size 1,2,3
+vibe3d scene query r1 --material m_aaaaaaaa --parent root
+vibe3d anim gait r1 @runner --style run
+```
+
+`vibe3d help <命令>` 打印的说明与 `vibe3d_help` 相同。未知参数会报错退出。
+
 ## 工具
 
 服务暴露一组分组工具。每次调用传入 `op`，例如 `vibe3d_room` 配 `op: "create"`，这样 `tools/list` 更小。未知工具名会以工具错误（`isError`）返回，方便模型自我纠正。耗时的渲染与导出走 job：用 `vibe3d_job` 轮询。

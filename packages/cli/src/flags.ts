@@ -8,6 +8,7 @@ import {
   defOf,
   fieldAt,
   normalized,
+  objectShape,
   positionalOf,
 } from '@vibebyte/vibe3d-capabilities';
 import { Vibe3DError } from '@vibebyte/vibe3d-client';
@@ -87,6 +88,20 @@ function hasLeaf(target: Record<string, unknown>, path: string): boolean {
   return true;
 }
 
+function resolveDotted(schema: z.ZodTypeAny, flag: string): string | undefined {
+  let current = schema;
+  const resolved: string[] = [];
+  for (const part of flag.split('.')) {
+    const shape = objectShape(current);
+    if (!shape) return undefined;
+    const key = Object.keys(shape).find((name) => normalized(name) === normalized(part));
+    if (!key) return undefined;
+    resolved.push(key);
+    current = shape[key] ?? current;
+  }
+  return resolved.join('.');
+}
+
 function parseSize(text: string): { width: number; height: number } {
   const match = /^(\d+)x(\d+)$/.exec(text);
   if (!match) invalid(`--size 需要 WxH，收到：${text}`);
@@ -141,7 +156,7 @@ export function paramsFromFlags(
     const binding =
       bindings.get(flag) ??
       [...bindings.entries()].find(([key]) => normalized(key) === normalized(flag))?.[1];
-    const dotted = !binding && flag.includes('.') ? flag.split('.') : undefined;
+    const dotted = !binding && flag.includes('.') ? resolveDotted(spec.input, flag) : undefined;
     if (!binding && !dotted) {
       const suggestion = names
         .map((candidate) => ({ candidate, score: distance(flag, candidate) }))
@@ -154,7 +169,7 @@ export function paramsFromFlags(
           .join(' ')}${hint}）`,
       );
     }
-    if (binding?.via === 'sugar' && flag === 'size') {
+    if (binding?.via === 'sugar' && normalized(flag) === 'size') {
       if (typeof raw !== 'string') invalid('--size 需要 WxH');
       claim('width', flag);
       claim('height', flag);
@@ -163,7 +178,7 @@ export function paramsFromFlags(
       params.height = size.height;
       continue;
     }
-    const path = binding?.path ?? dotted?.join('.') ?? flag;
+    const path = binding?.path ?? dotted ?? flag;
     const schema = fieldAt(spec.input, path);
     if (!schema) invalid(`${cli.command} 没有字段 ${path}`);
     claim(path, flag);

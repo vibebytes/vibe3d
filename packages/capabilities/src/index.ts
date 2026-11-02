@@ -29,5 +29,13 @@ export { coerceForSchema, deepCamel, lenientRecord, defOf, unwrap } from './coer
 export { kebab, normalized } from './names';
 export { imagePayloads, type ImagePayload } from './images';
 export { CLI_COMMANDS } from '../generated/cli';
-export { RESERVED_FLAGS, cliFields, cliProblems, fieldAt, positionalOf, type FlagBinding } from './cli-spec';
+export {
+  RESERVED_FLAGS,
+  cliFields,
+  cliProblems,
+  fieldAt,
+  objectShape,
+  positionalOf,
+  type FlagBinding,
+} from './cli-spec';
 export { GLOBAL_CONVENTIONS, conventionMap, conventionText, type ConventionEntry } from './conventions';

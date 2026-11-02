@@ -49,7 +49,14 @@ function placeholder(schema: z.ZodTypeAny): string {
   }
   if (inner instanceof z.ZodArray) {
     const item = unwrap(inner.element);
-    if (item instanceof z.ZodObject || item instanceof z.ZodRecord) return '<json|@file>';
+    if (
+      item instanceof z.ZodObject ||
+      item instanceof z.ZodRecord ||
+      item instanceof z.ZodUnion ||
+      item instanceof z.ZodDiscriminatedUnion
+    ) {
+      return '<json|@file>';
+    }
     return '<a,b>';
   }
   if (

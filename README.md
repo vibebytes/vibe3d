@@ -107,6 +107,20 @@ Rendering uses a system Chrome, Chromium, or Edge. The package does not download
 | Linux | Expected when Chrome or Chromium is on the default path. Not re-checked here |
 | Windows | Not verified. Set `VIBE3D_CHROME` if you try it |
 
+## CLI parameters
+
+The `vibe3d` command line and MCP share one capability spec. Field names are camelCase. The CLI shows them in kebab-case, so `rotateStep` is `--rotate-step` and `withinBBox` is `--within-bbox`.
+
+Comma-separated text splits into the field's array or tuple: `--tags a,b`, `--offset 1,0,0`. A command that has both `width` and `height` also accepts `--size 1280x720`. Objects take JSON, or `@file`.
+
+```bash
+vibe3d node create r1 --shape box --size 1,2,3
+vibe3d scene query r1 --material m_aaaaaaaa --parent root
+vibe3d anim gait r1 @runner --style run
+```
+
+`vibe3d help <command>` prints the same descriptions as `vibe3d_help`. An unknown flag is an error.
+
 ## Tools
 
 The server exposes a small set of grouped tools. Each call passes `op`, for example `vibe3d_room` with `op: "create"`. This keeps `tools/list` small. Unknown tool names come back as tool errors (`isError`) so the model can correct itself. Long renders and exports are jobs: poll `vibe3d_job`.
