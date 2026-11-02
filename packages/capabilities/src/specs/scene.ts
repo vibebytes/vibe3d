@@ -86,6 +86,7 @@ const nodeBriefOut = z.object({
   tags: tagsSchema.optional(),
 });
 
+const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 export const sceneOps = defineCapabilities({
   'scene.get': {
     title: '取整份场景文档',
@@ -1238,26 +1239,35 @@ export const sceneIoOps = {
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
   },
   'mesh.mannequin': {
-    title: '人体：胶囊四肢、车削躯干和球头，衣服是另一块 baked',
+    title:
+      '人体：带骨骼蒙皮的 1.75m 人偶（model 节点），可用 bone.<骨骼>.rotation 轨道或 animation.gait 驱动',
     input: z.object({
       roomId,
       name: z.string().min(1).max(200).optional(),
-      pose: z.enum(['stand', 'jog_away']).optional(),
-      seed: z.number().int().optional(),
+      pose: z.enum(['stand', 'jog_away']).optional().describe('初始静态姿势（骨骼旋转轨道），缺省 stand'),
+      seed: z.number().int().optional().describe('体型微扰（四肢粗细 ±4%）'),
+      colors: z
+        .object({
+          skin: hexColor.optional(),
+          shirt: hexColor.optional(),
+          shorts: hexColor.optional(),
+          shoes: hexColor.optional(),
+        })
+        .strict()
+        .optional(),
       transform: transformInput.optional(),
       parent: nodeIdSchema.nullable().optional(),
     }),
     output: z.object({
       nodeId: nodeIdSchema,
-      clothNodeId: nodeIdSchema,
-      materialId: materialIdSchema,
-      clothMaterialId: materialIdSchema,
+      sha: z.string(),
+      bones: z.array(z.string()).describe('骨骼名，用于 bone.<名>.rotation 轨道'),
       revision: z.number().int().min(0),
     }),
     scope: 'room' as const,
     mutating: true,
     wire: 'mesh.mannequin' as const,
-    cli: { command: 'mesh mannequin', args: '<roomId> [--pose jog_away]' },
-    errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
+    cli: { command: 'mesh mannequin', args: '<roomId> [--pose stand|jog_away] [--seed n]' },
+    errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
 };

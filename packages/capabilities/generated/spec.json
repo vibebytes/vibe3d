@@ -53352,7 +53352,7 @@
     },
     {
       "name": "mesh.mannequin",
-      "title": "人体：胶囊四肢、车削躯干和球头，衣服是另一块 baked",
+      "title": "人体：带骨骼蒙皮的 1.75m 人偶（model 节点），可用 bone.<骨骼>.rotation 轨道或 animation.gait 驱动",
       "wire": "mesh.mannequin",
       "scope": "room",
       "mutating": true,
@@ -53360,7 +53360,6 @@
       "errors": [
         "E_INVALID_PARAMS",
         "E_NODE_NOT_FOUND",
-        "E_PAYLOAD_TOO_LARGE",
         "E_ROOM_NOT_FOUND"
       ],
       "mcp": {
@@ -53372,7 +53371,7 @@
       },
       "cli": {
         "command": "mesh mannequin",
-        "args": "<roomId> [--pose jog_away]"
+        "args": "<roomId> [--pose stand|jog_away] [--seed n]"
       },
       "input": {
         "type": "object",
@@ -53391,10 +53390,34 @@
             "enum": [
               "stand",
               "jog_away"
-            ]
+            ],
+            "description": "初始静态姿势（骨骼旋转轨道），缺省 stand"
           },
           "seed": {
-            "type": "integer"
+            "type": "integer",
+            "description": "体型微扰（四肢粗细 ±4%）"
+          },
+          "colors": {
+            "type": "object",
+            "properties": {
+              "skin": {
+                "type": "string",
+                "pattern": "^#[0-9a-fA-F]{6}$"
+              },
+              "shirt": {
+                "type": "string",
+                "pattern": "^#[0-9a-fA-F]{6}$"
+              },
+              "shorts": {
+                "type": "string",
+                "pattern": "^#[0-9a-fA-F]{6}$"
+              },
+              "shoes": {
+                "type": "string",
+                "pattern": "^#[0-9a-fA-F]{6}$"
+              }
+            },
+            "additionalProperties": false
           },
           "transform": {
             "type": "object",
@@ -53484,17 +53507,15 @@
             "type": "string",
             "pattern": "^n_[a-z0-9]{8}$"
           },
-          "clothNodeId": {
-            "type": "string",
-            "pattern": "^n_[a-z0-9]{8}$"
+          "sha": {
+            "type": "string"
           },
-          "materialId": {
-            "type": "string",
-            "pattern": "^m_[a-z0-9]{8}$"
-          },
-          "clothMaterialId": {
-            "type": "string",
-            "pattern": "^m_[a-z0-9]{8}$"
+          "bones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "骨骼名，用于 bone.<名>.rotation 轨道"
           },
           "revision": {
             "type": "integer",
@@ -53503,9 +53524,8 @@
         },
         "required": [
           "nodeId",
-          "clothNodeId",
-          "materialId",
-          "clothMaterialId",
+          "sha",
+          "bones",
           "revision"
         ],
         "additionalProperties": false,

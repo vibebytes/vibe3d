@@ -338,7 +338,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
       { op: "organic", capability: "mesh.organic", title: "有机体：带种子的椭球位移，可选平底，单节点 baked 几何" },
       { op: "bevel", capability: "mesh.bevel", title: "倒角盒：圆角后包围盒仍约等于原尺寸，单节点 baked 几何" },
       { op: "tree", capability: "mesh.tree", title: "树：递归样条收成一个 baked 网格，相同 seed 稳定" },
-      { op: "mannequin", capability: "mesh.mannequin", title: "人体：胶囊四肢、车削躯干和球头，衣服是另一块 baked" },
+      { op: "mannequin", capability: "mesh.mannequin", title: "人体：带骨骼蒙皮的 1.75m 人偶（model 节点），可用 bone.<骨骼>.rotation 轨道或 animation.gait 驱动" },
       { op: "decal", capability: "decal.create", title: "文字 / 图片贴花：真字形（canvas 生成，无需字体文件）或图片贴到平面上" },
     ],
     annotations: {"readOnlyHint":false,"destructiveHint":false,"idempotentHint":false,"openWorldHint":false},

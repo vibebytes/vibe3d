@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- **Breaking:** `mesh.mannequin` 现在生成带骨骼蒙皮的 glTF 并创建 `kind:'model'` 节点（17 根骨骼，`bone.<名>.rotation` 轨道可直接驱动）。返回 `{nodeId, sha, bones, revision}`，移除 `clothNodeId` / `materialId` / `clothMaterialId`；新增 `colors{skin,shirt,shorts,shoes}`，`seed` 改为体型微扰；默认姿势为 `stand`。
+- 动画：`@name` 可用于 `animation.*` 目标、`animation.pose` 的 `targets[].nodeId` 与 `fx.create.nodeId`；track 支持 `blend:'additive'`、常量简写 `{path,value}`；clip 支持 `drift` 根运动，tracks 上限 32；编辑器应用 `visible` / `opacity` 轨道。
+- 渲染：views / node 以 MCP image 块返回；`at` 参与取景；`render.sequence` / `render.video` 支持 `nodeIds` / `view` / `camera` / `isolate`；导出链接在 MCP 层为绝对地址，manifest 帧带 `url`，`/exports` 可下载 mp4。
 - daemon 空闲退出覆盖 ephemeral 模式：没有房间时按 `--daemon-idle-ms`（默认 30 分钟）退出；有房间（只在内存里）时至少空闲 12 小时才退出，避免孤儿 daemon 无限存活。
 - MCP 启动时发现本地 daemon 版本不一致会自动重启它；`--restart-daemon` / `VIBE3D_RESTART_DAEMON=1` 可强制每次启动都重启。
 - 多房间/多聊天：所有房间级工具接受可选 `room_id`（只路由本次调用）；进程接触多个房间后不带 `room_id` 的调用被拒绝并列出候选；隐式调用在结果里标注所用房间；`open_editor` 已有房间时不再新建。

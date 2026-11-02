@@ -82,7 +82,7 @@ async function main(): Promise<void> {
       .catch((err: unknown) => logger.warn({ event: 'blob.gc.failed', err: String(err) }));
   }
 
-  const { ingest, inspect } = createIngest({ blobs, roots: config.assetRoots });
+  const { ingest, ingestBytes, inspect } = createIngest({ blobs, roots: config.assetRoots });
   const jobStore = new JobStore();
   const jobs = new JobQueue(
     jobStore,
@@ -114,6 +114,7 @@ async function main(): Promise<void> {
     token: config.token,
     jobs: { store: jobStore, queue: jobs },
     ingest,
+    ingestBytes,
     inspect,
     selection: () => [],
     surfaces: (roomId) => hub.count(roomId),

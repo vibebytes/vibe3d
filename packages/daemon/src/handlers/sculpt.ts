@@ -10,8 +10,10 @@ import {
   type SculptMesh,
   bevelMesh,
   latheMesh,
-  mannequinMesh,
+  mannequinPose,
+  mannequinRig,
   organicMesh,
+  toGlb,
   treeMesh,
 } from '@vibebyte/vibe3d-scene';
 import type { DispatchContext } from '../context';
@@ -167,54 +169,29 @@ export const sculptHandlers: HandlersFor<Keys> = {
     const room = ctx.rooms.get(p.roomId);
     if (p.parent && !room.doc.nodes[p.parent])
       throw new AppError('E_NODE_NOT_FOUND', `父节点 ${p.parent} 不存在`);
-    const fig = mannequinMesh({
-      pose: p.pose ?? 'jog_away',
-      ...(p.seed !== undefined ? { seed: p.seed } : {}),
-    });
-    const bodyId = makeNodeId();
-    const clothId = makeNodeId();
-    const bodyMat = makeMaterialId();
-    const clothMat = makeMaterialId();
-    const paint = (hex: string): Material => ({
-      baseColor: hexToRgb(hex),
-      metalness: 0.05,
-      roughness: 0.6,
-      emissive: [0, 0, 0],
-      emissiveIntensity: 0,
-      opacity: 1,
-      doubleSided: false,
-    });
+    const colors = Object.fromEntries(
+      Object.entries(p.colors ?? {}).flatMap(([slot, hex]) => (hex ? [[slot, hexToRgb(hex)]] : [])),
+    );
+    const rig = mannequinRig({ ...(p.seed !== undefined ? { seed: p.seed } : {}), colors });
+    const { meta } = await ctx.ingestBytes(toGlb(rig.model), 'mannequin.glb');
+    const nodeId = makeNodeId();
     const t = p.transform ?? {};
-    const node = (id: string, name: string, material: string, mesh: SculptMesh): SceneNode => ({
-      id,
-      kind: 'mesh',
-      name,
+    const node: SceneNode = {
+      id: nodeId,
+      kind: 'model',
+      name: p.name ?? 'mannequin',
       parent: p.parent ?? null,
       visible: true,
       transform: { p: t.p ?? [0, 0, 0], r: t.r ?? [0, 0, 0], s: t.s ?? [1, 1, 1] },
-      geometry: {
-        type: 'baked',
-        positions: mesh.positions,
-        normals: mesh.normals,
-        indices: mesh.indices,
-        bbox: mesh.bbox,
-      },
-      material,
-    });
-    const result = await room.run(() =>
-      room.apply([
-        { op: 'material.set', id: bodyMat, material: paint('#d7c4a8') },
-        { op: 'material.set', id: clothMat, material: paint('#8aa0b8') },
-        { op: 'node.create', node: node(bodyId, p.name ?? 'body', bodyMat, fig.body) },
-        { op: 'node.create', node: node(clothId, `${p.name ?? 'body'}-cloth`, clothMat, fig.cloth) },
-      ]),
-    );
-    return {
-      nodeId: bodyId,
-      clothNodeId: clothId,
-      materialId: bodyMat,
-      clothMaterialId: clothMat,
-      revision: result.revision,
+      sha: meta.sha,
     };
+    const result = await room.run(async () => {
+      room.registerAsset(meta);
+      return room.apply([
+        { op: 'node.create', node },
+        { op: 'animation.define', target: nodeId, clip: mannequinPose(p.pose ?? 'stand') },
+      ]);
+    });
+    return { nodeId, sha: meta.sha, bones: rig.bones, revision: result.revision };
   },
 };

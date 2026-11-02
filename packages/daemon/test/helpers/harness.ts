@@ -61,7 +61,7 @@ export function makeHarness(
   const config = parseConfig(token ? ['--token', token, ...args] : args, {});
   const logger = silentLogger();
   const blobs = new BlobStore(dirs.blobs);
-  const { ingest, inspect } = createIngest({ blobs });
+  const { ingest, ingestBytes, inspect } = createIngest({ blobs });
   const rooms = new RoomManager({
     maxRooms: opts.maxRooms ?? 8,
     persistDir: opts.persist ? dirs.rooms : undefined,
@@ -72,6 +72,7 @@ export function makeHarness(
     baseUrl: 'http://127.0.0.1:0',
     token,
     ingest,
+    ingestBytes,
     inspect,
     selection: () => [],
     autoOpen: new Map(),

@@ -56,7 +56,7 @@ export const CLI_COMMANDS = [
   { command: "mesh organic", args: "<roomId> --radius x,y,z --seed n [--flat-bottom]", capability: "mesh.organic" },
   { command: "mesh bevel", args: "<roomId> --size x,y,z --radius r [--segments 4]", capability: "mesh.bevel" },
   { command: "mesh tree", args: "<roomId> --height 4 --spread 2 --levels 3 --seed 1", capability: "mesh.tree" },
-  { command: "mesh mannequin", args: "<roomId> [--pose jog_away]", capability: "mesh.mannequin" },
+  { command: "mesh mannequin", args: "<roomId> [--pose stand|jog_away] [--seed n]", capability: "mesh.mannequin" },
   { command: "model import", args: "<roomId> <src|--sha sha> [--name n] [--align ground|center|none] [--autoplay]", capability: "node.import" },
   { command: "asset inspect", args: "<roomId> <src>", capability: "asset.inspect" },
   { command: "asset put", args: "<roomId> <src> [--name n]", capability: "asset.put" },

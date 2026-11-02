@@ -51,7 +51,6 @@ describe('造型网格', () => {
     expect(cut.body.result.tris).toBe(bevel.indices.length / 3);
     const figure = await call(h, 'mesh.mannequin', { roomId, pose: 'jog_away', seed: 3 }, roomId);
     expect(figure.body.error).toBeUndefined();
-    expect(figure.body.result.materialId).not.toBe(figure.body.result.clothMaterialId);
   });
 
   it('node.merge smooth 的顶点数不同于硬合并，超限时带 warning 并退回硬合并', async () => {
@@ -99,5 +98,42 @@ describe('造型网格', () => {
     expect(limited.body.error).toBeUndefined();
     expect(limited.body.result.warning).toMatch(/300000/);
     expect(limited.body.result.vertices).toBe(hard.body.result.vertices);
+  });
+});
+
+describe('mesh.mannequin skinned model', () => {
+  it('creates a skinned model node whose bones accept bone.* tracks', async () => {
+    const { h, roomId } = await room();
+    const made = await call(h, 'mesh.mannequin', { roomId, name: 'runner' }, roomId);
+    expect(made.body.error).toBeUndefined();
+    const { nodeId, sha, bones } = made.body.result;
+    expect(bones).toContain('UpperLeg_L');
+    const scene = await call(h, 'scene.get', { roomId }, roomId);
+    const doc = scene.body.result.doc ?? scene.body.result;
+    expect(doc.nodes[nodeId].kind).toBe('model');
+    expect(doc.nodes[nodeId].sha).toBe(sha);
+    expect(doc.nodes[nodeId].clip?.tracks?.[0]?.path).toMatch(/^bone\./);
+    expect(doc.assets[sha].gltf.skins).toBe(1);
+    const clip = {
+      tracks: [
+        {
+          path: 'bone.UpperLeg_L.rotation',
+          keys: [
+            { t: 0, v: [0, 0, 0] },
+            { t: 0.5, v: [-0.6, 0, 0] },
+          ],
+        },
+      ],
+    };
+    const anim = await call(h, 'animation.define', { roomId, nodeId: '@runner', clip }, roomId);
+    expect(anim.body.error).toBeUndefined();
+  });
+
+  it('colors change the material colors and therefore the asset', async () => {
+    const { h, roomId } = await room();
+    const a = await call(h, 'mesh.mannequin', { roomId }, roomId);
+    const b = await call(h, 'mesh.mannequin', { roomId, colors: { shirt: '#ff0000' } }, roomId);
+    expect(b.body.error).toBeUndefined();
+    expect(b.body.result.sha).not.toBe(a.body.result.sha);
   });
 });

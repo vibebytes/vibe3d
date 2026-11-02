@@ -123,7 +123,17 @@ export {
 export { tubeMesh, type TubeMesh, type TubeSpec } from './tube';
 export { bevelMesh, latheMesh, organicMesh, smoothMerge, type SculptMesh } from './sculpt';
 export { treeMesh, type TreeMesh } from './tree';
-export { mannequinMesh, type Mannequin } from './mannequin';
+export {
+  MANNEQUIN_BONES,
+  boneWorld,
+  mannequinPose,
+  mannequinRig,
+  skinVertices,
+  type MannequinBone,
+  type MannequinColors,
+  type MannequinPose,
+  type MannequinRig,
+} from './mannequin';
 export {
   BACKDROP_DEFAULTS,
   backdropSweep,
@@ -157,3 +167,4 @@ export {
   type MaterialPreset,
   type PresetResolution,
 } from './material';
+export { type GlbBone, type GlbMaterial, type GlbPrimitive, type SkinnedModel, toGlb } from './glb';

@@ -158,7 +158,7 @@ export function createIngest({
   blobs,
   fetchImpl = fetch,
   roots = [process.cwd(), tmpdir()],
-}: IngestDeps): Pick<DispatchContext, 'ingest' | 'inspect'> {
+}: IngestDeps): Pick<DispatchContext, 'ingest' | 'ingestBytes' | 'inspect'> {
   const read = async (src: string, policy: AssetPolicy = 'local', maxBytes = MAX_HDRI_BYTES) => {
     if (/^https?:\/\//i.test(src)) {
       if (policy === 'strict') {
@@ -226,5 +226,14 @@ export function createIngest({
     return { meta: makeMeta(sha, loaded, report), report, cached };
   };
 
-  return { ingest, inspect };
+  const ingestBytes = async (bytes: Uint8Array, name: string): Promise<IngestResult> => {
+    const loaded = settle(Buffer.from(bytes), name, null);
+    const report = loaded.kind === 'gltf' ? parseGltf(loaded.bytes, loaded.name) : undefined;
+    const sha = createHash('sha256').update(loaded.bytes).digest('hex');
+    const cached = existsSync(blobs.path(sha));
+    if (!cached) await blobs.put(loaded.bytes);
+    return { meta: makeMeta(sha, loaded, report), report, cached };
+  };
+
+  return { ingest, ingestBytes, inspect };
 }
