@@ -1,6 +1,7 @@
 import type * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { attachDecoders } from './decoders';
 
 let loader: GLTFLoader | null = null;
@@ -21,7 +22,7 @@ export async function prepareGltfLoader(renderer?: THREE.WebGLRenderer): Promise
 }
 
 export function cloneGltfScene(gltf: GLTF): THREE.Group {
-  const scene = gltf.scene.clone(true);
+  const scene = cloneSkinned(gltf.scene) as THREE.Group;
   scene.traverse((obj) => {
     const mesh = obj as THREE.Mesh;
     if (mesh.isMesh) {

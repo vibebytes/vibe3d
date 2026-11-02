@@ -8,7 +8,7 @@ import type {
   SceneDoc,
   SceneNode,
 } from '@vibebyte/vibe3d-protocol';
-import { nodeClipsOf, viewportFogPlan } from '@vibebyte/vibe3d-scene';
+import { viewportFogPlan } from '@vibebyte/vibe3d-scene';
 import {
   type ComponentRef,
   type ReactNode,
@@ -27,9 +27,10 @@ import { useModelErrors } from '../stores/modelErrors';
 import { usePlayback } from '../stores/playback';
 import { useSelection } from '../stores/selection';
 import { useUi } from '../stores/ui';
-import { animations, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
+import { animations, clipsOf } from '../three/anim';
 import { buildMesh, disposeMesh } from '../three/build';
 import { createViewportEnvMap } from '../three/env-map-view';
+import { applyFrameAnimations } from '../three/frame-anim';
 import { applyFxAt, buildFxObject, disposeFxObject, fogSettings } from '../three/fx';
 import { animationClips, cloneGltfScene, gltfLoader } from '../three/gltf';
 import { type LightPlan, lightPlan } from '../three/lights';
@@ -97,12 +98,6 @@ function ModelView({ node }: { node: ModelNode }) {
     animations.apply(node.id, node.anim);
     return () => animations.unregister(node.id);
   }, [node.id, node.anim, scene, gltf]);
-
-  const boneClips = useMemo(() => nodeClipsOf(node), [node]);
-  useFrame(() => {
-    if (boneClips.length === 0 || !scene) return;
-    applyBoneTracks(scene, boneClips, usePlayback.getState().time);
-  });
 
   if (!scene) return null;
   return <primitive object={scene} />;
@@ -330,11 +325,10 @@ function ClipDriver({ doc, enabled }: { doc: SceneDoc; enabled: boolean }) {
   const scene = useThree((s) => s.scene);
   const nodes = doc.nodes;
   const clips = useMemo(() => clipsOf({ nodes }), [nodes]);
-  const bases = useMemo(() => clipBasesOf({ nodes }), [nodes]);
   const active = Object.keys(clips).length > 0;
   useFrame(() => {
     if (!enabled || !active) return;
-    applyProceduralClips(scene, clips, usePlayback.getState().time, bases);
+    applyFrameAnimations(scene, { nodes }, usePlayback.getState().time);
   });
   return null;
 }

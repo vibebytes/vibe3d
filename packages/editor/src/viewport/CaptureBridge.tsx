@@ -14,10 +14,12 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { useDoc } from '../stores/doc';
 import { useModelErrors } from '../stores/modelErrors';
 import { useSelection } from '../stores/selection';
-import { animations, applyBoneTracks, applyProceduralClips, clipBasesOf, clipsOf } from '../three/anim';
+import { animations } from '../three/anim';
+import { applyFrameAnimations } from '../three/frame-anim';
 import { applyFxAt, fogSettings } from '../three/fx';
 import { applyIdMaterials } from '../three/id-pass-materials';
 import { missingModelIds } from '../three/model-ready';
+import { waitForModels } from '../three/model-wait';
 import { type PostPlan, needsPost, postPasses, postPlan } from '../three/post';
 import { alphaRendererCache, alphaRendererOptions } from './alpha-cache';
 import { applyCaptureFog, applyClipRange, captureFogPlan, subjectSphere } from './capture-fog';
@@ -186,12 +188,18 @@ export async function captureFrame(
   const { width, height } = resolveCaptureSize({ width: opts.width, height: opts.height }, viewport, {
     ratio: preset.pixelRatio,
   });
+  await waitForModels({
+    pending: () => pendingModels(scene),
+    failed: () => {
+      const errors = useModelErrors.getState().errors;
+      return pendingModels(scene).filter((id) => errors[id]);
+    },
+  });
   const doc = useDoc.getState().doc;
   if (typeof opts.at === 'number') {
     animations.seekAll(opts.at);
     if (doc) {
-      applyProceduralClips(scene, clipsOf(doc), opts.at, clipBasesOf(doc));
-      applyBoneTracks(scene, Object.values(clipsOf(doc)).flat(), opts.at);
+      applyFrameAnimations(scene, doc, opts.at);
       const fx = doc.fx ?? [];
       if (fx.length > 0) applyFxAt(scene, fx, opts.at);
     }
@@ -447,24 +455,17 @@ export function CaptureBridge({ roomId, headless = false }: { roomId: string; he
       return captureFrame(gl, scene, camera, size, opts);
     };
     const exportGlb = async (nodeIds?: string[] | null): Promise<string> => {
-      const deadline = Date.now() + 12_000;
       let target = exportRoot(scene, nodeIds);
-      let missing = pendingModels(target, nodeIds);
-      if (missing.length > 0) {
-        const errors = useModelErrors.getState().errors;
-        const failed = missing.filter((id) => errors[id]);
-        if (failed.length > 0) {
-          throw new Error(`模型资源加载失败，无法导出：${failed.join(', ')}`);
-        }
-      }
-      while (missing.length > 0 && Date.now() < deadline) {
-        await new Promise((resolve) => setTimeout(resolve, 120));
-        target = exportRoot(scene, nodeIds);
-        missing = pendingModels(target, nodeIds);
-      }
-      if (missing.length > 0) {
-        throw new Error(`模型尚未加载完成，导出会丢失节点：${missing.join(', ')}`);
-      }
+      await waitForModels({
+        pending: () => {
+          target = exportRoot(scene, nodeIds);
+          return pendingModels(target, nodeIds);
+        },
+        failed: () => {
+          const errors = useModelErrors.getState().errors;
+          return pendingModels(target, nodeIds).filter((id) => errors[id]);
+        },
+      });
       scene.updateMatrixWorld(true);
       const out = await new GLTFExporter().parseAsync(target, { binary: true, onlyVisible: true });
       if (!(out instanceof ArrayBuffer)) throw new Error('GLTFExporter 未返回二进制数据');
