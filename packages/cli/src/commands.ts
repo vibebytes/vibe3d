@@ -56,7 +56,10 @@ async function runDaemon(parsed: ParsedArgs): Promise<void> {
   });
 }
 
-export async function run(parsed: ParsedArgs): Promise<unknown> {
+export async function run(
+  parsed: ParsedArgs,
+  connect: (opts: StudioOptions) => Promise<Studio> = Studio.connect,
+): Promise<unknown> {
   const [group, command, ...rest] = parsed._;
   const { flags } = parsed;
 
@@ -65,7 +68,7 @@ export async function run(parsed: ParsedArgs): Promise<unknown> {
     return undefined;
   }
 
-  const studio = await Studio.connect(connectOptions(flags));
+  const studio = await connect(connectOptions(flags));
 
   if (group === 'status') {
     const [health, hello] = await Promise.all([studio.health(), studio.hello()]);

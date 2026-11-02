@@ -9,21 +9,38 @@ import {
 import { JobHandle } from './jobs';
 import type { CapParams, CapResult } from './room';
 import { RoomHandle } from './room';
-import { RpcClient } from './transport';
+import { RpcClient, type Transport } from './transport';
 
 export interface StudioOptions extends ConnectOptions {
   autostart?: boolean;
 }
 
+const testEndpoint: RunRecord = {
+  pid: 0,
+  port: 0,
+  host: '127.0.0.1',
+  home: '/tmp/vibe3d-test',
+  mode: 'test',
+  token: 'test',
+  version: 'test',
+  startedAt: '1970-01-01T00:00:00.000Z',
+  file: '/tmp/vibe3d-test/run.json',
+};
+
 export class Studio {
   readonly endpoint: RunRecord;
-  readonly client: RpcClient;
+  readonly client: Transport;
   readonly home: string;
 
-  private constructor(endpoint: RunRecord, client: RpcClient) {
+  private constructor(endpoint: RunRecord, client: Transport) {
     this.endpoint = endpoint;
     this.client = client;
     this.home = endpoint.home;
+  }
+
+  /** 测试接缝：用给定传输构造 Studio，不发现、不启动 daemon。 */
+  static over(transport: Transport, endpoint: Partial<RunRecord> = {}): Studio {
+    return new Studio({ ...testEndpoint, ...endpoint }, transport);
   }
 
   static async connect(opts: StudioOptions = {}): Promise<Studio> {

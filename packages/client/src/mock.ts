@@ -1,9 +1,9 @@
 import { AppError, ERROR_SPECS, type ErrorCode } from '@vibebyte/vibe3d-protocol';
 import { Vibe3DError, toVibe3DError } from './errors';
-import type { HealthInfo, Transport } from './transport';
+import type { CallOptions, HealthInfo, Transport } from './transport';
 
 export interface MockTransportOptions {
-  dispatch: (method: string, params: Record<string, unknown>) => Promise<unknown>;
+  dispatch: (method: string, params: Record<string, unknown>, opts?: CallOptions) => Promise<unknown>;
   uploadAsset?: (roomId: string, bytes: Uint8Array | Blob, name: string) => Promise<unknown>;
   health?: () => Promise<HealthInfo>;
 }
@@ -12,9 +12,13 @@ const notWired = () => new Vibe3DError('E_NETWORK', 'mock transport 未实现该
 
 export function mockTransport(opts: MockTransportOptions): Transport {
   return {
-    async call<T = unknown>(method: string, params: Record<string, unknown> = {}): Promise<T> {
+    async call<T = unknown>(
+      method: string,
+      params: Record<string, unknown> = {},
+      callOpts?: CallOptions,
+    ): Promise<T> {
       try {
-        return (await opts.dispatch(method, params)) as T;
+        return (await opts.dispatch(method, params, callOpts)) as T;
       } catch (err) {
         if (err instanceof AppError) {
           const spec = ERROR_SPECS[err.code as ErrorCode];
