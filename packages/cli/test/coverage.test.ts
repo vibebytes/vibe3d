@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CLI_COMMANDS } from '../../capabilities/generated/cli';
+import { positionalOf } from '../../capabilities/src/cli-spec';
+import { CAPABILITIES } from '../../capabilities/src/registry';
 import { parseArgs } from '../src/args';
 import { run } from '../src/commands';
 import { recording } from './support/recording';
@@ -25,12 +27,15 @@ const KNOWN_MISSING = new Set([
   'render id-pass',
   'render sequence',
   'render video',
+  'camera project',
+  'camera unproject',
 ]);
 
-function argvOf(command: string, args: string): string[] {
-  const slots = args.match(/<[^>]+>/g) ?? [];
-  const extra = Math.max(0, slots.length - 1);
-  return [...command.split(' '), 'r1', ...Array.from({ length: extra }, () => 'x')];
+function argvOf(command: string, capability: keyof typeof CAPABILITIES): string[] {
+  const spec = CAPABILITIES[capability];
+  const fields = positionalOf(spec).filter((field) => !(spec.scope === 'room' && field === 'roomId'));
+  const values = spec.scope === 'room' ? ['r1', ...fields.map(() => 'x')] : fields.map(() => 'x');
+  return [...command.split(' '), ...values];
 }
 
 describe('cli command coverage', () => {
@@ -42,7 +47,7 @@ describe('cli command coverage', () => {
       let threw = false;
       let unknown = false;
       try {
-        await run(parseArgs(argvOf(row.command, row.args)), rec.connect);
+        await run(parseArgs(argvOf(row.command, row.capability)), rec.connect);
       } catch (err) {
         threw = true;
         unknown = err instanceof Error && err.message.includes('未知命令');

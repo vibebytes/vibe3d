@@ -96,7 +96,7 @@ export const sceneOps = defineCapabilities({
     mutating: false,
     wire: 'scene.get' as const,
     mcp: { annotations: { readOnlyHint: true } },
-    cli: { command: 'scene get', args: '<roomId>', example: 'scene get r1' },
+    cli: { command: 'scene get', example: 'scene get r1' },
     errors: ['E_ROOM_NOT_FOUND'] as const,
   },
   'scene.summary': {
@@ -115,7 +115,7 @@ export const sceneOps = defineCapabilities({
     mutating: false,
     wire: 'scene.summary' as const,
     mcp: { annotations: { readOnlyHint: true } },
-    cli: { command: 'scene summary', args: '<roomId>', example: 'scene summary r1' },
+    cli: { command: 'scene summary', example: 'scene summary r1' },
     errors: ['E_ROOM_NOT_FOUND'] as const,
   },
   'scene.query': {
@@ -148,7 +148,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { readOnlyHint: true } },
     cli: {
       command: 'scene query',
-      args: '<roomId> [--name <text>] [--kind mesh] [--tags a,b] [--parent <nodeId>|root] [--has-children] [--within-bbox <json>] [--bbox <json>] [--min-y 0.9] [--limit 50] [--cursor 0]',
 
       aliases: { material: 'materialId', parent: 'parentId' },
       values: { parentId: { root: null } },
@@ -174,7 +173,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { readOnlyHint: true } },
     cli: {
       command: 'node get',
-      args: '<roomId> <nodeId>',
       positional: ['nodeId'],
       example: 'node get r1 n1',
     },
@@ -219,7 +217,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { readOnlyHint: true } },
     cli: {
       command: 'scene stats',
-      args: '<roomId> [--budget <json>] [--enforce]',
       example: 'scene stats r1',
     },
     errors: ['E_ROOM_NOT_FOUND', 'E_BUDGET_EXCEEDED'] as const,
@@ -250,7 +247,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { readOnlyHint: true } },
     cli: {
       command: 'scene pick',
-      args: '<roomId> [--point 0.5,0.5] [--width 1280] [--height 720]',
 
       example: 'scene pick r1 --point 0.5,0.5',
     },
@@ -313,7 +309,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { readOnlyHint: true } },
     cli: {
       command: 'scene validate',
-      args: '<roomId> [--checks floating,intersect] [--tolerance 0.02]',
       example: 'scene validate r1',
     },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
@@ -345,7 +340,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { readOnlyHint: false } },
     cli: {
       command: 'node transform-many',
-      args: '<roomId> [--ids a,b] [--filter <json>] [--translate 0,1,0]',
 
       example: 'node transform-many r1 --translate 0,1,0',
     },
@@ -378,7 +372,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { readOnlyHint: false } },
     cli: {
       command: 'node array',
-      args: '<roomId> <nodeId> --count 5 --offset 1,0,0',
       positional: ['id'],
       example: 'node array r1 n1 --count 5',
     },
@@ -405,7 +398,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { readOnlyHint: false } },
     cli: {
       command: 'node attach',
-      args: '<roomId> <nodeId> --target <id> --face top [--corner min-min] [--gap 0.05]',
 
       positional: ['id'],
       aliases: { target: 'targetId' },
@@ -428,7 +420,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { readOnlyHint: false } },
     cli: {
       command: 'node group',
-      args: '<roomId> --ids a,b --name 组名 [--no-keep-world]',
       example: 'node group r1 --ids n1,n2 --name g',
     },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
@@ -456,7 +447,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { readOnlyHint: false } },
     cli: {
       command: 'node merge',
-      args: '<roomId> <nodeId> [--material <id>]',
       positional: ['nodeId'],
       example: 'node merge r1 n1',
     },
@@ -490,7 +480,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { readOnlyHint: false } },
     cli: {
       command: 'node fit-screen',
-      args: '<roomId> <nodeId> --rect <json> [--anchor center|bottom|top]',
 
       positional: ['nodeId'],
       example: 'node fit-screen r1 n1 --rect {}',
@@ -513,7 +502,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { readOnlyHint: false } },
     cli: {
       command: 'node reparent',
-      args: '<roomId> <nodeId> --parent <id>|--root [--no-keep-world]',
 
       positional: ['id'],
       values: { parent: { root: null } },
@@ -546,7 +534,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { readOnlyHint: false } },
     cli: {
       command: 'material assign',
-      args: '<roomId> --material <id> [--ids a,b] [--filter <json>]',
       aliases: { material: 'materialId' },
       example: 'material assign r1 --material m1',
     },
@@ -585,7 +572,7 @@ export const sceneOps = defineCapabilities({
     mutating: true,
     wire: 'scene.apply' as const,
     mcp: { annotations: { readOnlyHint: false } },
-    cli: { command: 'scene apply', args: '<roomId> --ops <json|@file>', example: 'scene apply r1 --ops []' },
+    cli: { command: 'scene apply', example: 'scene apply r1 --ops []' },
     errors: ['E_INVALID_PARAMS', 'E_CONFLICT', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
   },
   'node.create': {
@@ -709,7 +696,6 @@ export const sceneOps = defineCapabilities({
     wire: 'scene.apply' as const,
     cli: {
       command: 'node create',
-      args: '<roomId> --kind mesh --shape box [--upsert-by-name] [--tags a,b]',
       defaults: { kind: 'mesh', parent: null },
       example: 'node create r1 --shape box',
     },
@@ -724,7 +710,6 @@ export const sceneOps = defineCapabilities({
     wire: 'scene.apply' as const,
     cli: {
       command: 'node update',
-      args: '<roomId> <nodeId> --patch <json>',
       positional: ['nodeId'],
       example: 'node update r1 n1 --patch {}',
     },
@@ -740,7 +725,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { destructiveHint: true } },
     cli: {
       command: 'node rm',
-      args: '<roomId> <nodeId> [--no-cascade]',
       positional: ['nodeId'],
       synonyms: ['node delete'],
       example: 'node rm r1 n1',
@@ -765,7 +749,6 @@ export const sceneOps = defineCapabilities({
     wire: 'scene.apply' as const,
     cli: {
       command: 'node clone',
-      args: '<roomId> <nodeId> [--count 2] [--parent <id>]',
       positional: ['nodeId'],
       values: { parent: { root: null } },
       example: 'node clone r1 n1',
@@ -781,7 +764,6 @@ export const sceneOps = defineCapabilities({
     wire: 'scene.apply' as const,
     cli: {
       command: 'stage set',
-      args: '<roomId> --preset cine',
       flatten: ['stage'],
       example: 'stage set r1 --preset cine',
     },
@@ -798,7 +780,6 @@ export const sceneOps = defineCapabilities({
     wire: 'scene.apply' as const,
     cli: {
       command: 'fx create',
-      args: '<roomId> --type particles',
       aliases: { node: 'nodeId' },
       defaults: { type: 'particles' },
       example: 'fx create r1',
@@ -815,7 +796,6 @@ export const sceneOps = defineCapabilities({
     mcp: { annotations: { destructiveHint: true } },
     cli: {
       command: 'fx rm',
-      args: '<roomId> <fxId>',
       positional: ['fxId'],
       synonyms: ['fx delete'],
       example: 'fx rm r1 f1',
@@ -858,7 +838,6 @@ export const sceneOps = defineCapabilities({
     wire: 'scene.apply' as const,
     cli: {
       command: 'material create',
-      args: '<roomId> --preset concrete',
       example: 'material create r1 --preset concrete',
     },
     errors: ['E_INVALID_PARAMS', 'E_LIMIT_EXCEEDED', 'E_ROOM_NOT_FOUND'] as const,
@@ -873,7 +852,6 @@ export const sceneOps = defineCapabilities({
     wire: 'scene.apply' as const,
     cli: {
       command: 'material patch',
-      args: '<roomId> <materialId> --roughness 0.3',
       positional: ['materialId'],
       flatten: ['patch'],
       example: 'material patch r1 m1 --roughness 0.3',
@@ -896,7 +874,6 @@ export const sceneOps = defineCapabilities({
     wire: 'scene.apply' as const,
     cli: {
       command: 'material map',
-      args: '<roomId> <materialId> --sha <sha> --tiling 2,2',
       positional: ['materialId'],
       example: 'material map r1 m1 --sha s1',
     },
@@ -928,7 +905,6 @@ export const sceneOps = defineCapabilities({
     wire: 'scene.apply' as const,
     cli: {
       command: 'env set',
-      args: '<roomId> [--fog near,far]',
       aliases: { hdri: 'hdriSrc', 'hdri-sha': 'hdri', 'fog-color': 'fog.color' },
       example: 'env set r1 --fog 5,40',
     },
@@ -945,7 +921,7 @@ export const sceneOps = defineCapabilities({
     mutating: true,
     wire: 'scene.undo' as const,
     mcp: { annotations: { readOnlyHint: false, destructiveHint: true } },
-    cli: { command: 'scene undo', args: '<roomId> [--op-id id]', example: 'scene undo r1' },
+    cli: { command: 'scene undo', example: 'scene undo r1' },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'scene.redo': {
@@ -956,7 +932,7 @@ export const sceneOps = defineCapabilities({
     mutating: true,
     wire: 'scene.redo' as const,
     mcp: { annotations: { readOnlyHint: false, destructiveHint: true } },
-    cli: { command: 'scene redo', args: '<roomId>', example: 'scene redo r1' },
+    cli: { command: 'scene redo', example: 'scene redo r1' },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'scene.diff': {
@@ -990,7 +966,7 @@ export const sceneOps = defineCapabilities({
     mutating: false,
     wire: 'scene.diff' as const,
     mcp: { annotations: { readOnlyHint: true } },
-    cli: { command: 'scene diff', args: '<roomId> [--from n] [--to n] [--visual]', example: 'scene diff r1' },
+    cli: { command: 'scene diff', example: 'scene diff r1' },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
   'selection.get': {
@@ -1001,7 +977,7 @@ export const sceneOps = defineCapabilities({
     mutating: false,
     wire: 'selection.get' as const,
     mcp: { annotations: { readOnlyHint: true } },
-    cli: { command: 'selection get', args: '<roomId>', example: 'selection get r1' },
+    cli: { command: 'selection get', example: 'selection get r1' },
   },
 });
 
@@ -1016,7 +992,6 @@ export const sceneIoOps = {
     mcp: { annotations: { readOnlyHint: true } },
     cli: {
       command: 'scene export',
-      args: '<roomId> [--out doc.json]',
       local: true as const,
       example: 'scene export r1',
     },
@@ -1035,7 +1010,6 @@ export const sceneIoOps = {
     wire: 'scene.import' as const,
     cli: {
       command: 'scene import',
-      args: '<roomId> --file doc.json',
       local: true as const,
       example: 'scene import r1 doc.json',
     },
@@ -1053,7 +1027,6 @@ export const sceneIoOps = {
     wire: 'scene.checkpoint' as const,
     cli: {
       command: 'scene checkpoint',
-      args: '<roomId> [--name baseline]',
       example: 'scene checkpoint r1 --name baseline',
     },
     errors: ['E_INVALID_PARAMS', 'E_LIMIT_EXCEEDED', 'E_ROOM_NOT_FOUND'] as const,
@@ -1078,7 +1051,6 @@ export const sceneIoOps = {
     mcp: { annotations: { readOnlyHint: true } },
     cli: {
       command: 'scene checkpoints',
-      args: '<roomId>',
       synonyms: ['scene ckpt'],
       example: 'scene checkpoints r1',
     },
@@ -1103,7 +1075,6 @@ export const sceneIoOps = {
     mcp: { annotations: { destructiveHint: true } },
     cli: {
       command: 'scene restore',
-      args: '<roomId> <checkpointId> [--scope subtree] [--ids a,b]',
       positional: ['checkpointId'],
       example: 'scene restore r1 c1',
     },
@@ -1150,7 +1121,6 @@ export const sceneIoOps = {
     wire: 'decal.create' as const,
     cli: {
       command: 'decal create',
-      args: '<roomId> --text 标语 | --image-sha <sha> [--at x,y,z]',
       aliases: { at: 'position' },
       example: 'decal create r1 --text hi',
     },
@@ -1181,7 +1151,6 @@ export const sceneIoOps = {
     wire: 'mesh.boolean' as const,
     cli: {
       command: 'mesh boolean',
-      args: '<roomId> <target> <tool> [--op subtract] [--keep-tool]',
       positional: ['target', 'tool'],
       negate: { 'keep-tool': 'deleteTool' },
       example: 'mesh boolean r1 n1 n2',
@@ -1228,7 +1197,6 @@ export const sceneIoOps = {
     wire: 'mesh.tube' as const,
     cli: {
       command: 'mesh tube',
-      args: '<roomId> --points x,y,z;x,y,z;… --radius r [--radius-end r] [--segments 24] [--radial 8] [--closed] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]',
 
       aliases: { radial: 'radialSegments' },
       example: 'mesh tube r1 --points 0,0,0;0,1,0 --radius 0.1',
@@ -1264,7 +1232,6 @@ export const sceneIoOps = {
     wire: 'mesh.backdrop' as const,
     cli: {
       command: 'mesh backdrop',
-      args: '<roomId> [--width 10] [--depth 4] [--height 6] [--curve 1.2] [--segments 16] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]',
 
       example: 'mesh backdrop r1',
     },
@@ -1299,7 +1266,6 @@ export const sceneIoOps = {
     wire: 'mesh.lathe' as const,
     cli: {
       command: 'mesh lathe',
-      args: '<roomId> --profile <json> [--segments 16]',
       example: 'mesh lathe r1 --profile []',
     },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
@@ -1333,7 +1299,6 @@ export const sceneIoOps = {
     wire: 'mesh.organic' as const,
     cli: {
       command: 'mesh organic',
-      args: '<roomId> --radius x,y,z --seed n [--flat-bottom]',
       example: 'mesh organic r1 --radius 1,1,1 --seed 1',
     },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
@@ -1365,7 +1330,6 @@ export const sceneIoOps = {
     wire: 'mesh.bevel' as const,
     cli: {
       command: 'mesh bevel',
-      args: '<roomId> --size x,y,z --radius r [--segments 4]',
       example: 'mesh bevel r1 --size 1,1,1 --radius 0.1',
     },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
@@ -1399,7 +1363,6 @@ export const sceneIoOps = {
     wire: 'mesh.tree' as const,
     cli: {
       command: 'mesh tree',
-      args: '<roomId> --height 4 --spread 2 --levels 3 --seed 1',
       example: 'mesh tree r1 --height 4 --spread 2 --levels 3 --seed 1',
     },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
@@ -1435,7 +1398,6 @@ export const sceneIoOps = {
     wire: 'mesh.mannequin' as const,
     cli: {
       command: 'mesh mannequin',
-      args: '<roomId> [--pose stand|jog_away] [--seed n]',
       example: 'mesh mannequin r1 --name runner',
     },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,

@@ -122,8 +122,6 @@ export interface CliSpec {
   local?: true;
   /** 最小可运行示例，不含 vibe3d 前缀 */
   example: string;
-  /** 过渡期的手写用法。P2.3 删除，改由 schema 生成。 */
-  args?: string;
 }
 
 export interface McpSpec {

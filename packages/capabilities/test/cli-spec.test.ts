@@ -1,30 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { cliFields, cliProblems, positionalOf } from '../src/cli-spec';
+import { cliFields, cliProblems } from '../src/cli-spec';
 import { CAPABILITIES } from '../src/registry';
 import type { CapabilitySpec } from '../src/types';
 
 const withCli = Object.entries(CAPABILITIES).filter((entry) => entry[1].cli) as [string, CapabilitySpec][];
-
-/** args 里不跟在 flag 后面的 `<字段>` 才是位置参数。roomId 由作用域自动补上，不计入。 */
-function extraPlaceholders(spec: CapabilitySpec): string[] {
-  const tokens = (spec.cli?.args ?? '').split(/\s+/).filter(Boolean);
-  const names: string[] = [];
-  let valueFollows = false;
-  for (const token of tokens) {
-    if (token.includes('--')) {
-      valueFollows = !token.includes('=');
-      continue;
-    }
-    if (valueFollows) {
-      valueFollows = false;
-      continue;
-    }
-    const match = /^<?([A-Za-z][\w-]*)>/.exec(token);
-    if (match?.[1] && match[1] !== 'roomId') names.push(match[1]);
-  }
-  return names;
-}
 
 describe('cli spec', () => {
   it('每个 CLI 命令都声明了 example', () => {
@@ -36,13 +16,6 @@ describe('cli spec', () => {
     const problems: string[] = [];
     for (const [name, spec] of withCli) {
       problems.push(...cliProblems(name, spec).filter((item) => item.includes('位置参数')));
-      const declared = positionalOf(spec).filter((field) => !(spec.scope === 'room' && field === 'roomId'));
-      const placeholders = extraPlaceholders(spec);
-      if (placeholders.length > declared.length) {
-        problems.push(
-          `${name}: 位置参数 ${declared.join(',') || '(无)'}，args 占位 ${placeholders.join(',') || '(无)'}`,
-        );
-      }
     }
     expect(problems).toEqual([]);
   });

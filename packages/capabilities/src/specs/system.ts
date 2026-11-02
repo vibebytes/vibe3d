@@ -24,7 +24,7 @@ export const systemOps = {
     mutating: false,
     wire: 'system.status' as const,
     mcp: { annotations: { readOnlyHint: true } },
-    cli: { command: 'status', args: '', local: true as const, example: 'status' },
+    cli: { command: 'status', local: true as const, example: 'status' },
     errors: [] as const,
   },
 };

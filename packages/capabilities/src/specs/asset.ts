@@ -32,7 +32,6 @@ export const assetOps = {
     wire: 'scene.apply' as const,
     cli: {
       command: 'model import',
-      args: '<roomId> <src|--sha sha> [--name n] [--align ground|center|none] [--autoplay]',
       positional: ['src'],
       example: 'model import r1 ./a.glb',
     },
@@ -59,7 +58,6 @@ export const assetOps = {
     mcp: { annotations: { readOnlyHint: true } },
     cli: {
       command: 'asset inspect',
-      args: '<roomId> <src>',
       positional: ['src'],
       example: 'asset inspect r1 ./a.glb',
     },
@@ -84,7 +82,6 @@ export const assetOps = {
     wire: 'asset.put' as const,
     cli: {
       command: 'asset put',
-      args: '<roomId> <src> [--name n]',
       positional: ['src'],
       example: 'asset put r1 ./a.png',
     },
@@ -108,7 +105,7 @@ export const assetOps = {
     mutating: false,
     wire: 'asset.list' as const,
     mcp: { annotations: { readOnlyHint: true } },
-    cli: { command: 'asset ls', args: '<roomId>', synonyms: ['asset list'], example: 'asset ls r1' },
+    cli: { command: 'asset ls', synonyms: ['asset list'], example: 'asset ls r1' },
     errors: ['E_ROOM_NOT_FOUND'] as const,
   },
   'asset.delete': {
@@ -121,7 +118,6 @@ export const assetOps = {
     mcp: { annotations: { destructiveHint: true } },
     cli: {
       command: 'asset rm',
-      args: '<roomId> <sha>',
       positional: ['sha'],
       synonyms: ['asset delete'],
       example: 'asset rm r1 s1',

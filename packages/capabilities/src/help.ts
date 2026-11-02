@@ -1,4 +1,5 @@
 import { mcpInputSchema } from './gen/generate';
+export { usageOf } from './usage';
 import { CAPABILITIES, type CapabilityName } from './registry';
 import { GROUP_BY_CAPABILITY, LEGACY_OF } from './tool-groups';
 import type { McpSpec } from './types';

@@ -21,7 +21,6 @@
       },
       "cli": {
         "command": "status",
-        "args": "",
         "local": true,
         "example": "status"
       },
@@ -128,7 +127,6 @@
       },
       "cli": {
         "command": "room new",
-        "args": "[--name <name>] [--template <t>]",
         "local": true,
         "example": "room new --name demo"
       },
@@ -205,7 +203,6 @@
       },
       "cli": {
         "command": "room ls",
-        "args": "[--limit n] [--cursor c]",
         "synonyms": [
           "room list"
         ],
@@ -319,7 +316,6 @@
       },
       "cli": {
         "command": "room use",
-        "args": "<roomId>",
         "example": "room use r1"
       },
       "input": {
@@ -394,7 +390,6 @@
       },
       "cli": {
         "command": "room show",
-        "args": "<roomId>",
         "example": "room show r1"
       },
       "input": {
@@ -482,7 +477,6 @@
       },
       "cli": {
         "command": "room rm",
-        "args": "<roomId> [--purge]",
         "synonyms": [
           "room close"
         ],
@@ -576,7 +570,6 @@
       },
       "cli": {
         "command": "room timeline",
-        "args": "<roomId> [--limit n]",
         "example": "room timeline r1"
       },
       "input": {
@@ -669,7 +662,6 @@
       },
       "cli": {
         "command": "scene get",
-        "args": "<roomId>",
         "example": "scene get r1"
       },
       "input": {
@@ -4585,7 +4577,6 @@
       },
       "cli": {
         "command": "scene summary",
-        "args": "<roomId>",
         "example": "scene summary r1"
       },
       "input": {
@@ -4873,7 +4864,6 @@
       },
       "cli": {
         "command": "scene query",
-        "args": "<roomId> [--name <text>] [--kind mesh] [--tags a,b] [--parent <nodeId>|root] [--has-children] [--within-bbox <json>] [--bbox <json>] [--min-y 0.9] [--limit 50] [--cursor 0]",
         "aliases": {
           "material": "materialId",
           "parent": "parentId"
@@ -5268,7 +5258,6 @@
       },
       "cli": {
         "command": "node get",
-        "args": "<roomId> <nodeId>",
         "positional": [
           "nodeId"
         ],
@@ -6589,7 +6578,6 @@
       },
       "cli": {
         "command": "scene stats",
-        "args": "<roomId> [--budget <json>] [--enforce]",
         "example": "scene stats r1"
       },
       "input": {
@@ -6854,7 +6842,6 @@
       },
       "cli": {
         "command": "scene pick",
-        "args": "<roomId> [--point 0.5,0.5] [--width 1280] [--height 720]",
         "example": "scene pick r1 --point 0.5,0.5"
       },
       "input": {
@@ -7174,7 +7161,6 @@
       },
       "cli": {
         "command": "scene validate",
-        "args": "<roomId> [--checks floating,intersect] [--tolerance 0.02]",
         "example": "scene validate r1"
       },
       "input": {
@@ -7478,7 +7464,6 @@
       },
       "cli": {
         "command": "node transform-many",
-        "args": "<roomId> [--ids a,b] [--filter <json>] [--translate 0,1,0]",
         "example": "node transform-many r1 --translate 0,1,0"
       },
       "input": {
@@ -7633,7 +7618,6 @@
       },
       "cli": {
         "command": "node array",
-        "args": "<roomId> <nodeId> --count 5 --offset 1,0,0",
         "positional": [
           "id"
         ],
@@ -7806,7 +7790,6 @@
       },
       "cli": {
         "command": "node attach",
-        "args": "<roomId> <nodeId> --target <id> --face top [--corner min-min] [--gap 0.05]",
         "positional": [
           "id"
         ],
@@ -7950,7 +7933,6 @@
       },
       "cli": {
         "command": "node group",
-        "args": "<roomId> --ids a,b --name 组名 [--no-keep-world]",
         "example": "node group r1 --ids n1,n2 --name g"
       },
       "input": {
@@ -8030,7 +8012,6 @@
       },
       "cli": {
         "command": "node merge",
-        "args": "<roomId> <nodeId> [--material <id>]",
         "positional": [
           "nodeId"
         ],
@@ -8132,7 +8113,6 @@
       },
       "cli": {
         "command": "node fit-screen",
-        "args": "<roomId> <nodeId> --rect <json> [--anchor center|bottom|top]",
         "positional": [
           "nodeId"
         ],
@@ -8294,7 +8274,6 @@
       },
       "cli": {
         "command": "node reparent",
-        "args": "<roomId> <nodeId> --parent <id>|--root [--no-keep-world]",
         "positional": [
           "id"
         ],
@@ -8382,7 +8361,6 @@
       },
       "cli": {
         "command": "material assign",
-        "args": "<roomId> --material <id> [--ids a,b] [--filter <json>]",
         "aliases": {
           "material": "materialId"
         },
@@ -8496,7 +8474,6 @@
       },
       "cli": {
         "command": "scene apply",
-        "args": "<roomId> --ops <json|@file>",
         "example": "scene apply r1 --ops []"
       },
       "input": {
@@ -29214,7 +29191,6 @@
       },
       "cli": {
         "command": "node create",
-        "args": "<roomId> --kind mesh --shape box [--upsert-by-name] [--tags a,b]",
         "defaults": {
           "kind": "mesh",
           "parent": null
@@ -30265,7 +30241,6 @@
       },
       "cli": {
         "command": "node update",
-        "args": "<roomId> <nodeId> --patch <json>",
         "positional": [
           "nodeId"
         ],
@@ -30611,7 +30586,6 @@
       },
       "cli": {
         "command": "node rm",
-        "args": "<roomId> <nodeId> [--no-cascade]",
         "positional": [
           "nodeId"
         ],
@@ -30683,7 +30657,6 @@
       },
       "cli": {
         "command": "node clone",
-        "args": "<roomId> <nodeId> [--count 2] [--parent <id>]",
         "positional": [
           "nodeId"
         ],
@@ -30837,7 +30810,6 @@
       },
       "cli": {
         "command": "stage set",
-        "args": "<roomId> --preset cine",
         "flatten": [
           "stage"
         ],
@@ -31234,7 +31206,6 @@
       },
       "cli": {
         "command": "fx create",
-        "args": "<roomId> --type particles",
         "aliases": {
           "node": "nodeId"
         },
@@ -31434,7 +31405,6 @@
       },
       "cli": {
         "command": "fx rm",
-        "args": "<roomId> <fxId>",
         "positional": [
           "fxId"
         ],
@@ -31502,7 +31472,6 @@
       },
       "cli": {
         "command": "material create",
-        "args": "<roomId> --preset concrete",
         "example": "material create r1 --preset concrete"
       },
       "input": {
@@ -32019,7 +31988,6 @@
       },
       "cli": {
         "command": "material patch",
-        "args": "<roomId> <materialId> --roughness 0.3",
         "positional": [
           "materialId"
         ],
@@ -32487,7 +32455,6 @@
       },
       "cli": {
         "command": "material map",
-        "args": "<roomId> <materialId> --sha <sha> --tiling 2,2",
         "positional": [
           "materialId"
         ],
@@ -32778,7 +32745,6 @@
       },
       "cli": {
         "command": "env set",
-        "args": "<roomId> [--fog near,far]",
         "aliases": {
           "hdri": "hdriSrc",
           "hdri-sha": "hdri",
@@ -33244,7 +33210,6 @@
       },
       "cli": {
         "command": "scene undo",
-        "args": "<roomId> [--op-id id]",
         "example": "scene undo r1"
       },
       "input": {
@@ -33303,7 +33268,6 @@
       },
       "cli": {
         "command": "scene redo",
-        "args": "<roomId>",
         "example": "scene redo r1"
       },
       "input": {
@@ -33357,7 +33321,6 @@
       },
       "cli": {
         "command": "scene diff",
-        "args": "<roomId> [--from n] [--to n] [--visual]",
         "example": "scene diff r1"
       },
       "input": {
@@ -43763,7 +43726,6 @@
       },
       "cli": {
         "command": "selection get",
-        "args": "<roomId>",
         "example": "selection get r1"
       },
       "input": {
@@ -43818,7 +43780,6 @@
       },
       "cli": {
         "command": "anim play",
-        "args": "<roomId> <nodeId> [--clip <name>] [--clips idle,wave] [--speed 1] [--loop false] [--direction reverse] [--weight 0.5]",
         "positional": [
           "nodeId"
         ],
@@ -43920,7 +43881,6 @@
       },
       "cli": {
         "command": "anim stop",
-        "args": "<roomId> <nodeId>",
         "positional": [
           "nodeId"
         ],
@@ -43990,7 +43950,6 @@
       },
       "cli": {
         "command": "anim define",
-        "args": "<roomId> <nodeId> --type sway [--axis x|y|z] [--gust 0..1] [--apply-to subtree]；任意属性用 --clip-json '{\"tracks\":[{\"path\":\"position\",\"keys\":[{\"t\":0,\"v\":[0,0,0]}]}]}'",
         "positional": [
           "nodeId"
         ],
@@ -44308,7 +44267,6 @@
       },
       "cli": {
         "command": "anim clear",
-        "args": "<roomId> <nodeId> [--apply-to subtree] [--channel ry]",
         "positional": [
           "nodeId"
         ],
@@ -44411,7 +44369,6 @@
       },
       "cli": {
         "command": "anim pose",
-        "args": "<roomId> --targets <json>",
         "example": "anim pose r1 --targets []"
       },
       "input": {
@@ -44720,7 +44677,6 @@
       },
       "cli": {
         "command": "anim gait",
-        "args": "<roomId> <nodeId> --style walk|run|idle [--period s] [--stride m] [--arm-swing rad]",
         "positional": [
           "nodeId"
         ],
@@ -44849,7 +44805,6 @@
       },
       "cli": {
         "command": "scene export",
-        "args": "<roomId> [--out doc.json]",
         "local": true,
         "example": "scene export r1"
       },
@@ -48767,7 +48722,6 @@
       },
       "cli": {
         "command": "scene import",
-        "args": "<roomId> --file doc.json",
         "local": true,
         "example": "scene import r1 doc.json"
       },
@@ -52688,7 +52642,6 @@
       },
       "cli": {
         "command": "scene checkpoint",
-        "args": "<roomId> [--name baseline]",
         "example": "scene checkpoint r1 --name baseline"
       },
       "input": {
@@ -52751,7 +52704,6 @@
       },
       "cli": {
         "command": "scene checkpoints",
-        "args": "<roomId>",
         "synonyms": [
           "scene ckpt"
         ],
@@ -52840,7 +52792,6 @@
       },
       "cli": {
         "command": "scene restore",
-        "args": "<roomId> <checkpointId> [--scope subtree] [--ids a,b]",
         "positional": [
           "checkpointId"
         ],
@@ -52940,7 +52891,6 @@
       },
       "cli": {
         "command": "decal create",
-        "args": "<roomId> --text 标语 | --image-sha <sha> [--at x,y,z]",
         "aliases": {
           "at": "position"
         },
@@ -53110,7 +53060,6 @@
       },
       "cli": {
         "command": "mesh boolean",
-        "args": "<roomId> <target> <tool> [--op subtract] [--keep-tool]",
         "positional": [
           "target",
           "tool"
@@ -53219,7 +53168,6 @@
       },
       "cli": {
         "command": "mesh tube",
-        "args": "<roomId> --points x,y,z;x,y,z;… --radius r [--radius-end r] [--segments 24] [--radial 8] [--closed] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]",
         "aliases": {
           "radial": "radialSegments"
         },
@@ -53439,7 +53387,6 @@
       },
       "cli": {
         "command": "mesh backdrop",
-        "args": "<roomId> [--width 10] [--depth 4] [--height 6] [--curve 1.2] [--segments 16] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]",
         "example": "mesh backdrop r1"
       },
       "input": {
@@ -53621,7 +53568,6 @@
       },
       "cli": {
         "command": "mesh lathe",
-        "args": "<roomId> --profile <json> [--segments 16]",
         "example": "mesh lathe r1 --profile []"
       },
       "input": {
@@ -53804,7 +53750,6 @@
       },
       "cli": {
         "command": "mesh organic",
-        "args": "<roomId> --radius x,y,z --seed n [--flat-bottom]",
         "example": "mesh organic r1 --radius 1,1,1 --seed 1"
       },
       "input": {
@@ -53995,7 +53940,6 @@
       },
       "cli": {
         "command": "mesh bevel",
-        "args": "<roomId> --size x,y,z --radius r [--segments 4]",
         "example": "mesh bevel r1 --size 1,1,1 --radius 0.1"
       },
       "input": {
@@ -54180,7 +54124,6 @@
       },
       "cli": {
         "command": "mesh tree",
-        "args": "<roomId> --height 4 --spread 2 --levels 3 --seed 1",
         "example": "mesh tree r1 --height 4 --spread 2 --levels 3 --seed 1"
       },
       "input": {
@@ -54365,7 +54308,6 @@
       },
       "cli": {
         "command": "mesh mannequin",
-        "args": "<roomId> [--pose stand|jog_away] [--seed n]",
         "example": "mesh mannequin r1 --name runner"
       },
       "input": {
@@ -54551,7 +54493,6 @@
       },
       "cli": {
         "command": "model import",
-        "args": "<roomId> <src|--sha sha> [--name n] [--align ground|center|none] [--autoplay]",
         "positional": [
           "src"
         ],
@@ -54923,7 +54864,6 @@
       },
       "cli": {
         "command": "asset inspect",
-        "args": "<roomId> <src>",
         "positional": [
           "src"
         ],
@@ -55197,7 +55137,6 @@
       },
       "cli": {
         "command": "asset put",
-        "args": "<roomId> <src> [--name n]",
         "positional": [
           "src"
         ],
@@ -55543,7 +55482,6 @@
       },
       "cli": {
         "command": "asset ls",
-        "args": "<roomId>",
         "synonyms": [
           "asset list"
         ],
@@ -55889,7 +55827,6 @@
       },
       "cli": {
         "command": "asset rm",
-        "args": "<roomId> <sha>",
         "positional": [
           "sha"
         ],
@@ -55953,7 +55890,6 @@
       },
       "cli": {
         "command": "camera set",
-        "args": "<roomId> [--frame fit] [--name hero] [--preset miniature_45] [--p x,y,z] [--target x,y,z]",
         "flatten": [
           "camera"
         ],
@@ -56453,7 +56389,6 @@
       },
       "cli": {
         "command": "camera save",
-        "args": "<roomId> --name hero",
         "flatten": [
           "camera"
         ],
@@ -56708,7 +56643,6 @@
       },
       "cli": {
         "command": "camera rm",
-        "args": "<roomId> <name>",
         "positional": [
           "name"
         ],
@@ -57386,7 +57320,6 @@
       },
       "cli": {
         "command": "render snapshot",
-        "args": "<roomId> [--out shot.png] [--size 1280x720] [--format png] [--settle-ms 180] [--at 1.2] [--transparent]",
         "example": "render snapshot r1"
       },
       "input": {
@@ -57943,7 +57876,6 @@
       },
       "cli": {
         "command": "render views",
-        "args": "<roomId> [--views front,top] [--node id] [--size 1280x720] [--out dir]",
         "aliases": {
           "node": "nodeIds",
           "nodes": "nodeIds"
@@ -58543,7 +58475,6 @@
       },
       "cli": {
         "command": "render node",
-        "args": "<roomId> <nodeId> [--view three_quarter] [--padding 1.15] [--out shot.png] [--size 1280x720]",
         "positional": [
           "nodeId"
         ],
@@ -59058,7 +58989,6 @@
       },
       "cli": {
         "command": "render pick",
-        "args": "<roomId> [--point 12,34] [--rect 0,0,200,100] [--roi 0,0,200,100] [--size 1280x720] [--top-colors 5]",
         "aliases": {
           "point": "points"
         },
@@ -59576,7 +59506,6 @@
       },
       "cli": {
         "command": "render assert",
-        "args": "<roomId> --anchor 100,10:#ff0000 [--tol 2] [--size 1280x720]",
         "example": "render assert r1 --anchors []"
       },
       "input": {
@@ -60068,7 +59997,6 @@
       },
       "cli": {
         "command": "render id-pass",
-        "args": "<roomId> [--size 640x480] [--camera px,py,pz,tx,ty,tz] [--mask]",
         "example": "render id-pass r1"
       },
       "input": {
@@ -60281,7 +60209,6 @@
       },
       "cli": {
         "command": "render sequence",
-        "args": "<roomId> --from s --to s [--fps 24] [--size 1280x720] [--shading flat] [--wait]",
         "job": "frames",
         "example": "render sequence r1 --from 0 --to 1 --fps 4"
       },
@@ -60522,7 +60449,6 @@
       },
       "cli": {
         "command": "render video",
-        "args": "<roomId> --from s --to s [--fps 24] [--size 1280x720] [--shading flat] [--wait]",
         "job": "file",
         "example": "render video r1 --from 0 --to 1 --fps 8"
       },
@@ -60757,7 +60683,6 @@
       },
       "cli": {
         "command": "export glb",
-        "args": "<roomId> [--node id] [--out scene.glb] [--wait]",
         "aliases": {
           "node": "nodeIds"
         },
@@ -60853,7 +60778,6 @@
       },
       "cli": {
         "command": "job get",
-        "args": "<jobId>",
         "positional": [
           "jobId"
         ],
@@ -60984,7 +60908,6 @@
       },
       "cli": {
         "command": "job ls",
-        "args": "[roomId]",
         "synonyms": [
           "job list"
         ],
@@ -61124,7 +61047,6 @@
       },
       "cli": {
         "command": "job cancel",
-        "args": "<jobId>",
         "positional": [
           "jobId"
         ],
@@ -61255,7 +61177,6 @@
       },
       "cli": {
         "command": "open",
-        "args": "<roomId>",
         "example": "open r1"
       },
       "input": {

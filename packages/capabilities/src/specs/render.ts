@@ -270,7 +270,6 @@ export const renderOps = {
     wire: 'camera.set' as const,
     cli: {
       command: 'camera set',
-      args: '<roomId> [--frame fit] [--name hero] [--preset miniature_45] [--p x,y,z] [--target x,y,z]',
 
       flatten: ['camera'],
       example: 'camera set r1 --frame fit',
@@ -294,7 +293,6 @@ export const renderOps = {
     wire: 'camera.save' as const,
     cli: {
       command: 'camera save',
-      args: '<roomId> --name hero',
       flatten: ['camera'],
       example: 'camera save r1 --name hero',
     },
@@ -313,7 +311,6 @@ export const renderOps = {
     mcp: { annotations: { destructiveHint: true } },
     cli: {
       command: 'camera rm',
-      args: '<roomId> <name>',
       positional: ['name'],
       synonyms: ['camera delete'],
       example: 'camera rm r1 hero',
@@ -414,7 +411,6 @@ export const renderOps = {
     },
     cli: {
       command: 'render snapshot',
-      args: '<roomId> [--out shot.png] [--size 1280x720] [--format png] [--settle-ms 180] [--at 1.2] [--transparent]',
 
       example: 'render snapshot r1',
     },
@@ -457,7 +453,6 @@ export const renderOps = {
     },
     cli: {
       command: 'render views',
-      args: '<roomId> [--views front,top] [--node id] [--size 1280x720] [--out dir]',
 
       aliases: { node: 'nodeIds', nodes: 'nodeIds' },
       example: 'render views r1 --views front',
@@ -494,7 +489,6 @@ export const renderOps = {
     },
     cli: {
       command: 'render node',
-      args: '<roomId> <nodeId> [--view three_quarter] [--padding 1.15] [--out shot.png] [--size 1280x720]',
 
       positional: ['nodeId'],
       example: 'render node r1 n1',
@@ -557,7 +551,6 @@ export const renderOps = {
     },
     cli: {
       command: 'render pick',
-      args: '<roomId> [--point 12,34] [--rect 0,0,200,100] [--roi 0,0,200,100] [--size 1280x720] [--top-colors 5]',
 
       aliases: { point: 'points' },
       example: 'render pick r1 --point 12,34',
@@ -648,7 +641,6 @@ export const renderOps = {
     },
     cli: {
       command: 'render assert',
-      args: '<roomId> --anchor 100,10:#ff0000 [--tol 2] [--size 1280x720]',
 
       example: 'render assert r1 --anchors []',
     },
@@ -690,7 +682,6 @@ export const renderOps = {
     },
     cli: {
       command: 'render id-pass',
-      args: '<roomId> [--size 640x480] [--camera px,py,pz,tx,ty,tz] [--mask]',
 
       example: 'render id-pass r1',
     },
@@ -728,7 +719,6 @@ export const renderOps = {
     mcp: { annotations: { readOnlyHint: true } },
     cli: {
       command: 'render sequence',
-      args: '<roomId> --from s --to s [--fps 24] [--size 1280x720] [--shading flat] [--wait]',
 
       job: 'frames' as const,
       example: 'render sequence r1 --from 0 --to 1 --fps 4',
@@ -772,7 +762,6 @@ export const renderOps = {
     mcp: { annotations: { readOnlyHint: true } },
     cli: {
       command: 'render video',
-      args: '<roomId> --from s --to s [--fps 24] [--size 1280x720] [--shading flat] [--wait]',
 
       job: 'file' as const,
       example: 'render video r1 --from 0 --to 1 --fps 8',
@@ -807,7 +796,6 @@ export const renderOps = {
     mcp: { annotations: { readOnlyHint: true } },
     cli: {
       command: 'export glb',
-      args: '<roomId> [--node id] [--out scene.glb] [--wait]',
       aliases: { node: 'nodeIds' },
       job: 'file' as const,
       example: 'export glb r1',
@@ -822,7 +810,7 @@ export const renderOps = {
     mutating: false,
     wire: 'job.get' as const,
     mcp: { annotations: { readOnlyHint: true } },
-    cli: { command: 'job get', args: '<jobId>', positional: ['jobId'], example: 'job get j1' },
+    cli: { command: 'job get', positional: ['jobId'], example: 'job get j1' },
     errors: ['E_JOB_NOT_FOUND'] as const,
   },
   'job.list': {
@@ -833,7 +821,7 @@ export const renderOps = {
     mutating: false,
     wire: 'job.list' as const,
     mcp: { annotations: { readOnlyHint: true } },
-    cli: { command: 'job ls', args: '[roomId]', synonyms: ['job list'], example: 'job ls' },
+    cli: { command: 'job ls', synonyms: ['job list'], example: 'job ls' },
     errors: [] as const,
   },
   'job.cancel': {
@@ -843,7 +831,7 @@ export const renderOps = {
     scope: 'daemon' as const,
     mutating: true,
     wire: 'job.cancel' as const,
-    cli: { command: 'job cancel', args: '<jobId>', positional: ['jobId'], example: 'job cancel j1' },
+    cli: { command: 'job cancel', positional: ['jobId'], example: 'job cancel j1' },
     errors: ['E_JOB_NOT_FOUND'] as const,
   },
   'editor.open': {
@@ -867,7 +855,7 @@ export const renderOps = {
     hostCoupled: true,
     wire: 'editor.open' as const,
     mcp: { roomArg: true },
-    cli: { command: 'open', args: '<roomId>', example: 'open r1' },
+    cli: { command: 'open', example: 'open r1' },
     errors: ['E_ROOM_NOT_FOUND'] as const,
   },
 };
