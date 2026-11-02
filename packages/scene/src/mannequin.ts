@@ -499,3 +499,28 @@ export function skinVertices(model: SkinnedModel, rotations: Readonly<Record<str
     return out;
   });
 }
+
+/** Asset name `mesh.mannequin` registers; lets framing recognise the rig without reading the GLB. */
+export const MANNEQUIN_ASSET = 'mannequin.glb';
+
+let restRig: MannequinRig | undefined;
+
+/** Model-space bounds of the mannequin skinned with the given local bone rotations. */
+export function mannequinBox(rotations: Readonly<Record<string, Vec3>>): {
+  min: Vec3;
+  max: Vec3;
+} {
+  restRig ??= mannequinRig();
+  const min: Vec3 = [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
+  const max: Vec3 = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY];
+  for (const positions of skinVertices(restRig.model, rotations)) {
+    for (let i = 0; i < positions.length; i += 3) {
+      for (let k = 0; k < 3; k += 1) {
+        const v = positions[i + k] ?? 0;
+        min[k] = Math.min(min[k] ?? v, v);
+        max[k] = Math.max(max[k] ?? v, v);
+      }
+    }
+  }
+  return { min, max };
+}

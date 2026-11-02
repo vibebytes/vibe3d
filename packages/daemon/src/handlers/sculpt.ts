@@ -7,6 +7,7 @@ import {
   makeNodeId,
 } from '@vibebyte/vibe3d-protocol';
 import {
+  MANNEQUIN_ASSET,
   type SculptMesh,
   bevelMesh,
   latheMesh,
@@ -173,7 +174,7 @@ export const sculptHandlers: HandlersFor<Keys> = {
       Object.entries(p.colors ?? {}).flatMap(([slot, hex]) => (hex ? [[slot, hexToRgb(hex)]] : [])),
     );
     const rig = mannequinRig({ ...(p.seed !== undefined ? { seed: p.seed } : {}), colors });
-    const { meta } = await ctx.ingestBytes(toGlb(rig.model), 'mannequin.glb');
+    const { meta } = await ctx.ingestBytes(toGlb(rig.model), MANNEQUIN_ASSET);
     const nodeId = makeNodeId();
     const t = p.transform ?? {};
     const node: SceneNode = {

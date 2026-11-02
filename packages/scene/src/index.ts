@@ -124,7 +124,9 @@ export { tubeMesh, type TubeMesh, type TubeSpec } from './tube';
 export { bevelMesh, latheMesh, organicMesh, smoothMerge, type SculptMesh } from './sculpt';
 export { treeMesh, type TreeMesh } from './tree';
 export {
+  MANNEQUIN_ASSET,
   MANNEQUIN_BONES,
+  mannequinBox,
   boneWorld,
   mannequinPose,
   mannequinRig,

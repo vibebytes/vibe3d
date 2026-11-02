@@ -1,5 +1,6 @@
 import type { CameraState, SceneDoc, SceneNode } from '@vibebyte/vibe3d-protocol';
-import { posedDoc } from './anim';
+import { bonePoses, nodeClipsOf, posedDoc } from './anim';
+import { MANNEQUIN_ASSET, mannequinBox } from './mannequin';
 
 export type Mat4 = [
   number,
@@ -123,12 +124,37 @@ export function meshLocalBounds(node: SceneNode): Aabb | null {
   return { min: [-hx, -hy, -hz], max: [hx, hy, hz] };
 }
 
-function localBox(doc: SceneDoc, node: SceneNode): Aabb | null {
+const BONE_MARGIN = 0.35;
+
+/** Box of a model whose bones are animated: exact FK for the mannequin, a size-relative margin otherwise. */
+function animatedModelBox(doc: SceneDoc, node: SceneNode, base: Aabb, t: number): Aabb {
+  const clips = nodeClipsOf(node as never).filter((clip) =>
+    (clip.tracks ?? []).some((tr) => tr.path.startsWith('bone.')),
+  );
+  if (clips.length === 0) return base;
+  if (doc.assets[(node as { sha: string }).sha]?.name === MANNEQUIN_ASSET) {
+    const rotations = Object.fromEntries(
+      [...bonePoses(clips, t, () => ({ p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] })).entries()].map(
+        ([bone, pose]) => [bone, pose.r],
+      ),
+    );
+    return mannequinBox(rotations);
+  }
+  const reach =
+    BONE_MARGIN * Math.max(base.max[0] - base.min[0], base.max[1] - base.min[1], base.max[2] - base.min[2]);
+  return {
+    min: [base.min[0] - reach, base.min[1] - reach, base.min[2] - reach],
+    max: [base.max[0] + reach, base.max[1] + reach, base.max[2] + reach],
+  };
+}
+
+function localBox(doc: SceneDoc, node: SceneNode, t?: number): Aabb | null {
   if (node.kind === 'mesh') return meshLocalBounds(node);
   if (node.kind === 'model') {
     const size = doc.assets[node.sha]?.gltf?.size;
     if (!size) return null;
-    return { min: [...size.min], max: [...size.max] };
+    const base: Aabb = { min: [...size.min], max: [...size.max] };
+    return t === undefined ? base : animatedModelBox(doc, node, base, t);
   }
   return null;
 }
@@ -300,21 +326,21 @@ function expand(box: Aabb | null, m: Mat4, local: Aabb): Aabb {
   return out as Aabb;
 }
 
-function boundsOf(doc: SceneDoc, ids: Iterable<string>): Aabb | null {
+function boundsOf(doc: SceneDoc, ids: Iterable<string>, t?: number): Aabb | null {
   const matrices = worldMatrices(doc);
   let box: Aabb | null = null;
   for (const id of ids) {
     const node = doc.nodes[id];
     if (!node?.visible) continue;
-    const local = localBox(doc, node);
+    const local = localBox(doc, node, t);
     if (!local) continue;
     box = expand(box, matrices.get(id)!, local);
   }
   return box;
 }
 
-export function sceneBounds(doc: SceneDoc): Aabb | null {
-  return boundsOf(doc, Object.keys(doc.nodes));
+export function sceneBounds(doc: SceneDoc, t?: number): Aabb | null {
+  return boundsOf(doc, Object.keys(doc.nodes), t);
 }
 
 function subtreeIds(doc: SceneDoc, id: string): string[] {
@@ -405,13 +431,14 @@ function unionBox(a: Aabb | null, b: Aabb | null): Aabb | null {
   };
 }
 
-function targetBounds(doc: SceneDoc, ids: readonly string[] | null): Aabb | null {
+function targetBounds(doc: SceneDoc, ids: readonly string[] | null, t?: number): Aabb | null {
   return ids
     ? boundsOf(
         doc,
         ids.flatMap((id) => subtreeIds(doc, id)),
+        t,
       )
-    : sceneBounds(doc);
+    : sceneBounds(doc, t);
 }
 
 export function frameTarget(doc: SceneDoc, opts: FrameTargetOptions = {}): FrameResult | null {
@@ -421,7 +448,7 @@ export function frameTarget(doc: SceneDoc, opts: FrameTargetOptions = {}): Frame
     ? opts.bbox
     : times.length === 0
       ? targetBounds(doc, ids)
-      : times.reduce<Aabb | null>((acc, t) => unionBox(acc, targetBounds(posedDoc(doc, t), ids)), null);
+      : times.reduce<Aabb | null>((acc, t) => unionBox(acc, targetBounds(posedDoc(doc, t), ids, t)), null);
   if (!box) return null;
   const source = validBox(opts.bbox) ? 'bbox' : ids ? 'ids' : 'scene';
   const mode = opts.mode ?? (source === 'scene' ? 'fit' : 'close');

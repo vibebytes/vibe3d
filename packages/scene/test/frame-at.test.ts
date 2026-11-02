@@ -62,3 +62,56 @@ describe('posed framing', () => {
     expect(both.bounds.max[2]).toBeGreaterThan(0.9);
   });
 });
+
+describe('posed bounds of a mannequin model', () => {
+  const kick = {
+    tracks: [
+      {
+        path: 'bone.UpperLeg_L.rotation',
+        keys: [
+          { t: 0, v: [0, 0, 0] },
+          { t: 1, v: [-1.2, 0, 0] },
+        ],
+      },
+    ],
+  };
+
+  function mannequinDoc(name = 'mannequin.glb') {
+    const doc = emptyDoc('mq');
+    doc.assets.sha1 = {
+      sha: 'sha1',
+      bytes: 1,
+      name,
+      mime: 'model/gltf-binary',
+      kind: 'gltf',
+      gltf: { size: { min: [-0.3, 0, -0.1], max: [0.3, 1.75, 0.2] } },
+    } as never;
+    doc.nodes.n_00000001 = {
+      id: 'n_00000001',
+      kind: 'model',
+      name: 'runner',
+      parent: null,
+      visible: true,
+      transform: { p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] },
+      sha: 'sha1',
+      clip: kick,
+    } as never;
+    return doc;
+  }
+
+  it('wraps the leg kicked forward by bone FK', () => {
+    const doc = mannequinDoc();
+    const rest = frameTarget(doc, { ids: ['n_00000001'] })!;
+    const posed = frameTarget(doc, { ids: ['n_00000001'], at: 1 })!;
+    expect(rest.bounds.max[2]).toBeCloseTo(0.2, 6);
+    expect(posed.bounds.max[2]).toBeGreaterThan(0.6);
+  });
+
+  it('other animated models get a margin instead', () => {
+    const doc = mannequinDoc('other.glb');
+    const rest = frameTarget(doc, { ids: ['n_00000001'] })!;
+    const posed = frameTarget(doc, { ids: ['n_00000001'], at: 1 })!;
+    expect(posed.bounds.max[2]).toBeGreaterThan(rest.bounds.max[2]);
+    expect(posed.bounds.min[2]).toBeLessThan(rest.bounds.min[2]);
+  });
+});
