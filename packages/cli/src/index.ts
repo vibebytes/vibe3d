@@ -2,7 +2,7 @@
 import { Vibe3DError, isVibe3DError } from '@vibebyte/vibe3d-client';
 import { parseArgs } from './args';
 import { run } from './commands';
-import { HELP } from './help';
+import { helpText } from './help';
 
 function exitCode(err: unknown): number {
   if (!isVibe3DError(err)) return 1;
@@ -31,7 +31,11 @@ function exitCode(err: unknown): number {
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
   if (argv.length === 0 || argv[0] === 'help' || argv[0] === '--help' || argv[0] === '-h') {
-    process.stdout.write(HELP);
+    process.stdout.write(helpText(argv[0] === 'help' ? argv.slice(1) : undefined));
+    return;
+  }
+  if (argv.includes('--help') || argv.includes('-h')) {
+    process.stdout.write(helpText(argv.filter((arg) => arg !== '--help' && arg !== '-h')));
     return;
   }
   if (argv[0] === '--version' || argv[0] === 'version') {
