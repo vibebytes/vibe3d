@@ -480,6 +480,9 @@
         "synonyms": [
           "room close"
         ],
+        "defaults": {
+          "purge": false
+        },
         "example": "room rm r1"
       },
       "input": {
@@ -30592,6 +30595,9 @@
         "synonyms": [
           "node delete"
         ],
+        "defaults": {
+          "cascade": true
+        },
         "example": "node rm r1 n1"
       },
       "input": {
@@ -53066,6 +53072,9 @@
         ],
         "negate": {
           "keep-tool": "deleteTool"
+        },
+        "defaults": {
+          "op": "subtract"
         },
         "example": "mesh boolean r1 n1 n2"
       },

@@ -114,6 +114,7 @@ export const roomCreate = {
     cli: {
       command: 'room rm',
       synonyms: ['room close'],
+      defaults: { purge: false },
       example: 'room rm r1',
     },
     errors: ['E_ROOM_NOT_FOUND', 'E_LOCKED'] as const,

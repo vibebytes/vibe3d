@@ -727,6 +727,7 @@ export const sceneOps = defineCapabilities({
       command: 'node rm',
       positional: ['nodeId'],
       synonyms: ['node delete'],
+      defaults: { cascade: true },
       example: 'node rm r1 n1',
     },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
@@ -1153,6 +1154,7 @@ export const sceneIoOps = {
       command: 'mesh boolean',
       positional: ['target', 'tool'],
       negate: { 'keep-tool': 'deleteTool' },
+      defaults: { op: 'subtract' },
       example: 'mesh boolean r1 n1 n2',
     },
     errors: [

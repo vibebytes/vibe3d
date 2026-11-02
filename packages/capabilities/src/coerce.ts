@@ -145,18 +145,23 @@ function fail(ctx: Ctx, message: string): never {
 }
 
 function isNullable(schema: z.ZodTypeAny): boolean {
+  const inner = unwrap(schema);
+  if (inner instanceof z.ZodNull) return true;
+  if (inner instanceof z.ZodUnion || inner instanceof z.ZodDiscriminatedUnion) {
+    return (inner.options as z.ZodTypeAny[]).some((option) => isNullable(option) || unwrap(option) instanceof z.ZodNull);
+  }
   let current = schema;
   for (let i = 0; i < 8; i += 1) {
     const def = defOf(current);
-    if (def.typeName === 'ZodNullable') return true;
-    const inner =
+    if (def.typeName === 'ZodNullable' || def.typeName === 'ZodNull') return true;
+    const next =
       def.typeName === 'ZodEffects'
         ? (def.schema as z.ZodTypeAny | undefined)
         : def.typeName === 'ZodOptional' || def.typeName === 'ZodDefault'
           ? (def.innerType as z.ZodTypeAny | undefined)
           : undefined;
-    if (!inner) return false;
-    current = inner;
+    if (!next) return false;
+    current = next;
   }
   return false;
 }
@@ -165,10 +170,7 @@ function acceptsFile(schema: z.ZodTypeAny): boolean {
   const inner = unwrap(schema);
   if (inner instanceof z.ZodObject || inner instanceof z.ZodRecord || inner instanceof z.ZodUnknown)
     return true;
-  if (inner instanceof z.ZodArray) {
-    const item = unwrap((defOf(inner).type as z.ZodTypeAny | undefined) ?? z.string());
-    return item instanceof z.ZodObject || item instanceof z.ZodRecord;
-  }
+  if (inner instanceof z.ZodArray) return acceptsFile((defOf(inner).type as z.ZodTypeAny | undefined) ?? z.string());
   if (inner instanceof z.ZodUnion || inner instanceof z.ZodDiscriminatedUnion) {
     return (inner.options as z.ZodTypeAny[]).some((option) => acceptsFile(option));
   }
@@ -287,7 +289,6 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number, ctx: C
   ) {
     return null;
   }
-  if (depth > 8 || schema.safeParse(value).success) return value;
   if (
     ctx.mode === 'cli' &&
     value === false &&
@@ -295,6 +296,12 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number, ctx: C
     !(unwrap(schema) instanceof z.ZodBoolean)
   ) {
     return null;
+  }
+  if (depth > 8) return value;
+  const parsed = schema.safeParse(value);
+  if (parsed.success) {
+    if (ctx.mode !== 'cli' || (value !== null && typeof value === 'object')) return value;
+    return parsed.data;
   }
   const inner = unwrap(schema);
   const def = defOf(inner);
@@ -334,10 +341,10 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number, ctx: C
       const fromText = arrayFromText(def, value, depth, ctx);
       if (fromText !== undefined) return coerceValue(inner, fromText, depth + 1, ctx);
     }
-    const parsed = parseJsonish(value);
-    if (parsed !== undefined) {
-      const next = coerceValue(inner, parsed, depth + 1, ctx);
-      if (inner.safeParse(next).success) return next;
+    const parsedJson = parseJsonish(value);
+    if (parsedJson !== undefined) {
+      const next = coerceValue(inner, parsedJson, depth + 1, ctx);
+      if (ctx.mode === 'cli' || inner.safeParse(next).success) return next;
     }
   }
 

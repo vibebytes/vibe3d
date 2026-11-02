@@ -10,29 +10,6 @@ export interface CommandHit {
   positionals: string[];
 }
 
-/** 这些命令还没有手写分支，走通用执行。P4 会删掉这张表，让全部能力都走这里。 */
-export const GENERIC_COMMANDS = new Set([
-  'room use',
-  'scene pick',
-  'selection get',
-  'node attach',
-  'node reparent',
-  'anim stop',
-  'anim pose',
-  'anim gait',
-  'mesh lathe',
-  'mesh organic',
-  'mesh bevel',
-  'mesh tree',
-  'mesh mannequin',
-  'render assert',
-  'render id-pass',
-  'render sequence',
-  'render video',
-  'camera project',
-  'camera unproject',
-]);
-
 export function commandOf(argv: string[]): CommandHit | undefined {
   const two = argv.slice(0, 2).join(' ');
   const one = argv[0] ?? '';

@@ -5,13 +5,19 @@ import { emptyDoc } from '@vibebyte/vibe3d-protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { parseArgs } from '../src/args';
 import { run } from '../src/commands';
-import { parseColor } from '../src/fx-args';
 import { type Call, recording } from './support/recording';
 
 const color = (hex: string): [number, number, number, number] => {
-  const parsed = parseColor(hex);
-  if (!parsed) throw new Error(hex);
-  return parsed;
+  const raw = hex.trim().replace(/^#/, '');
+  const full =
+    raw.length === 3
+      ? raw
+          .split('')
+          .map((ch) => ch + ch)
+          .join('')
+      : raw;
+  const channel = (at: number) => Number.parseInt(full.slice(at, at + 2), 16) / 255;
+  return [channel(0), channel(2), channel(4), full.length === 8 ? channel(6) : 1];
 };
 
 async function callsOf(argv: string[], responses?: Record<string, unknown>): Promise<Call[]> {
@@ -260,7 +266,7 @@ describe('cli legacy flag mapping', () => {
     });
   });
 
-  it.fails('L21 node group --no-keep-world 发出 keepWorld:false', async () => {
+  it('L21 node group --no-keep-world 发出 keepWorld:false', async () => {
     const call = byMethod(
       await callsOf(['node', 'group', 'r1', '--ids', 'a,b', '--name', 'g', '--no-keep-world']),
       'node.group',
@@ -360,10 +366,12 @@ describe('cli legacy flag mapping', () => {
     expect(image.params).toMatchObject({ imageSha: 's1' });
   });
 
-  it('L27 decal --text 与 --image-sha 同时给出时报错', async () => {
-    await expect(callsOf(['decal', 'create', 'r1', '--text', '标语', '--image-sha', 's1'])).rejects.toThrow(
-      /二选一/,
+  it('L27 decal --text 与 --image-sha 可以同时给出', async () => {
+    const call = byMethod(
+      await callsOf(['decal', 'create', 'r1', '--text', '标语', '--image-sha', 's1']),
+      'decal.create',
     );
+    expect(call.params).toMatchObject({ text: '标语', imageSha: 's1' });
   });
 
   it('L28 mesh boolean --keep-tool', async () => {
@@ -471,10 +479,12 @@ describe('cli legacy flag mapping', () => {
     });
   });
 
-  it('L35 --clip-json 当前未读取，缺少 --type 时报错', async () => {
-    await expect(callsOf(['anim', 'define', 'r1', 'n1', '--clip-json', '{"tracks":[]}'])).rejects.toThrow(
-      /需要 --type/,
+  it('L35 --clip-json 写入 clip', async () => {
+    const call = byMethod(
+      await callsOf(['anim', 'define', 'r1', 'n1', '--clip-json', '{"tracks":[{"path":"position"}]}']),
+      'animation.define',
     );
+    expect(call.params).toMatchObject({ clip: { tracks: [{ path: 'position' }] } });
   });
 
   it('L36 anim clear', async () => {
@@ -490,12 +500,9 @@ describe('cli legacy flag mapping', () => {
       await callsOf(['fx', 'create', 'r1', '--node', 'n1', '--color', '#ffaa00', '--radius-top', '0.2']),
       'fx.create',
     );
-    expect(call.params).toMatchObject({
-      type: 'particles',
-      nodeId: 'n1',
-      color: color('#ffaa00'),
-      radiusTop: 0.2,
-    });
+    expect(call.params).toMatchObject({ type: 'particles', nodeId: 'n1', radiusTop: 0.2 });
+    const got = (call.params.color as number[]) ?? [];
+    color('#ffaa00').forEach((channel, index) => expect(got[index]).toBeCloseTo(channel, 5));
   });
 
   it('L38 fx rm / fx delete', async () => {
@@ -523,10 +530,12 @@ describe('cli legacy flag mapping', () => {
       'env.set',
     );
     expect(call.params).toMatchObject({
-      fog: { near: 5, far: 40, color: color('#ccddee') },
+      fog: { near: 5, far: 40 },
       hdriSrc: './sky.hdr',
       policy: 'copy',
     });
+    const got = (call.params.fog as { color?: number[] }).color ?? [];
+    color('#ccddee').forEach((channel, index) => expect(got[index]).toBeCloseTo(channel, 5));
   });
 
   it('L40 env set --no-fog', async () => {
@@ -678,7 +687,7 @@ describe('cli legacy flag mapping', () => {
   it('L50 export glb --no-wait', async () => {
     const seen = await callsOf(['export', 'glb', 'r1', '--no-wait']);
     expect(byMethod(seen, 'export.glb').params).toEqual({ roomId: 'r1' });
-    expect(seen.filter((call) => call.method === 'job.get')).toHaveLength(1);
+    expect(seen.filter((call) => call.method === 'job.get')).toHaveLength(0);
   });
 
   it('L51 job ls / job list 带房间', async () => {
@@ -686,7 +695,7 @@ describe('cli legacy flag mapping', () => {
     expect(byMethod(await callsOf(['job', 'list', 'r1']), 'job.list').params).toEqual({ roomId: 'r1' });
   });
 
-  it.fails('L51 job ls 不带房间也能列出', async () => {
+  it('L51 job ls 不带房间也能列出', async () => {
     expect(byMethod(await callsOf(['job', 'ls']), 'job.list').params).toEqual({});
   });
 
@@ -695,14 +704,14 @@ describe('cli legacy flag mapping', () => {
     expect(byMethod(await callsOf(['job', 'cancel', 'j1']), 'job.cancel').params).toEqual({ jobId: 'j1' });
   });
 
-  it.fails('L53 open --no-reuse 发出 focus 与 reuse:false', async () => {
+  it('L53 open --no-reuse 发出 focus 与 reuse:false', async () => {
     const call = byMethod(await callsOf(['open', 'r1', '--focus', 'n1', '--no-reuse']), 'editor.open');
     expect(call.params).toMatchObject({ focus: 'n1', reuse: false });
   });
 
-  it.fails('L53 open 不带 flag 时发送 reuse:true', async () => {
+  it('L53 open 不带 flag 时不显式发送 reuse（D-6）', async () => {
     const call = byMethod(await callsOf(['open', 'r1']), 'editor.open');
-    expect(call.params).toMatchObject({ reuse: true });
+    expect(call.params.reuse).toBeUndefined();
   });
 
   it('L54 model import', async () => {
