@@ -3,8 +3,12 @@
 ## Unreleased
 
 - **Breaking:** `mesh.mannequin` 现在生成带骨骼蒙皮的 glTF 并创建 `kind:'model'` 节点（17 根骨骼，`bone.<名>.rotation` 轨道可直接驱动）。返回 `{nodeId, sha, bones, revision}`，移除 `clothNodeId` / `materialId` / `clothMaterialId`；新增 `colors{skin,shirt,shorts,shoes}`，`seed` 改为体型微扰；默认姿势为 `stand`。
-- 动画：`@name` 可用于 `animation.*` 目标、`animation.pose` 的 `targets[].nodeId` 与 `fx.create.nodeId`；track 支持 `blend:'additive'`、常量简写 `{path,value}`；clip 支持 `drift` 根运动，tracks 上限 32；编辑器应用 `visible` / `opacity` 轨道。
-- 渲染：views / node 以 MCP image 块返回；`at` 参与取景；`render.sequence` / `render.video` 支持 `nodeIds` / `view` / `camera` / `isolate`；导出链接在 MCP 层为绝对地址，manifest 帧带 `url`，`/exports` 可下载 mp4。
+- 动画：`@name` 可用于 `animation.*` 目标、`animation.pose` 的 `targets[].nodeId` 与 `fx.create.nodeId`（能力层与 `ops.apply` 批量里都可用，同批先建后引；reducer 收到未解析的 `@` 直接报错）；track 支持 `blend:'additive'`、常量简写 `{path,value}`；clip 支持 `drift` 根运动（按节点自身朝向，转身即转向），tracks 上限 32；编辑器应用 `visible` / `opacity` 轨道，轨道移除后恢复原可见性、原材质与骨骼静止姿态。
+- 新增 `animation.gait`（walk / run / idle）：只替换带 `bone.*` 轨道的旧 clip，其余 clip 保留。`mesh.mannequin` 的 GLB 在 `extras.vibe3d` 写入骨架（种子 + 骨骼长度），资产报告带 `gltf.rig`，取景按它做 FK，不再按文件名识别。
+- **Breaking:** track 改为严格校验，未知字段（如拼错的 `interp`）直接报 `E_INVALID_PARAMS`，不再静默丢弃。
+- **Breaking:** `render.snapshot` / `views` / `node` 及序列渲染在截图前等待模型加载；模型加载失败或 12 秒内未就绪时整次渲染报错，不再输出缺模型的画面。
+- `vibe3d_help` 的对象数组字段以 `name[]` 形式列出子字段（如 `targets[].nodeId`），按旧字段名 `targets` 精确匹配的调用方需要调整。
+- 渲染：views / node 以 MCP image 块返回；`at` 参与取景；`render.sequence` / `render.video` 支持 `nodeIds` / `view` / `camera` / `isolate`；导出链接在 MCP 层为绝对地址（只改写 `url` / `*Url` 字段），manifest 帧带 `url`，`/exports` 可下载 mp4。
 - daemon 空闲退出覆盖 ephemeral 模式：没有房间时按 `--daemon-idle-ms`（默认 30 分钟）退出；有房间（只在内存里）时至少空闲 12 小时才退出，避免孤儿 daemon 无限存活。
 - MCP 启动时发现本地 daemon 版本不一致会自动重启它；`--restart-daemon` / `VIBE3D_RESTART_DAEMON=1` 可强制每次启动都重启。
 - 多房间/多聊天：所有房间级工具接受可选 `room_id`（只路由本次调用）；进程接触多个房间后不带 `room_id` 的调用被拒绝并列出候选；隐式调用在结果里标注所用房间；`open_editor` 已有房间时不再新建。
