@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs';
-
 export interface ParsedArgs {
   _: string[];
   flags: Record<string, string | boolean>;
@@ -53,27 +51,4 @@ export function num(flags: ParsedArgs['flags'], key: string): number | undefined
 
 export function bool(flags: ParsedArgs['flags'], key: string): boolean {
   return flags[key] === true || flags[key] === 'true' || flags[key] === '1';
-}
-
-export function vec(flags: ParsedArgs['flags'], key: string): [number, number, number] | undefined {
-  const value = str(flags, key);
-  if (!value) return undefined;
-  const parts = value.split(',').map((item) => Number(item.trim()));
-  if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) {
-    throw new Error(`--${key} 需要 x,y,z 三个数字，收到：${value}`);
-  }
-  return parts as [number, number, number];
-}
-
-export function parseSize(value: string | undefined): { width: number; height: number } | undefined {
-  if (!value) return undefined;
-  const match = /^(\d+)x(\d+)$/.exec(value);
-  if (!match) throw new Error(`--size 需要 WxH，收到：${value}`);
-  return { width: Number(match[1]), height: Number(match[2]) };
-}
-
-export function jsonArg(value: string | undefined): unknown {
-  if (!value) return undefined;
-  const text = value.startsWith('@') ? readFileSync(value.slice(1), 'utf8') : value;
-  return JSON.parse(text);
 }

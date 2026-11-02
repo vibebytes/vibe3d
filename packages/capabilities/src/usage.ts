@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { cliFields, fieldAt, positionalOf } from './cli-spec';
+import { cliFields, fieldAt, objectShape, positionalOf } from './cli-spec';
 import { defOf, unwrap } from './coerce';
 import type { CapabilityName } from './registry';
 import { CAPABILITIES } from './registry';
@@ -37,6 +37,22 @@ function booleanDefaultTrue(schema: z.ZodTypeAny): boolean {
   return false;
 }
 
+function isObjectLike(schema: z.ZodTypeAny): boolean {
+  const inner = unwrap(schema);
+  if (
+    inner instanceof z.ZodObject ||
+    inner instanceof z.ZodRecord ||
+    inner instanceof z.ZodUnknown ||
+    inner instanceof z.ZodAny
+  ) {
+    return true;
+  }
+  if (inner instanceof z.ZodUnion || inner instanceof z.ZodDiscriminatedUnion) {
+    return (inner.options as z.ZodTypeAny[]).some((option) => isObjectLike(option));
+  }
+  return false;
+}
+
 function placeholder(schema: z.ZodTypeAny): string {
   const inner = unwrap(schema);
   if (inner instanceof z.ZodEnum) return `<${inner.options.join('|')}>`;
@@ -48,27 +64,9 @@ function placeholder(schema: z.ZodTypeAny): string {
     return '<json>';
   }
   if (inner instanceof z.ZodArray) {
-    const item = unwrap(inner.element);
-    if (
-      item instanceof z.ZodObject ||
-      item instanceof z.ZodRecord ||
-      item instanceof z.ZodUnion ||
-      item instanceof z.ZodDiscriminatedUnion
-    ) {
-      return '<json|@file>';
-    }
-    return '<a,b>';
+    return isObjectLike(inner.element) ? '<json|@file>' : '<a,b>';
   }
-  if (
-    inner instanceof z.ZodObject ||
-    inner instanceof z.ZodRecord ||
-    inner instanceof z.ZodUnion ||
-    inner instanceof z.ZodDiscriminatedUnion ||
-    inner instanceof z.ZodUnknown ||
-    inner instanceof z.ZodAny
-  ) {
-    return '<json|@file>';
-  }
+  if (isObjectLike(inner)) return '<json|@file>';
   return '<value>';
 }
 
@@ -87,20 +85,33 @@ export function usageOf(name: CapabilityName): string {
   const cli = spec.cli as CliSpec;
   if (!cli) throw new Error(`${name} 没有 cli`);
   const positional = positionalOf(spec);
-  const head = positional.map((field) => `<${field}>`);
+  const shape = objectShape(spec.input) ?? {};
+  const head = positional.map((field) => {
+    const fieldSchema = fieldAt(spec.input, field);
+    const optionalSole =
+      positional.length === 1 &&
+      Object.keys(shape).length === 1 &&
+      fieldSchema !== undefined &&
+      !inputRequired(fieldSchema);
+    return optionalSole ? `[${field}]` : `<${field}>`;
+  });
   if (cli.command === 'scene import') head.push('<file>');
   const shadowed = new Set(Object.values(cli.aliases ?? {}));
+  const defaults = cli.defaults ?? {};
+  const flattened = new Set(cli.flatten ?? []);
   const flags: { text: string; required: boolean }[] = [];
   for (const [flag, binding] of cliFields(spec)) {
     if (binding.via === 'field' && (positional.includes(binding.path) || shadowed.has(binding.path)))
       continue;
+    if (cli.command === 'scene import' && binding.path === 'doc') continue;
     if (flag === 'size' && binding.via === 'sugar') {
       flags.push({ text: '[--size WxH]', required: false });
       continue;
     }
     const schema = fieldAt(spec.input, binding.path);
     if (!schema) throw new Error(`${cli.command}: 用法找不到字段 ${binding.path}`);
-    const required = binding.via === 'negate' ? false : inputRequired(schema);
+    const hasFallback = binding.path in defaults || flattened.has(binding.path);
+    const required = binding.via === 'negate' || hasFallback ? false : inputRequired(schema);
     flags.push({
       text: flagText(flag, schema, required, binding.via === 'negate'),
       required,

@@ -39,6 +39,19 @@ function invalid(message: string): never {
   throw new Vibe3DError('E_INVALID_PARAMS', message);
 }
 
+function coerceField(
+  schema: z.ZodTypeAny,
+  value: unknown,
+  path: string,
+  readFile: (path: string) => string,
+): unknown {
+  try {
+    return coerceForSchema(schema, value, { mode: 'cli', readFile, path });
+  } catch (err) {
+    invalid(err instanceof Error ? err.message : String(err));
+  }
+}
+
 function distance(a: string, b: string): number {
   const row = Array.from({ length: b.length + 1 }, (_, index) => index);
   for (let i = 1; i <= a.length; i += 1) {
@@ -121,14 +134,21 @@ export function paramsFromFlags(
   const params: Record<string, unknown> = {};
   const input = flags.input;
   if (typeof input === 'string') {
-    const text = input.startsWith('@') ? readFile(input.slice(1)) : input;
+    let text = input;
+    if (input.startsWith('@')) {
+      try {
+        text = readFile(input.slice(1));
+      } catch (err) {
+        invalid(`--input 读取 ${input.slice(1)} 失败：${err instanceof Error ? err.message : String(err)}`);
+      }
+    }
     let raw: unknown;
     try {
       raw = JSON.parse(text);
     } catch (err) {
       invalid(`--input 必须是 JSON 对象：${err instanceof Error ? err.message : String(err)}`);
     }
-    const base = coerceForSchema(spec.input, raw, { mode: 'cli', readFile });
+    const base = coerceField(spec.input, raw, '--input', readFile);
     if (!base || typeof base !== 'object' || Array.isArray(base)) invalid('--input 必须是 JSON 对象');
     Object.assign(params, base);
   }
@@ -147,7 +167,7 @@ export function paramsFromFlags(
     const schema = fieldAt(spec.input, field);
     if (!schema) invalid(`${cli.command} 的位置参数 ${field} 不是字段`);
     claim(field, field);
-    setLeaf(params, field, coerceForSchema(schema, text, { mode: 'cli', readFile }));
+    setLeaf(params, field, coerceField(schema, text, field, readFile));
   });
   const bindings = cliFields(spec);
   const names = [...bindings.keys()];
@@ -199,14 +219,14 @@ export function paramsFromFlags(
     if (raw === true) invalid(`--${flag} 需要一个值`);
     if (typeof raw !== 'string' && raw !== false) invalid(`--${flag} 的值无法识别`);
     const text = raw === false ? false : raw;
-    setLeaf(params, path, coerceForSchema(schema, text, { mode: 'cli', readFile }));
+    setLeaf(params, path, coerceField(schema, text, `--${flag}`, readFile));
   }
   for (const root of new Set(
     [...assigned].filter((path) => path.includes('.')).map((path) => path.split('.')[0] ?? path),
   )) {
     const schema = fieldAt(spec.input, root);
     if (!schema || params[root] === undefined) continue;
-    params[root] = coerceForSchema(schema, params[root], { mode: 'cli', readFile });
+    params[root] = coerceField(schema, params[root], root, readFile);
   }
   for (const [path, value] of Object.entries(cli.defaults ?? {})) {
     if (!hasLeaf(params, path)) setLeaf(params, path, value);

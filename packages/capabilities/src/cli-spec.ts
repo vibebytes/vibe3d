@@ -53,6 +53,13 @@ function isBoolean(schema: z.ZodTypeAny): boolean {
   return unwrap(schema) instanceof z.ZodBoolean;
 }
 
+function isIntNumber(schema: z.ZodTypeAny): boolean {
+  const inner = unwrap(schema);
+  if (!(inner instanceof z.ZodNumber)) return false;
+  const checks = (inner._def.checks as { kind?: string }[] | undefined) ?? [];
+  return checks.some((check) => check.kind === 'int');
+}
+
 /** room 作用域自动把 roomId 放在位置参数最前面。 */
 export function positionalOf(spec: CapabilitySpec): string[] {
   const declared = [...(spec.cli?.positional ?? [])];
@@ -99,7 +106,9 @@ export function cliFields(spec: CapabilitySpec): Map<string, FlagBinding> {
       add(kebab(child), { path: `${parent}.${child}`, via: 'flatten' });
     }
   }
-  if (shape.width && shape.height && !shape.size) add('size', { path: 'width', via: 'sugar' });
+  if (shape.width && shape.height && !shape.size && isIntNumber(shape.width) && isIntNumber(shape.height)) {
+    add('size', { path: 'width', via: 'sugar' });
+  }
   if (shape.transform) {
     const sugar = [
       ['at', 'p'],

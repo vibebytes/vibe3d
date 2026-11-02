@@ -30,14 +30,6 @@ function exitCode(err: unknown): number {
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
-  if (argv.length === 0 || argv[0] === 'help' || argv[0] === '--help' || argv[0] === '-h') {
-    process.stdout.write(helpText(argv[0] === 'help' ? argv.slice(1) : undefined));
-    return;
-  }
-  if (argv.includes('--help') || argv.includes('-h')) {
-    process.stdout.write(helpText(argv.filter((arg) => arg !== '--help' && arg !== '-h')));
-    return;
-  }
   if (argv[0] === '--version' || argv[0] === 'version') {
     const { DAEMON_VERSION, PROTOCOL_VERSION } = await import('@vibebyte/vibe3d-protocol');
     process.stdout.write(`${JSON.stringify({ daemon: DAEMON_VERSION, protocol: PROTOCOL_VERSION })}\n`);
@@ -46,6 +38,14 @@ async function main(): Promise<void> {
   const parsed = parseArgs(argv);
   const pretty = parsed.flags.pretty === true || parsed.flags.pretty === 'true';
   try {
+    if (argv.length === 0 || argv[0] === 'help' || argv[0] === '--help' || argv[0] === '-h') {
+      process.stdout.write(helpText(argv[0] === 'help' ? argv.slice(1) : undefined));
+      return;
+    }
+    if (argv.includes('--help') || argv.includes('-h')) {
+      process.stdout.write(helpText(argv.filter((arg) => arg !== '--help' && arg !== '-h')));
+      return;
+    }
     const result = await run(parsed);
     if (result === undefined) return;
     process.stdout.write(`${JSON.stringify(result, null, pretty ? 2 : 0)}\n`);

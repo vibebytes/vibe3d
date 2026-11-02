@@ -441,7 +441,7 @@ export class ChromiumRenderer implements Renderer {
   }
 
   async warm(roomId: string): Promise<void> {
-    if (!this.ready) return;
+    if (!this.ready || this.queue.depth(roomId) > 0) return;
     await this.serial(
       () =>
         this.withRecovery(async () => {

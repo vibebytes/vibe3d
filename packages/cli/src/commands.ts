@@ -1,119 +1,18 @@
-import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
-import { writeFile } from 'node:fs/promises';
-import { createRequire } from 'node:module';
-import { dirname, join, resolve } from 'node:path';
 import { Studio, type StudioOptions } from '@vibebyte/vibe3d-client';
-import { type ParsedArgs, jsonArg, num, str } from './args';
+import type { ParsedArgs } from './args';
 import { commandOf, execute } from './exec';
-import { readSceneDocFile } from './scene-io';
-
-function connectOptions(flags: ParsedArgs['flags']): StudioOptions {
-  return {
-    home: str(flags, 'home') ?? process.env.VIBE3D_HOME,
-    url: str(flags, 'url') ?? process.env.VIBE3D_URL,
-    token: str(flags, 'token') ?? process.env.VIBE3D_TOKEN,
-    autostart: flags.autostart !== false,
-  };
-}
-
-function pick<T extends Record<string, unknown>>(obj: T): Partial<T> {
-  const out: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(obj)) if (value !== undefined) out[key] = value;
-  return out as Partial<T>;
-}
-
-function need(value: string | undefined, message: string): string {
-  if (!value) throw new Error(message);
-  return value;
-}
-
-async function runDaemon(parsed: ParsedArgs): Promise<void> {
-  const require = createRequire(import.meta.url);
-  const entry = require.resolve('@vibebyte/vibe3d-daemon');
-  let root = dirname(entry);
-  while (!existsSync(join(root, 'package.json')) && dirname(root) !== root) root = dirname(root);
-  const dist = join(root, 'dist', 'index.js');
-  const file = existsSync(dist) ? dist : join(root, 'src', 'index.ts');
-  const loader = file.endsWith('.ts') ? ['--import', 'tsx'] : [];
-  const argv: string[] = [];
-  for (const [key, value] of Object.entries(parsed.flags)) {
-    if (['home', 'url', 'pretty', 'autostart'].includes(key)) continue;
-    if (value === false) continue;
-    argv.push(`--${key}`);
-    if (typeof value === 'string') argv.push(value);
-  }
-  const home = str(parsed.flags, 'home');
-  if (home) argv.push('--home', resolve(home));
-  await new Promise<void>((done, fail) => {
-    const child = spawn(process.execPath, [...loader, file, ...argv], { stdio: 'inherit' });
-    child.on('exit', (code) => (code === 0 ? done() : fail(new Error(`daemon 退出码 ${code}`))));
-    child.on('error', fail);
-  });
-}
+import { LOCAL_COMMANDS, connectOptions, runDaemon, runLocal } from './local';
 
 export async function run(
   parsed: ParsedArgs,
   connect: (opts: StudioOptions) => Promise<Studio> = Studio.connect,
 ): Promise<unknown> {
-  const [group, command, ...rest] = parsed._;
-  const { flags } = parsed;
-
-  if (group === 'daemon') {
+  if (parsed._[0] === 'daemon') {
     await runDaemon(parsed);
     return undefined;
   }
-
-  const studio = await connect(connectOptions(flags));
+  const studio = await connect(connectOptions(parsed.flags));
   const hit = commandOf(parsed._);
-  const local = new Set(['status', 'room new', 'scene export', 'scene import']);
-  if (hit && !local.has(hit.command)) return execute(studio, hit, flags);
-
-  if (group === 'status') {
-    const [health, hello] = await Promise.all([studio.health(), studio.hello()]);
-    return { ...health, capabilities: hello.capabilities, home: studio.home };
-  }
-
-  if (group === 'room') {
-    if (command === 'new') {
-      const room = await studio.createRoom(
-        pick({ name: str(flags, 'name'), template: str(flags, 'template') }) as never,
-      );
-      const info = await room.info();
-      return { ...info, url: `${studio.url}/r/${room.id}` };
-    }
-  }
-
-  if (group === 'call') {
-    const method = need(command, 'call 需要 method');
-    return studio.client.call(method, (jsonArg(str(flags, 'params')) ?? {}) as Record<string, unknown>, {
-      roomId: str(flags, 'room'),
-    });
-  }
-
-  if (group === 'scene' && command === 'export') {
-    const room = studio.room(need(rest[0], 'scene export 需要 roomId'));
-    const out = await room.exportScene();
-    const dest = str(flags, 'out');
-    if (!dest) return out;
-    const body = `${JSON.stringify(out.doc, null, 2)}\n`;
-    const path = resolve(dest);
-    await writeFile(path, body);
-    return { path, revision: out.revision, bytes: Buffer.byteLength(body) };
-  }
-
-  if (group === 'scene' && command === 'import') {
-    const room = studio.room(need(rest[0], 'scene import 需要 roomId'));
-    const doc = await readSceneDocFile(need(rest[1], 'scene import 需要 <file>'));
-    const expectRevision = num(flags, 'expect-revision');
-    return room.importScene(expectRevision === undefined ? { doc } : { doc, expectRevision });
-  }
-
-  if (group === 'job' && command === 'wait') {
-    const jobId = need(rest[0], 'job wait 需要 <jobId>');
-    const timeout = num(flags, 'timeout');
-    return studio.job(jobId).wait({ timeoutMs: timeout ? timeout * 1000 : undefined });
-  }
-
-  throw new Error(`未知命令：${parsed._.join(' ')}（运行 vibe3d help）`);
+  if (hit && !LOCAL_COMMANDS.has(hit.command)) return execute(studio, hit, parsed.flags);
+  return runLocal(studio, parsed);
 }

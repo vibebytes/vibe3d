@@ -43,10 +43,10 @@ describe('help consistency', () => {
   });
 
   it('MCP vibe3d_help 与 CLI 帮助引用同一份说明', () => {
-    for (const row of CLI_COMMANDS.slice(0, 10)) {
+    for (const row of CLI_COMMANDS) {
       const docs = descriptions(describeCapability(row.capability as CapabilityName).params);
       const text = helpText(row.command.split(' '));
-      expect(docs.filter((item) => text.includes(item)).sort()).toEqual([...docs].sort());
+      expect(docs.filter((item) => text.includes(item)).sort(), row.command).toEqual([...docs].sort());
     }
   });
 
@@ -60,5 +60,7 @@ describe('help consistency', () => {
         expect(han, file).toBeLessThan(200);
       }
     }
+    const commandsLines = readFileSync(join(root, 'commands.ts'), 'utf8').split('\n').length;
+    expect(commandsLines).toBeLessThan(80);
   });
 });

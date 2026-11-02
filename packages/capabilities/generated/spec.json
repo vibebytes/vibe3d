@@ -60006,6 +60006,9 @@
       },
       "cli": {
         "command": "render id-pass",
+        "aliases": {
+          "mask": "includeMask"
+        },
         "example": "render id-pass r1"
       },
       "input": {

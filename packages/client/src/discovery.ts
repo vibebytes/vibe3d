@@ -173,6 +173,7 @@ export async function startDaemon(opts: ConnectOptions = {}): Promise<RunRecord>
   });
   child.once('exit', () => child.stderr?.destroy());
   child.unref();
+  (child.stderr as { unref?: () => void } | null)?.unref?.();
   const budget = startBudgetMs(countRooms(home));
   const tail = () => (stderrTail.trim() ? `；stderr: ${stderrTail.trim().slice(-500)}` : '');
   const fail = (message: string): never => {
@@ -186,7 +187,10 @@ export async function startDaemon(opts: ConnectOptions = {}): Promise<RunRecord>
   while (Date.now() < deadline) {
     await delay(120);
     const run = listRuns(home).find((item) => item.pid === child.pid);
-    if (run && (await probe(run))) return run;
+    if (run && (await probe(run))) {
+      child.stderr?.removeAllListeners();
+      return run;
+    }
     if (spawnError) return fail(`daemon 启动失败：${spawnError}${tail()}`);
     if (child.exitCode !== null) return fail(`daemon 启动失败，退出码 ${child.exitCode}${tail()}`);
   }

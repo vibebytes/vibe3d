@@ -525,14 +525,14 @@ describe('cli legacy flag mapping', () => {
         '--hdri',
         './sky.hdr',
         '--policy',
-        'copy',
+        'allow',
       ]),
       'env.set',
     );
     expect(call.params).toMatchObject({
       fog: { near: 5, far: 40 },
       hdriSrc: './sky.hdr',
-      policy: 'copy',
+      policy: 'allow',
     });
     const got = (call.params.fog as { color?: number[] }).color ?? [];
     color('#ccddee').forEach((channel, index) => expect(got[index]).toBeCloseTo(channel, 5));
@@ -724,10 +724,10 @@ describe('cli legacy flag mapping', () => {
 
   it('L55 asset inspect', async () => {
     const call = byMethod(
-      await callsOf(['asset', 'inspect', 'r1', './a.glb', '--policy', 'copy']),
+      await callsOf(['asset', 'inspect', 'r1', './a.glb', '--policy', 'allow']),
       'asset.inspect',
     );
-    expect(call.params).toMatchObject({ src: './a.glb', policy: 'copy' });
+    expect(call.params).toMatchObject({ src: './a.glb', policy: 'allow' });
   });
 
   it('L56 asset put', async () => {

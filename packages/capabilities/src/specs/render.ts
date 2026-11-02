@@ -682,7 +682,7 @@ export const renderOps = {
     },
     cli: {
       command: 'render id-pass',
-
+      aliases: { mask: 'includeMask' },
       example: 'render id-pass r1',
     },
     errors: ['E_RENDER_UNAVAILABLE', 'E_ROOM_NOT_FOUND', 'E_INVALID_PARAMS'] as const,

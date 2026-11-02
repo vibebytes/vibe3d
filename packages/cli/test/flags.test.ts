@@ -1,3 +1,4 @@
+import { Vibe3DError } from '@vibebyte/vibe3d-client';
 import { describe, expect, it } from 'vitest';
 import { paramsFromFlags } from '../src/flags';
 
@@ -128,5 +129,30 @@ describe('paramsFromFlags', () => {
     expect(out).not.toHaveProperty('out');
     expect(out).not.toHaveProperty('pretty');
     expect(out).not.toHaveProperty('token');
+  });
+
+  it('非法枚举值报错并列出可选值（E_INVALID_PARAMS）', () => {
+    expect(() => params('render.snapshot', ['r1'], { shading: 'invalid' })).toThrowError(
+      expect.objectContaining({
+        code: 'E_INVALID_PARAMS',
+        message: expect.stringMatching(/--shading.*flat \| wireframe/),
+      }),
+    );
+  });
+
+  it('--no-x 落在非布尔、非可空字段上报错（E_INVALID_PARAMS）', () => {
+    let caught: unknown;
+    try {
+      params('animation.gait', ['r1', 'n1'], { style: false });
+    } catch (err) {
+      caught = err;
+    }
+    expect(caught).toBeInstanceOf(Vibe3DError);
+    expect((caught as Vibe3DError).code).toBe('E_INVALID_PARAMS');
+    expect((caught as Vibe3DError).message).toMatch(/--style/);
+  });
+
+  it('render views --node n1,n2 按逗号拆成多个节点', () => {
+    expect(params('render.views', ['r1'], { node: 'n1,n2' }).nodeIds).toEqual(['n1', 'n2']);
   });
 });

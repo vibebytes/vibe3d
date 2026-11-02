@@ -20,6 +20,7 @@ describe('cli usage', () => {
       const shape = (spec.input as z.ZodObject<z.ZodRawShape>).shape;
       for (const field of Object.keys(shape)) {
         if (positional.has(field) || shadowed.has(field)) continue;
+        if (cli.command === 'scene import' && field === 'doc') continue;
         if (!usage.includes(`--${kebab(field)}`)) missing.push(`${name}.${field}`);
       }
     }
@@ -43,6 +44,32 @@ describe('cli usage', () => {
   });
 
   it('scene import 使用位置参数 file', () => {
-    expect(usageOf('scene.import').startsWith('scene import <roomId> <file>')).toBe(true);
+    const usage = usageOf('scene.import');
+    expect(usage.startsWith('scene import <roomId> <file>')).toBe(true);
+    expect(usage).not.toContain('--doc');
+  });
+
+  it('有 cli.defaults 或 flatten 的字段在 usage 中加方括号', () => {
+    expect(usageOf('node.create')).toContain('[--kind <mesh|group|light>]');
+    expect(usageOf('fx.create')).toContain('[--type <particles|shaft>]');
+    expect(usageOf('stage.set')).toContain('[--stage <json|@file>]');
+    expect(usageOf('material.patch')).toContain('[--patch <json|@file>]');
+    expect(usageOf('animation.define')).toContain('[--clip-json <json|@file>]');
+  });
+
+  it('节点引用与标量联合显示为 <value> 或 <a,b>，而不是 <json|@file>', () => {
+    expect(usageOf('render.views')).toContain('[--node <a,b>]');
+    expect(usageOf('editor.open')).toContain('[--focus <value>]');
+    expect(usageOf('mesh.tube')).toContain('--radius <value>');
+  });
+
+  it('--size WxH 只出现在像素宽高能力上，不出现在 3D 米制宽高上', () => {
+    expect(usageOf('render.snapshot')).toContain('[--size WxH]');
+    expect(usageOf('decal.create')).not.toContain('--size');
+    expect(usageOf('mesh.backdrop')).not.toContain('--size');
+  });
+
+  it('可选位置参数显示为 [roomId]', () => {
+    expect(usageOf('job.list')).toBe('job ls [roomId]');
   });
 });

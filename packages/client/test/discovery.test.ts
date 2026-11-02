@@ -99,12 +99,12 @@ describe('无 token daemon（默认鉴权关闭）', () => {
 describe('startDaemon 失败诊断与冷却门闩', () => {
   const makeChild = () => {
     const child = new EventEmitter() as unknown as EventEmitter & {
-      stderr: EventEmitter;
+      stderr: EventEmitter & { destroy: () => void; unref: () => void };
       exitCode: number | null;
       pid: number;
       unref: () => void;
     };
-    child.stderr = Object.assign(new EventEmitter(), { destroy: () => undefined });
+    child.stderr = Object.assign(new EventEmitter(), { destroy: () => undefined, unref: vi.fn() });
     child.exitCode = null;
     child.pid = 424242;
     child.unref = vi.fn();
@@ -129,6 +129,7 @@ describe('startDaemon 失败诊断与冷却门闩', () => {
     expect((err as Error).message).toContain('Cannot find module');
     expect((err as { code?: string }).code).toBe('E_NO_DAEMON');
     expect(child.unref).toHaveBeenCalled();
+    expect(child.stderr.unref).toHaveBeenCalled();
   });
 
   it('同一 home 启动失败后进入冷却：冷却期内快速失败，不再 spawn', async () => {

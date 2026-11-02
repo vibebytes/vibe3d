@@ -1,4 +1,4 @@
-import { fogSchema } from '@vibebyte/vibe3d-protocol';
+import { fogSchema, nodeRefSchema } from '@vibebyte/vibe3d-protocol';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { coerceForSchema } from '../src/coerce';
@@ -91,5 +91,47 @@ describe('coerce cli text', () => {
   it('转换失败带字段路径', () => {
     const schema = z.object({ fog: z.object({ near: z.number(), far: z.number() }) });
     expect(() => coerceForSchema(schema, { fog: { near: 'nope', far: 1 } }, cli)).toThrow(/fog\.near/);
+  });
+
+  it('C1 标量联合（nodeRefSchema）数组按逗号拆分', () => {
+    expect(coerceForSchema(z.array(nodeRefSchema), 'n_aaaaaaaa,@runner', cli)).toEqual([
+      'n_aaaaaaaa',
+      '@runner',
+    ]);
+  });
+
+  it('非布尔且不可空字段收到 false（--no-x）报错', () => {
+    expect(() => coerceForSchema(z.string(), false, { ...cli, path: '--name' })).toThrow(
+      /--name.*不支持 --no-/,
+    );
+  });
+
+  it('非法枚举值报错并列出可选值', () => {
+    expect(() =>
+      coerceForSchema(z.enum(['flat', 'wireframe']), 'invalid', { ...cli, path: '--shading' }),
+    ).toThrow(/--shading.*flat \| wireframe/);
+  });
+
+  it('非 JSON 文本传给对象字段报错', () => {
+    expect(() => coerceForSchema(rect, 'not-json', { ...cli, path: '--rect' })).toThrow(
+      /--rect.*需要 JSON 对象/,
+    );
+  });
+
+  it('单值非十六进制文本传给元组报错', () => {
+    expect(() => coerceForSchema(vec3, '123', { ...cli, path: '--size' })).toThrow(/--size.*需要 3 个值/);
+  });
+
+  it('JSON 对象内的下划线字段（如 max_de、tol_px）在 deepCamel 后仍映射回 schema 字段名', () => {
+    const anchor = z.array(
+      z.object({
+        at: z.tuple([z.number(), z.number()]),
+        tol_px: z.number().optional(),
+        max_de: z.number().optional(),
+      }),
+    );
+    expect(coerceForSchema(anchor, '[{"at":[10,20],"tol_px":4,"max_de":200}]', cli)).toEqual([
+      { at: [10, 20], tol_px: 4, max_de: 200 },
+    ]);
   });
 });

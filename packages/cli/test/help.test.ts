@@ -34,5 +34,19 @@ describe('cli help', () => {
 
   it('未知命令的帮助报错', () => {
     expect(() => helpText(['foo', 'bar'])).toThrow(/未知命令/);
+    expect(() => helpText(['status', 'extra'])).toThrow(/未知命令/);
+  });
+
+  it('详细帮助支持同义命令路径', () => {
+    expect(helpText(['room', 'list'])).toBe(helpText(['room', 'ls']));
+  });
+
+  it('位置参数按 capability schema 显示必填或可选，且显示 CLI 默认与正确 kebab 名', () => {
+    expect(helpText(['anim', 'gait'])).toMatch(/roomId\s+必填/);
+    expect(helpText(['job', 'ls'])).toMatch(/roomId\s+可选/);
+    expect(helpText(['node', 'create'])).toContain('CLI 默认 "mesh"');
+    const queryHelp = helpText(['scene', 'query']);
+    expect(queryHelp).toContain('--within-bbox');
+    expect(queryHelp).not.toContain('--within-b-box');
   });
 });

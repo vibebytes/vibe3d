@@ -132,6 +132,7 @@ const parseHexColour = (text: string): [number, number, number, number] | undefi
 export interface CoerceOptions {
   mode?: 'mcp' | 'cli';
   readFile?: (path: string) => string;
+  path?: string;
 }
 
 interface Ctx {
@@ -148,7 +149,9 @@ function isNullable(schema: z.ZodTypeAny): boolean {
   const inner = unwrap(schema);
   if (inner instanceof z.ZodNull) return true;
   if (inner instanceof z.ZodUnion || inner instanceof z.ZodDiscriminatedUnion) {
-    return (inner.options as z.ZodTypeAny[]).some((option) => isNullable(option) || unwrap(option) instanceof z.ZodNull);
+    return (inner.options as z.ZodTypeAny[]).some(
+      (option) => isNullable(option) || unwrap(option) instanceof z.ZodNull,
+    );
   }
   let current = schema;
   for (let i = 0; i < 8; i += 1) {
@@ -170,7 +173,8 @@ function acceptsFile(schema: z.ZodTypeAny): boolean {
   const inner = unwrap(schema);
   if (inner instanceof z.ZodObject || inner instanceof z.ZodRecord || inner instanceof z.ZodUnknown)
     return true;
-  if (inner instanceof z.ZodArray) return acceptsFile((defOf(inner).type as z.ZodTypeAny | undefined) ?? z.string());
+  if (inner instanceof z.ZodArray)
+    return acceptsFile((defOf(inner).type as z.ZodTypeAny | undefined) ?? z.string());
   if (inner instanceof z.ZodUnion || inner instanceof z.ZodDiscriminatedUnion) {
     return (inner.options as z.ZodTypeAny[]).some((option) => acceptsFile(option));
   }
@@ -202,6 +206,23 @@ function child(ctx: Ctx, path: string): Ctx {
   return { ...ctx, path };
 }
 
+function isScalar(schema: z.ZodTypeAny): boolean {
+  const inner = unwrap(schema);
+  if (
+    inner instanceof z.ZodString ||
+    inner instanceof z.ZodNumber ||
+    inner instanceof z.ZodBoolean ||
+    inner instanceof z.ZodEnum ||
+    inner instanceof z.ZodLiteral
+  ) {
+    return true;
+  }
+  if (inner instanceof z.ZodUnion || inner instanceof z.ZodDiscriminatedUnion) {
+    return (inner.options as z.ZodTypeAny[]).every((option) => isScalar(option));
+  }
+  return false;
+}
+
 /** CLI 文本：逗号 / 分号列表、按必填数字键填对象、@文件。不匹配时返回 undefined，个数不符则抛错。 */
 function cliText(schema: z.ZodTypeAny, value: string, ctx: Ctx, depth: number): unknown | undefined {
   if (/^[\[{]/.test(value.trim())) return undefined;
@@ -224,9 +245,7 @@ function cliText(schema: z.ZodTypeAny, value: string, ctx: Ctx, depth: number): 
   const def = defOf(inner);
   if (def.typeName === 'ZodArray' || def.typeName === 'ZodTuple') {
     const itemSchema = def.type as z.ZodTypeAny | undefined;
-    const itemInner = itemSchema ? unwrap(itemSchema) : undefined;
-    const scalarItem =
-      itemInner instanceof z.ZodString || itemInner instanceof z.ZodEnum || itemInner instanceof z.ZodNumber;
+    const scalarItem = itemSchema ? isScalar(itemSchema) : false;
     if (def.typeName === 'ZodArray' && itemSchema && !scalarItem) {
       const groups = (value.includes(';') ? value.split(';') : [value])
         .map((part) => part.trim())
@@ -247,7 +266,7 @@ function cliText(schema: z.ZodTypeAny, value: string, ctx: Ctx, depth: number): 
         coerceValue(item, part, depth + 1, child(ctx, `${ctx.path}[${index}]`)),
       );
     }
-    if (def.typeName === 'ZodTuple' && !value.includes(',')) return undefined;
+    if (def.typeName === 'ZodTuple' && parseHexColour(value)) return undefined;
     const parts = value.includes(',') ? value.split(',').map((part) => part.trim()) : [value];
     if (def.typeName === 'ZodTuple' && Array.isArray(def.items)) {
       const items = def.items as z.ZodTypeAny[];
@@ -280,6 +299,22 @@ function cliText(schema: z.ZodTypeAny, value: string, ctx: Ctx, depth: number): 
   return undefined;
 }
 
+function hasUnmappedKey(schema: z.ZodTypeAny, value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+  const inner = unwrap(schema);
+  if (Array.isArray(value)) {
+    const item = inner instanceof z.ZodArray ? (defOf(inner).type as z.ZodTypeAny | undefined) : undefined;
+    return item ? value.some((entry) => hasUnmappedKey(item, entry)) : false;
+  }
+  if (inner instanceof z.ZodObject) {
+    const shape = inner.shape as Record<string, z.ZodTypeAny>;
+    for (const [key, sub] of Object.entries(value as Record<string, unknown>)) {
+      if (!(key in shape) || hasUnmappedKey(shape[key]!, sub)) return true;
+    }
+  }
+  return false;
+}
+
 function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number, ctx: Ctx): unknown {
   if (
     ctx.mode === 'cli' &&
@@ -289,17 +324,13 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number, ctx: C
   ) {
     return null;
   }
-  if (
-    ctx.mode === 'cli' &&
-    value === false &&
-    isNullable(schema) &&
-    !(unwrap(schema) instanceof z.ZodBoolean)
-  ) {
-    return null;
+  if (ctx.mode === 'cli' && value === false && !(unwrap(schema) instanceof z.ZodBoolean)) {
+    if (isNullable(schema)) return null;
+    fail(ctx, '不支持 --no- 写法（该字段不是布尔或可空类型）');
   }
   if (depth > 8) return value;
   const parsed = schema.safeParse(value);
-  if (parsed.success) {
+  if (parsed.success && !hasUnmappedKey(schema, value)) {
     if (ctx.mode !== 'cli' || (value !== null && typeof value === 'object')) return value;
     return parsed.data;
   }
@@ -379,17 +410,36 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number, ctx: C
     const options = raw instanceof Map ? [...raw.values()] : Array.isArray(raw) ? raw : [];
     let best: unknown;
     let bestIssues = Number.POSITIVE_INFINITY;
+    let lastErr: unknown;
     for (const option of options as z.ZodTypeAny[]) {
-      const next = coerceValue(option, value, depth + 1, ctx);
-      const parsed = option.safeParse(next);
-      if (parsed.success) return next;
-      const issues = parsed.error.issues.length;
-      if (issues < bestIssues) {
-        bestIssues = issues;
-        best = next;
+      try {
+        const next = coerceValue(option, value, depth + 1, ctx);
+        const parsedOption = option.safeParse(next);
+        if (parsedOption.success) return next;
+        const issues = parsedOption.error.issues.length;
+        if (issues < bestIssues) {
+          bestIssues = issues;
+          best = next;
+        }
+      } catch (err) {
+        lastErr = err;
       }
     }
+    if (ctx.mode === 'cli' && lastErr) throw lastErr;
     if (best !== undefined) return best;
+  }
+
+  if (ctx.mode === 'cli' && def.typeName === 'ZodEnum' && !inner.safeParse(value).success) {
+    const allowed = (def.values as readonly string[] | undefined) ?? [];
+    fail(ctx, `只支持 ${allowed.join(' | ')}，收到：${String(value)}`);
+  }
+
+  if (
+    ctx.mode === 'cli' &&
+    (def.typeName === 'ZodObject' || def.typeName === 'ZodRecord') &&
+    (!value || typeof value !== 'object' || Array.isArray(value))
+  ) {
+    fail(ctx, `需要 JSON 对象或 @file，收到：${String(value)}`);
   }
 
   if (def.typeName === 'ZodRecord' && def.valueType && value && typeof value === 'object') {
@@ -406,8 +456,16 @@ function coerceValue(schema: z.ZodTypeAny, value: unknown, depth: number, ctx: C
 
   if (def.typeName === 'ZodObject' && value && typeof value === 'object' && !Array.isArray(value)) {
     const shape = (inner as z.ZodObject<z.ZodRawShape>).shape;
+    const shapeKeys = Object.keys(shape);
     const out: Record<string, unknown> = {};
-    for (const [key, sub] of Object.entries(value as Record<string, unknown>)) {
+    for (const [rawKey, sub] of Object.entries(value as Record<string, unknown>)) {
+      const key =
+        rawKey in shape
+          ? rawKey
+          : (shapeKeys.find(
+              (candidate) =>
+                candidate.toLowerCase().replace(/[-_]/g, '') === rawKey.toLowerCase().replace(/[-_]/g, ''),
+            ) ?? rawKey);
       const field = shape[key];
       out[key] = field
         ? coerceValue(field, sub, depth + 1, child(ctx, ctx.path ? `${ctx.path}.${key}` : key))
@@ -424,7 +482,11 @@ export function coerceForSchema<T extends z.ZodTypeAny>(
   value: unknown,
   opts: CoerceOptions = {},
 ): unknown {
-  return coerceValue(schema, value, 0, { mode: opts.mode ?? 'mcp', readFile: opts.readFile, path: '' });
+  return coerceValue(schema, value, 0, {
+    mode: opts.mode ?? 'mcp',
+    readFile: opts.readFile,
+    path: opts.path ?? '',
+  });
 }
 
 const asPlainRecord = (value: unknown): Record<string, unknown> | undefined =>

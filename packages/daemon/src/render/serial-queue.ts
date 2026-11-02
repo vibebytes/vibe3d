@@ -6,6 +6,10 @@ export class SerialQueue {
 
   constructor(private readonly limit: number) {}
 
+  depth(key = ''): number {
+    return this.depths.get(key) ?? 0;
+  }
+
   run<T>(task: () => Promise<T>, key = ''): Promise<T> {
     const depth = this.depths.get(key) ?? 0;
     if (depth >= this.limit) {

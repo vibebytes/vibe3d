@@ -10,7 +10,20 @@ export interface Logger {
   child(fields: Record<string, unknown>): Logger;
 }
 
+let pipeGuarded = false;
+
+function guardBrokenPipe(): void {
+  if (pipeGuarded) return;
+  pipeGuarded = true;
+  const onPipeError = (err: NodeJS.ErrnoException) => {
+    if (err.code !== 'EPIPE') throw err;
+  };
+  process.stdout?.on?.('error', onPipeError);
+  process.stderr?.on?.('error', onPipeError);
+}
+
 export function createLogger(level: Level = 'info', base: Record<string, unknown> = {}): Logger {
+  guardBrokenPipe();
   const emit = (lvl: Level, fields: Record<string, unknown>, msg?: string): void => {
     if (ORDER[lvl] < ORDER[level]) return;
     const line = JSON.stringify({ ts: new Date().toISOString(), level: lvl, msg, ...base, ...fields });
