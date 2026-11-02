@@ -827,6 +827,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       ],
                                       "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                     },
+                                    "blend": {
+                                      "type": "string",
+                                      "enum": [
+                                        "absolute",
+                                        "additive"
+                                      ],
+                                      "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                    },
                                     "keys": {
                                       "type": "array",
                                       "items": {
@@ -881,11 +889,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "keys"
                                   ],
                                   "additionalProperties": false,
-                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                 },
                                 "minItems": 1,
-                                "maxItems": 16,
-                                "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                "maxItems": 32,
+                                "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                              },
+                              "drift": {
+                                "type": "array",
+                                "minItems": 3,
+                                "maxItems": 3,
+                                "items": {
+                                  "type": "number"
+                                },
+                                "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                               }
                             },
                             "additionalProperties": false,
@@ -1015,6 +1032,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         ],
                                         "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                       },
+                                      "blend": {
+                                        "type": "string",
+                                        "enum": [
+                                          "absolute",
+                                          "additive"
+                                        ],
+                                        "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                      },
                                       "keys": {
                                         "type": "array",
                                         "items": {
@@ -1069,11 +1094,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "keys"
                                     ],
                                     "additionalProperties": false,
-                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                   },
                                   "minItems": 1,
-                                  "maxItems": 16,
-                                  "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                  "maxItems": 32,
+                                  "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                                },
+                                "drift": {
+                                  "type": "array",
+                                  "minItems": 3,
+                                  "maxItems": 3,
+                                  "items": {
+                                    "type": "number"
+                                  },
+                                  "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                                 }
                               },
                               "additionalProperties": false,
@@ -1298,6 +1332,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       ],
                                       "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                     },
+                                    "blend": {
+                                      "type": "string",
+                                      "enum": [
+                                        "absolute",
+                                        "additive"
+                                      ],
+                                      "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                    },
                                     "keys": {
                                       "type": "array",
                                       "items": {
@@ -1352,11 +1394,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "keys"
                                   ],
                                   "additionalProperties": false,
-                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                 },
                                 "minItems": 1,
-                                "maxItems": 16,
-                                "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                "maxItems": 32,
+                                "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                              },
+                              "drift": {
+                                "type": "array",
+                                "minItems": 3,
+                                "maxItems": 3,
+                                "items": {
+                                  "type": "number"
+                                },
+                                "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                               }
                             },
                             "additionalProperties": false,
@@ -1486,6 +1537,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         ],
                                         "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                       },
+                                      "blend": {
+                                        "type": "string",
+                                        "enum": [
+                                          "absolute",
+                                          "additive"
+                                        ],
+                                        "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                      },
                                       "keys": {
                                         "type": "array",
                                         "items": {
@@ -1540,11 +1599,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "keys"
                                     ],
                                     "additionalProperties": false,
-                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                   },
                                   "minItems": 1,
-                                  "maxItems": 16,
-                                  "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                  "maxItems": 32,
+                                  "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                                },
+                                "drift": {
+                                  "type": "array",
+                                  "minItems": 3,
+                                  "maxItems": 3,
+                                  "items": {
+                                    "type": "number"
+                                  },
+                                  "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                                 }
                               },
                               "additionalProperties": false,
@@ -2066,6 +2134,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       ],
                                       "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                     },
+                                    "blend": {
+                                      "type": "string",
+                                      "enum": [
+                                        "absolute",
+                                        "additive"
+                                      ],
+                                      "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                    },
                                     "keys": {
                                       "type": "array",
                                       "items": {
@@ -2120,11 +2196,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "keys"
                                   ],
                                   "additionalProperties": false,
-                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                 },
                                 "minItems": 1,
-                                "maxItems": 16,
-                                "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                "maxItems": 32,
+                                "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                              },
+                              "drift": {
+                                "type": "array",
+                                "minItems": 3,
+                                "maxItems": 3,
+                                "items": {
+                                  "type": "number"
+                                },
+                                "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                               }
                             },
                             "additionalProperties": false,
@@ -2254,6 +2339,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         ],
                                         "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                       },
+                                      "blend": {
+                                        "type": "string",
+                                        "enum": [
+                                          "absolute",
+                                          "additive"
+                                        ],
+                                        "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                      },
                                       "keys": {
                                         "type": "array",
                                         "items": {
@@ -2308,11 +2401,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "keys"
                                     ],
                                     "additionalProperties": false,
-                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                   },
                                   "minItems": 1,
-                                  "maxItems": 16,
-                                  "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                  "maxItems": 32,
+                                  "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                                },
+                                "drift": {
+                                  "type": "array",
+                                  "minItems": 3,
+                                  "maxItems": 3,
+                                  "items": {
+                                    "type": "number"
+                                  },
+                                  "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                                 }
                               },
                               "additionalProperties": false,
@@ -2610,6 +2712,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       ],
                                       "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                     },
+                                    "blend": {
+                                      "type": "string",
+                                      "enum": [
+                                        "absolute",
+                                        "additive"
+                                      ],
+                                      "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                    },
                                     "keys": {
                                       "type": "array",
                                       "items": {
@@ -2664,11 +2774,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "keys"
                                   ],
                                   "additionalProperties": false,
-                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                 },
                                 "minItems": 1,
-                                "maxItems": 16,
-                                "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                "maxItems": 32,
+                                "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                              },
+                              "drift": {
+                                "type": "array",
+                                "minItems": 3,
+                                "maxItems": 3,
+                                "items": {
+                                  "type": "number"
+                                },
+                                "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                               }
                             },
                             "additionalProperties": false,
@@ -2798,6 +2917,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         ],
                                         "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                       },
+                                      "blend": {
+                                        "type": "string",
+                                        "enum": [
+                                          "absolute",
+                                          "additive"
+                                        ],
+                                        "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                      },
                                       "keys": {
                                         "type": "array",
                                         "items": {
@@ -2852,11 +2979,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "keys"
                                     ],
                                     "additionalProperties": false,
-                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                   },
                                   "minItems": 1,
-                                  "maxItems": 16,
-                                  "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                  "maxItems": 32,
+                                  "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                                },
+                                "drift": {
+                                  "type": "array",
+                                  "minItems": 3,
+                                  "maxItems": 3,
+                                  "items": {
+                                    "type": "number"
+                                  },
+                                  "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                                 }
                               },
                               "additionalProperties": false,
@@ -3506,6 +3642,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       ],
                                       "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                     },
+                                    "blend": {
+                                      "type": "string",
+                                      "enum": [
+                                        "absolute",
+                                        "additive"
+                                      ],
+                                      "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                    },
                                     "keys": {
                                       "type": "array",
                                       "items": {
@@ -3560,11 +3704,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "keys"
                                   ],
                                   "additionalProperties": false,
-                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                 },
                                 "minItems": 1,
-                                "maxItems": 16,
-                                "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                "maxItems": 32,
+                                "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                              },
+                              "drift": {
+                                "type": "array",
+                                "minItems": 3,
+                                "maxItems": 3,
+                                "items": {
+                                  "type": "number"
+                                },
+                                "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                               }
                             },
                             "additionalProperties": false,
@@ -3702,6 +3855,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         ],
                                         "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                       },
+                                      "blend": {
+                                        "type": "string",
+                                        "enum": [
+                                          "absolute",
+                                          "additive"
+                                        ],
+                                        "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                      },
                                       "keys": {
                                         "type": "array",
                                         "items": {
@@ -3756,11 +3917,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "keys"
                                     ],
                                     "additionalProperties": false,
-                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                   },
                                   "minItems": 1,
-                                  "maxItems": 16,
-                                  "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                  "maxItems": 32,
+                                  "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                                },
+                                "drift": {
+                                  "type": "array",
+                                  "minItems": 3,
+                                  "maxItems": 3,
+                                  "items": {
+                                    "type": "number"
+                                  },
+                                  "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                                 }
                               },
                               "additionalProperties": false,
@@ -5011,6 +5181,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                               ],
                               "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                             },
+                            "blend": {
+                              "type": "string",
+                              "enum": [
+                                "absolute",
+                                "additive"
+                              ],
+                              "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                            },
                             "keys": {
                               "type": "array",
                               "items": {
@@ -5065,11 +5243,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                             "keys"
                           ],
                           "additionalProperties": false,
-                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                         },
                         "minItems": 1,
-                        "maxItems": 16,
-                        "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                        "maxItems": 32,
+                        "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                      },
+                      "drift": {
+                        "type": "array",
+                        "minItems": 3,
+                        "maxItems": 3,
+                        "items": {
+                          "type": "number"
+                        },
+                        "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                       }
                     },
                     "additionalProperties": false,
@@ -5267,6 +5454,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     ],
                                     "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                   },
+                                  "blend": {
+                                    "type": "string",
+                                    "enum": [
+                                      "absolute",
+                                      "additive"
+                                    ],
+                                    "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                  },
                                   "keys": {
                                     "type": "array",
                                     "items": {
@@ -5321,11 +5516,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "keys"
                                 ],
                                 "additionalProperties": false,
-                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                               },
                               "minItems": 1,
-                              "maxItems": 16,
-                              "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                              "maxItems": 32,
+                              "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                            },
+                            "drift": {
+                              "type": "array",
+                              "minItems": 3,
+                              "maxItems": 3,
+                              "items": {
+                                "type": "number"
+                              },
+                              "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                             }
                           },
                           "additionalProperties": false,
@@ -6050,6 +6254,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             ],
                                             "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                           },
+                                          "blend": {
+                                            "type": "string",
+                                            "enum": [
+                                              "absolute",
+                                              "additive"
+                                            ],
+                                            "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                          },
                                           "keys": {
                                             "type": "array",
                                             "items": {
@@ -6104,11 +6316,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "keys"
                                         ],
                                         "additionalProperties": false,
-                                        "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                        "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                       },
                                       "minItems": 1,
-                                      "maxItems": 16,
-                                      "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                      "maxItems": 32,
+                                      "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                                    },
+                                    "drift": {
+                                      "type": "array",
+                                      "minItems": 3,
+                                      "maxItems": 3,
+                                      "items": {
+                                        "type": "number"
+                                      },
+                                      "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                                     }
                                   },
                                   "additionalProperties": false,
@@ -6238,6 +6459,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                               ],
                                               "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                             },
+                                            "blend": {
+                                              "type": "string",
+                                              "enum": [
+                                                "absolute",
+                                                "additive"
+                                              ],
+                                              "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                            },
                                             "keys": {
                                               "type": "array",
                                               "items": {
@@ -6292,11 +6521,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             "keys"
                                           ],
                                           "additionalProperties": false,
-                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                         },
                                         "minItems": 1,
-                                        "maxItems": 16,
-                                        "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                        "maxItems": 32,
+                                        "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                                      },
+                                      "drift": {
+                                        "type": "array",
+                                        "minItems": 3,
+                                        "maxItems": 3,
+                                        "items": {
+                                          "type": "number"
+                                        },
+                                        "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                                       }
                                     },
                                     "additionalProperties": false,
@@ -6515,6 +6753,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             ],
                                             "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                           },
+                                          "blend": {
+                                            "type": "string",
+                                            "enum": [
+                                              "absolute",
+                                              "additive"
+                                            ],
+                                            "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                          },
                                           "keys": {
                                             "type": "array",
                                             "items": {
@@ -6569,11 +6815,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "keys"
                                         ],
                                         "additionalProperties": false,
-                                        "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                        "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                       },
                                       "minItems": 1,
-                                      "maxItems": 16,
-                                      "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                      "maxItems": 32,
+                                      "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                                    },
+                                    "drift": {
+                                      "type": "array",
+                                      "minItems": 3,
+                                      "maxItems": 3,
+                                      "items": {
+                                        "type": "number"
+                                      },
+                                      "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                                     }
                                   },
                                   "additionalProperties": false,
@@ -6703,6 +6958,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                               ],
                                               "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                             },
+                                            "blend": {
+                                              "type": "string",
+                                              "enum": [
+                                                "absolute",
+                                                "additive"
+                                              ],
+                                              "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                            },
                                             "keys": {
                                               "type": "array",
                                               "items": {
@@ -6757,11 +7020,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             "keys"
                                           ],
                                           "additionalProperties": false,
-                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                         },
                                         "minItems": 1,
-                                        "maxItems": 16,
-                                        "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                        "maxItems": 32,
+                                        "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                                      },
+                                      "drift": {
+                                        "type": "array",
+                                        "minItems": 3,
+                                        "maxItems": 3,
+                                        "items": {
+                                          "type": "number"
+                                        },
+                                        "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                                       }
                                     },
                                     "additionalProperties": false,
@@ -7278,6 +7550,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             ],
                                             "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                           },
+                                          "blend": {
+                                            "type": "string",
+                                            "enum": [
+                                              "absolute",
+                                              "additive"
+                                            ],
+                                            "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                          },
                                           "keys": {
                                             "type": "array",
                                             "items": {
@@ -7332,11 +7612,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "keys"
                                         ],
                                         "additionalProperties": false,
-                                        "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                        "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                       },
                                       "minItems": 1,
-                                      "maxItems": 16,
-                                      "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                      "maxItems": 32,
+                                      "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                                    },
+                                    "drift": {
+                                      "type": "array",
+                                      "minItems": 3,
+                                      "maxItems": 3,
+                                      "items": {
+                                        "type": "number"
+                                      },
+                                      "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                                     }
                                   },
                                   "additionalProperties": false,
@@ -7466,6 +7755,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                               ],
                                               "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                             },
+                                            "blend": {
+                                              "type": "string",
+                                              "enum": [
+                                                "absolute",
+                                                "additive"
+                                              ],
+                                              "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                            },
                                             "keys": {
                                               "type": "array",
                                               "items": {
@@ -7520,11 +7817,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             "keys"
                                           ],
                                           "additionalProperties": false,
-                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                         },
                                         "minItems": 1,
-                                        "maxItems": 16,
-                                        "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                        "maxItems": 32,
+                                        "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                                      },
+                                      "drift": {
+                                        "type": "array",
+                                        "minItems": 3,
+                                        "maxItems": 3,
+                                        "items": {
+                                          "type": "number"
+                                        },
+                                        "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                                       }
                                     },
                                     "additionalProperties": false,
@@ -7816,6 +8122,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             ],
                                             "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                           },
+                                          "blend": {
+                                            "type": "string",
+                                            "enum": [
+                                              "absolute",
+                                              "additive"
+                                            ],
+                                            "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                          },
                                           "keys": {
                                             "type": "array",
                                             "items": {
@@ -7870,11 +8184,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "keys"
                                         ],
                                         "additionalProperties": false,
-                                        "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                        "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                       },
                                       "minItems": 1,
-                                      "maxItems": 16,
-                                      "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                      "maxItems": 32,
+                                      "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                                    },
+                                    "drift": {
+                                      "type": "array",
+                                      "minItems": 3,
+                                      "maxItems": 3,
+                                      "items": {
+                                        "type": "number"
+                                      },
+                                      "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                                     }
                                   },
                                   "additionalProperties": false,
@@ -8004,6 +8327,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                               ],
                                               "description": "缺省 linear；step 保持前一关键帧值；cubic 为 Catmull-Rom"
                                             },
+                                            "blend": {
+                                              "type": "string",
+                                              "enum": [
+                                                "absolute",
+                                                "additive"
+                                              ],
+                                              "description": "absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）"
+                                            },
                                             "keys": {
                                               "type": "array",
                                               "items": {
@@ -8058,11 +8389,20 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             "keys"
                                           ],
                                           "additionalProperties": false,
-                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}"
                                         },
                                         "minItems": 1,
-                                        "maxItems": 16,
-                                        "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
+                                        "maxItems": 32,
+                                        "description": "通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）"
+                                      },
+                                      "drift": {
+                                        "type": "array",
+                                        "minItems": 3,
+                                        "maxItems": 3,
+                                        "items": {
+                                          "type": "number"
+                                        },
+                                        "description": "根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕"
                                       }
                                     },
                                     "additionalProperties": false,

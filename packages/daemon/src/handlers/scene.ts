@@ -45,6 +45,7 @@ import {
   worldPointToLocal,
 } from '@vibebyte/vibe3d-scene';
 import { patternPng } from '../render/pattern';
+import { nodeIdOf } from './node-refs';
 import type { HandlersFor } from './types';
 
 const RAD2DEG = 180 / Math.PI;
@@ -876,9 +877,10 @@ export const sceneHandlers: HandlersFor<Keys> = {
 
   'animation.play': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
+    const nodeId = nodeIdOf(room.doc, p.nodeId);
     const op: Op = {
       op: 'animation.play',
-      target: p.nodeId,
+      target: nodeId,
       clip: p.clip,
       speed: p.speed,
       loop: p.loop,
@@ -891,24 +893,27 @@ export const sceneHandlers: HandlersFor<Keys> = {
 
   'animation.stop': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    const result = await room.run(() => room.apply([{ op: 'animation.stop', target: p.nodeId }]));
+    const nodeId = nodeIdOf(room.doc, p.nodeId);
+    const result = await room.run(() => room.apply([{ op: 'animation.stop', target: nodeId }]));
     return { revision: result.revision };
   },
 
   'animation.define': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    if (!room.doc.nodes[p.nodeId]) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.nodeId} 不存在`);
-    const appliedTo = p.applyTo === 'subtree' ? subtreeIds(room.doc, p.nodeId) : [p.nodeId];
+    const nodeId = nodeIdOf(room.doc, p.nodeId);
+    if (!room.doc.nodes[nodeId]) throw new AppError('E_NODE_NOT_FOUND', `节点 ${nodeId} 不存在`);
+    const appliedTo = p.applyTo === 'subtree' ? subtreeIds(room.doc, nodeId) : [nodeId];
     const result = await room.run(() =>
-      room.apply([{ op: 'animation.define', target: p.nodeId, clip: p.clip, applyTo: p.applyTo }]),
+      room.apply([{ op: 'animation.define', target: nodeId, clip: p.clip, applyTo: p.applyTo }]),
     );
-    return { revision: result.revision, nodeId: p.nodeId, appliedTo };
+    return { revision: result.revision, nodeId: nodeId, appliedTo };
   },
 
   'animation.clear': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    if (!room.doc.nodes[p.nodeId]) throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.nodeId} 不存在`);
-    const ids = p.applyTo === 'subtree' ? subtreeIds(room.doc, p.nodeId) : [p.nodeId];
+    const nodeId = nodeIdOf(room.doc, p.nodeId);
+    if (!room.doc.nodes[nodeId]) throw new AppError('E_NODE_NOT_FOUND', `节点 ${nodeId} 不存在`);
+    const ids = p.applyTo === 'subtree' ? subtreeIds(room.doc, nodeId) : [nodeId];
     const appliedTo = ids.filter((id) => {
       const node = room.doc.nodes[id];
       if (!node) return false;
@@ -916,35 +921,33 @@ export const sceneHandlers: HandlersFor<Keys> = {
       return nodeClipsOf(node).some((clip) => clipChannelOf(clip) === p.channel);
     });
     const result = await room.run(() =>
-      room.apply([{ op: 'animation.clear', target: p.nodeId, applyTo: p.applyTo, channel: p.channel }]),
+      room.apply([{ op: 'animation.clear', target: nodeId, applyTo: p.applyTo, channel: p.channel }]),
     );
     return { revision: result.revision, cleared: appliedTo.length > 0, appliedTo };
   },
 
   'animation.pose': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
-    for (const target of p.targets) {
+    const targets = p.targets.map((t) => ({ nodeId: nodeIdOf(room.doc, t.nodeId), clip: t.clip }));
+    for (const target of targets) {
       if (!room.doc.nodes[target.nodeId])
         throw new AppError('E_NODE_NOT_FOUND', `节点 ${target.nodeId} 不存在`);
     }
-    const result = await room.run(() =>
-      room.apply([
-        { op: 'animation.pose', targets: p.targets.map((t) => ({ nodeId: t.nodeId, clip: t.clip })) },
-      ]),
-    );
-    return { revision: result.revision, appliedTo: p.targets.map((t) => t.nodeId) };
+    const result = await room.run(() => room.apply([{ op: 'animation.pose', targets: targets }]));
+    return { revision: result.revision, appliedTo: targets.map((t) => t.nodeId) };
   },
 
   'fx.create': async (p, ctx) => {
     const room = ctx.rooms.get(p.roomId);
+    const nodeId = p.nodeId === undefined ? undefined : nodeIdOf(room.doc, p.nodeId);
     if (room.doc.fx.length >= MAX_FX) {
       throw new AppError('E_LIMIT_EXCEEDED', `特效数量上限 ${MAX_FX}`, { limit: MAX_FX });
     }
-    if (p.nodeId && !room.doc.nodes[p.nodeId]) {
-      throw new AppError('E_NODE_NOT_FOUND', `节点 ${p.nodeId} 不存在`);
+    if (nodeId && !room.doc.nodes[nodeId]) {
+      throw new AppError('E_NODE_NOT_FOUND', `节点 ${nodeId} 不存在`);
     }
     const { roomId: _roomId, ...spec } = p;
-    const fx: FxSpec = { id: makeFxId(), ...spec };
+    const fx: FxSpec = { id: makeFxId(), ...spec, ...(nodeId ? { nodeId } : {}) };
     const result = await room.run(() => room.apply([{ op: 'fx.create', fx }]));
     return {
       revision: result.revision,

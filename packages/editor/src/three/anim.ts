@@ -1,5 +1,5 @@
 import type { ClipSpec, ModelAnim, SceneDoc } from '@vibebyte/vibe3d-protocol';
-import { applyNodeClips, boneTracksOf, nodeClipsOf, sampleTrack } from '@vibebyte/vibe3d-scene';
+import { applyNodeClips, bonePoses, nodeClipsOf, propertyTracks } from '@vibebyte/vibe3d-scene';
 import * as THREE from 'three';
 
 interface Entry {
@@ -189,19 +189,16 @@ export function applyBoneTracks(root: THREE.Object3D, clips: ClipSpec[], time: n
     if ((obj as THREE.Bone).isBone) bones.set(obj.name, obj);
   });
   if (bones.size === 0) return;
-  for (const clip of clips) {
-    for (const { bone, property, track } of boneTracksOf(clip)) {
-      const obj = bones.get(bone);
-      if (!obj) continue;
-      const value = sampleTrack(track, time);
-      if (!Array.isArray(value)) continue;
-      const base = boneBaseOf(obj);
-      const out = { p: [...base.p], r: [...base.r], s: [...base.s] } as BaseTransform;
-      out[property === 'rotation' ? 'r' : property === 'position' ? 'p' : 's'] = value;
-      obj.position.set(out.p[0], out.p[1], out.p[2]);
-      obj.rotation.set(out.r[0], out.r[1], out.r[2]);
-      obj.scale.set(out.s[0], out.s[1], out.s[2]);
-    }
+  const poses = bonePoses(clips, time, (name) => {
+    const obj = bones.get(name);
+    return obj ? boneBaseOf(obj) : undefined;
+  });
+  for (const [name, pose] of poses) {
+    const obj = bones.get(name);
+    if (!obj) continue;
+    obj.position.set(pose.p[0], pose.p[1], pose.p[2]);
+    obj.rotation.set(pose.r[0], pose.r[1], pose.r[2]);
+    obj.scale.set(pose.s[0], pose.s[1], pose.s[2]);
   }
 }
 
@@ -230,5 +227,28 @@ export function applyProceduralClips(
     obj.position.set(out.p[0], out.p[1], out.p[2]);
     obj.rotation.set(out.r[0], out.r[1], out.r[2]);
     obj.scale.set(out.s[0], out.s[1], out.s[2]);
+    const props = propertyTracks(nodeClips, time);
+    if (props.visible !== undefined) obj.visible = props.visible;
+    if (props.opacity !== undefined) applyOpacity(obj, nodeId, props.opacity);
+  });
+}
+
+function applyOpacity(obj: THREE.Object3D, nodeId: string, opacity: number): void {
+  obj.traverse((child) => {
+    const owner = child.userData.nodeId as string | undefined;
+    if (owner && owner !== nodeId) return;
+    const mesh = child as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    if (!mesh.userData.ownsOpacity) {
+      mesh.material = Array.isArray(mesh.material)
+        ? mesh.material.map((m) => m.clone())
+        : mesh.material.clone();
+      mesh.userData.ownsOpacity = true;
+    }
+    for (const mat of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+      mat.opacity = opacity;
+      mat.transparent = opacity < 1;
+      mat.depthWrite = opacity >= 1;
+    }
   });
 }

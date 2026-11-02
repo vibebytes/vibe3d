@@ -1,5 +1,6 @@
+import { clipSchema } from '@vibebyte/vibe3d-protocol';
 import { describe, expect, it } from 'vitest';
-import { applyNodeClips, boneTracksOf, sampleTrack } from '../src/anim';
+import { applyNodeClips, bonePoses, boneTracksOf, sampleTrack } from '../src/anim';
 
 const clip = (o: Record<string, unknown>): any => o;
 const base = { p: [1, 2, 3], r: [0, 0, 0], s: [1, 1, 1] } as any;
@@ -169,5 +170,86 @@ describe('通用属性轨道求值', () => {
       ],
     });
     expect(applyNodeClips(base, [c], 0.5).p).toEqual([1, 3, 3]);
+  });
+});
+
+describe('additive tracks, drift and track limit', () => {
+  it('blend:additive rotation adds onto the node transform', () => {
+    const tilted = { p: [0, 0, 0], r: [0.2, 0, 0], s: [1, 1, 1] } as any;
+    const c = clip({
+      tracks: [
+        {
+          path: 'rotation',
+          blend: 'additive',
+          keys: [
+            { t: 0, v: [0, 0, 0] },
+            { t: 1, v: [0.5, 0, 0] },
+          ],
+        },
+      ],
+    });
+    expect(applyNodeClips(tilted, [c], 1).r[0]).toBeCloseTo(0.7, 9);
+  });
+
+  it('drift moves the root by unwrapped time, not reset by the loop', () => {
+    const c = clip({
+      loop: true,
+      duration: 0.7,
+      drift: [0, 0, 3],
+      tracks: [
+        {
+          path: 'rotation',
+          blend: 'additive',
+          keys: [
+            { t: 0, v: [0, 0, 0] },
+            { t: 0.7, v: [0, 0, 0] },
+          ],
+        },
+      ],
+    });
+    expect(applyNodeClips(base, [c], 1.4).p[2]).toBeCloseTo(3 + 4.2, 9);
+  });
+
+  it('a clip accepts 32 tracks', () => {
+    const tracks = Array.from({ length: 32 }, (_, i) => ({
+      path: `bone.b${i}.rotation`,
+      keys: [{ t: 0, v: [0, 0, 0] }],
+    }));
+    expect(clipSchema.safeParse({ tracks }).success).toBe(true);
+  });
+});
+
+describe('bonePoses', () => {
+  const rest = { p: [0, 1, 0], r: [0.1, 0, 0], s: [1, 1, 1] } as any;
+  const baseOf = () => rest;
+
+  it('keeps rotation and position tracks on the same bone', () => {
+    const c = clip({
+      tracks: [
+        { path: 'bone.thigh.rotation', keys: [{ t: 0, v: [0.5, 0, 0] }] },
+        { path: 'bone.thigh.position', keys: [{ t: 0, v: [0, 2, 0] }] },
+      ],
+    });
+    const pose = bonePoses([c], 0, baseOf).get('thigh');
+    expect(pose?.r[0]).toBeCloseTo(0.5, 9);
+    expect(pose?.p[1]).toBeCloseTo(2, 9);
+  });
+
+  it('honours loop time and additive blend', () => {
+    const c = clip({
+      loop: true,
+      duration: 1,
+      tracks: [
+        {
+          path: 'bone.thigh.rotation',
+          blend: 'additive',
+          keys: [
+            { t: 0, v: [0, 0, 0] },
+            { t: 1, v: [1, 0, 0] },
+          ],
+        },
+      ],
+    });
+    expect(bonePoses([c], 1.25, baseOf).get('thigh')?.r[0]).toBeCloseTo(0.1 + 0.25, 9);
   });
 });

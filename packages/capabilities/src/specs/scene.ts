@@ -15,6 +15,7 @@ import {
   materialSchema,
   modelAnimSchema,
   nodeIdSchema,
+  nodeRefSchema,
   nprSchema,
   opListSchema,
   postSchema,
@@ -709,7 +710,9 @@ export const sceneOps = defineCapabilities({
   },
   'fx.create': {
     title: '添加粒子或光柱特效',
-    input: fxSchema.omit({ id: true }).extend({ roomId }),
+    input: fxSchema
+      .omit({ id: true })
+      .extend({ roomId, nodeId: nodeRefSchema.optional().describe('挂载节点 id 或 @名称') }),
     output: revisionOut.extend({ fxId: fxIdSchema, approximate: z.boolean().optional() }),
     scope: 'room' as const,
     mutating: true,

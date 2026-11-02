@@ -167,6 +167,52 @@ export function boneTracksOf(clip: ClipSpec): BoneTrack[] {
   return out;
 }
 
+const SLOT = { position: 'p', rotation: 'r', scale: 's' } as const;
+
+/** Local bone transforms after applying every bone.* track of the clips at time t; bones never tracked are absent. */
+export function bonePoses(
+  clips: readonly ClipSpec[],
+  t: number,
+  baseOf: (bone: string) => Transform | undefined,
+): Map<string, Transform> {
+  const poses = new Map<string, Transform>();
+  for (const clip of clips) {
+    const time = clipTime(clip, t);
+    for (const { bone, property, track } of boneTracksOf(clip)) {
+      const value = sampleTrack(track, time);
+      const rest = poses.get(bone) ?? baseOf(bone);
+      if (!Array.isArray(value) || !rest) continue;
+      const pose: Transform = { p: [...rest.p], r: [...rest.r], s: [...rest.s] };
+      const slot = pose[SLOT[property]];
+      for (let i = 0; i < 3; i += 1) {
+        const v = value[i] ?? 0;
+        slot[i] =
+          track.blend !== 'additive' ? v : property === 'scale' ? (slot[i] ?? 1) * v : (slot[i] ?? 0) + v;
+      }
+      poses.set(bone, pose);
+    }
+  }
+  return poses;
+}
+
+/** visible / opacity values from the clips' tracks at time t; later clips win. */
+export function propertyTracks(
+  clips: readonly ClipSpec[],
+  t: number,
+): { visible?: boolean; opacity?: number } {
+  const out: { visible?: boolean; opacity?: number } = {};
+  for (const clip of clips) {
+    const time = clipTime(clip, t);
+    for (const track of clip.tracks ?? []) {
+      const value = sampleTrack(track, time);
+      if (track.path === 'visible' && typeof value === 'boolean') out.visible = value;
+      else if (track.path === 'opacity' && typeof value === 'number')
+        out.opacity = Math.min(1, Math.max(0, value));
+    }
+  }
+  return out;
+}
+
 function applyTracks(base: Transform, clip: ClipSpec, t: number): Transform {
   const tracks = clip.tracks;
   if (!tracks || tracks.length === 0) return base;
@@ -176,15 +222,31 @@ function applyTracks(base: Transform, clip: ClipSpec, t: number): Transform {
   const s: [number, number, number] = [...base.s];
   for (const track of tracks) {
     const value = sampleTrack(track, time);
-    if (track.path === 'position' && Array.isArray(value)) p.splice(0, 3, ...value);
-    else if (track.path === 'rotation' && Array.isArray(value)) r.splice(0, 3, ...value);
-    else if (track.path === 'scale' && Array.isArray(value)) s.splice(0, 3, ...value);
+    if (!Array.isArray(value)) continue;
+    const additive = track.blend === 'additive';
+    const write = (out: [number, number, number], combine: (a: number, b: number) => number) => {
+      for (let i = 0; i < 3; i += 1)
+        out[i] = additive ? combine(out[i] ?? 0, value[i] ?? 0) : (value[i] ?? 0);
+    };
+    if (track.path === 'position') write(p, (a, b) => a + b);
+    else if (track.path === 'rotation') write(r, (a, b) => a + b);
+    else if (track.path === 'scale') write(s, (a, b) => a * b);
   }
   return { p, r, s };
 }
 
+function applyDrift(base: Transform, clip: ClipSpec, t: number): Transform {
+  const drift = clip.drift;
+  if (!drift) return base;
+  const time = Math.max(0, t * (clip.speed ?? 1));
+  return {
+    ...base,
+    p: [base.p[0] + drift[0] * time, base.p[1] + drift[1] * time, base.p[2] + drift[2] * time],
+  };
+}
+
 export function applyClipTransform(base: Transform, clip: ClipSpec, t: number): Transform {
-  const tracked = applyTracks(base, clip, t);
+  const tracked = applyDrift(applyTracks(base, clip, t), clip, t);
   if (clip.type === undefined) return tracked;
   const channel = clipChannelOf(clip);
   const value = sampleClip(clip, t);

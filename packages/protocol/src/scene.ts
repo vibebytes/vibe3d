@@ -58,13 +58,25 @@ export const trackKeySchema = z.object({
   ease: z.enum(['linear', 'easeIn', 'easeOut', 'easeInOut']).optional(),
 });
 
-export const trackSchema = z
+const constantTrack = (raw: unknown): unknown => {
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) return raw;
+  const { value, ...rest } = raw as Record<string, unknown>;
+  if (value === undefined || 'keys' in rest) return raw;
+  return { ...rest, interp: rest.interp ?? 'step', keys: [{ t: 0, v: value }] };
+};
+
+const trackObjectSchema = z
   .object({
     path: trackPathSchema,
     interp: trackInterpSchema.optional(),
+    blend: z
+      .enum(['absolute', 'additive'])
+      .optional()
+      .describe('absolute（缺省）覆盖节点 transform；additive 叠加在节点原值上（scale 为相乘）'),
     keys: z.array(trackKeySchema).min(1).describe('按 t 升序；超出末帧保持末值'),
   })
-  .describe('一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp')
+  .strict()
+  .describe('一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp；常量可简写为 {path, value}')
   .superRefine((track, ctx) => {
     const vector =
       track.path === 'position' ||
@@ -86,6 +98,8 @@ export const trackSchema = z
       }
     }
   });
+
+export const trackSchema = z.preprocess(constantTrack, trackObjectSchema);
 
 const clipSchemaRuntime = z
   .object({
@@ -111,9 +125,10 @@ const clipSchemaRuntime = z
     tracks: z
       .array(trackSchema)
       .min(1)
-      .max(16)
+      .max(32)
       .optional()
-      .describe('通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）'),
+      .describe('通用属性轨道：缺省绝对覆盖 transform，blend:additive 叠加（先于 channel 增量应用）'),
+    drift: vec3.optional().describe('根运动：每秒位移 [x,y,z]（米/秒），按未取模时间累计，不随 loop 回绕'),
   })
   .strict()
   .superRefine((clip, ctx) => {
@@ -123,7 +138,7 @@ const clipSchemaRuntime = z
   });
 
 export type ClipSpec = z.infer<typeof clipSchemaRuntime>;
-export const clipSchema: z.ZodType<ClipSpec> = clipSchemaRuntime.describe(
+export const clipSchema: z.ZodType<ClipSpec, z.ZodTypeDef, unknown> = clipSchemaRuntime.describe(
   '程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环',
 );
 

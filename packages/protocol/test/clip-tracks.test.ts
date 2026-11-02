@@ -127,3 +127,21 @@ describe('clip 未知字段不再静默忽略', () => {
     expect(() => clipSchema.parse({ type: 'sway', axis: 'x', amplitude: 0.2 })).not.toThrow();
   });
 });
+
+describe('constant track shorthand', () => {
+  it('{path, value} becomes one step key', () => {
+    const parsed = clipSchema.parse({ tracks: [{ path: 'rotation', value: [-1.4, 0, 0] }] });
+    expect(parsed.tracks?.[0]).toEqual({
+      path: 'rotation',
+      interp: 'step',
+      keys: [{ t: 0, v: [-1.4, 0, 0] }],
+    });
+  });
+
+  it('value together with keys is rejected', () => {
+    const r = clipSchema.safeParse({
+      tracks: [{ path: 'rotation', value: [0, 0, 0], keys: [{ t: 0, v: [0, 0, 0] }] }],
+    });
+    expect(r.success).toBe(false);
+  });
+});

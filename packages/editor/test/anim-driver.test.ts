@@ -99,3 +99,45 @@ describe('clipsOf', () => {
     expect(clipsOf({ nodes: {} } as unknown as SceneDoc)).toEqual({});
   });
 });
+
+describe('visible / opacity tracks', () => {
+  it('visible:false hides the object and opacity changes material opacity', () => {
+    const o = obj('n_aaaaaaaa');
+    const mat = new THREE.MeshStandardMaterial();
+    o.add(new THREE.Mesh(new THREE.BoxGeometry(), mat));
+    const root = new THREE.Object3D();
+    root.add(o);
+    const clips: Record<string, ClipSpec[]> = {
+      n_aaaaaaaa: [
+        {
+          tracks: [
+            {
+              path: 'visible',
+              interp: 'step',
+              keys: [
+                { t: 0, v: true },
+                { t: 1, v: false },
+              ],
+            },
+            {
+              path: 'opacity',
+              keys: [
+                { t: 0, v: 1 },
+                { t: 1, v: 0.25 },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    applyProceduralClips(root, clips, 0.5);
+    const material = () => (o.children[0] as THREE.Mesh).material as THREE.Material;
+    expect(o.visible).toBe(true);
+    expect(material().opacity).toBeCloseTo(0.625, 6);
+    expect(material().transparent).toBe(true);
+    expect(mat.opacity).toBe(1);
+    applyProceduralClips(root, clips, 1);
+    expect(o.visible).toBe(false);
+    expect(material().opacity).toBeCloseTo(0.25, 6);
+  });
+});

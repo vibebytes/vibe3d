@@ -1,4 +1,4 @@
-import { clipChannelSchema, clipSchema, nodeIdSchema } from '@vibebyte/vibe3d-protocol';
+import { clipChannelSchema, clipSchema, nodeIdSchema, nodeRefSchema } from '@vibebyte/vibe3d-protocol';
 import { z } from 'zod';
 import { revisionOut, roomId } from './common';
 
@@ -7,7 +7,7 @@ export const animOps = {
     title: '播放模型动画，默认取首条 clip；clips 可多 clip 叠加',
     input: z.object({
       roomId,
-      nodeId: nodeIdSchema,
+      nodeId: nodeRefSchema.describe('节点 id 或 @名称'),
       clip: z.string().optional(),
       clips: z
         .array(z.string().min(1))
@@ -32,7 +32,7 @@ export const animOps = {
   },
   'animation.stop': {
     title: '停止模型动画；程序化 clip 节点为幂等空操作',
-    input: z.object({ roomId, nodeId: nodeIdSchema }),
+    input: z.object({ roomId, nodeId: nodeRefSchema.describe('节点 id 或 @名称') }),
     output: revisionOut,
     scope: 'room' as const,
     mutating: true,
@@ -45,7 +45,7 @@ export const animOps = {
       '定义程序化动画：周期函数（sway/ripple/float/flicker/spin）、标量关键帧（keyframes），或任意属性轨道（tracks）',
     input: z.object({
       roomId,
-      nodeId: nodeIdSchema,
+      nodeId: nodeRefSchema.describe('节点 id 或 @名称'),
       clip: clipSchema,
       applyTo: z.enum(['node', 'subtree']).optional(),
     }),
@@ -63,7 +63,7 @@ export const animOps = {
     title: '清除节点上的程序化动画',
     input: z.object({
       roomId,
-      nodeId: nodeIdSchema,
+      nodeId: nodeRefSchema.describe('节点 id 或 @名称'),
       applyTo: z.enum(['node', 'subtree']).optional(),
       channel: clipChannelSchema.optional(),
     }),
@@ -80,7 +80,7 @@ export const animOps = {
     input: z.object({
       roomId,
       targets: z
-        .array(z.object({ nodeId: nodeIdSchema, clip: clipSchema }))
+        .array(z.object({ nodeId: nodeRefSchema.describe('节点 id 或 @名称'), clip: clipSchema }))
         .min(1)
         .max(64),
     }),
