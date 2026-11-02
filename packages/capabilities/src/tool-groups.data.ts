@@ -99,7 +99,7 @@ export const TOOL_GROUP_TABLE: readonly ToolGroup[] = [
   },
   {
     tool: 'vibe3d_mesh',
-    title: '网格构造：布尔 / 管体 / 背板 / 车削 / 有机体 / 倒角 / 贴花',
+    title: '网格构造：布尔 / 管体 / 背板 / 车削 / 有机体 / 倒角 / 树 / 人体 / 贴花',
     ops: [
       ['boolean', 'mesh.boolean', 'boolean_mesh'],
       ['tube', 'mesh.tube', 'tube_mesh'],

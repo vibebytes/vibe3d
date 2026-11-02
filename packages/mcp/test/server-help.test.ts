@@ -35,6 +35,22 @@ describe('vibe3d_help 不依赖 daemon', () => {
     expect(JSON.parse(body.example).op).toBe('node.create');
   });
 
+  it('vibe3d_animation 的整组 help 在 ops[].params 里展开 clip.tracks', async () => {
+    const { client } = await connectClient({
+      runtime: async () => {
+        throw new Error('daemon 启动失败');
+      },
+    });
+    const result = await client.callTool({ name: 'vibe3d_help', arguments: { tool: 'vibe3d_animation' } });
+    const body = JSON.parse(textOf(result));
+    const define = body.ops.find((op: { op: string }) => op.op === 'define');
+    const clip = define.params.find((p: { name: string }) => p.name === 'clip');
+    const tracks = clip.fields.find((f: { name: string }) => f.name === 'tracks[]');
+    expect(tracks.fields.map((f: { name: string }) => f.name)).toEqual(
+      expect.arrayContaining(['path', 'interp', 'keys[]']),
+    );
+  });
+
   it('vibe3d_help 也接受全名 op', async () => {
     const { client } = await connectClient({
       runtime: async () => {

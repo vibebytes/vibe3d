@@ -159,6 +159,12 @@ function sample(schema: z.ZodTypeAny, depth: number, key?: string): unknown {
         if (!isRequired(child)) continue;
         out[key] = sample(child, depth + 1, key);
       }
+      for (const [key, child] of Object.entries(shape)) {
+        if (schema.safeParse(out).success) break;
+        if (key in out) continue;
+        out[key] = sample(child, depth + 1, key);
+        if (!schema.safeParse(out).success) delete out[key];
+      }
       return out;
     }
     case 'ZodDiscriminatedUnion': {

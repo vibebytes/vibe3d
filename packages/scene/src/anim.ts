@@ -4,7 +4,7 @@ const TAU = Math.PI * 2;
 
 type Channel = 'px' | 'py' | 'pz' | 'rx' | 'ry' | 'rz' | 'sx' | 'sy' | 'sz';
 
-const DEFAULT_CHANNEL: Record<ClipSpec['type'], Channel> = {
+const DEFAULT_CHANNEL: Record<NonNullable<ClipSpec['type']>, Channel> = {
   sway: 'rz',
   spin: 'ry',
   float: 'py',
@@ -184,9 +184,10 @@ function applyTracks(base: Transform, clip: ClipSpec, t: number): Transform {
 }
 
 export function applyClipTransform(base: Transform, clip: ClipSpec, t: number): Transform {
+  const tracked = applyTracks(base, clip, t);
+  if (clip.type === undefined) return tracked;
   const channel = clipChannelOf(clip);
   const value = sampleClip(clip, t);
-  const tracked = applyTracks(base, clip, t);
   const p: [number, number, number] = [...tracked.p];
   const r: [number, number, number] = [...tracked.r];
   const s: [number, number, number] = [...tracked.s];
@@ -201,7 +202,21 @@ export function applyClipTransform(base: Transform, clip: ClipSpec, t: number): 
 export function clipChannelOf(clip: ClipSpec): Channel {
   return clip.type === 'sway' && clip.axis
     ? (`r${clip.axis}` as Channel)
-    : (clip.channel ?? DEFAULT_CHANNEL[clip.type]);
+    : (clip.channel ?? DEFAULT_CHANNEL[clip.type ?? 'keyframes']);
+}
+
+const isTracksOnly = (clip: ClipSpec): boolean =>
+  clip.tracks !== undefined &&
+  (clip.type === undefined || (clip.type === 'keyframes' && !clip.keys?.length && !clip.channel));
+
+/** Identity used to decide whether a new define replaces an existing clip on the same node. */
+export function clipKeyOf(clip: ClipSpec): string {
+  return isTracksOnly(clip)
+    ? `tracks:${(clip.tracks ?? [])
+        .map((track) => track.path)
+        .sort()
+        .join(',')}`
+    : clipChannelOf(clip);
 }
 
 type ClipCarrier = { clip?: ClipSpec; clips?: ClipSpec[] };

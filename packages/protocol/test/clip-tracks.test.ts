@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { clipSchema } from '../src/scene';
 
+describe('clip.type 与 tracks 的必填关系', () => {
+  it('只有 tracks 时可以不写 type', () => {
+    const parsed = clipSchema.parse({ tracks: [{ path: 'rotation', keys: [{ t: 0, v: [0, 0, 0] }] }] });
+    expect(parsed.type).toBeUndefined();
+  });
+
+  it('既没有 type 也没有 tracks 时报错并说明原因', () => {
+    const parsed = clipSchema.safeParse({});
+    expect(parsed.success).toBe(false);
+    expect(JSON.stringify(parsed.error?.issues)).toContain('需要 type 或 tracks');
+  });
+});
+
 describe('clip.tracks 通用属性轨道', () => {
   it('接受 position 轨道的 3 元数组关键帧', () => {
     const parsed = clipSchema.parse({

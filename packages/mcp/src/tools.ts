@@ -146,7 +146,7 @@ function droppedKeys(spec: unknown, payload: unknown, depth = 0): string[] {
   const dropped: string[] = [];
   for (const [key, value] of Object.entries(payload)) {
     if (!(key in shape)) {
-      if (!IGNORED_KEYS.has(key)) dropped.push(key);
+      if (!IGNORED_KEYS.has(key) || (key === 'params' && depth > 0)) dropped.push(key);
       continue;
     }
     for (const nested of droppedKeys(shape[key], value, depth + 1)) {

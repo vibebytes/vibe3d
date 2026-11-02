@@ -46,7 +46,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "必填字段：use{room_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：create list use{room_id} get close timeline。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -107,7 +107,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "必填字段：import{doc} restore{checkpoint_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：get summary query stats pick validate undo redo diff export import{doc} checkpoint checkpoints restore{checkpoint_id} selection。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -164,7 +164,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "必填字段：create{kind} update{node_id,patch} delete{node_id} clone{node_id} get{node_id} reparent{node_id,parent} array{node_id,count} attach{node_id,target_id,face} group{ids,name} merge{node_id} fit_screen{node_id,rect}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：create{kind} update{node_id,patch} delete{node_id} clone{node_id} get{node_id} reparent{node_id,parent} transform array{node_id,count} attach{node_id,target_id,face} group{ids,name} merge{node_id} fit_screen{node_id,rect} import。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -203,7 +203,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "必填字段：patch{material_id,patch} map{material_id} assign{material_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：create patch{material_id,patch} map{material_id} assign{material_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -238,7 +238,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "必填字段：set{stage}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：set{stage} env。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -279,7 +279,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "必填字段：define{node_id,clip} play{node_id} stop{node_id} clear{node_id} pose{targets}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：define{node_id,clip} play{node_id} stop{node_id} clear{node_id} pose{targets}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -314,7 +314,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "必填字段：create{type} delete{fx_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：create{type} delete{fx_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -329,7 +329,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
   },
   {
     name: "vibe3d_mesh",
-    title: "网格构造：布尔 / 管体 / 背板 / 车削 / 有机体 / 倒角 / 贴花",
+    title: "网格构造：布尔 / 管体 / 背板 / 车削 / 有机体 / 倒角 / 树 / 人体 / 贴花",
     ops: [
       { op: "boolean", capability: "mesh.boolean", title: "布尔：按轴对齐包围盒做 subtract / union / intersect（原生 box 精确，其它几何需 force 近似）" },
       { op: "tube", capability: "mesh.tube", title: "管体：沿点序列扫掠圆管（Catmull-Rom + 平行传输标架），radius 可为逐点半径数组（与 points 等长），单节点 baked 几何" },
@@ -363,7 +363,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "必填字段：boolean{target,tool} tube{points,radius} lathe{profile} organic{radius,seed} bevel{size,radius} tree{height,spread,levels,seed}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：boolean{target,tool} tube{points,radius} backdrop lathe{profile} organic{radius,seed} bevel{size,radius} tree{height,spread,levels,seed} mannequin decal。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -402,7 +402,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "必填字段：inspect{src} put{src} delete{sha}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：inspect{src} put{src} list delete{sha}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -443,7 +443,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "必填字段：save{name} delete{name} project{points} unproject{points}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：set save{name} delete{name} project{points} unproject{points}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -490,7 +490,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "必填字段：node{node_id} assert{anchors} sequence{from,to,fps} video{from,to,fps}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：snapshot views node{node_id} pick assert{anchors} id_pass sequence{from,to,fps} video{from,to,fps}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -565,7 +565,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         },
         "params": {
           "type": "object",
-          "description": "必填字段：get{job_id} cancel{job_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：get{job_id} list cancel{job_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -718,7 +718,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -880,17 +880,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "clips": {
                             "type": "array",
@@ -907,7 +906,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -1069,17 +1068,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "maxItems": 8
                           },
@@ -1191,7 +1189,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -1353,17 +1351,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "clips": {
                             "type": "array",
@@ -1380,7 +1377,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -1542,17 +1539,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "maxItems": 8
                           },
@@ -1961,7 +1957,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -2123,17 +2119,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "clips": {
                             "type": "array",
@@ -2150,7 +2145,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -2312,17 +2307,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "maxItems": 8
                           },
@@ -2507,7 +2501,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -2669,17 +2663,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "clips": {
                             "type": "array",
@@ -2696,7 +2689,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -2858,17 +2851,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "maxItems": 8
                           },
@@ -3405,7 +3397,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -3567,22 +3559,22 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           {
                             "type": "null"
                           }
-                        ]
+                        ],
+                        "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                       },
                       "clips": {
                         "anyOf": [
@@ -3601,7 +3593,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -3763,17 +3755,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "maxItems": 8
                           },
@@ -4911,7 +4902,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                           "spin",
                           "keyframes"
                         ],
-                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                       },
                       "channel": {
                         "type": "string",
@@ -5073,17 +5064,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                             "path",
                             "keys"
                           ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                         },
                         "minItems": 1,
                         "maxItems": 16,
                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                       }
                     },
-                    "required": [
-                      "type"
-                    ],
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                   },
                   "apply_to": {
                     "type": "string",
@@ -5168,7 +5158,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                 "spin",
                                 "keyframes"
                               ],
-                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                             },
                             "channel": {
                               "type": "string",
@@ -5330,17 +5320,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "path",
                                   "keys"
                                 ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                               },
                               "minItems": 1,
                               "maxItems": 16,
                               "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                             }
                           },
-                          "required": [
-                            "type"
-                          ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         }
                       },
                       "required": [
@@ -5952,7 +5941,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "spin",
                                         "keyframes"
                                       ],
-                                      "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                      "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                     },
                                     "channel": {
                                       "type": "string",
@@ -6114,17 +6103,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "path",
                                           "keys"
                                         ],
-                                        "additionalProperties": false
+                                        "additionalProperties": false,
+                                        "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                       },
                                       "minItems": 1,
                                       "maxItems": 16,
                                       "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                     }
                                   },
-                                  "required": [
-                                    "type"
-                                  ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                 },
                                 "clips": {
                                   "type": "array",
@@ -6141,7 +6129,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -6303,17 +6291,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "maxItems": 8
                                 },
@@ -6419,7 +6406,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "spin",
                                         "keyframes"
                                       ],
-                                      "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                      "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                     },
                                     "channel": {
                                       "type": "string",
@@ -6581,17 +6568,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "path",
                                           "keys"
                                         ],
-                                        "additionalProperties": false
+                                        "additionalProperties": false,
+                                        "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                       },
                                       "minItems": 1,
                                       "maxItems": 16,
                                       "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                     }
                                   },
-                                  "required": [
-                                    "type"
-                                  ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                 },
                                 "clips": {
                                   "type": "array",
@@ -6608,7 +6594,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -6770,17 +6756,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "maxItems": 8
                                 },
@@ -7184,7 +7169,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "spin",
                                         "keyframes"
                                       ],
-                                      "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                      "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                     },
                                     "channel": {
                                       "type": "string",
@@ -7346,17 +7331,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "path",
                                           "keys"
                                         ],
-                                        "additionalProperties": false
+                                        "additionalProperties": false,
+                                        "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                       },
                                       "minItems": 1,
                                       "maxItems": 16,
                                       "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                     }
                                   },
-                                  "required": [
-                                    "type"
-                                  ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                 },
                                 "clips": {
                                   "type": "array",
@@ -7373,7 +7357,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -7535,17 +7519,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "maxItems": 8
                                 },
@@ -7724,7 +7707,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                         "spin",
                                         "keyframes"
                                       ],
-                                      "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                      "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                     },
                                     "channel": {
                                       "type": "string",
@@ -7886,17 +7869,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "path",
                                           "keys"
                                         ],
-                                        "additionalProperties": false
+                                        "additionalProperties": false,
+                                        "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                       },
                                       "minItems": 1,
                                       "maxItems": 16,
                                       "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                     }
                                   },
-                                  "required": [
-                                    "type"
-                                  ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                 },
                                 "clips": {
                                   "type": "array",
@@ -7913,7 +7895,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -8075,17 +8057,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "maxItems": 8
                                 },

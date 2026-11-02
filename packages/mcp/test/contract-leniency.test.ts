@@ -19,6 +19,15 @@ describe('lenient input contracts', () => {
     expect(lenientRecord('{"params":{"kind":"mesh"}}')).toEqual({ kind: 'mesh' });
   });
 
+  it('keeps a params field that sits next to other fields', () => {
+    const body = { preset: 'clay', params: { baseColor: [1, 0, 0, 1] } };
+    expect(lenientRecord(body)).toEqual(body);
+  });
+
+  it('still peels a lone extra params wrapper', () => {
+    expect(lenientRecord({ params: { preset: 'clay' } })).toEqual({ preset: 'clay' });
+  });
+
   it('parses array text into a tuple field', () => {
     expect(coerceForSchema(z.tuple([z.number(), z.number(), z.number()]), '[600,600,1]')).toEqual([
       600, 600, 1,

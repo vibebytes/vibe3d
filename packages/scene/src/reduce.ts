@@ -9,7 +9,7 @@ import {
   type SceneDoc,
   type SceneNode,
 } from '@vibebyte/vibe3d-protocol';
-import { clipChannelOf, nodeClipsOf } from './anim';
+import { clipChannelOf, clipKeyOf, nodeClipsOf } from './anim';
 import { frameCamera, miniatureCamera } from './frame';
 import { normalizeMap, presetMaterial, resolveMaterialPreset } from './material';
 import { sceneStats } from './stats';
@@ -71,9 +71,9 @@ function setNodeClips(node: ClipCarrier, clips: ClipSpec[]): void {
 
 function upsertNodeClip(node: SceneNode, clip: ClipSpec): ClipSpec[] | null {
   const existing = nodeClipsOf(node);
-  const channel = clipChannelOf(clip);
-  if (existing.some((c) => clipChannelOf(c) === channel)) {
-    return existing.map((c) => (clipChannelOf(c) === channel ? clone(clip) : c));
+  const key = clipKeyOf(clip);
+  if (existing.some((c) => clipKeyOf(c) === key)) {
+    return existing.map((c) => (clipKeyOf(c) === key ? clone(clip) : c));
   }
   if (existing.length >= MAX_CLIPS) {
     throw new AppError(

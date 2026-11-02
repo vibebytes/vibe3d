@@ -25,6 +25,25 @@ async function nodeGet(h: Harness, roomId: string, nodeId: string): Promise<any>
   return body.result;
 }
 
+const rotTrack = (v: number) => ({
+  tracks: [{ path: 'rotation', keys: [{ t: 0, v: [v, 0, 0] }] }],
+});
+const posTrack = { tracks: [{ path: 'position', keys: [{ t: 0, v: [0, 1, 0] }] }] };
+
+describe('只有 tracks 的 clip 去重', () => {
+  it('同一组 path 重复 define 时替换，不同 path 并存', async () => {
+    const h = makeHarness();
+    const { roomId, nodeId } = await setup(h);
+    for (const clip of [rotTrack(0.1), rotTrack(0.2), posTrack]) {
+      const { body } = await call(h, 'animation.define', { roomId, nodeId, clip }, roomId);
+      expect(body.error).toBeUndefined();
+    }
+    const view = await nodeGet(h, roomId, nodeId);
+    expect(view.clips).toHaveLength(2);
+    expect(view.clips[0].tracks[0].keys[0].v[0]).toBe(0.2);
+  });
+});
+
 describe('animation 读回闭环', () => {
   it('define 后 node.get 返回 clips 且 hasAnim=true，query 可召回', async () => {
     const h = makeHarness();

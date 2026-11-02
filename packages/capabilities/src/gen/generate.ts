@@ -192,12 +192,10 @@ const displayField = (capability: string, field: string): string =>
 
 /** 该工具自己的必填表：只列有必填的 op，create{kind} get{node_id}… */
 export function opParamTable(group: ToolGroup): string {
-  const rows = group.ops
-    .map(([op, capability]) => {
-      const required = requiredOf(capability).map((field) => displayField(capability, field));
-      return required.length > 0 ? `${op}{${required.join(',')}}` : '';
-    })
-    .filter(Boolean);
+  const rows = group.ops.map(([op, capability]) => {
+    const required = requiredOf(capability).map((field) => displayField(capability, field));
+    return required.length > 0 ? `${op}{${required.join(',')}}` : op;
+  });
   return rows.length > 0 ? rows.join(' ') : '无';
 }
 
@@ -211,7 +209,7 @@ function envelopeSchema(group: ToolGroup): Record<string, unknown> {
     },
     params: {
       type: 'object',
-      description: `必填字段：${opParamTable(group)}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段`,
+      description: `op 与必填字段：${opParamTable(group)}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段`,
     },
   };
   if (group.ops.some(([, capability]) => specOf(capability).scope === 'room')) {

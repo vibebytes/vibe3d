@@ -462,6 +462,19 @@ describe('legacy 工具的同名包装与忽略字段', () => {
     expect(note.text).toContain('vibe3d_help');
   });
 
+  it('material.create 的 preset 与字段 params 同时出现时都保留', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const result = await runtime.call('vibe3d_material', {
+      op: 'create',
+      params: { preset: 'clay', params: { baseColor: [1, 0, 0, 1] } },
+    });
+    expect(result.isError).toBeFalsy();
+    const params = (calls.at(-1) as Call).params as Record<string, unknown>;
+    expect(params.preset).toBe('clay');
+    expect((params.params as Record<string, unknown>).baseColor).toEqual([1, 0, 0, 1]);
+  });
+
   it('合法调用不带 warning', async () => {
     const { studio } = fakeStudio();
     const runtime = new ToolRuntime(studio, 'r_0000000c');

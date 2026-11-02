@@ -798,7 +798,7 @@
                                 "spin",
                                 "keyframes"
                               ],
-                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                             },
                             "channel": {
                               "type": "string",
@@ -968,17 +968,16 @@
                                   "path",
                                   "keys"
                                 ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                               },
                               "minItems": 1,
                               "maxItems": 16,
                               "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                             }
                           },
-                          "required": [
-                            "type"
-                          ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "type": "array",
@@ -995,7 +994,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -1165,17 +1164,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "maxItems": 8
                         },
@@ -1305,7 +1303,7 @@
                                 "spin",
                                 "keyframes"
                               ],
-                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                             },
                             "channel": {
                               "type": "string",
@@ -1475,17 +1473,16 @@
                                   "path",
                                   "keys"
                                 ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                               },
                               "minItems": 1,
                               "maxItems": 16,
                               "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                             }
                           },
-                          "required": [
-                            "type"
-                          ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "type": "array",
@@ -1502,7 +1499,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -1672,17 +1669,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "maxItems": 8
                         },
@@ -2170,7 +2166,7 @@
                                 "spin",
                                 "keyframes"
                               ],
-                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                             },
                             "channel": {
                               "type": "string",
@@ -2340,17 +2336,16 @@
                                   "path",
                                   "keys"
                                 ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                               },
                               "minItems": 1,
                               "maxItems": 16,
                               "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                             }
                           },
-                          "required": [
-                            "type"
-                          ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "type": "array",
@@ -2367,7 +2362,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -2537,17 +2532,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "maxItems": 8
                         },
@@ -2783,7 +2777,7 @@
                                 "spin",
                                 "keyframes"
                               ],
-                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                             },
                             "channel": {
                               "type": "string",
@@ -2953,17 +2947,16 @@
                                   "path",
                                   "keys"
                                 ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                               },
                               "minItems": 1,
                               "maxItems": 16,
                               "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                             }
                           },
-                          "required": [
-                            "type"
-                          ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "type": "array",
@@ -2980,7 +2973,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -3150,17 +3143,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "maxItems": 8
                         },
@@ -6014,7 +6006,7 @@
                     "spin",
                     "keyframes"
                   ],
-                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                 },
                 "channel": {
                   "type": "string",
@@ -6184,17 +6176,16 @@
                       "path",
                       "keys"
                     ],
-                    "additionalProperties": false
+                    "additionalProperties": false,
+                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                   },
                   "minItems": 1,
                   "maxItems": 16,
                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                 }
               },
-              "required": [
-                "type"
-              ],
-              "additionalProperties": false
+              "additionalProperties": false,
+              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
             }
           }
         },
@@ -8237,7 +8228,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -8407,17 +8398,16 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "clips": {
                               "type": "array",
@@ -8434,7 +8424,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -8604,17 +8594,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -8750,7 +8739,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -8920,17 +8909,16 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "clips": {
                               "type": "array",
@@ -8947,7 +8935,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -9117,17 +9105,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -9620,7 +9607,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -9790,17 +9777,16 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "clips": {
                               "type": "array",
@@ -9817,7 +9803,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -9987,17 +9973,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -10239,7 +10224,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -10409,17 +10394,16 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "clips": {
                               "type": "array",
@@ -10436,7 +10420,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -10606,17 +10590,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -11236,7 +11219,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -11406,22 +11389,22 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             {
                               "type": "null"
                             }
-                          ]
+                          ],
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "anyOf": [
@@ -11440,7 +11423,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -11610,17 +11593,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -13086,7 +13068,7 @@
                             "spin",
                             "keyframes"
                           ],
-                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                         },
                         "channel": {
                           "type": "string",
@@ -13256,17 +13238,16 @@
                               "path",
                               "keys"
                             ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                           },
                           "minItems": 1,
                           "maxItems": 16,
                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                         }
                       },
-                      "required": [
-                        "type"
-                      ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                     },
                     "applyTo": {
                       "type": "string",
@@ -13351,7 +13332,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -13521,17 +13502,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           }
                         },
                         "required": [
@@ -14256,7 +14236,7 @@
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -14426,17 +14406,16 @@
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "clips": {
                                     "type": "array",
@@ -14453,7 +14432,7 @@
                                             "spin",
                                             "keyframes"
                                           ],
-                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                         },
                                         "channel": {
                                           "type": "string",
@@ -14623,17 +14602,16 @@
                                               "path",
                                               "keys"
                                             ],
-                                            "additionalProperties": false
+                                            "additionalProperties": false,
+                                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                           },
                                           "minItems": 1,
                                           "maxItems": 16,
                                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                         }
                                       },
-                                      "required": [
-                                        "type"
-                                      ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                     },
                                     "maxItems": 8
                                   },
@@ -14763,7 +14741,7 @@
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -14933,17 +14911,16 @@
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "clips": {
                                     "type": "array",
@@ -14960,7 +14937,7 @@
                                             "spin",
                                             "keyframes"
                                           ],
-                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                         },
                                         "channel": {
                                           "type": "string",
@@ -15130,17 +15107,16 @@
                                               "path",
                                               "keys"
                                             ],
-                                            "additionalProperties": false
+                                            "additionalProperties": false,
+                                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                           },
                                           "minItems": 1,
                                           "maxItems": 16,
                                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                         }
                                       },
-                                      "required": [
-                                        "type"
-                                      ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                     },
                                     "maxItems": 8
                                   },
@@ -15628,7 +15604,7 @@
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -15798,17 +15774,16 @@
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "clips": {
                                     "type": "array",
@@ -15825,7 +15800,7 @@
                                             "spin",
                                             "keyframes"
                                           ],
-                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                         },
                                         "channel": {
                                           "type": "string",
@@ -15995,17 +15970,16 @@
                                               "path",
                                               "keys"
                                             ],
-                                            "additionalProperties": false
+                                            "additionalProperties": false,
+                                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                           },
                                           "minItems": 1,
                                           "maxItems": 16,
                                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                         }
                                       },
-                                      "required": [
-                                        "type"
-                                      ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                     },
                                     "maxItems": 8
                                   },
@@ -16241,7 +16215,7 @@
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -16411,17 +16385,16 @@
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "clips": {
                                     "type": "array",
@@ -16438,7 +16411,7 @@
                                             "spin",
                                             "keyframes"
                                           ],
-                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                         },
                                         "channel": {
                                           "type": "string",
@@ -16608,17 +16581,16 @@
                                               "path",
                                               "keys"
                                             ],
-                                            "additionalProperties": false
+                                            "additionalProperties": false,
+                                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                           },
                                           "minItems": 1,
                                           "maxItems": 16,
                                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                         }
                                       },
-                                      "required": [
-                                        "type"
-                                      ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                     },
                                     "maxItems": 8
                                   },
@@ -17922,7 +17894,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -18092,17 +18064,16 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "clips": {
                               "type": "array",
@@ -18119,7 +18090,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -18289,17 +18260,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -18435,7 +18405,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -18605,17 +18575,16 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "clips": {
                               "type": "array",
@@ -18632,7 +18601,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -18802,17 +18771,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -19305,7 +19273,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -19475,17 +19443,16 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "clips": {
                               "type": "array",
@@ -19502,7 +19469,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -19672,17 +19639,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -19924,7 +19890,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -20094,17 +20060,16 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "clips": {
                               "type": "array",
@@ -20121,7 +20086,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -20291,17 +20256,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -20921,7 +20885,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -21091,22 +21055,22 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             {
                               "type": "null"
                             }
-                          ]
+                          ],
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "anyOf": [
@@ -21125,7 +21089,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -21295,17 +21259,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -22771,7 +22734,7 @@
                             "spin",
                             "keyframes"
                           ],
-                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                         },
                         "channel": {
                           "type": "string",
@@ -22941,17 +22904,16 @@
                               "path",
                               "keys"
                             ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                           },
                           "minItems": 1,
                           "maxItems": 16,
                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                         }
                       },
-                      "required": [
-                        "type"
-                      ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                     },
                     "applyTo": {
                       "type": "string",
@@ -23036,7 +22998,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -23206,17 +23168,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           }
                         },
                         "required": [
@@ -23941,7 +23902,7 @@
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -24111,17 +24072,16 @@
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "clips": {
                                     "type": "array",
@@ -24138,7 +24098,7 @@
                                             "spin",
                                             "keyframes"
                                           ],
-                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                         },
                                         "channel": {
                                           "type": "string",
@@ -24308,17 +24268,16 @@
                                               "path",
                                               "keys"
                                             ],
-                                            "additionalProperties": false
+                                            "additionalProperties": false,
+                                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                           },
                                           "minItems": 1,
                                           "maxItems": 16,
                                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                         }
                                       },
-                                      "required": [
-                                        "type"
-                                      ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                     },
                                     "maxItems": 8
                                   },
@@ -24448,7 +24407,7 @@
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -24618,17 +24577,16 @@
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "clips": {
                                     "type": "array",
@@ -24645,7 +24603,7 @@
                                             "spin",
                                             "keyframes"
                                           ],
-                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                         },
                                         "channel": {
                                           "type": "string",
@@ -24815,17 +24773,16 @@
                                               "path",
                                               "keys"
                                             ],
-                                            "additionalProperties": false
+                                            "additionalProperties": false,
+                                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                           },
                                           "minItems": 1,
                                           "maxItems": 16,
                                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                         }
                                       },
-                                      "required": [
-                                        "type"
-                                      ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                     },
                                     "maxItems": 8
                                   },
@@ -25313,7 +25270,7 @@
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -25483,17 +25440,16 @@
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "clips": {
                                     "type": "array",
@@ -25510,7 +25466,7 @@
                                             "spin",
                                             "keyframes"
                                           ],
-                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                         },
                                         "channel": {
                                           "type": "string",
@@ -25680,17 +25636,16 @@
                                               "path",
                                               "keys"
                                             ],
-                                            "additionalProperties": false
+                                            "additionalProperties": false,
+                                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                           },
                                           "minItems": 1,
                                           "maxItems": 16,
                                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                         }
                                       },
-                                      "required": [
-                                        "type"
-                                      ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                     },
                                     "maxItems": 8
                                   },
@@ -25926,7 +25881,7 @@
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -26096,17 +26051,16 @@
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "clips": {
                                     "type": "array",
@@ -26123,7 +26077,7 @@
                                             "spin",
                                             "keyframes"
                                           ],
-                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                         },
                                         "channel": {
                                           "type": "string",
@@ -26293,17 +26247,16 @@
                                               "path",
                                               "keys"
                                             ],
-                                            "additionalProperties": false
+                                            "additionalProperties": false,
+                                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                           },
                                           "minItems": 1,
                                           "maxItems": 16,
                                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                         }
                                       },
-                                      "required": [
-                                        "type"
-                                      ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                     },
                                     "maxItems": 8
                                   },
@@ -31782,7 +31735,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -31952,17 +31905,16 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "clips": {
                               "type": "array",
@@ -31979,7 +31931,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -32149,17 +32101,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -32295,7 +32246,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -32465,17 +32416,16 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "clips": {
                               "type": "array",
@@ -32492,7 +32442,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -32662,17 +32612,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -33165,7 +33114,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -33335,17 +33284,16 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "clips": {
                               "type": "array",
@@ -33362,7 +33310,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -33532,17 +33480,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -33784,7 +33731,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -33954,17 +33901,16 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             "clips": {
                               "type": "array",
@@ -33981,7 +33927,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -34151,17 +34097,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -34781,7 +34726,7 @@
                                     "spin",
                                     "keyframes"
                                   ],
-                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                  "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                 },
                                 "channel": {
                                   "type": "string",
@@ -34951,22 +34896,22 @@
                                       "path",
                                       "keys"
                                     ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                   },
                                   "minItems": 1,
                                   "maxItems": 16,
                                   "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                 }
                               },
-                              "required": [
-                                "type"
-                              ],
-                              "additionalProperties": false
+                              "additionalProperties": false,
+                              "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                             },
                             {
                               "type": "null"
                             }
-                          ]
+                          ],
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "anyOf": [
@@ -34985,7 +34930,7 @@
                                       "spin",
                                       "keyframes"
                                     ],
-                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                    "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                   },
                                   "channel": {
                                     "type": "string",
@@ -35155,17 +35100,16 @@
                                         "path",
                                         "keys"
                                       ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                     },
                                     "minItems": 1,
                                     "maxItems": 16,
                                     "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                   }
                                 },
-                                "required": [
-                                  "type"
-                                ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                               },
                               "maxItems": 8
                             },
@@ -36631,7 +36575,7 @@
                             "spin",
                             "keyframes"
                           ],
-                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                         },
                         "channel": {
                           "type": "string",
@@ -36801,17 +36745,16 @@
                               "path",
                               "keys"
                             ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                           },
                           "minItems": 1,
                           "maxItems": 16,
                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                         }
                       },
-                      "required": [
-                        "type"
-                      ],
-                      "additionalProperties": false
+                      "additionalProperties": false,
+                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                     },
                     "applyTo": {
                       "type": "string",
@@ -36896,7 +36839,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -37066,17 +37009,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           }
                         },
                         "required": [
@@ -37801,7 +37743,7 @@
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -37971,17 +37913,16 @@
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "clips": {
                                     "type": "array",
@@ -37998,7 +37939,7 @@
                                             "spin",
                                             "keyframes"
                                           ],
-                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                         },
                                         "channel": {
                                           "type": "string",
@@ -38168,17 +38109,16 @@
                                               "path",
                                               "keys"
                                             ],
-                                            "additionalProperties": false
+                                            "additionalProperties": false,
+                                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                           },
                                           "minItems": 1,
                                           "maxItems": 16,
                                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                         }
                                       },
-                                      "required": [
-                                        "type"
-                                      ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                     },
                                     "maxItems": 8
                                   },
@@ -38308,7 +38248,7 @@
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -38478,17 +38418,16 @@
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "clips": {
                                     "type": "array",
@@ -38505,7 +38444,7 @@
                                             "spin",
                                             "keyframes"
                                           ],
-                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                         },
                                         "channel": {
                                           "type": "string",
@@ -38675,17 +38614,16 @@
                                               "path",
                                               "keys"
                                             ],
-                                            "additionalProperties": false
+                                            "additionalProperties": false,
+                                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                           },
                                           "minItems": 1,
                                           "maxItems": 16,
                                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                         }
                                       },
-                                      "required": [
-                                        "type"
-                                      ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                     },
                                     "maxItems": 8
                                   },
@@ -39173,7 +39111,7 @@
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -39343,17 +39281,16 @@
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "clips": {
                                     "type": "array",
@@ -39370,7 +39307,7 @@
                                             "spin",
                                             "keyframes"
                                           ],
-                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                         },
                                         "channel": {
                                           "type": "string",
@@ -39540,17 +39477,16 @@
                                               "path",
                                               "keys"
                                             ],
-                                            "additionalProperties": false
+                                            "additionalProperties": false,
+                                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                           },
                                           "minItems": 1,
                                           "maxItems": 16,
                                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                         }
                                       },
-                                      "required": [
-                                        "type"
-                                      ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                     },
                                     "maxItems": 8
                                   },
@@ -39786,7 +39722,7 @@
                                           "spin",
                                           "keyframes"
                                         ],
-                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                        "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                       },
                                       "channel": {
                                         "type": "string",
@@ -39956,17 +39892,16 @@
                                             "path",
                                             "keys"
                                           ],
-                                          "additionalProperties": false
+                                          "additionalProperties": false,
+                                          "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                         },
                                         "minItems": 1,
                                         "maxItems": 16,
                                         "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                       }
                                     },
-                                    "required": [
-                                      "type"
-                                    ],
-                                    "additionalProperties": false
+                                    "additionalProperties": false,
+                                    "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                   },
                                   "clips": {
                                     "type": "array",
@@ -39983,7 +39918,7 @@
                                             "spin",
                                             "keyframes"
                                           ],
-                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                          "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                                         },
                                         "channel": {
                                           "type": "string",
@@ -40153,17 +40088,16 @@
                                               "path",
                                               "keys"
                                             ],
-                                            "additionalProperties": false
+                                            "additionalProperties": false,
+                                            "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                           },
                                           "minItems": 1,
                                           "maxItems": 16,
                                           "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                                         }
                                       },
-                                      "required": [
-                                        "type"
-                                      ],
-                                      "additionalProperties": false
+                                      "additionalProperties": false,
+                                      "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                                     },
                                     "maxItems": 8
                                   },
@@ -41620,7 +41554,7 @@
                   "spin",
                   "keyframes"
                 ],
-                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
               },
               "channel": {
                 "type": "string",
@@ -41790,17 +41724,16 @@
                     "path",
                     "keys"
                   ],
-                  "additionalProperties": false
+                  "additionalProperties": false,
+                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                 },
                 "minItems": 1,
                 "maxItems": 16,
                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
               }
             },
-            "required": [
-              "type"
-            ],
-            "additionalProperties": false
+            "additionalProperties": false,
+            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
           },
           "applyTo": {
             "type": "string",
@@ -41990,7 +41923,7 @@
                         "spin",
                         "keyframes"
                       ],
-                      "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                      "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                     },
                     "channel": {
                       "type": "string",
@@ -42160,17 +42093,16 @@
                           "path",
                           "keys"
                         ],
-                        "additionalProperties": false
+                        "additionalProperties": false,
+                        "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                       },
                       "minItems": 1,
                       "maxItems": 16,
                       "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                     }
                   },
-                  "required": [
-                    "type"
-                  ],
-                  "additionalProperties": false
+                  "additionalProperties": false,
+                  "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                 }
               },
               "required": [
@@ -42378,7 +42310,7 @@
                                 "spin",
                                 "keyframes"
                               ],
-                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                             },
                             "channel": {
                               "type": "string",
@@ -42548,17 +42480,16 @@
                                   "path",
                                   "keys"
                                 ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                               },
                               "minItems": 1,
                               "maxItems": 16,
                               "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                             }
                           },
-                          "required": [
-                            "type"
-                          ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "type": "array",
@@ -42575,7 +42506,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -42745,17 +42676,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "maxItems": 8
                         },
@@ -42885,7 +42815,7 @@
                                 "spin",
                                 "keyframes"
                               ],
-                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                             },
                             "channel": {
                               "type": "string",
@@ -43055,17 +42985,16 @@
                                   "path",
                                   "keys"
                                 ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                               },
                               "minItems": 1,
                               "maxItems": 16,
                               "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                             }
                           },
-                          "required": [
-                            "type"
-                          ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "type": "array",
@@ -43082,7 +43011,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -43252,17 +43181,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "maxItems": 8
                         },
@@ -43750,7 +43678,7 @@
                                 "spin",
                                 "keyframes"
                               ],
-                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                             },
                             "channel": {
                               "type": "string",
@@ -43920,17 +43848,16 @@
                                   "path",
                                   "keys"
                                 ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                               },
                               "minItems": 1,
                               "maxItems": 16,
                               "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                             }
                           },
-                          "required": [
-                            "type"
-                          ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "type": "array",
@@ -43947,7 +43874,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -44117,17 +44044,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "maxItems": 8
                         },
@@ -44363,7 +44289,7 @@
                                 "spin",
                                 "keyframes"
                               ],
-                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                             },
                             "channel": {
                               "type": "string",
@@ -44533,17 +44459,16 @@
                                   "path",
                                   "keys"
                                 ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                               },
                               "minItems": 1,
                               "maxItems": 16,
                               "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                             }
                           },
-                          "required": [
-                            "type"
-                          ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "type": "array",
@@ -44560,7 +44485,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -44730,17 +44655,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "maxItems": 8
                         },
@@ -46035,7 +45959,7 @@
                                 "spin",
                                 "keyframes"
                               ],
-                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                             },
                             "channel": {
                               "type": "string",
@@ -46205,17 +46129,16 @@
                                   "path",
                                   "keys"
                                 ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                               },
                               "minItems": 1,
                               "maxItems": 16,
                               "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                             }
                           },
-                          "required": [
-                            "type"
-                          ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "type": "array",
@@ -46232,7 +46155,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -46402,17 +46325,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "maxItems": 8
                         },
@@ -46542,7 +46464,7 @@
                                 "spin",
                                 "keyframes"
                               ],
-                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                             },
                             "channel": {
                               "type": "string",
@@ -46712,17 +46634,16 @@
                                   "path",
                                   "keys"
                                 ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                               },
                               "minItems": 1,
                               "maxItems": 16,
                               "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                             }
                           },
-                          "required": [
-                            "type"
-                          ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "type": "array",
@@ -46739,7 +46660,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -46909,17 +46830,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "maxItems": 8
                         },
@@ -47407,7 +47327,7 @@
                                 "spin",
                                 "keyframes"
                               ],
-                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                             },
                             "channel": {
                               "type": "string",
@@ -47577,17 +47497,16 @@
                                   "path",
                                   "keys"
                                 ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                               },
                               "minItems": 1,
                               "maxItems": 16,
                               "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                             }
                           },
-                          "required": [
-                            "type"
-                          ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "type": "array",
@@ -47604,7 +47523,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -47774,17 +47693,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "maxItems": 8
                         },
@@ -48020,7 +47938,7 @@
                                 "spin",
                                 "keyframes"
                               ],
-                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                              "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                             },
                             "channel": {
                               "type": "string",
@@ -48190,17 +48108,16 @@
                                   "path",
                                   "keys"
                                 ],
-                                "additionalProperties": false
+                                "additionalProperties": false,
+                                "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                               },
                               "minItems": 1,
                               "maxItems": 16,
                               "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                             }
                           },
-                          "required": [
-                            "type"
-                          ],
-                          "additionalProperties": false
+                          "additionalProperties": false,
+                          "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                         },
                         "clips": {
                           "type": "array",
@@ -48217,7 +48134,7 @@
                                   "spin",
                                   "keyframes"
                                 ],
-                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值"
+                                "description": "sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略"
                               },
                               "channel": {
                                 "type": "string",
@@ -48387,17 +48304,16 @@
                                     "path",
                                     "keys"
                                   ],
-                                  "additionalProperties": false
+                                  "additionalProperties": false,
+                                  "description": "一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp"
                                 },
                                 "minItems": 1,
                                 "maxItems": 16,
                                 "description": "通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）"
                               }
                             },
-                            "required": [
-                              "type"
-                            ],
-                            "additionalProperties": false
+                            "additionalProperties": false,
+                            "description": "程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环"
                           },
                           "maxItems": 8
                         },
@@ -52701,7 +52617,8 @@
               "right",
               "top",
               "three_quarter"
-            ]
+            ],
+            "description": "side 视作 right，iso/isometric 视作 three_quarter"
           },
           "solve": {
             "type": "object",
@@ -52991,7 +52908,8 @@
                   "right",
                   "top",
                   "three_quarter"
-                ]
+                ],
+                "description": "side 视作 right，iso/isometric 视作 three_quarter"
               },
               "padding": {
                 "type": "number"
@@ -54528,7 +54446,8 @@
                 "right",
                 "top",
                 "three_quarter"
-              ]
+              ],
+              "description": "side 视作 right，iso/isometric 视作 three_quarter"
             },
             "minItems": 1,
             "maxItems": 6
@@ -54733,7 +54652,8 @@
                     "right",
                     "top",
                     "three_quarter"
-                  ]
+                  ],
+                  "description": "side 视作 right，iso/isometric 视作 three_quarter"
                 },
                 "label": {
                   "type": "string"
@@ -54963,7 +54883,8 @@
                   "right",
                   "top",
                   "three_quarter"
-                ]
+                ],
+                "description": "side 视作 right，iso/isometric 视作 three_quarter"
               },
               {
                 "type": "null"
@@ -54984,7 +54905,8 @@
                     "right",
                     "top",
                     "three_quarter"
-                  ]
+                  ],
+                  "description": "side 视作 right，iso/isometric 视作 three_quarter"
                 },
                 "code": {
                   "type": "string"
@@ -55097,7 +55019,8 @@
               "right",
               "top",
               "three_quarter"
-            ]
+            ],
+            "description": "side 视作 right，iso/isometric 视作 three_quarter"
           },
           "padding": {
             "type": "number",

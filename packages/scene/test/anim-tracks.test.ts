@@ -13,6 +13,13 @@ const positionTrack = (interp?: string) => ({
   ],
 });
 
+describe('只有 tracks 的 clip', () => {
+  it('不产生 channel 增量', () => {
+    const c = clip({ tracks: [positionTrack()] });
+    expect(applyNodeClips(base, [c], 1).p).toEqual([2, 0, 0]);
+  });
+});
+
 describe('通用属性轨道求值', () => {
   it('position 轨道是绝对覆盖，不是增量', () => {
     const c = clip({ type: 'keyframes', tracks: [positionTrack()] });

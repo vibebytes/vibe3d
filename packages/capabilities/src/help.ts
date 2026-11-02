@@ -10,6 +10,7 @@ export interface ParamDoc {
   description?: string;
   values?: unknown[];
   default?: unknown;
+  fields?: ParamDoc[];
 }
 
 export interface CapabilityDoc {
@@ -31,17 +32,18 @@ type PropSchema = {
   enum?: unknown[];
   default?: unknown;
   anyOf?: PropSchema[];
+  properties?: Record<string, PropSchema>;
+  required?: string[];
+  items?: PropSchema;
 };
 
-export function paramDocs(capability: CapabilityName): ParamDoc[] {
-  const spec = CAPABILITIES[capability];
-  const schema = mcpInputSchema(spec) as {
-    properties?: Record<string, PropSchema>;
-    required?: string[];
-  };
+const MAX_DEPTH = 3;
+
+function propDocs(schema: PropSchema, depth: number): ParamDoc[] {
   const required = new Set(schema.required ?? []);
   return Object.entries(schema.properties ?? {}).map(([name, prop]) => {
-    const doc: ParamDoc = { name, required: required.has(name) };
+    const element = prop.type === 'array' && prop.items?.properties ? prop.items : undefined;
+    const doc: ParamDoc = { name: element ? `${name}[]` : name, required: required.has(name) };
     const type =
       prop.type ??
       prop.anyOf
@@ -52,8 +54,14 @@ export function paramDocs(capability: CapabilityName): ParamDoc[] {
     if (prop.description) doc.description = prop.description;
     if (prop.enum) doc.values = prop.enum;
     if (prop.default !== undefined) doc.default = prop.default;
+    const nested = element ?? (prop.properties ? prop : undefined);
+    if (nested && depth < MAX_DEPTH) doc.fields = propDocs(nested, depth + 1);
     return doc;
   });
+}
+
+export function paramDocs(capability: CapabilityName): ParamDoc[] {
+  return propDocs(mcpInputSchema(CAPABILITIES[capability]) as PropSchema, 0);
 }
 
 export function describeCapability(capability: CapabilityName): CapabilityDoc {

@@ -64,6 +64,7 @@ export const trackSchema = z
     interp: trackInterpSchema.optional(),
     keys: z.array(trackKeySchema).min(1).describe('按 t 升序；超出末帧保持末值'),
   })
+  .describe('一条属性轨道：path + 关键帧 keys[{t,v}] + 插值 interp')
   .superRefine((track, ctx) => {
     const vector =
       track.path === 'position' ||
@@ -90,7 +91,8 @@ const clipSchemaRuntime = z
   .object({
     type: z
       .enum(['sway', 'ripple', 'float', 'flicker', 'spin', 'keyframes'])
-      .describe('sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值'),
+      .optional()
+      .describe('sway/ripple/float/flicker/spin 为周期函数；keyframes 按 keys 插值；只给 tracks 时可省略'),
     channel: clipChannelSchema
       .optional()
       .describe('作用通道，缺省按类型推断（sway→rz、spin→ry、其余→py）；同通道 define 会替换'),
@@ -113,10 +115,17 @@ const clipSchemaRuntime = z
       .optional()
       .describe('通用属性轨道：绝对覆盖 transform（先于 channel 增量应用）'),
   })
-  .strict();
+  .strict()
+  .superRefine((clip, ctx) => {
+    if (clip.type === undefined && clip.tracks === undefined) {
+      ctx.addIssue({ code: 'custom', path: ['type'], message: '需要 type 或 tracks 至少一个' });
+    }
+  });
 
 export type ClipSpec = z.infer<typeof clipSchemaRuntime>;
-export const clipSchema: z.ZodType<ClipSpec> = clipSchemaRuntime;
+export const clipSchema: z.ZodType<ClipSpec> = clipSchemaRuntime.describe(
+  '程序化动画片段：type 选周期函数或 keyframes（标量增量）；tracks 为任意属性的绝对轨道（position/rotation/scale/bone.<名>.*），loop+duration 循环',
+);
 
 export const fxSchema = z.object({
   id: fxIdSchema,

@@ -9,7 +9,17 @@ import { z } from 'zod';
 import { intIn, numIn, revisionOut, roomId } from './common';
 
 const frameMode = z.enum(['fit', 'close', 'wide']);
-const viewName = z.enum(['front', 'back', 'left', 'right', 'top', 'three_quarter']);
+const VIEW_ALIASES: Record<string, string> = {
+  side: 'right',
+  iso: 'three_quarter',
+  isometric: 'three_quarter',
+};
+const viewName = z.preprocess(
+  (value) => (typeof value === 'string' ? (VIEW_ALIASES[value] ?? value) : value),
+  z
+    .enum(['front', 'back', 'left', 'right', 'top', 'three_quarter'])
+    .describe('side 视作 right，iso/isometric 视作 three_quarter'),
+);
 const targetBox = z.object({
   min: z.tuple([z.number(), z.number(), z.number()]),
   max: z.tuple([z.number(), z.number(), z.number()]),

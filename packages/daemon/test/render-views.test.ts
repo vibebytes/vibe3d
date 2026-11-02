@@ -57,6 +57,26 @@ describe('render.views', () => {
     expect(seen.every((o) => o.camera && o.width === 320 && o.height === 200)).toBe(true);
   });
 
+  it('accepts side and iso as aliases of right and three_quarter', async () => {
+    const h = makeHarness();
+    h.ctx.renderer = fakeRenderer([]) as unknown as DispatchContext['renderer'];
+    const { roomId } = await roomWithBox(h);
+    const { body } = await call(h, 'render.views', { roomId, views: ['side', 'iso'] }, roomId);
+    expect(body.error).toBeUndefined();
+    expect(body.result.views.map((v: any) => v.view)).toEqual(['right', 'three_quarter']);
+  });
+
+  it('lists all legal views when one is unknown', async () => {
+    const h = makeHarness();
+    h.ctx.renderer = fakeRenderer([]) as unknown as DispatchContext['renderer'];
+    const { roomId } = await roomWithBox(h);
+    const { body } = await call(h, 'render.views', { roomId, views: ['bogus'] }, roomId);
+    expect(codeOf(body)).toBe('E_INVALID_PARAMS');
+    const text = JSON.stringify(body.error);
+    for (const view of ['front', 'back', 'left', 'right', 'top', 'three_quarter'])
+      expect(text).toContain(view);
+  });
+
   it('defaults to three views and frames the whole scene', async () => {
     const h = makeHarness();
     const seen: SnapshotOptions[] = [];

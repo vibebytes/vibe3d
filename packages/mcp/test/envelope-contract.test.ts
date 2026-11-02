@@ -35,6 +35,26 @@ describe('envelope params description', () => {
   });
 });
 
+describe('envelope op coverage', () => {
+  it('mentions every op of the tool in the params description', () => {
+    for (const tool of multi.filter((t) => schemaOf(t.name).properties?.params)) {
+      const desc = paramsDesc(tool.name);
+      for (const op of schemaOf(tool.name).properties?.op?.enum as string[]) {
+        expect(desc, `${tool.name} misses ${op}`).toMatch(
+          new RegExp(`(^|[ ：])${op.replace('.', '\\.')}(\\{|[ 。]|$)`),
+        );
+      }
+    }
+  });
+
+  it('names tree and mannequin in the mesh tool title', () => {
+    const mesh = tools.find((tool) => tool.name === 'vibe3d_mesh');
+    const title = mesh?.description ?? '';
+    expect(title).toContain('树');
+    expect(title).toContain('人体');
+  });
+});
+
 describe('envelope per-op required', () => {
   it('names the required fields of each op', () => {
     expect(paramsDesc('vibe3d_node')).toContain('get{node_id}');

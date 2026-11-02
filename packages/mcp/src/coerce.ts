@@ -245,5 +245,6 @@ export function lenientRecord(value: unknown): Record<string, unknown> | undefin
   const record =
     typeof value === 'string' ? asPlainRecord(parseJsonish(value)) : asPlainRecord(deepCamel(value));
   if (!record) return undefined;
-  return asPlainRecord(record.params) ?? record;
+  const siblings = Object.keys(record).filter((key) => key !== 'params' && key !== 'op');
+  return siblings.length === 0 ? (asPlainRecord(record.params) ?? record) : record;
 }

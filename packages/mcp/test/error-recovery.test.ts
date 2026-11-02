@@ -82,6 +82,16 @@ describe('schema hints', () => {
     expect(hint).toContain('flat');
   });
 
+  it('lists enum values for a bad element inside an array field', () => {
+    const hint = schemaHint(
+      { views: ['bogus'] },
+      [{ path: ['views', 0], message: 'Invalid enum value' }],
+      CAPABILITIES['render.views'].input,
+    );
+    expect(hint).toContain('views.0');
+    expect(hint).toContain('three_quarter');
+  });
+
   it('keeps the array advice for array fields', () => {
     const hint = schemaHint(
       { ops: 'abc' },

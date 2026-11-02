@@ -421,6 +421,12 @@ export function schemaHint(
   const field = issue ? issue.path[0] : undefined;
   if (!issue || typeof field !== 'string') return '';
   const value = input[field];
+  const index = issue.path[1];
+  if (Array.isArray(value) && issue.path.length === 2 && typeof index === 'number') {
+    const element = childAt(schema, issue.path);
+    const list = element ? enumOptions(element).map(String).join(' / ') : '';
+    return list && typeof value[index] === 'string' ? `；${field}.${index} 只接受 ${list}` : '';
+  }
   if (isRecord(value)) return '';
   const node = childAt(schema, issue.path) ?? childAt(schema, [field]);
   if (!node) return '';

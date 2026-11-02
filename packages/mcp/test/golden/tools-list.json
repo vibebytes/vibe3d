@@ -140,7 +140,7 @@
         },
         "params": {
           "type": "object",
-          "description": "必填字段：use{room_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：create list use{room_id} get close timeline。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -187,7 +187,7 @@
         },
         "params": {
           "type": "object",
-          "description": "必填字段：import{doc} restore{checkpoint_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：get summary query stats pick validate undo redo diff export import{doc} checkpoint checkpoints restore{checkpoint_id} selection。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -232,7 +232,7 @@
         },
         "params": {
           "type": "object",
-          "description": "必填字段：create{kind} update{node_id,patch} delete{node_id} clone{node_id} get{node_id} reparent{node_id,parent} array{node_id,count} attach{node_id,target_id,face} group{ids,name} merge{node_id} fit_screen{node_id,rect}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：create{kind} update{node_id,patch} delete{node_id} clone{node_id} get{node_id} reparent{node_id,parent} transform array{node_id,count} attach{node_id,target_id,face} group{ids,name} merge{node_id} fit_screen{node_id,rect} import。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -263,7 +263,7 @@
         },
         "params": {
           "type": "object",
-          "description": "必填字段：patch{material_id,patch} map{material_id} assign{material_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：create patch{material_id,patch} map{material_id} assign{material_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -294,7 +294,7 @@
         },
         "params": {
           "type": "object",
-          "description": "必填字段：set{stage}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：set{stage} env。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -325,7 +325,7 @@
         },
         "params": {
           "type": "object",
-          "description": "必填字段：define{node_id,clip} play{node_id} stop{node_id} clear{node_id} pose{targets}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：define{node_id,clip} play{node_id} stop{node_id} clear{node_id} pose{targets}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -356,7 +356,7 @@
         },
         "params": {
           "type": "object",
-          "description": "必填字段：create{type} delete{fx_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：create{type} delete{fx_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -375,7 +375,7 @@
   },
   {
     "name": "vibe3d_mesh",
-    "description": "[mesh] 网格构造：布尔 / 管体 / 背板 / 车削 / 有机体 / 倒角 / 贴花｜op: boolean tube backdrop lathe organic bevel tree mannequin decal｜必填见 params 描述，字段见 vibe3d_help {tool, op}｜decal 用真字形/图片；color 用 [r,g,b,a] 或 '#RRGGBB'",
+    "description": "[mesh] 网格构造：布尔 / 管体 / 背板 / 车削 / 有机体 / 倒角 / 树 / 人体 / 贴花｜op: boolean tube backdrop lathe organic bevel tree mannequin decal｜必填见 params 描述，字段见 vibe3d_help {tool, op}｜decal 用真字形/图片；color 用 [r,g,b,a] 或 '#RRGGBB'",
     "inputSchema": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
@@ -387,7 +387,7 @@
         },
         "params": {
           "type": "object",
-          "description": "必填字段：boolean{target,tool} tube{points,radius} lathe{profile} organic{radius,seed} bevel{size,radius} tree{height,spread,levels,seed}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：boolean{target,tool} tube{points,radius} backdrop lathe{profile} organic{radius,seed} bevel{size,radius} tree{height,spread,levels,seed} mannequin decal。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -418,7 +418,7 @@
         },
         "params": {
           "type": "object",
-          "description": "必填字段：inspect{src} put{src} delete{sha}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：inspect{src} put{src} list delete{sha}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -449,7 +449,7 @@
         },
         "params": {
           "type": "object",
-          "description": "必填字段：save{name} delete{name} project{points} unproject{points}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：set save{name} delete{name} project{points} unproject{points}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -480,7 +480,7 @@
         },
         "params": {
           "type": "object",
-          "description": "必填字段：node{node_id} assert{anchors} sequence{from,to,fps} video{from,to,fps}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：snapshot views node{node_id} pick assert{anchors} id_pass sequence{from,to,fps} video{from,to,fps}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -548,7 +548,7 @@
         },
         "params": {
           "type": "object",
-          "description": "必填字段：get{job_id} cancel{job_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：get{job_id} list cancel{job_id}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",

@@ -13,6 +13,7 @@ export {
   applyNodeClips,
   boneTracksOf,
   clipChannelOf,
+  clipKeyOf,
   nodeClipsOf,
   sampleClip,
   sampleTrack,
