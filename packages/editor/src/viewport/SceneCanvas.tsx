@@ -326,9 +326,11 @@ function ClipDriver({ doc, enabled }: { doc: SceneDoc; enabled: boolean }) {
   const nodes = doc.nodes;
   const clips = useMemo(() => clipsOf({ nodes }), [nodes]);
   const active = Object.keys(clips).length > 0;
+  const wasActive = useRef(false);
   useFrame(() => {
-    if (!enabled || !active) return;
+    if (!enabled || (!active && !wasActive.current)) return;
     applyFrameAnimations(scene, { nodes }, usePlayback.getState().time);
+    wasActive.current = active;
   });
   return null;
 }

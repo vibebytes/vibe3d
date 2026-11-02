@@ -193,12 +193,13 @@ export function applyBoneTracks(root: THREE.Object3D, clips: ClipSpec[], time: n
     const obj = bones.get(name);
     return obj ? boneBaseOf(obj) : undefined;
   });
-  for (const [name, pose] of poses) {
-    const obj = bones.get(name);
-    if (!obj) continue;
+  for (const [name, obj] of bones) {
+    const pose = poses.get(name) ?? BONE_BASES.get(obj);
+    if (!pose) continue;
     obj.position.set(pose.p[0], pose.p[1], pose.p[2]);
     obj.rotation.set(pose.r[0], pose.r[1], pose.r[2]);
     obj.scale.set(pose.s[0], pose.s[1], pose.s[2]);
+    if (!poses.has(name)) BONE_BASES.delete(obj);
   }
 }
 
@@ -213,6 +214,9 @@ export function applyProceduralClips(
     if (!nodeId || !obj.userData.ownsTransform) return;
     const nodeClips = clips[nodeId];
     const declared = bases?.[nodeId];
+    const props = nodeClips?.length ? propertyTracks(nodeClips, time) : {};
+    applyVisible(obj, props.visible);
+    ownMeshes(obj, nodeId, (mesh) => applyOpacity(mesh, props.opacity));
     if (!nodeClips || nodeClips.length === 0) {
       const base = declared ?? (BASES.has(obj) ? baseOf(obj) : undefined);
       if (!base) return;
@@ -227,28 +231,63 @@ export function applyProceduralClips(
     obj.position.set(out.p[0], out.p[1], out.p[2]);
     obj.rotation.set(out.r[0], out.r[1], out.r[2]);
     obj.scale.set(out.s[0], out.s[1], out.s[2]);
-    const props = propertyTracks(nodeClips, time);
-    if (props.visible !== undefined) obj.visible = props.visible;
-    if (props.opacity !== undefined) applyOpacity(obj, nodeId, props.opacity);
   });
 }
 
-function applyOpacity(obj: THREE.Object3D, nodeId: string, opacity: number): void {
+const VISIBLE = new WeakMap<THREE.Object3D, boolean>();
+
+/** Track value when given; otherwise the visibility saved before the first override. */
+function applyVisible(obj: THREE.Object3D, visible: boolean | undefined): void {
+  if (visible === undefined) {
+    const saved = VISIBLE.get(obj);
+    if (saved === undefined) return;
+    obj.visible = saved;
+    VISIBLE.delete(obj);
+    return;
+  }
+  if (!VISIBLE.has(obj)) VISIBLE.set(obj, obj.visible);
+  obj.visible = visible;
+}
+
+function ownMeshes(obj: THREE.Object3D, nodeId: string, fn: (mesh: THREE.Mesh) => void): void {
   obj.traverse((child) => {
     const owner = child.userData.nodeId as string | undefined;
     if (owner && owner !== nodeId) return;
-    const mesh = child as THREE.Mesh;
-    if (!mesh.isMesh) return;
-    if (!mesh.userData.ownsOpacity) {
-      mesh.material = Array.isArray(mesh.material)
-        ? mesh.material.map((m) => m.clone())
-        : mesh.material.clone();
-      mesh.userData.ownsOpacity = true;
-    }
-    for (const mat of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
-      mat.opacity = opacity;
-      mat.transparent = opacity < 1;
-      mat.depthWrite = opacity >= 1;
-    }
+    if ((child as THREE.Mesh).isMesh) fn(child as THREE.Mesh);
   });
+}
+
+type Mats = THREE.Material | THREE.Material[];
+const listOf = (m: Mats): THREE.Material[] => (Array.isArray(m) ? m : [m]);
+
+/** Per-mesh clone that carries the animated opacity, and the material it replaced. */
+const OPACITY = new WeakMap<THREE.Mesh, { original: Mats; clone: Mats }>();
+
+function applyOpacity(mesh: THREE.Mesh, opacity: number | undefined): void {
+  const owned = OPACITY.get(mesh);
+  const live = owned && mesh.material === owned.clone ? owned : undefined;
+  if (owned && !live) {
+    for (const m of listOf(owned.clone)) m.dispose();
+    OPACITY.delete(mesh);
+  }
+  if (opacity === undefined) {
+    if (!live) return;
+    mesh.material = live.original;
+    for (const m of listOf(live.clone)) m.dispose();
+    OPACITY.delete(mesh);
+    return;
+  }
+  const entry = live ?? {
+    original: mesh.material,
+    clone: Array.isArray(mesh.material) ? mesh.material.map((m) => m.clone()) : mesh.material.clone(),
+  };
+  if (!live) {
+    OPACITY.set(mesh, entry);
+    mesh.material = entry.clone;
+  }
+  for (const mat of listOf(entry.clone)) {
+    mat.opacity = opacity;
+    mat.transparent = opacity < 1;
+    mat.depthWrite = opacity >= 1;
+  }
 }
