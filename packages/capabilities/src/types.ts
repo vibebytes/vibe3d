@@ -97,8 +97,33 @@ export function resolveAnnotations(spec: {
 }
 
 export interface CliSpec {
+  /** 命令路径，如 'anim gait'；全局唯一 */
   command: string;
-  args: string;
+  /** 同义命令，兼容旧写法；只在详细帮助里列出 */
+  synonyms?: readonly string[];
+  /**
+   * 位置参数对应的输入字段，按顺序。
+   * room 作用域由 positionalOf 自动在最前面补 roomId，这里不要重复。
+   */
+  positional?: readonly string[];
+  /** 兼容旧 flag：flag（kebab，不带 --）→ 字段路径，支持点路径 */
+  aliases?: Readonly<Record<string, string>>;
+  /** 这些对象字段的子字段可以直接作为顶层 flag */
+  flatten?: readonly string[];
+  /** flag → 布尔字段，值取反 */
+  negate?: Readonly<Record<string, string>>;
+  /** 字段 → { 文本: 值 } */
+  values?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+  /** 字段未给出时才填入的 CLI 默认值 */
+  defaults?: Readonly<Record<string, unknown>>;
+  /** 异步任务：file 下载到 --out 文件；frames 下载到 --out 目录 */
+  job?: 'file' | 'frames';
+  /** 由本地命令接管执行 */
+  local?: true;
+  /** 最小可运行示例，不含 vibe3d 前缀 */
+  example: string;
+  /** 过渡期的手写用法。P2.3 删除，改由 schema 生成。 */
+  args?: string;
 }
 
 export interface McpSpec {
@@ -159,8 +184,11 @@ export function defineCapabilities<const T extends SpecRecord>(specs: T): T {
       }
     }
     if (spec.cli) {
-      if (seenCli.has(spec.cli.command)) throw new Error(`${name}: cli 命令重复 ${spec.cli.command}`);
-      seenCli.add(spec.cli.command);
+      const names = [spec.cli.command, ...(spec.cli.synonyms ?? [])];
+      for (const command of names) {
+        if (seenCli.has(command)) throw new Error(`${name}: cli 命令重复 ${command}`);
+        seenCli.add(command);
+      }
     }
     if (spec.hostCoupled && name !== 'editor.open') {
       throw new Error(`${name}: 只有 editor.open 可以声明 hostCoupled`);

@@ -172,7 +172,7 @@ export function buildTypes(): string {
 export function buildCli(): string {
   const rows = CAPABILITY_NAMES.map((name) => {
     const cli = specOf(name).cli;
-    if (!cli) return null;
+    if (!cli || cli.args === undefined) return null;
     return `  { command: ${JSON.stringify(cli.command)}, args: ${JSON.stringify(cli.args)}, capability: ${JSON.stringify(name)} },`;
   }).filter(Boolean);
   return [HEADER, 'export const CLI_COMMANDS = [', ...rows.map((r) => r as string), '] as const;', ''].join(

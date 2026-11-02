@@ -27,6 +27,8 @@ export const animOps = {
     cli: {
       command: 'anim play',
       args: '<roomId> <nodeId> [--clip <name>] [--clips idle,wave] [--speed 1] [--loop false] [--direction reverse] [--weight 0.5]',
+      positional: ['nodeId'],
+      example: 'anim play r1 n1 --clip wave',
     },
     errors: ['E_INVALID_PARAMS', 'E_ROOM_NOT_FOUND'] as const,
   },
@@ -37,7 +39,12 @@ export const animOps = {
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.apply' as const,
-    cli: { command: 'anim stop', args: '<roomId> <nodeId>' },
+    cli: {
+      command: 'anim stop',
+      args: '<roomId> <nodeId>',
+      positional: ['nodeId'],
+      example: 'anim stop r1 n1',
+    },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'animation.define': {
@@ -56,6 +63,10 @@ export const animOps = {
     cli: {
       command: 'anim define',
       args: '<roomId> <nodeId> --type sway [--axis x|y|z] [--gust 0..1] [--apply-to subtree]；任意属性用 --clip-json \'{"tracks":[{"path":"position","keys":[{"t":0,"v":[0,0,0]}]}]}\'',
+      positional: ['nodeId'],
+      flatten: ['clip'],
+      aliases: { 'clip-json': 'clip' },
+      example: 'anim define r1 n1 --type sway',
     },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
@@ -72,7 +83,12 @@ export const animOps = {
     mutating: true,
     wire: 'scene.apply' as const,
     mcp: { annotations: { destructiveHint: true } },
-    cli: { command: 'anim clear', args: '<roomId> <nodeId> [--apply-to subtree] [--channel ry]' },
+    cli: {
+      command: 'anim clear',
+      args: '<roomId> <nodeId> [--apply-to subtree] [--channel ry]',
+      positional: ['nodeId'],
+      example: 'anim clear r1 n1',
+    },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'animation.pose': {
@@ -88,7 +104,7 @@ export const animOps = {
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.apply' as const,
-    cli: { command: 'anim pose', args: '<roomId> --targets <json>' },
+    cli: { command: 'anim pose', args: '<roomId> --targets <json>', example: 'anim pose r1 --targets []' },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'animation.gait': {
@@ -126,6 +142,8 @@ export const animOps = {
     cli: {
       command: 'anim gait',
       args: '<roomId> <nodeId> --style walk|run|idle [--period s] [--stride m] [--arm-swing rad]',
+      positional: ['nodeId'],
+      example: 'anim gait r1 @runner --style run',
     },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },

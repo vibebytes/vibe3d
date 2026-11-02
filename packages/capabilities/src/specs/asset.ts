@@ -33,6 +33,8 @@ export const assetOps = {
     cli: {
       command: 'model import',
       args: '<roomId> <src|--sha sha> [--name n] [--align ground|center|none] [--autoplay]',
+      positional: ['src'],
+      example: 'model import r1 ./a.glb',
     },
     errors: [
       'E_ASSET_FORMAT',
@@ -55,7 +57,12 @@ export const assetOps = {
     mutating: false,
     wire: 'asset.inspect' as const,
     mcp: { annotations: { readOnlyHint: true } },
-    cli: { command: 'asset inspect', args: '<roomId> <src>' },
+    cli: {
+      command: 'asset inspect',
+      args: '<roomId> <src>',
+      positional: ['src'],
+      example: 'asset inspect r1 ./a.glb',
+    },
     errors: ['E_ASSET_FORMAT', 'E_ASSET_EXTERNAL_REFS'] as const,
   },
   'asset.put': {
@@ -75,7 +82,12 @@ export const assetOps = {
     scope: 'room' as const,
     mutating: true,
     wire: 'asset.put' as const,
-    cli: { command: 'asset put', args: '<roomId> <src> [--name n]' },
+    cli: {
+      command: 'asset put',
+      args: '<roomId> <src> [--name n]',
+      positional: ['src'],
+      example: 'asset put r1 ./a.png',
+    },
     errors: [
       'E_ASSET_FORMAT',
       'E_ASSET_TYPE',
@@ -96,7 +108,7 @@ export const assetOps = {
     mutating: false,
     wire: 'asset.list' as const,
     mcp: { annotations: { readOnlyHint: true } },
-    cli: { command: 'asset ls', args: '<roomId>' },
+    cli: { command: 'asset ls', args: '<roomId>', synonyms: ['asset list'], example: 'asset ls r1' },
     errors: ['E_ROOM_NOT_FOUND'] as const,
   },
   'asset.delete': {
@@ -107,7 +119,13 @@ export const assetOps = {
     mutating: true,
     wire: 'asset.delete' as const,
     mcp: { annotations: { destructiveHint: true } },
-    cli: { command: 'asset rm', args: '<roomId> <sha>' },
+    cli: {
+      command: 'asset rm',
+      args: '<roomId> <sha>',
+      positional: ['sha'],
+      synonyms: ['asset delete'],
+      example: 'asset rm r1 s1',
+    },
     errors: ['E_ASSET_MISSING', 'E_ASSET_IN_USE', 'E_ROOM_NOT_FOUND'] as const,
   },
 };

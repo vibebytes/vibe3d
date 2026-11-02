@@ -21,7 +21,9 @@
       },
       "cli": {
         "command": "status",
-        "args": ""
+        "args": "",
+        "local": true,
+        "example": "status"
       },
       "input": {
         "type": "object",
@@ -126,7 +128,9 @@
       },
       "cli": {
         "command": "room new",
-        "args": "[--name <name>] [--template <t>]"
+        "args": "[--name <name>] [--template <t>]",
+        "local": true,
+        "example": "room new --name demo"
       },
       "input": {
         "type": "object",
@@ -201,7 +205,11 @@
       },
       "cli": {
         "command": "room ls",
-        "args": "[--limit n] [--cursor c]"
+        "args": "[--limit n] [--cursor c]",
+        "synonyms": [
+          "room list"
+        ],
+        "example": "room ls"
       },
       "input": {
         "type": "object",
@@ -311,7 +319,8 @@
       },
       "cli": {
         "command": "room use",
-        "args": "<roomId>"
+        "args": "<roomId>",
+        "example": "room use r1"
       },
       "input": {
         "type": "object",
@@ -385,7 +394,8 @@
       },
       "cli": {
         "command": "room show",
-        "args": "<roomId>"
+        "args": "<roomId>",
+        "example": "room show r1"
       },
       "input": {
         "type": "object",
@@ -472,7 +482,11 @@
       },
       "cli": {
         "command": "room rm",
-        "args": "<roomId> [--purge]"
+        "args": "<roomId> [--purge]",
+        "synonyms": [
+          "room close"
+        ],
+        "example": "room rm r1"
       },
       "input": {
         "type": "object",
@@ -562,7 +576,8 @@
       },
       "cli": {
         "command": "room timeline",
-        "args": "<roomId> [--limit n]"
+        "args": "<roomId> [--limit n]",
+        "example": "room timeline r1"
       },
       "input": {
         "type": "object",
@@ -654,7 +669,8 @@
       },
       "cli": {
         "command": "scene get",
-        "args": "<roomId>"
+        "args": "<roomId>",
+        "example": "scene get r1"
       },
       "input": {
         "type": "object",
@@ -4569,7 +4585,8 @@
       },
       "cli": {
         "command": "scene summary",
-        "args": "<roomId>"
+        "args": "<roomId>",
+        "example": "scene summary r1"
       },
       "input": {
         "type": "object",
@@ -4856,7 +4873,17 @@
       },
       "cli": {
         "command": "scene query",
-        "args": "<roomId> [--name <text>] [--kind mesh] [--tags a,b] [--parent <nodeId>|root] [--has-children] [--within-bbox <json>] [--bbox <json>] [--min-y 0.9] [--limit 50] [--cursor 0]"
+        "args": "<roomId> [--name <text>] [--kind mesh] [--tags a,b] [--parent <nodeId>|root] [--has-children] [--within-bbox <json>] [--bbox <json>] [--min-y 0.9] [--limit 50] [--cursor 0]",
+        "aliases": {
+          "material": "materialId",
+          "parent": "parentId"
+        },
+        "values": {
+          "parentId": {
+            "root": null
+          }
+        },
+        "example": "scene query r1 --name box"
       },
       "input": {
         "type": "object",
@@ -5241,7 +5268,11 @@
       },
       "cli": {
         "command": "node get",
-        "args": "<roomId> <nodeId>"
+        "args": "<roomId> <nodeId>",
+        "positional": [
+          "nodeId"
+        ],
+        "example": "node get r1 n1"
       },
       "input": {
         "type": "object",
@@ -6558,7 +6589,8 @@
       },
       "cli": {
         "command": "scene stats",
-        "args": "<roomId> [--budget <json>] [--enforce]"
+        "args": "<roomId> [--budget <json>] [--enforce]",
+        "example": "scene stats r1"
       },
       "input": {
         "type": "object",
@@ -6822,7 +6854,8 @@
       },
       "cli": {
         "command": "scene pick",
-        "args": "<roomId> [--point 0.5,0.5] [--width 1280] [--height 720]"
+        "args": "<roomId> [--point 0.5,0.5] [--width 1280] [--height 720]",
+        "example": "scene pick r1 --point 0.5,0.5"
       },
       "input": {
         "type": "object",
@@ -7141,7 +7174,8 @@
       },
       "cli": {
         "command": "scene validate",
-        "args": "<roomId> [--checks floating,intersect] [--tolerance 0.02]"
+        "args": "<roomId> [--checks floating,intersect] [--tolerance 0.02]",
+        "example": "scene validate r1"
       },
       "input": {
         "type": "object",
@@ -7444,7 +7478,8 @@
       },
       "cli": {
         "command": "node transform-many",
-        "args": "<roomId> [--ids a,b] [--filter <json>] [--translate 0,1,0]"
+        "args": "<roomId> [--ids a,b] [--filter <json>] [--translate 0,1,0]",
+        "example": "node transform-many r1 --translate 0,1,0"
       },
       "input": {
         "type": "object",
@@ -7598,7 +7633,11 @@
       },
       "cli": {
         "command": "node array",
-        "args": "<roomId> <nodeId> --count 5 --offset 1,0,0"
+        "args": "<roomId> <nodeId> --count 5 --offset 1,0,0",
+        "positional": [
+          "id"
+        ],
+        "example": "node array r1 n1 --count 5"
       },
       "input": {
         "type": "object",
@@ -7767,7 +7806,14 @@
       },
       "cli": {
         "command": "node attach",
-        "args": "<roomId> <nodeId> --target <id> --face top [--corner min-min] [--gap 0.05]"
+        "args": "<roomId> <nodeId> --target <id> --face top [--corner min-min] [--gap 0.05]",
+        "positional": [
+          "id"
+        ],
+        "aliases": {
+          "target": "targetId"
+        },
+        "example": "node attach r1 n1 --target n2 --face top"
       },
       "input": {
         "type": "object",
@@ -7904,7 +7950,8 @@
       },
       "cli": {
         "command": "node group",
-        "args": "<roomId> --ids a,b --name 组名 [--no-keep-world]"
+        "args": "<roomId> --ids a,b --name 组名 [--no-keep-world]",
+        "example": "node group r1 --ids n1,n2 --name g"
       },
       "input": {
         "type": "object",
@@ -7983,7 +8030,11 @@
       },
       "cli": {
         "command": "node merge",
-        "args": "<roomId> <nodeId> [--material <id>]"
+        "args": "<roomId> <nodeId> [--material <id>]",
+        "positional": [
+          "nodeId"
+        ],
+        "example": "node merge r1 n1"
       },
       "input": {
         "type": "object",
@@ -8081,7 +8132,11 @@
       },
       "cli": {
         "command": "node fit-screen",
-        "args": "<roomId> <nodeId> --rect <json> [--anchor center|bottom|top]"
+        "args": "<roomId> <nodeId> --rect <json> [--anchor center|bottom|top]",
+        "positional": [
+          "nodeId"
+        ],
+        "example": "node fit-screen r1 n1 --rect {}"
       },
       "input": {
         "type": "object",
@@ -8239,7 +8294,16 @@
       },
       "cli": {
         "command": "node reparent",
-        "args": "<roomId> <nodeId> --parent <id>|--root [--no-keep-world]"
+        "args": "<roomId> <nodeId> --parent <id>|--root [--no-keep-world]",
+        "positional": [
+          "id"
+        ],
+        "values": {
+          "parent": {
+            "root": null
+          }
+        },
+        "example": "node reparent r1 n1 --parent root"
       },
       "input": {
         "type": "object",
@@ -8318,7 +8382,11 @@
       },
       "cli": {
         "command": "material assign",
-        "args": "<roomId> --material <id> [--ids a,b] [--filter <json>]"
+        "args": "<roomId> --material <id> [--ids a,b] [--filter <json>]",
+        "aliases": {
+          "material": "materialId"
+        },
+        "example": "material assign r1 --material m1"
       },
       "input": {
         "type": "object",
@@ -8428,7 +8496,8 @@
       },
       "cli": {
         "command": "scene apply",
-        "args": "<roomId> --ops <json|@file>"
+        "args": "<roomId> --ops <json|@file>",
+        "example": "scene apply r1 --ops []"
       },
       "input": {
         "type": "object",
@@ -29145,7 +29214,12 @@
       },
       "cli": {
         "command": "node create",
-        "args": "<roomId> --kind mesh --shape box [--upsert-by-name] [--tags a,b]"
+        "args": "<roomId> --kind mesh --shape box [--upsert-by-name] [--tags a,b]",
+        "defaults": {
+          "kind": "mesh",
+          "parent": null
+        },
+        "example": "node create r1 --shape box"
       },
       "input": {
         "type": "object",
@@ -30191,7 +30265,11 @@
       },
       "cli": {
         "command": "node update",
-        "args": "<roomId> <nodeId> --patch <json>"
+        "args": "<roomId> <nodeId> --patch <json>",
+        "positional": [
+          "nodeId"
+        ],
+        "example": "node update r1 n1 --patch {}"
       },
       "input": {
         "type": "object",
@@ -30533,7 +30611,14 @@
       },
       "cli": {
         "command": "node rm",
-        "args": "<roomId> <nodeId> [--no-cascade]"
+        "args": "<roomId> <nodeId> [--no-cascade]",
+        "positional": [
+          "nodeId"
+        ],
+        "synonyms": [
+          "node delete"
+        ],
+        "example": "node rm r1 n1"
       },
       "input": {
         "type": "object",
@@ -30598,7 +30683,16 @@
       },
       "cli": {
         "command": "node clone",
-        "args": "<roomId> <nodeId> [--count 2] [--parent <id>]"
+        "args": "<roomId> <nodeId> [--count 2] [--parent <id>]",
+        "positional": [
+          "nodeId"
+        ],
+        "values": {
+          "parent": {
+            "root": null
+          }
+        },
+        "example": "node clone r1 n1"
       },
       "input": {
         "type": "object",
@@ -30743,7 +30837,11 @@
       },
       "cli": {
         "command": "stage set",
-        "args": "<roomId> --preset cine"
+        "args": "<roomId> --preset cine",
+        "flatten": [
+          "stage"
+        ],
+        "example": "stage set r1 --preset cine"
       },
       "input": {
         "type": "object",
@@ -31136,7 +31234,14 @@
       },
       "cli": {
         "command": "fx create",
-        "args": "<roomId> --type particles"
+        "args": "<roomId> --type particles",
+        "aliases": {
+          "node": "nodeId"
+        },
+        "defaults": {
+          "type": "particles"
+        },
+        "example": "fx create r1"
       },
       "input": {
         "type": "object",
@@ -31329,7 +31434,14 @@
       },
       "cli": {
         "command": "fx rm",
-        "args": "<roomId> <fxId>"
+        "args": "<roomId> <fxId>",
+        "positional": [
+          "fxId"
+        ],
+        "synonyms": [
+          "fx delete"
+        ],
+        "example": "fx rm r1 f1"
       },
       "input": {
         "type": "object",
@@ -31390,7 +31502,8 @@
       },
       "cli": {
         "command": "material create",
-        "args": "<roomId> --preset concrete"
+        "args": "<roomId> --preset concrete",
+        "example": "material create r1 --preset concrete"
       },
       "input": {
         "type": "object",
@@ -31906,7 +32019,14 @@
       },
       "cli": {
         "command": "material patch",
-        "args": "<roomId> <materialId> --roughness 0.3"
+        "args": "<roomId> <materialId> --roughness 0.3",
+        "positional": [
+          "materialId"
+        ],
+        "flatten": [
+          "patch"
+        ],
+        "example": "material patch r1 m1 --roughness 0.3"
       },
       "input": {
         "type": "object",
@@ -32367,7 +32487,11 @@
       },
       "cli": {
         "command": "material map",
-        "args": "<roomId> <materialId> --sha <sha> --tiling 2,2"
+        "args": "<roomId> <materialId> --sha <sha> --tiling 2,2",
+        "positional": [
+          "materialId"
+        ],
+        "example": "material map r1 m1 --sha s1"
       },
       "input": {
         "type": "object",
@@ -32654,7 +32778,13 @@
       },
       "cli": {
         "command": "env set",
-        "args": "<roomId> [--fog near,far]"
+        "args": "<roomId> [--fog near,far]",
+        "aliases": {
+          "hdri": "hdriSrc",
+          "hdri-sha": "hdri",
+          "fog-color": "fog.color"
+        },
+        "example": "env set r1 --fog 5,40"
       },
       "input": {
         "type": "object",
@@ -33114,7 +33244,8 @@
       },
       "cli": {
         "command": "scene undo",
-        "args": "<roomId> [--op-id id]"
+        "args": "<roomId> [--op-id id]",
+        "example": "scene undo r1"
       },
       "input": {
         "type": "object",
@@ -33172,7 +33303,8 @@
       },
       "cli": {
         "command": "scene redo",
-        "args": "<roomId>"
+        "args": "<roomId>",
+        "example": "scene redo r1"
       },
       "input": {
         "type": "object",
@@ -33225,7 +33357,8 @@
       },
       "cli": {
         "command": "scene diff",
-        "args": "<roomId> [--from n] [--to n] [--visual]"
+        "args": "<roomId> [--from n] [--to n] [--visual]",
+        "example": "scene diff r1"
       },
       "input": {
         "type": "object",
@@ -43630,7 +43763,8 @@
       },
       "cli": {
         "command": "selection get",
-        "args": "<roomId>"
+        "args": "<roomId>",
+        "example": "selection get r1"
       },
       "input": {
         "type": "object",
@@ -43684,7 +43818,11 @@
       },
       "cli": {
         "command": "anim play",
-        "args": "<roomId> <nodeId> [--clip <name>] [--clips idle,wave] [--speed 1] [--loop false] [--direction reverse] [--weight 0.5]"
+        "args": "<roomId> <nodeId> [--clip <name>] [--clips idle,wave] [--speed 1] [--loop false] [--direction reverse] [--weight 0.5]",
+        "positional": [
+          "nodeId"
+        ],
+        "example": "anim play r1 n1 --clip wave"
       },
       "input": {
         "type": "object",
@@ -43782,7 +43920,11 @@
       },
       "cli": {
         "command": "anim stop",
-        "args": "<roomId> <nodeId>"
+        "args": "<roomId> <nodeId>",
+        "positional": [
+          "nodeId"
+        ],
+        "example": "anim stop r1 n1"
       },
       "input": {
         "type": "object",
@@ -43848,7 +43990,17 @@
       },
       "cli": {
         "command": "anim define",
-        "args": "<roomId> <nodeId> --type sway [--axis x|y|z] [--gust 0..1] [--apply-to subtree]；任意属性用 --clip-json '{\"tracks\":[{\"path\":\"position\",\"keys\":[{\"t\":0,\"v\":[0,0,0]}]}]}'"
+        "args": "<roomId> <nodeId> --type sway [--axis x|y|z] [--gust 0..1] [--apply-to subtree]；任意属性用 --clip-json '{\"tracks\":[{\"path\":\"position\",\"keys\":[{\"t\":0,\"v\":[0,0,0]}]}]}'",
+        "positional": [
+          "nodeId"
+        ],
+        "flatten": [
+          "clip"
+        ],
+        "aliases": {
+          "clip-json": "clip"
+        },
+        "example": "anim define r1 n1 --type sway"
       },
       "input": {
         "type": "object",
@@ -44156,7 +44308,11 @@
       },
       "cli": {
         "command": "anim clear",
-        "args": "<roomId> <nodeId> [--apply-to subtree] [--channel ry]"
+        "args": "<roomId> <nodeId> [--apply-to subtree] [--channel ry]",
+        "positional": [
+          "nodeId"
+        ],
+        "example": "anim clear r1 n1"
       },
       "input": {
         "type": "object",
@@ -44255,7 +44411,8 @@
       },
       "cli": {
         "command": "anim pose",
-        "args": "<roomId> --targets <json>"
+        "args": "<roomId> --targets <json>",
+        "example": "anim pose r1 --targets []"
       },
       "input": {
         "type": "object",
@@ -44563,7 +44720,11 @@
       },
       "cli": {
         "command": "anim gait",
-        "args": "<roomId> <nodeId> --style walk|run|idle [--period s] [--stride m] [--arm-swing rad]"
+        "args": "<roomId> <nodeId> --style walk|run|idle [--period s] [--stride m] [--arm-swing rad]",
+        "positional": [
+          "nodeId"
+        ],
+        "example": "anim gait r1 @runner --style run"
       },
       "input": {
         "type": "object",
@@ -44688,7 +44849,9 @@
       },
       "cli": {
         "command": "scene export",
-        "args": "<roomId> [--out doc.json]"
+        "args": "<roomId> [--out doc.json]",
+        "local": true,
+        "example": "scene export r1"
       },
       "input": {
         "type": "object",
@@ -48604,7 +48767,9 @@
       },
       "cli": {
         "command": "scene import",
-        "args": "<roomId> --file doc.json"
+        "args": "<roomId> --file doc.json",
+        "local": true,
+        "example": "scene import r1 doc.json"
       },
       "input": {
         "type": "object",
@@ -52523,7 +52688,8 @@
       },
       "cli": {
         "command": "scene checkpoint",
-        "args": "<roomId> [--name baseline]"
+        "args": "<roomId> [--name baseline]",
+        "example": "scene checkpoint r1 --name baseline"
       },
       "input": {
         "type": "object",
@@ -52585,7 +52751,11 @@
       },
       "cli": {
         "command": "scene checkpoints",
-        "args": "<roomId>"
+        "args": "<roomId>",
+        "synonyms": [
+          "scene ckpt"
+        ],
+        "example": "scene checkpoints r1"
       },
       "input": {
         "type": "object",
@@ -52670,7 +52840,11 @@
       },
       "cli": {
         "command": "scene restore",
-        "args": "<roomId> <checkpointId> [--scope subtree] [--ids a,b]"
+        "args": "<roomId> <checkpointId> [--scope subtree] [--ids a,b]",
+        "positional": [
+          "checkpointId"
+        ],
+        "example": "scene restore r1 c1"
       },
       "input": {
         "type": "object",
@@ -52766,7 +52940,11 @@
       },
       "cli": {
         "command": "decal create",
-        "args": "<roomId> --text 标语 | --image-sha <sha> [--at x,y,z]"
+        "args": "<roomId> --text 标语 | --image-sha <sha> [--at x,y,z]",
+        "aliases": {
+          "at": "position"
+        },
+        "example": "decal create r1 --text hi"
       },
       "input": {
         "type": "object",
@@ -52932,7 +53110,15 @@
       },
       "cli": {
         "command": "mesh boolean",
-        "args": "<roomId> <target> <tool> [--op subtract] [--keep-tool]"
+        "args": "<roomId> <target> <tool> [--op subtract] [--keep-tool]",
+        "positional": [
+          "target",
+          "tool"
+        ],
+        "negate": {
+          "keep-tool": "deleteTool"
+        },
+        "example": "mesh boolean r1 n1 n2"
       },
       "input": {
         "type": "object",
@@ -53033,7 +53219,11 @@
       },
       "cli": {
         "command": "mesh tube",
-        "args": "<roomId> --points x,y,z;x,y,z;… --radius r [--radius-end r] [--segments 24] [--radial 8] [--closed] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]"
+        "args": "<roomId> --points x,y,z;x,y,z;… --radius r [--radius-end r] [--segments 24] [--radial 8] [--closed] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]",
+        "aliases": {
+          "radial": "radialSegments"
+        },
+        "example": "mesh tube r1 --points 0,0,0;0,1,0 --radius 0.1"
       },
       "input": {
         "type": "object",
@@ -53249,7 +53439,8 @@
       },
       "cli": {
         "command": "mesh backdrop",
-        "args": "<roomId> [--width 10] [--depth 4] [--height 6] [--curve 1.2] [--segments 16] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]"
+        "args": "<roomId> [--width 10] [--depth 4] [--height 6] [--curve 1.2] [--segments 16] [--at x,y,z] [--scale x,y,z] [--color #rrggbb] [--parent <id>]",
+        "example": "mesh backdrop r1"
       },
       "input": {
         "type": "object",
@@ -53430,7 +53621,8 @@
       },
       "cli": {
         "command": "mesh lathe",
-        "args": "<roomId> --profile <json> [--segments 16]"
+        "args": "<roomId> --profile <json> [--segments 16]",
+        "example": "mesh lathe r1 --profile []"
       },
       "input": {
         "type": "object",
@@ -53612,7 +53804,8 @@
       },
       "cli": {
         "command": "mesh organic",
-        "args": "<roomId> --radius x,y,z --seed n [--flat-bottom]"
+        "args": "<roomId> --radius x,y,z --seed n [--flat-bottom]",
+        "example": "mesh organic r1 --radius 1,1,1 --seed 1"
       },
       "input": {
         "type": "object",
@@ -53802,7 +53995,8 @@
       },
       "cli": {
         "command": "mesh bevel",
-        "args": "<roomId> --size x,y,z --radius r [--segments 4]"
+        "args": "<roomId> --size x,y,z --radius r [--segments 4]",
+        "example": "mesh bevel r1 --size 1,1,1 --radius 0.1"
       },
       "input": {
         "type": "object",
@@ -53986,7 +54180,8 @@
       },
       "cli": {
         "command": "mesh tree",
-        "args": "<roomId> --height 4 --spread 2 --levels 3 --seed 1"
+        "args": "<roomId> --height 4 --spread 2 --levels 3 --seed 1",
+        "example": "mesh tree r1 --height 4 --spread 2 --levels 3 --seed 1"
       },
       "input": {
         "type": "object",
@@ -54170,7 +54365,8 @@
       },
       "cli": {
         "command": "mesh mannequin",
-        "args": "<roomId> [--pose stand|jog_away] [--seed n]"
+        "args": "<roomId> [--pose stand|jog_away] [--seed n]",
+        "example": "mesh mannequin r1 --name runner"
       },
       "input": {
         "type": "object",
@@ -54355,7 +54551,11 @@
       },
       "cli": {
         "command": "model import",
-        "args": "<roomId> <src|--sha sha> [--name n] [--align ground|center|none] [--autoplay]"
+        "args": "<roomId> <src|--sha sha> [--name n] [--align ground|center|none] [--autoplay]",
+        "positional": [
+          "src"
+        ],
+        "example": "model import r1 ./a.glb"
       },
       "input": {
         "type": "object",
@@ -54723,7 +54923,11 @@
       },
       "cli": {
         "command": "asset inspect",
-        "args": "<roomId> <src>"
+        "args": "<roomId> <src>",
+        "positional": [
+          "src"
+        ],
+        "example": "asset inspect r1 ./a.glb"
       },
       "input": {
         "type": "object",
@@ -54993,7 +55197,11 @@
       },
       "cli": {
         "command": "asset put",
-        "args": "<roomId> <src> [--name n]"
+        "args": "<roomId> <src> [--name n]",
+        "positional": [
+          "src"
+        ],
+        "example": "asset put r1 ./a.png"
       },
       "input": {
         "type": "object",
@@ -55335,7 +55543,11 @@
       },
       "cli": {
         "command": "asset ls",
-        "args": "<roomId>"
+        "args": "<roomId>",
+        "synonyms": [
+          "asset list"
+        ],
+        "example": "asset ls r1"
       },
       "input": {
         "type": "object",
@@ -55677,7 +55889,14 @@
       },
       "cli": {
         "command": "asset rm",
-        "args": "<roomId> <sha>"
+        "args": "<roomId> <sha>",
+        "positional": [
+          "sha"
+        ],
+        "synonyms": [
+          "asset delete"
+        ],
+        "example": "asset rm r1 s1"
       },
       "input": {
         "type": "object",
@@ -55734,7 +55953,11 @@
       },
       "cli": {
         "command": "camera set",
-        "args": "<roomId> [--frame fit] [--name hero] [--preset miniature_45] [--p x,y,z] [--target x,y,z]"
+        "args": "<roomId> [--frame fit] [--name hero] [--preset miniature_45] [--p x,y,z] [--target x,y,z]",
+        "flatten": [
+          "camera"
+        ],
+        "example": "camera set r1 --frame fit"
       },
       "input": {
         "type": "object",
@@ -56230,7 +56453,11 @@
       },
       "cli": {
         "command": "camera save",
-        "args": "<roomId> --name hero"
+        "args": "<roomId> --name hero",
+        "flatten": [
+          "camera"
+        ],
+        "example": "camera save r1 --name hero"
       },
       "input": {
         "type": "object",
@@ -56481,7 +56708,14 @@
       },
       "cli": {
         "command": "camera rm",
-        "args": "<roomId> <name>"
+        "args": "<roomId> <name>",
+        "positional": [
+          "name"
+        ],
+        "synonyms": [
+          "camera delete"
+        ],
+        "example": "camera rm r1 hero"
       },
       "input": {
         "type": "object",
@@ -56665,7 +56899,10 @@
         "annotations": {},
         "roomArg": false
       },
-      "cli": null,
+      "cli": {
+        "command": "camera project",
+        "example": "camera project r1 --points [[0,1,0]]"
+      },
       "input": {
         "type": "object",
         "properties": {
@@ -56906,7 +57143,10 @@
         "annotations": {},
         "roomArg": false
       },
-      "cli": null,
+      "cli": {
+        "command": "camera unproject",
+        "example": "camera unproject r1 --points [[0.5,0.5]]"
+      },
       "input": {
         "type": "object",
         "properties": {
@@ -57146,7 +57386,8 @@
       },
       "cli": {
         "command": "render snapshot",
-        "args": "<roomId> [--out shot.png] [--size 1280x720] [--format png] [--settle-ms 180] [--at 1.2] [--transparent]"
+        "args": "<roomId> [--out shot.png] [--size 1280x720] [--format png] [--settle-ms 180] [--at 1.2] [--transparent]",
+        "example": "render snapshot r1"
       },
       "input": {
         "type": "object",
@@ -57702,7 +57943,12 @@
       },
       "cli": {
         "command": "render views",
-        "args": "<roomId> [--views front,top] [--node id] [--size 1280x720] [--out dir]"
+        "args": "<roomId> [--views front,top] [--node id] [--size 1280x720] [--out dir]",
+        "aliases": {
+          "node": "nodeIds",
+          "nodes": "nodeIds"
+        },
+        "example": "render views r1 --views front"
       },
       "input": {
         "type": "object",
@@ -58297,7 +58543,11 @@
       },
       "cli": {
         "command": "render node",
-        "args": "<roomId> <nodeId> [--view three_quarter] [--padding 1.15] [--out shot.png] [--size 1280x720]"
+        "args": "<roomId> <nodeId> [--view three_quarter] [--padding 1.15] [--out shot.png] [--size 1280x720]",
+        "positional": [
+          "nodeId"
+        ],
+        "example": "render node r1 n1"
       },
       "input": {
         "type": "object",
@@ -58808,7 +59058,11 @@
       },
       "cli": {
         "command": "render pick",
-        "args": "<roomId> [--point 12,34] [--rect 0,0,200,100] [--roi 0,0,200,100] [--size 1280x720] [--top-colors 5]"
+        "args": "<roomId> [--point 12,34] [--rect 0,0,200,100] [--roi 0,0,200,100] [--size 1280x720] [--top-colors 5]",
+        "aliases": {
+          "point": "points"
+        },
+        "example": "render pick r1 --point 12,34"
       },
       "input": {
         "type": "object",
@@ -59322,7 +59576,8 @@
       },
       "cli": {
         "command": "render assert",
-        "args": "<roomId> --anchor 100,10:#ff0000 [--tol 2] [--size 1280x720]"
+        "args": "<roomId> --anchor 100,10:#ff0000 [--tol 2] [--size 1280x720]",
+        "example": "render assert r1 --anchors []"
       },
       "input": {
         "type": "object",
@@ -59813,7 +60068,8 @@
       },
       "cli": {
         "command": "render id-pass",
-        "args": "<roomId> [--size 640x480] [--camera px,py,pz,tx,ty,tz] [--mask]"
+        "args": "<roomId> [--size 640x480] [--camera px,py,pz,tx,ty,tz] [--mask]",
+        "example": "render id-pass r1"
       },
       "input": {
         "type": "object",
@@ -60025,7 +60281,9 @@
       },
       "cli": {
         "command": "render sequence",
-        "args": "<roomId> --from s --to s [--fps 24] [--size 1280x720] [--shading flat] [--wait]"
+        "args": "<roomId> --from s --to s [--fps 24] [--size 1280x720] [--shading flat] [--wait]",
+        "job": "frames",
+        "example": "render sequence r1 --from 0 --to 1 --fps 4"
       },
       "input": {
         "type": "object",
@@ -60264,7 +60522,9 @@
       },
       "cli": {
         "command": "render video",
-        "args": "<roomId> --from s --to s [--fps 24] [--size 1280x720] [--shading flat] [--wait]"
+        "args": "<roomId> --from s --to s [--fps 24] [--size 1280x720] [--shading flat] [--wait]",
+        "job": "file",
+        "example": "render video r1 --from 0 --to 1 --fps 8"
       },
       "input": {
         "type": "object",
@@ -60497,7 +60757,12 @@
       },
       "cli": {
         "command": "export glb",
-        "args": "<roomId> [--node id] [--out scene.glb] [--wait]"
+        "args": "<roomId> [--node id] [--out scene.glb] [--wait]",
+        "aliases": {
+          "node": "nodeIds"
+        },
+        "job": "file",
+        "example": "export glb r1"
       },
       "input": {
         "type": "object",
@@ -60588,7 +60853,11 @@
       },
       "cli": {
         "command": "job get",
-        "args": "<jobId>"
+        "args": "<jobId>",
+        "positional": [
+          "jobId"
+        ],
+        "example": "job get j1"
       },
       "input": {
         "type": "object",
@@ -60715,7 +60984,11 @@
       },
       "cli": {
         "command": "job ls",
-        "args": "[roomId]"
+        "args": "[roomId]",
+        "synonyms": [
+          "job list"
+        ],
+        "example": "job ls"
       },
       "input": {
         "type": "object",
@@ -60851,7 +61124,11 @@
       },
       "cli": {
         "command": "job cancel",
-        "args": "<jobId>"
+        "args": "<jobId>",
+        "positional": [
+          "jobId"
+        ],
+        "example": "job cancel j1"
       },
       "input": {
         "type": "object",
@@ -60978,7 +61255,8 @@
       },
       "cli": {
         "command": "open",
-        "args": "<roomId>"
+        "args": "<roomId>",
+        "example": "open r1"
       },
       "input": {
         "type": "object",

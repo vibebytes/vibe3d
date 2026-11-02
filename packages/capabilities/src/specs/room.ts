@@ -18,7 +18,12 @@ export const roomCreate = {
     scope: 'daemon' as const,
     mutating: true,
     wire: 'room.create' as const,
-    cli: { command: 'room new', args: '[--name <name>] [--template <t>]' },
+    cli: {
+      command: 'room new',
+      args: '[--name <name>] [--template <t>]',
+      local: true as const,
+      example: 'room new --name demo',
+    },
     errors: ['E_ROOM_LIMIT', 'E_LOCKED'] as const,
   },
   'room.list': {
@@ -48,7 +53,12 @@ export const roomCreate = {
     mutating: false,
     wire: 'room.list' as const,
     mcp: { annotations: { readOnlyHint: true } },
-    cli: { command: 'room ls', args: '[--limit n] [--cursor c]' },
+    cli: {
+      command: 'room ls',
+      args: '[--limit n] [--cursor c]',
+      synonyms: ['room list'],
+      example: 'room ls',
+    },
     errors: ['E_INVALID_PARAMS'] as const,
   },
   'room.use': {
@@ -62,7 +72,7 @@ export const roomCreate = {
       annotations: { readOnlyHint: true },
       roomArg: 'required' as const,
     },
-    cli: { command: 'room use', args: '<roomId>' },
+    cli: { command: 'room use', args: '<roomId>', example: 'room use r1' },
     errors: ['E_ROOM_NOT_FOUND'] as const,
   },
   'room.get': {
@@ -77,7 +87,7 @@ export const roomCreate = {
     mutating: false,
     wire: 'room.get' as const,
     mcp: { annotations: { readOnlyHint: true }, roomArg: true },
-    cli: { command: 'room show', args: '<roomId>' },
+    cli: { command: 'room show', args: '<roomId>', example: 'room show r1' },
     errors: ['E_ROOM_NOT_FOUND'] as const,
   },
   'room.close': {
@@ -103,7 +113,12 @@ export const roomCreate = {
       annotations: { destructiveHint: true },
       roomArg: true,
     },
-    cli: { command: 'room rm', args: '<roomId> [--purge]' },
+    cli: {
+      command: 'room rm',
+      args: '<roomId> [--purge]',
+      synonyms: ['room close'],
+      example: 'room rm r1',
+    },
     errors: ['E_ROOM_NOT_FOUND', 'E_LOCKED'] as const,
   },
   'room.timeline': {
@@ -126,7 +141,7 @@ export const roomCreate = {
     mutating: false,
     wire: 'room.timeline' as const,
     mcp: { annotations: { readOnlyHint: true } },
-    cli: { command: 'room timeline', args: '<roomId> [--limit n]' },
+    cli: { command: 'room timeline', args: '<roomId> [--limit n]', example: 'room timeline r1' },
     errors: ['E_ROOM_NOT_FOUND'] as const,
   },
 };
