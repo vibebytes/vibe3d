@@ -17,6 +17,10 @@ pnpm test
 
 `CI=true` accepts pnpm's reinstall prompt in clean checkouts.
 
+## Adding a capability
+
+CLI commands, flag names, and `vibe3d help` are generated from the capability spec. Add `cli: { command, example }` on the spec (and `positional` / `aliases` only when the command line shape is not the schema shape). Do not write a second copy of the parameter descriptions; put them on the zod schema with `.describe()`.
+
 ## Checks
 
 ```bash

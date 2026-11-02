@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- CLI 与 MCP 共用 capability spec。命令、参数和 `vibe3d help` 都从 zod schema 生成，不再维护第二份用法字符串。原先没有实现的 17 条命令（`room use`、`anim gait`、`render sequence` 等）以及 `camera project` / `camera unproject` 可以直接调用。
+- **Breaking:** CLI 遇到未知 flag 会以退出码 2 报错。`node group --no-keep-world` 会真正发出 `keepWorld:false`。`open` 不再默认发送 `reuse:true`。不带 `--out` 的渲染命令输出 daemon 原始字段 `base64`。任务类命令（`render sequence`、`render video`、`export glb`）默认等待完成，`--no-wait` 立即返回。整份参数底稿用 `--input`，不要用 `--params`（那是 `material create` 的字段）。
 - **Breaking:** `mesh.mannequin` 现在生成带骨骼蒙皮的 glTF 并创建 `kind:'model'` 节点（17 根骨骼，`bone.<名>.rotation` 轨道可直接驱动）。返回 `{nodeId, sha, bones, revision}`，移除 `clothNodeId` / `materialId` / `clothMaterialId`；新增 `colors{skin,shirt,shorts,shoes}`，`seed` 改为体型微扰；默认姿势为 `stand`。
 - 动画：`@name` 可用于 `animation.*` 目标、`animation.pose` 的 `targets[].nodeId` 与 `fx.create.nodeId`（能力层与 `ops.apply` 批量里都可用，同批先建后引；reducer 收到未解析的 `@` 直接报错）；track 支持 `blend:'additive'`、常量简写 `{path,value}`；clip 支持 `drift` 根运动（按节点自身朝向，转身即转向），tracks 上限 32；编辑器应用 `visible` / `opacity` 轨道，轨道移除后恢复原可见性、原材质与骨骼静止姿态。
 - 新增 `animation.gait`（walk / run / idle）：只替换带 `bone.*` 轨道的旧 clip，其余 clip 保留。`mesh.mannequin` 的 GLB 在 `extras.vibe3d` 写入骨架（种子 + 骨骼长度），资产报告带 `gltf.rig`，取景按它做 FK，不再按文件名识别。
