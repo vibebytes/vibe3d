@@ -1,4 +1,4 @@
-import { describeOpField, opExample, opFieldDoc } from '@vibebyte/vibe3d-capabilities';
+import { defOf, describeOpField, opExample, opFieldDoc, unwrap } from '@vibebyte/vibe3d-capabilities';
 import type { z } from 'zod';
 import { OP_NAMES } from './presentation';
 
@@ -251,34 +251,6 @@ export function paramHint(
 }
 
 type Def = { typeName?: string; [key: string]: unknown };
-const defOf = (schema: z.ZodTypeAny): Def => (schema as unknown as { _def: Def })._def;
-
-const WRAPPERS = new Set([
-  'ZodOptional',
-  'ZodNullable',
-  'ZodDefault',
-  'ZodCatch',
-  'ZodBranded',
-  'ZodReadonly',
-  'ZodPipeline',
-]);
-
-function unwrapSchema(schema: z.ZodTypeAny): z.ZodTypeAny {
-  let current = schema;
-  for (let i = 0; i < 8; i += 1) {
-    const def = defOf(current);
-    if (def.typeName === 'ZodEffects' && def.schema) {
-      current = def.schema as z.ZodTypeAny;
-      continue;
-    }
-    if (def.typeName && WRAPPERS.has(def.typeName) && def.innerType) {
-      current = def.innerType as z.ZodTypeAny;
-      continue;
-    }
-    return current;
-  }
-  return current;
-}
 
 const unionArms = (def: Def): z.ZodTypeAny[] => {
   const options = def.options;
@@ -291,7 +263,7 @@ function childAt(schema: z.ZodTypeAny, path: ReadonlyArray<string | number>): z.
   let current: z.ZodTypeAny | undefined = schema;
   for (const key of path) {
     if (!current) return undefined;
-    const def = defOf(unwrapSchema(current));
+    const def = defOf(unwrap(current));
     if (def.typeName === 'ZodObject' && def.shape) {
       current = (def.shape as () => Record<string, z.ZodTypeAny>)()[String(key)];
       continue;
@@ -312,7 +284,7 @@ function childAt(schema: z.ZodTypeAny, path: ReadonlyArray<string | number>): z.
 }
 
 function enumOptions(schema: z.ZodTypeAny): unknown[] {
-  const def = defOf(unwrapSchema(schema));
+  const def = defOf(unwrap(schema));
   if (def.typeName === 'ZodEnum') return [...((def.values as readonly unknown[]) ?? [])];
   if (def.typeName === 'ZodLiteral') return [def.value];
   if (def.typeName === 'ZodNativeEnum' && def.values) {
@@ -326,7 +298,7 @@ function enumOptions(schema: z.ZodTypeAny): unknown[] {
 }
 
 function objectArms(schema: z.ZodTypeAny): Array<Record<string, z.ZodTypeAny>> {
-  const def = defOf(unwrapSchema(schema));
+  const def = defOf(unwrap(schema));
   if (def.typeName === 'ZodObject' && def.shape) {
     return [(def.shape as () => Record<string, z.ZodTypeAny>)()];
   }
@@ -337,7 +309,7 @@ function objectArms(schema: z.ZodTypeAny): Array<Record<string, z.ZodTypeAny>> {
 }
 
 function sampleFor(schema: z.ZodTypeAny): string {
-  const def = defOf(unwrapSchema(schema));
+  const def = defOf(unwrap(schema));
   if (def.typeName === 'ZodString') return '"..."';
   if (def.typeName === 'ZodNumber') return '0';
   if (def.typeName === 'ZodBoolean') return 'true';
@@ -430,7 +402,7 @@ export function schemaHint(
   if (isRecord(value)) return '';
   const node = childAt(schema, issue.path) ?? childAt(schema, [field]);
   if (!node) return '';
-  const target = defOf(unwrapSchema(node));
+  const target = defOf(unwrap(node));
   const isArray = target.typeName === 'ZodArray' || target.typeName === 'ZodTuple';
   const message = issue.message.trim();
   const enumMismatch = /invalid enum|invalid discriminator/i.test(message);
