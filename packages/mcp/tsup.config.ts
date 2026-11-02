@@ -6,6 +6,7 @@ export default defineConfig({
   target: 'node20',
   noExternal: [/.*/],
   splitting: false,
+  minify: true,
   banner: {
     js: "import { createRequire as __vibeCreateRequire } from 'node:module'; const require = __vibeCreateRequire(import.meta.url);",
   },
