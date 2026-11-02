@@ -7,12 +7,12 @@
     "url": "https://github.com/vibebytes/vibe3d",
     "source": "github"
   },
-  "version": "0.2.11",
+  "version": "0.2.12",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@vibebyte/vibe3d-mcp",
-      "version": "0.2.11",
+      "version": "0.2.12",
       "transport": {
         "type": "stdio"
       },
