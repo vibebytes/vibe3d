@@ -1,6 +1,6 @@
-import type { CameraState, SceneDoc, SceneNode } from '@vibebyte/vibe3d-protocol';
-import { bonePoses, nodeClipsOf, posedDoc } from './anim';
-import { MANNEQUIN_ASSET, mannequinBox } from './mannequin';
+import type { CameraState, ModelNode, SceneDoc, SceneNode } from '@vibebyte/vibe3d-protocol';
+import { nodeClipsOf, posedDoc } from './anim';
+import { mannequinBox } from './mannequin';
 
 export type Mat4 = [
   number,
@@ -127,19 +127,13 @@ export function meshLocalBounds(node: SceneNode): Aabb | null {
 const BONE_MARGIN = 0.35;
 
 /** Box of a model whose bones are animated: exact FK for the mannequin, a size-relative margin otherwise. */
-function animatedModelBox(doc: SceneDoc, node: SceneNode, base: Aabb, t: number): Aabb {
-  const clips = nodeClipsOf(node as never).filter((clip) =>
+function animatedModelBox(doc: SceneDoc, node: ModelNode, base: Aabb, t: number): Aabb {
+  const clips = nodeClipsOf(node).filter((clip) =>
     (clip.tracks ?? []).some((tr) => tr.path.startsWith('bone.')),
   );
   if (clips.length === 0) return base;
-  if (doc.assets[(node as { sha: string }).sha]?.name === MANNEQUIN_ASSET) {
-    const rotations = Object.fromEntries(
-      [...bonePoses(clips, t, () => ({ p: [0, 0, 0], r: [0, 0, 0], s: [1, 1, 1] })).entries()].map(
-        ([bone, pose]) => [bone, pose.r],
-      ),
-    );
-    return mannequinBox(rotations);
-  }
+  const rig = doc.assets[node.sha]?.gltf?.rig;
+  if (rig?.kind === 'mannequin') return mannequinBox(rig.seed, clips, t);
   const reach =
     BONE_MARGIN * Math.max(base.max[0] - base.min[0], base.max[1] - base.min[1], base.max[2] - base.min[2]);
   return {

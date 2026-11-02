@@ -120,7 +120,7 @@ describe('mannequinRig skin', () => {
   });
 
   it('skinVertices: bending the knee moves the foot but not the thigh', () => {
-    const bent = skinVertices(rig.model, { LowerLeg_L: [Math.PI / 2, 0, 0] });
+    const bent = skinVertices(rig.model, { LowerLeg_L: { r: [Math.PI / 2, 0, 0] } });
     const footBone = boneIndex('Foot_L');
     const thighBone = boneIndex('UpperLeg_L');
     let footMoved = 0;

@@ -76,7 +76,7 @@ describe('posed bounds of a mannequin model', () => {
     ],
   };
 
-  function mannequinDoc(name = 'mannequin.glb') {
+  function mannequinDoc(rig: unknown = { kind: 'mannequin', seed: 1, bones: [] }, name = 'figure.glb') {
     const doc = emptyDoc('mq');
     doc.assets.sha1 = {
       sha: 'sha1',
@@ -84,7 +84,7 @@ describe('posed bounds of a mannequin model', () => {
       name,
       mime: 'model/gltf-binary',
       kind: 'gltf',
-      gltf: { size: { min: [-0.3, 0, -0.1], max: [0.3, 1.75, 0.2] } },
+      gltf: { size: { min: [-0.3, 0, -0.1], max: [0.3, 1.75, 0.2] }, ...(rig ? { rig } : {}) },
     } as never;
     doc.nodes.n_00000001 = {
       id: 'n_00000001',
@@ -107,8 +107,27 @@ describe('posed bounds of a mannequin model', () => {
     expect(posed.bounds.max[2]).toBeGreaterThan(0.6);
   });
 
+  it('a hips translation track lifts the posed box', () => {
+    const doc = mannequinDoc();
+    const node = doc.nodes.n_00000001 as unknown as { clip: unknown };
+    node.clip = {
+      tracks: [{ path: 'bone.Hips.position', blend: 'additive', keys: [{ t: 0, v: [0, 0.5, 0] }] }],
+    };
+    const posed = frameTarget(doc, { ids: ['n_00000001'], at: 0 })!;
+    expect(posed.bounds.max[1]).toBeGreaterThan(2.2);
+    expect(posed.bounds.max[1]).toBeLessThan(2.3);
+  });
+
+  it('is recognised by the asset rig, not by its file name', () => {
+    const named = mannequinDoc(null, 'mannequin.glb');
+    const rigged = mannequinDoc();
+    const byName = frameTarget(named, { ids: ['n_00000001'], at: 1 })!;
+    const byRig = frameTarget(rigged, { ids: ['n_00000001'], at: 1 })!;
+    expect(byName.bounds.min[0]).toBeLessThan(byRig.bounds.min[0] - 0.1);
+  });
+
   it('other animated models get a margin instead', () => {
-    const doc = mannequinDoc('other.glb');
+    const doc = mannequinDoc(null, 'other.glb');
     const rest = frameTarget(doc, { ids: ['n_00000001'] })!;
     const posed = frameTarget(doc, { ids: ['n_00000001'], at: 1 })!;
     expect(posed.bounds.max[2]).toBeGreaterThan(rest.bounds.max[2]);

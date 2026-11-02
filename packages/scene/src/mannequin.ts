@@ -1,4 +1,5 @@
-import type { ClipSpec } from '@vibebyte/vibe3d-protocol';
+import type { ClipSpec, Rig } from '@vibebyte/vibe3d-protocol';
+import { bonePoses } from './anim';
 import type { GlbBone, GlbMaterial, GlbPrimitive, SkinnedModel } from './glb';
 
 type Vec3 = [number, number, number];
@@ -328,9 +329,22 @@ function capsule(out: Builder, part: PartSpec, index: (bone: MannequinBone) => n
   return out.positions.length / 3 - first;
 }
 
+function rigOf(seed: number): Rig {
+  return {
+    kind: 'mannequin',
+    seed,
+    bones: MANNEQUIN_BONES.map((name) => {
+      const parent = PARENT[name];
+      const d = parent ? sub(JOINT[name], JOINT[parent]) : [0, 0, 0];
+      return { name, parent, length: Math.hypot(d[0] ?? 0, d[1] ?? 0, d[2] ?? 0) };
+    }),
+  };
+}
+
 /** A rigged, skinned 1.75 m mannequin in bind pose; seed perturbs limb thickness by up to ±4%. */
 export function mannequinRig(spec: { seed?: number; colors?: MannequinColors } = {}): MannequinRig {
-  const random = rng(spec.seed ?? 1);
+  const seed = spec.seed ?? 1;
+  const random = rng(seed);
   const index = (bone: MannequinBone) => MANNEQUIN_BONES.indexOf(bone);
   const bones: GlbBone[] = MANNEQUIN_BONES.map((name) => {
     const parent = PARENT[name];
@@ -380,7 +394,7 @@ export function mannequinRig(spec: { seed?: number; colors?: MannequinColors } =
       bones,
       materials,
       primitives,
-      extras: { vibe3d: { kind: 'mannequin', bones: bones.map((b) => b.name) } },
+      extras: { vibe3d: rigOf(seed) },
     },
     bones: [...MANNEQUIN_BONES],
     joints: { ...JOINT },
@@ -451,30 +465,35 @@ const apply = (m: Mat3, v: Vec3): Vec3 => [
   m[6] * v[0] + m[7] * v[1] + m[8] * v[2],
 ];
 
-/** World rotation and origin of each bone after local euler rotations (forward kinematics). */
+/** Local bone pose: euler XYZ rotation (radians) and, when moved, the translation replacing the rest one. */
+export type BonePose = { r?: Vec3; p?: Vec3 };
+
+/** World rotation and origin of each bone after local poses (forward kinematics). */
 export function boneWorld(
   bones: readonly GlbBone[],
-  rotations: Readonly<Record<string, Vec3>>,
+  poses: Readonly<Record<string, BonePose>>,
 ): Array<{ rotation: Mat3; origin: Vec3 }> {
   const out: Array<{ rotation: Mat3; origin: Vec3 }> = [];
   for (const bone of bones) {
-    const local = eulerXYZ(rotations[bone.name] ?? [0, 0, 0]);
+    const pose = poses[bone.name];
+    const local = eulerXYZ(pose?.r ?? [0, 0, 0]);
+    const translation = pose?.p ?? bone.translation;
     const parent = bone.parent === null ? undefined : out[bone.parent];
     out.push(
       parent
         ? {
             rotation: mul(parent.rotation, local),
-            origin: add(parent.origin, apply(parent.rotation, bone.translation)),
+            origin: add(parent.origin, apply(parent.rotation, translation)),
           }
-        : { rotation: local, origin: bone.translation },
+        : { rotation: local, origin: translation },
     );
   }
   return out;
 }
 
-/** CPU linear-blend skinning of every primitive for the given local bone rotations. */
-export function skinVertices(model: SkinnedModel, rotations: Readonly<Record<string, Vec3>>): Float32Array[] {
-  const world = boneWorld(model.bones, rotations);
+/** CPU linear-blend skinning of every primitive for the given local bone poses. */
+export function skinVertices(model: SkinnedModel, poses: Readonly<Record<string, BonePose>>): Float32Array[] {
+  const world = boneWorld(model.bones, poses);
   const rest = boneWorld(model.bones, {});
   return model.primitives.map((prim) => {
     const out = new Float32Array(prim.positions.length);
@@ -500,20 +519,36 @@ export function skinVertices(model: SkinnedModel, rotations: Readonly<Record<str
   });
 }
 
-/** Asset name `mesh.mannequin` registers; lets framing recognise the rig without reading the GLB. */
+/** File name `mesh.mannequin` stores the GLB under; framing recognises the rig by `gltf.rig`, not by this name. */
 export const MANNEQUIN_ASSET = 'mannequin.glb';
 
-let restRig: MannequinRig | undefined;
+const rigs = new Map<number, MannequinRig>();
 
-/** Model-space bounds of the mannequin skinned with the given local bone rotations. */
-export function mannequinBox(rotations: Readonly<Record<string, Vec3>>): {
+const rigFor = (seed: number): MannequinRig => {
+  const cached = rigs.get(seed);
+  if (cached) return cached;
+  const rig = mannequinRig({ seed });
+  rigs.set(seed, rig);
+  return rig;
+};
+
+/** Model-space bounds of the mannequin of this seed, skinned with the bone tracks of the clips at time t. */
+export function mannequinBox(
+  seed: number,
+  clips: readonly ClipSpec[],
+  t: number,
+): {
   min: Vec3;
   max: Vec3;
 } {
-  restRig ??= mannequinRig();
+  const rig = rigFor(seed);
+  const rest = new Map(
+    rig.model.bones.map((b) => [b.name, { p: b.translation, r: [0, 0, 0] as Vec3, s: [1, 1, 1] as Vec3 }]),
+  );
+  const poses = Object.fromEntries(bonePoses(clips, t, (name) => rest.get(name)));
   const min: Vec3 = [Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY];
   const max: Vec3 = [Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY];
-  for (const positions of skinVertices(restRig.model, rotations)) {
+  for (const positions of skinVertices(rig.model, poses)) {
     for (let i = 0; i < positions.length; i += 3) {
       for (let k = 0; k < 3; k += 1) {
         const v = positions[i + k] ?? 0;

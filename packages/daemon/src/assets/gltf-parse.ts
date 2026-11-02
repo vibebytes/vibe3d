@@ -1,4 +1,4 @@
-import { AppError, type GltfReport } from '@vibebyte/vibe3d-protocol';
+import { AppError, type GltfReport, type Rig, rigSchema } from '@vibebyte/vibe3d-protocol';
 
 const MAGIC = 0x46546c67;
 const JSON_CHUNK = 0x4e4f534a;
@@ -30,6 +30,7 @@ interface GltfDoc {
   skins?: { joints?: number[] }[];
   extensionsUsed?: string[];
   extensionsRequired?: string[];
+  extras?: { vibe3d?: unknown };
 }
 
 export function parseGltf(bytes: Buffer, name: string): GltfReport {
@@ -108,9 +109,23 @@ export function parseGltf(bytes: Buffer, name: string): GltfReport {
     animations,
     skins: doc.skins?.length ?? 0,
     ...(doc.skins?.length ? { bones: boneNames(doc) } : {}),
+    ...rigOf(doc),
     size,
     heroGuess: animations.length ? 'animated' : 'static',
   };
+}
+
+function rigOf(doc: GltfDoc): { rig?: Rig } {
+  const raw = doc.extras?.vibe3d;
+  if (raw === undefined) return {};
+  const parsed = rigSchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new AppError(
+      'E_ASSET_FORMAT',
+      `extras.vibe3d 骨架描述非法：${parsed.error.issues[0]?.message ?? ''}`,
+    );
+  }
+  return { rig: parsed.data };
 }
 
 function boneNames(doc: GltfDoc): string[] {

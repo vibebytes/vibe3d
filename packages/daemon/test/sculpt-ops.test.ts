@@ -114,6 +114,12 @@ describe('mesh.mannequin skinned model', () => {
     expect(doc.nodes[nodeId].sha).toBe(sha);
     expect(doc.nodes[nodeId].clip?.tracks?.[0]?.path).toMatch(/^bone\./);
     expect(doc.assets[sha].gltf.skins).toBe(1);
+    expect(doc.assets[sha].gltf.rig).toMatchObject({ kind: 'mannequin', seed: 1 });
+    expect(doc.assets[sha].gltf.rig.bones.find((b: { name: string }) => b.name === 'LowerLeg_L')).toEqual({
+      name: 'LowerLeg_L',
+      parent: 'UpperLeg_L',
+      length: expect.closeTo(0.44, 6),
+    });
     const clip = {
       tracks: [
         {

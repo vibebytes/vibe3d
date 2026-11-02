@@ -5990,6 +5990,52 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                             },
                             "description": "skin 关节节点名（所有 skin 合并去重）"
                           },
+                          "rig": {
+                            "type": "object",
+                            "properties": {
+                              "kind": {
+                                "type": "string",
+                                "const": "mannequin"
+                              },
+                              "seed": {
+                                "type": "integer"
+                              },
+                              "bones": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "parent": {
+                                      "type": [
+                                        "string",
+                                        "null"
+                                      ]
+                                    },
+                                    "length": {
+                                      "type": "number",
+                                      "minimum": 0
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "parent",
+                                    "length"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              }
+                            },
+                            "required": [
+                              "kind",
+                              "seed",
+                              "bones"
+                            ],
+                            "additionalProperties": false,
+                            "description": "vibe3d 自带骨架（extras.vibe3d）：种子与骨骼长度，取景按它做 FK"
+                          },
                           "size": {
                             "type": "object",
                             "properties": {
@@ -8812,6 +8858,52 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                     "type": "string"
                                   },
                                   "description": "skin 关节节点名（所有 skin 合并去重）"
+                                },
+                                "rig": {
+                                  "type": "object",
+                                  "properties": {
+                                    "kind": {
+                                      "type": "string",
+                                      "const": "mannequin"
+                                    },
+                                    "seed": {
+                                      "type": "integer"
+                                    },
+                                    "bones": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "name": {
+                                            "type": "string"
+                                          },
+                                          "parent": {
+                                            "type": [
+                                              "string",
+                                              "null"
+                                            ]
+                                          },
+                                          "length": {
+                                            "type": "number",
+                                            "minimum": 0
+                                          }
+                                        },
+                                        "required": [
+                                          "name",
+                                          "parent",
+                                          "length"
+                                        ],
+                                        "additionalProperties": false
+                                      }
+                                    }
+                                  },
+                                  "required": [
+                                    "kind",
+                                    "seed",
+                                    "bones"
+                                  ],
+                                  "additionalProperties": false,
+                                  "description": "vibe3d 自带骨架（extras.vibe3d）：种子与骨骼长度，取景按它做 FK"
                                 },
                                 "size": {
                                   "type": "object",

@@ -215,6 +215,15 @@ export const gltfAnimationSchema = z.object({
   channels: z.number().int().min(0),
 });
 
+export const rigSchema = z.object({
+  kind: z.literal('mannequin'),
+  seed: z.number().int(),
+  bones: z.array(
+    z.object({ name: z.string(), parent: z.string().nullable(), length: z.number().finite().min(0) }),
+  ),
+});
+export type Rig = z.infer<typeof rigSchema>;
+
 export const gltfReportSchema = z.object({
   version: z.literal('2.0'),
   selfContained: z.boolean(),
@@ -229,6 +238,7 @@ export const gltfReportSchema = z.object({
   animations: z.array(gltfAnimationSchema),
   skins: z.number().int().min(0),
   bones: z.array(z.string()).optional().describe('skin 关节节点名（所有 skin 合并去重）'),
+  rig: rigSchema.optional().describe('vibe3d 自带骨架（extras.vibe3d）：种子与骨骼长度，取景按它做 FK'),
   size: z.object({
     min: z.tuple([z.number(), z.number(), z.number()]),
     max: z.tuple([z.number(), z.number(), z.number()]),
