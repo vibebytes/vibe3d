@@ -3,6 +3,7 @@ import {
   cameraStateSchema,
   materialIdSchema,
   nodeIdSchema,
+  nodeRefSchema,
   rgb,
 } from '@vibebyte/vibe3d-protocol';
 import { z } from 'zod';
@@ -113,8 +114,8 @@ const imageOpts = {
   transparent: z.boolean().optional(),
   shading: shadingMode.optional(),
   overlay: z.array(overlayKind).max(8).optional(),
-  highlight: z.array(nodeIdSchema).max(200).optional(),
-  isolate: z.array(nodeIdSchema).max(200).optional(),
+  highlight: z.array(nodeRefSchema).max(200).optional(),
+  isolate: z.array(nodeRefSchema).max(200).optional(),
   quality: qualityLevel.optional(),
   fog: fogMode.optional(),
   roi: roiRect.optional(),
@@ -406,7 +407,7 @@ export const renderOps = {
     input: z.object({
       roomId,
       views: z.array(viewName).min(1).max(6).optional(),
-      nodeIds: z.array(nodeIdSchema).max(20).optional(),
+      nodeIds: z.array(nodeRefSchema).max(20).optional(),
       ...imageOpts,
     }),
     output: z.object({
@@ -446,7 +447,7 @@ export const renderOps = {
     title: '单资产特写：自动框选一个节点并怼近拍一张',
     input: z.object({
       roomId,
-      nodeId: nodeIdSchema,
+      nodeId: nodeRefSchema,
       view: viewName.optional(),
       padding: numIn(0.2, 5).optional(),
       ...imageOpts,
@@ -677,7 +678,7 @@ export const renderOps = {
       overlay: imageOpts.overlay,
       settleMs: imageOpts.settleMs,
       nodeIds: z
-        .array(nodeIdSchema)
+        .array(nodeRefSchema)
         .max(20)
         .optional()
         .describe('取景这些节点（含子树）；整段动画只算一次相机，覆盖所有采样时刻的姿态'),
@@ -719,7 +720,7 @@ export const renderOps = {
       overlay: imageOpts.overlay,
       settleMs: imageOpts.settleMs,
       nodeIds: z
-        .array(nodeIdSchema)
+        .array(nodeRefSchema)
         .max(20)
         .optional()
         .describe('取景这些节点（含子树）；整段动画只算一次相机，覆盖所有采样时刻的姿态'),
@@ -752,7 +753,7 @@ export const renderOps = {
     title: '把场景导出为 GLB，返回 jobId；用 vibe3d_job.get 轮询到 state=done 后取产物',
     input: z.object({
       roomId,
-      nodeIds: z.array(nodeIdSchema).optional().describe('只导出这些节点（含子树）；省略则导出整场景'),
+      nodeIds: z.array(nodeRefSchema).optional().describe('只导出这些节点（含子树）；省略则导出整场景'),
       include: z
         .array(z.enum(['cameras', 'lights']))
         .max(2)
@@ -807,7 +808,7 @@ export const renderOps = {
       '在本地浏览器打开房间编辑器（默认直接弹出窗口；open:false 只回链接）；省略 room_id 时复用当前会话房间，仅未绑定时才自动建「MCP 会话房间」',
     input: z.object({
       roomId,
-      focus: nodeIdSchema.optional().describe('打开后选中并聚焦到该节点'),
+      focus: nodeRefSchema.optional().describe('打开后选中并聚焦到该节点'),
       reuse: z.boolean().optional().describe('复用已开的同房间编辑页；false 强制新开一个'),
       open: z.boolean().optional().describe('true（默认）直接弹窗；false 只返回 url 不弹'),
     }),

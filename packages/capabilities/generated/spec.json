@@ -57313,16 +57313,32 @@
           "highlight": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 200
           },
           "isolate": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 200
           },
@@ -57715,8 +57731,16 @@
           "nodeIds": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 20
           },
@@ -57781,16 +57805,32 @@
           "highlight": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 200
           },
           "isolate": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 200
           },
@@ -58267,8 +58307,16 @@
             "pattern": "^r_[a-z0-9]{8}$"
           },
           "nodeId": {
-            "type": "string",
-            "pattern": "^n_[a-z0-9]{8}$"
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              },
+              {
+                "type": "string",
+                "pattern": "^@\\S{1,200}$"
+              }
+            ]
           },
           "view": {
             "type": "string",
@@ -58348,16 +58396,32 @@
           "highlight": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 200
           },
           "isolate": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 200
           },
@@ -58922,16 +58986,32 @@
           "highlight": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 200
           },
           "isolate": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 200
           },
@@ -59382,16 +59462,32 @@
           "highlight": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 200
           },
           "isolate": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 200
           },
@@ -60000,8 +60096,16 @@
           "nodeIds": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 20,
             "description": "取景这些节点（含子树）；整段动画只算一次相机，覆盖所有采样时刻的姿态"
@@ -60021,8 +60125,16 @@
           "isolate": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 200
           },
@@ -60223,8 +60335,16 @@
           "nodeIds": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 20,
             "description": "取景这些节点（含子树）；整段动画只算一次相机，覆盖所有采样时刻的姿态"
@@ -60244,8 +60364,16 @@
           "isolate": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "maxItems": 200
           },
@@ -60381,8 +60509,16 @@
           "nodeIds": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^n_[a-z0-9]{8}$"
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^n_[a-z0-9]{8}$"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^@\\S{1,200}$"
+                }
+              ]
             },
             "description": "只导出这些节点（含子树）；省略则导出整场景"
           },
@@ -60852,8 +60988,16 @@
             "pattern": "^r_[a-z0-9]{8}$"
           },
           "focus": {
-            "type": "string",
-            "pattern": "^n_[a-z0-9]{8}$",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              },
+              {
+                "type": "string",
+                "pattern": "^@\\S{1,200}$"
+              }
+            ],
             "description": "打开后选中并聚焦到该节点"
           },
           "reuse": {

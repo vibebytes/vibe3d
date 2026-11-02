@@ -20,6 +20,7 @@ import { booleanHandlers } from './handlers/boolean';
 import { checkpointHandlers } from './handlers/checkpoints';
 import { decalHandlers } from './handlers/decal';
 import { editorUrl } from './handlers/editor-url';
+import { isRef, nameTable, refInTable } from './handlers/node-refs';
 import { renderHandlers } from './handlers/render';
 import { roomHandlers } from './handlers/room';
 import { sceneHandlers } from './handlers/scene';
@@ -196,10 +197,30 @@ const normalizeFieldAliases = (v: unknown): unknown => {
   return changed ? out : v;
 };
 
+const NODE_REF_FIELDS = ['nodeId', 'nodeIds', 'highlight', 'isolate', 'focus'] as const;
+
+/** Top-level node fields may name a node as `@name`; resolved against the room doc before validation. */
+const resolveRefFields = (params: unknown, ctx: DispatchContext): unknown => {
+  if (!params || typeof params !== 'object' || Array.isArray(params)) return params;
+  const record = params as Record<string, unknown>;
+  const fields = NODE_REF_FIELDS.filter((k) => {
+    const v = record[k];
+    return isRef(v) || (Array.isArray(v) && v.some(isRef));
+  });
+  if (fields.length === 0 || typeof record.roomId !== 'string') return params;
+  const table = nameTable(ctx.rooms.get(record.roomId).doc);
+  const take = (v: unknown): unknown => (isRef(v) ? refInTable(table, v) : v);
+  const resolved = fields.map((k) => {
+    const v = record[k];
+    return [k, Array.isArray(v) ? v.map(take) : take(v)];
+  });
+  return { ...record, ...Object.fromEntries(resolved) };
+};
+
 export async function dispatch(method: string, params: unknown, ctx: DispatchContext): Promise<unknown> {
   const name = resolveMethod(method);
   const spec = CAPABILITIES[name];
-  const input = spec.input.safeParse(normalizeFieldAliases(params ?? {}));
+  const input = spec.input.safeParse(resolveRefFields(normalizeFieldAliases(params ?? {}), ctx));
   if (!input.success) {
     const issues = toIssues(input.error.issues);
     throw new AppError('E_INVALID_PARAMS', `${name} 参数校验失败：${describeIssues(input.error.issues)}`, {

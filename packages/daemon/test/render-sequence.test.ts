@@ -26,6 +26,39 @@ async function room(h: Harness): Promise<string> {
   return body.result.roomId;
 }
 
+describe('@name in render node fields', () => {
+  it('render.sequence nodeIds / isolate and render.node nodeId accept @name', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    const made = await call(h, 'node.create', { roomId, kind: 'mesh', shape: 'box', name: 'hero' }, roomId);
+    const id = made.body.result.nodeId as string;
+    const store = new JobStore();
+    const queue = new JobQueue(store);
+    h.ctx.renderer = frameRenderer([]);
+    h.ctx.jobs = { store, queue };
+
+    const seq = await call(
+      h,
+      'render.sequence',
+      { roomId, from: 0, to: 0.5, fps: 2, nodeIds: ['@hero'], isolate: ['@hero'] },
+      roomId,
+    );
+    expect(seq.body.error).toBeUndefined();
+    await queue.idle();
+    const node = await call(h, 'render.node', { roomId, nodeId: '@hero' }, roomId);
+    expect(node.body.error).toBeUndefined();
+    expect(node.body.result.nodeId).toBe(id);
+  });
+
+  it('an unknown @name is E_NODE_NOT_FOUND, not a schema error', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    h.ctx.renderer = frameRenderer([]);
+    const res = await call(h, 'render.node', { roomId, nodeId: '@nobody' }, roomId);
+    expect(codeOf(res.body)).toBe('E_NODE_NOT_FOUND');
+  });
+});
+
 describe('render.sequence', () => {
   it('按 fps 采样成帧序列并产出 manifest', async () => {
     const h = makeHarness();

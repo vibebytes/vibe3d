@@ -519,8 +519,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
         "node_ids": {
           "type": "array",
           "items": {
-            "type": "string",
-            "pattern": "^n_[a-z0-9]{8}$"
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              },
+              {
+                "type": "string",
+                "pattern": "^@\\S{1,200}$"
+              }
+            ]
           },
           "description": "只导出这些节点（含子树）；省略则导出整场景"
         },
@@ -592,8 +600,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
       "type": "object",
       "properties": {
         "focus": {
-          "type": "string",
-          "pattern": "^n_[a-z0-9]{8}$",
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            {
+              "type": "string",
+              "pattern": "^@\\S{1,200}$"
+            }
+          ],
           "description": "打开后选中并聚焦到该节点"
         },
         "reuse": {
