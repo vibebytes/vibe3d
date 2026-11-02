@@ -235,18 +235,28 @@ function applyTracks(base: Transform, clip: ClipSpec, t: number): Transform {
   return { p, r, s };
 }
 
-function applyDrift(base: Transform, clip: ClipSpec, t: number): Transform {
-  const drift = clip.drift;
-  if (!drift) return base;
+type Vec3 = [number, number, number];
+
+/** v rotated by euler angles in XYZ order (R = Rx·Ry·Rz, as three.js). */
+function rotateXYZ([x, y, z]: Vec3, [ax, ay, az]: Vec3): Vec3 {
+  const [x1, y1] = [x * Math.cos(az) - y * Math.sin(az), x * Math.sin(az) + y * Math.cos(az)];
+  const [x2, z2] = [x1 * Math.cos(ay) + z * Math.sin(ay), -x1 * Math.sin(ay) + z * Math.cos(ay)];
+  return [x2, y1 * Math.cos(ax) - z2 * Math.sin(ax), y1 * Math.sin(ax) + z2 * Math.cos(ax)];
+}
+
+/** Root motion in the node's own frame, so a turned node travels the way it faces. */
+function applyDrift(tracked: Transform, clip: ClipSpec, t: number, facing: Vec3): Transform {
+  if (!clip.drift) return tracked;
   const time = Math.max(0, t * (clip.speed ?? 1));
+  const d = rotateXYZ(clip.drift, facing);
   return {
-    ...base,
-    p: [base.p[0] + drift[0] * time, base.p[1] + drift[1] * time, base.p[2] + drift[2] * time],
+    ...tracked,
+    p: [tracked.p[0] + d[0] * time, tracked.p[1] + d[1] * time, tracked.p[2] + d[2] * time],
   };
 }
 
 export function applyClipTransform(base: Transform, clip: ClipSpec, t: number): Transform {
-  const tracked = applyDrift(applyTracks(base, clip, t), clip, t);
+  const tracked = applyDrift(applyTracks(base, clip, t), clip, t, base.r);
   if (clip.type === undefined) return tracked;
   const channel = clipChannelOf(clip);
   const value = sampleClip(clip, t);

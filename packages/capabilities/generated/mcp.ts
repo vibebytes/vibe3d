@@ -260,7 +260,7 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
       { op: "stop", capability: "animation.stop", title: "停止模型动画；程序化 clip 节点为幂等空操作" },
       { op: "clear", capability: "animation.clear", title: "清除节点上的程序化动画" },
       { op: "pose", capability: "animation.pose", title: "一次性摆姿势：批量写入多个节点的 keyframes 姿态" },
-      { op: "gait", capability: "animation.gait", title: "给带骨骼的人形模型套程序化步态（walk / run / idle）：循环 bone 轨道 + 根运动 drift；替换该节点已有的程序化动画" },
+      { op: "gait", capability: "animation.gait", title: "给带骨骼的人形模型套程序化步态（walk / run / idle）：循环 bone 轨道 + 沿节点自身 +Z 的根运动 drift（转向请旋转节点）；只替换带 bone 轨道的旧 clip（姿态/旧步态），其余 clip 保留" },
     ],
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {

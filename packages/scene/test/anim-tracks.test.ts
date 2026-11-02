@@ -210,6 +210,13 @@ describe('additive tracks, drift and track limit', () => {
     expect(applyNodeClips(base, [c], 1.4).p[2]).toBeCloseTo(3 + 4.2, 9);
   });
 
+  it('drift is expressed in the node frame: a node turned +90° about Y drifts along +X', () => {
+    const turned = { p: [0, 0, 0], r: [0, Math.PI / 2, 0], s: [1, 1, 1] } as any;
+    const p = applyNodeClips(turned, [clip({ drift: [0, 0, 2], tracks: [] })], 1).p;
+    expect(p[0]).toBeCloseTo(2, 9);
+    expect(p[2]).toBeCloseTo(0, 9);
+  });
+
   it('a clip accepts 32 tracks', () => {
     const tracks = Array.from({ length: 32 }, (_, i) => ({
       path: `bone.b${i}.rotation`,

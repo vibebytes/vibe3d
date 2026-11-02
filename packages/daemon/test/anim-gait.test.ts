@@ -23,6 +23,22 @@ describe('animation.gait', () => {
     expect(paths).toContain('bone.UpperLeg_L.rotation');
   });
 
+  it('replaces the pose and an earlier gait but keeps clips without bone tracks', async () => {
+    const { h, roomId, nodeId } = await runner();
+    const spin = { type: 'spin', frequency: 0.2 };
+    expect(
+      (await call(h, 'animation.define', { roomId, nodeId, clip: spin }, roomId)).body.error,
+    ).toBeUndefined();
+    await call(h, 'animation.gait', { roomId, nodeId, style: 'walk' }, roomId);
+    await call(h, 'animation.gait', { roomId, nodeId, style: 'run' }, roomId);
+    const view = await call(h, 'node.get', { roomId, nodeId }, roomId);
+    const clips = view.body.result.clips as any[];
+    expect(clips.filter((c) => c.type === 'spin')).toHaveLength(1);
+    const boned = clips.filter((c) => (c.tracks ?? []).some((t: any) => t.path.startsWith('bone.')));
+    expect(boned).toHaveLength(1);
+    expect(boned[0].drift[2]).toBeGreaterThan(2);
+  });
+
   it('rejects a node whose skeleton lacks the gait bones and lists them', async () => {
     const { h, roomId } = await runner();
     const added = await call(h, 'node.create', { roomId, kind: 'mesh', shape: 'box', name: 'crate' }, roomId);

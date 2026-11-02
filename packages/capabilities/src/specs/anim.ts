@@ -93,7 +93,7 @@ export const animOps = {
   },
   'animation.gait': {
     title:
-      '给带骨骼的人形模型套程序化步态（walk / run / idle）：循环 bone 轨道 + 根运动 drift；替换该节点已有的程序化动画',
+      '给带骨骼的人形模型套程序化步态（walk / run / idle）：循环 bone 轨道 + 沿节点自身 +Z 的根运动 drift（转向请旋转节点）；只替换带 bone 轨道的旧 clip（姿态/旧步态），其余 clip 保留',
     input: z.object({
       roomId,
       nodeId: nodeRefSchema.describe('带骨骼的 model 节点 id 或 @名称（如 mesh.mannequin 的结果）'),
@@ -114,7 +114,6 @@ export const animOps = {
         .describe('步长（米）；根运动速度 = stride*2/period'),
       armSwing: z.number().finite().min(0).max(1.6).optional().describe('肩摆幅（弧度）'),
       speed: z.number().finite().positive().optional().describe('时间轴倍率'),
-      heading: z.number().finite().optional().describe('前进方向，弧度，绕 +Y；0 表示沿 +Z'),
     }),
     output: revisionOut.extend({
       nodeId: nodeIdSchema,
@@ -126,7 +125,7 @@ export const animOps = {
     wire: 'scene.apply' as const,
     cli: {
       command: 'anim gait',
-      args: '<roomId> <nodeId> --style walk|run|idle [--period s] [--stride m] [--arm-swing rad] [--heading rad]',
+      args: '<roomId> <nodeId> --style walk|run|idle [--period s] [--stride m] [--arm-swing rad]',
     },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },

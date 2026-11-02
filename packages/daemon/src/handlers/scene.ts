@@ -955,9 +955,10 @@ export const sceneHandlers: HandlersFor<Keys> = {
     }
     const { roomId: _roomId, nodeId: _ref, ...spec } = p;
     const clip = gaitClip(spec);
+    const kept = nodeClipsOf(node).filter((c) => !(c.tracks ?? []).some((t) => t.path.startsWith('bone.')));
     const result = await room.run(() =>
       room.apply([
-        { op: 'animation.clear', target: nodeId },
+        { op: 'node.update', id: nodeId, patch: { clip: null, clips: kept } },
         { op: 'animation.define', target: nodeId, clip },
       ]),
     );

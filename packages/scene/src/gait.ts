@@ -15,8 +15,6 @@ export interface GaitSpec {
   armSwing?: number;
   /** Time-axis multiplier. */
   speed?: number;
-  /** Direction of travel in radians about +Y; 0 walks along +Z. */
-  heading?: number;
 }
 
 /** Bones every gait track targets; a model must have all of them. */
@@ -102,7 +100,7 @@ const scaled = (t: Track, period: number): Track => ({
   keys: t.keys.map((k) => ({ ...k, t: k.t * period })),
 });
 
-/** A looping procedural gait as `bone.*` tracks plus root drift. Rotations are euler radians; −X swings a limb forward. */
+/** A looping procedural gait as `bone.*` tracks plus root drift along the node's +Z. Rotations are euler radians; −X swings a limb forward. */
 export function gaitClip(spec: GaitSpec): ClipSpec {
   const base = STYLES[spec.style];
   const period = spec.period ?? base.period;
@@ -138,13 +136,12 @@ export function gaitClip(spec: GaitSpec): ClipSpec {
     ...armTrack('L', 0),
     ...armTrack('R', Math.PI),
   ].map((t) => scaled(t, period));
-  const heading = spec.heading ?? 0;
   const speed = (stride * 2) / period;
   return {
     loop: true,
     duration: period,
     ...(spec.speed !== undefined ? { speed: spec.speed } : {}),
-    ...(stride > 0 ? { drift: [Math.sin(heading) * speed, 0, Math.cos(heading) * speed] as Vec3 } : {}),
+    ...(stride > 0 ? { drift: [0, 0, speed] as Vec3 } : {}),
     tracks,
   };
 }

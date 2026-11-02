@@ -74,13 +74,9 @@ describe('gaitClip', () => {
     expect(bob(run)).toBeGreaterThan(bob(walk));
   });
 
-  it('drift is stride * 2 / period along heading, and zero for idle', () => {
+  it('drift is stride * 2 / period straight ahead (+Z of the node), and zero for idle', () => {
     const c = gaitClip({ style: 'run', stride: 1.2, period: 0.6 });
-    expect(c.drift?.[2]).toBeCloseTo((1.2 * 2) / 0.6, 9);
-    expect(c.drift?.[0]).toBeCloseTo(0, 9);
-    const turned = gaitClip({ style: 'run', stride: 1.2, period: 0.6, heading: Math.PI / 2 });
-    expect(turned.drift?.[0]).toBeCloseTo(4, 9);
-    expect(turned.drift?.[2]).toBeCloseTo(0, 9);
+    expect(c.drift).toEqual([0, 0, expect.closeTo((1.2 * 2) / 0.6, 9)]);
     expect(gaitClip({ style: 'idle' }).drift ?? [0, 0, 0]).toEqual([0, 0, 0]);
   });
 

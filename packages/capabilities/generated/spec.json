@@ -44544,7 +44544,7 @@
     },
     {
       "name": "animation.gait",
-      "title": "给带骨骼的人形模型套程序化步态（walk / run / idle）：循环 bone 轨道 + 根运动 drift；替换该节点已有的程序化动画",
+      "title": "给带骨骼的人形模型套程序化步态（walk / run / idle）：循环 bone 轨道 + 沿节点自身 +Z 的根运动 drift（转向请旋转节点）；只替换带 bone 轨道的旧 clip（姿态/旧步态），其余 clip 保留",
       "wire": "scene.apply",
       "scope": "room",
       "mutating": true,
@@ -44563,7 +44563,7 @@
       },
       "cli": {
         "command": "anim gait",
-        "args": "<roomId> <nodeId> --style walk|run|idle [--period s] [--stride m] [--arm-swing rad] [--heading rad]"
+        "args": "<roomId> <nodeId> --style walk|run|idle [--period s] [--stride m] [--arm-swing rad]"
       },
       "input": {
         "type": "object",
@@ -44615,10 +44615,6 @@
             "type": "number",
             "exclusiveMinimum": 0,
             "description": "时间轴倍率"
-          },
-          "heading": {
-            "type": "number",
-            "description": "前进方向，弧度，绕 +Y；0 表示沿 +Z"
           }
         },
         "required": [
