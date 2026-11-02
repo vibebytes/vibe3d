@@ -5,6 +5,8 @@ import { BlobStore } from '../packages/daemon/src/assets/blobstore';
 import { createIngest } from '../packages/daemon/src/assets/ingest';
 import type { DispatchContext } from '../packages/daemon/src/context';
 import { dispatch } from '../packages/daemon/src/dispatch';
+import { JobQueue } from '../packages/daemon/src/jobs/queue';
+import { JobStore } from '../packages/daemon/src/jobs/store';
 import { createLogger } from '../packages/daemon/src/logger';
 import { RoomManager, type Template } from '../packages/daemon/src/rooms/manager';
 import { AppError } from '../packages/protocol/src/index';
@@ -102,11 +104,49 @@ function check(assert: Assertion, view: unknown, refs: Map<string, unknown>): st
   return `${assert.path} 缺少算子`;
 }
 
-function buildContext(): { ctx: DispatchContext; rooms: RoomManager } {
-  const blobs = new BlobStore(mkdtempSync(join(tmpdir(), 'vibe3d-contract-')));
-  const { ingest, inspect } = createIngest({ blobs });
+/** Renderer stand-in: every snapshot is a tiny distinct PNG-shaped payload at the requested size. */
+function fakeRenderer(): NonNullable<DispatchContext['renderer']> {
+  let n = 0;
+  return {
+    name: 'contract',
+    ready: true,
+    available: () => true,
+    snapshot: async (_input, opts) => {
+      n += 1;
+      return {
+        mime: 'image/png',
+        base64: Buffer.from(`frame-${n}`).toString('base64'),
+        width: opts?.width ?? 1280,
+        height: opts?.height ?? 720,
+      };
+    },
+    exportGlb: async () => ({ jobId: 'contract', url: '/exports/contract.glb', bytes: 1 }),
+  };
+}
+
+function buildContext(): { ctx: DispatchContext; rooms: RoomManager; queue: JobQueue } {
+  const dir = mkdtempSync(join(tmpdir(), 'vibe3d-contract-'));
+  const blobs = new BlobStore(dir);
+  const { ingest, ingestBytes, inspect } = createIngest({ blobs });
   const rooms = new RoomManager({ maxRooms: 8, logger: createLogger('error'), onChange: () => {} });
-  return { rooms, ctx: { rooms, baseUrl: '', ingest, inspect, selection: () => [] } };
+  const store = new JobStore();
+  const queue = new JobQueue(store);
+  const exportsDir = mkdtempSync(join(tmpdir(), 'vibe3d-contract-exports-'));
+  return {
+    rooms,
+    queue,
+    ctx: {
+      rooms,
+      baseUrl: '',
+      ingest,
+      ingestBytes,
+      inspect,
+      selection: () => [],
+      renderer: fakeRenderer(),
+      jobs: { store, queue },
+      exportsDir,
+    },
+  };
 }
 
 async function runCase(file: string, via: 'daemon' | 'client' = 'daemon'): Promise<string[]> {
@@ -115,7 +155,7 @@ async function runCase(file: string, via: 'daemon' | 'client' = 'daemon'): Promi
     template?: Template;
     steps: Step[];
   };
-  const { ctx, rooms } = buildContext();
+  const { ctx, rooms, queue } = buildContext();
   const room = rooms.create({ template: spec.template ?? 'empty' });
   const handle =
     via === 'client'
@@ -138,6 +178,7 @@ async function runCase(file: string, via: 'daemon' | 'client' = 'daemon'): Promi
     } catch (err) {
       failure = err;
     }
+    await queue.idle();
     if (step.as) refs.set(step.as, result);
 
     const tag = `${spec.name}#${i} ${step.call}`;
