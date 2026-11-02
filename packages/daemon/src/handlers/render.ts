@@ -24,7 +24,8 @@ import type {
   SnapshotOptions,
 } from '../context';
 import { signExportUrl } from '../http/export-url';
-import { type JobError, toView } from '../jobs/store';
+import type { JobReport } from '../jobs/queue';
+import { type JobError, type JobRecord, type JobResult, toView } from '../jobs/store';
 import { systemFfmpeg } from '../render/ffmpeg';
 import {
   blendReferenceImage,
@@ -193,6 +194,131 @@ function sequenceCamera(
   const framed = frameTarget(doc, { ids: p.nodeIds, view: p.view, at });
   if (!framed) throw new AppError('E_INVALID_PARAMS', '取景目标没有可见几何');
   return framed.camera;
+}
+
+type FrameParams = ImageParams & Parameters<typeof sequenceCamera>[0] & { roomId: string };
+type FrameEntry = { index: number; at: number; file: string; url: string; bytes: number };
+type ManifestStatus = 'done' | 'cancelled' | 'failed';
+
+interface FrameRun {
+  record: JobRecord;
+  report: JobReport;
+  dir: string;
+  revision: number;
+  frames: FrameEntry[];
+  manifestFile: string;
+  manifest: (status: ManifestStatus, extra?: Record<string, unknown>) => Promise<Buffer>;
+  /** Job result linking `file`, counting the manifest body plus every frame. */
+  result: (file: string, manifest: Buffer) => JobResult;
+}
+
+/** Shared sequence/video job: a PNG every 1/fps from `from` to `to` plus a JSON manifest, then `finish`. */
+function enqueueFrames(
+  kind: 'render.sequence' | 'render.video',
+  p: FrameParams,
+  ctx: DispatchContext,
+  steps: { span: number; preflight?: () => Promise<void>; finish: (run: FrameRun) => Promise<JobResult> },
+): { jobId: string; state: JobRecord['state'] } {
+  const room = ctx.rooms.get(p.roomId);
+  if (p.to < p.from) {
+    throw new AppError('E_INVALID_PARAMS', `to(${p.to}) 不能小于 from(${p.from})`);
+  }
+  const count = Math.floor((p.to - p.from) * p.fps + 1e-6) + 1;
+  if (count > 600) {
+    throw new AppError('E_INVALID_PARAMS', `帧数 ${count} 超过上限 600，请缩小 from/to 区间或降低 fps`);
+  }
+  const renderer = requireRenderer(ctx, room.id);
+  const jobs = requireJobs(ctx);
+  const dir = ctx.exportsDir;
+  if (!dir) throw new AppError('E_INTERNAL', '导出目录未配置');
+  assertRoomIdle(jobs, room.id);
+  const snapshot = structuredClone(room.doc);
+  const revision = room.revision;
+  const job = jobs.store.create(kind, room.id);
+  const settleMs = Math.max(p.settleMs ?? 0, Math.ceil((2 * 1000) / p.fps));
+  const framed = sequenceCamera(p, snapshot, count);
+  const options = {
+    ...imageOptions({ ...p, format: 'png' }, snapshot),
+    settleMs,
+    ...(framed ? { camera: framed } : {}),
+  };
+  const link = (file: string) => ctx.signExport?.(file) ?? signExportUrl(ctx.token ?? '', file);
+  try {
+    jobs.queue.enqueue(job, async (record, report) => {
+      report(0.02, 'prepare');
+      await steps.preflight?.();
+      await mkdir(dir, { recursive: true });
+      const frames: FrameEntry[] = [];
+      const hashes = new Set<string>();
+      let warning: string | undefined;
+      const manifestFile = `${record.id}.json`;
+      const manifest = async (status: ManifestStatus, extra: Record<string, unknown> = {}) => {
+        const body = Buffer.from(
+          JSON.stringify(
+            {
+              jobId: record.id,
+              roomId: room.id,
+              revision,
+              status,
+              fps: p.fps,
+              from: p.from,
+              to: p.to,
+              expectedFrames: count,
+              width: options.width,
+              height: options.height,
+              settleMs,
+              ...extra,
+              frames,
+              ...(warning ? { warning } : {}),
+            },
+            null,
+            2,
+          ),
+          'utf8',
+        );
+        await writeFile(join(dir, manifestFile), body);
+        return body;
+      };
+      const result = (file: string, body: Buffer): JobResult => ({
+        url: link(file),
+        bytes: body.length + frames.reduce((sum, f) => sum + f.bytes, 0),
+        revision,
+        frames: frames.length,
+        ...(warning ? { warning } : {}),
+      });
+      try {
+        for (let i = 0; i < count; i += 1) {
+          if (record.cancelRequested) break;
+          const at = Math.min(p.from + i / p.fps, p.to);
+          const shot = await renderer.snapshot({ roomId: room.id, doc: snapshot }, { ...options, at });
+          const file = `${record.id}-${String(i).padStart(4, '0')}.png`;
+          const bytes = Buffer.from(shot.base64, 'base64');
+          await writeFile(join(dir, file), bytes);
+          hashes.add(createHash('md5').update(bytes).digest('hex'));
+          frames.push({ index: i, at, file, url: link(file), bytes: bytes.length });
+          report(0.05 + (steps.span * (i + 1)) / count, `frame ${i + 1}/${count}`);
+        }
+        if (frames.length > 1 && hashes.size === 1) warning = 'animation not advancing';
+        return await steps.finish({ record, report, dir, revision, frames, manifestFile, manifest, result });
+      } catch (err) {
+        const error: JobError = {
+          code: err instanceof AppError ? err.code : 'E_INTERNAL',
+          message: err instanceof Error ? err.message : String(err),
+        };
+        await manifest('failed', { error }).catch((writeErr: unknown) =>
+          ctx.logger?.error(
+            { event: 'manifest.write_failed', jobId: record.id, error: String(writeErr) },
+            '失败清单写入失败',
+          ),
+        );
+        throw err;
+      }
+    });
+  } catch (err) {
+    jobs.store.cancel(job.id);
+    throw err;
+  }
+  return { jobId: job.id, state: job.state };
 }
 
 function imageOptions(p: ImageParams, doc?: SceneDoc, quality?: QualityPreset): SnapshotOptions {
@@ -771,221 +897,56 @@ export const renderHandlers: HandlersFor<Keys> = {
     };
   },
 
-  'render.sequence': async (p, ctx) => {
-    const room = ctx.rooms.get(p.roomId);
-    if (p.to < p.from) {
-      throw new AppError('E_INVALID_PARAMS', `to(${p.to}) 不能小于 from(${p.from})`);
-    }
-    const count = Math.floor((p.to - p.from) * p.fps + 1e-6) + 1;
-    if (count > 600) {
-      throw new AppError('E_INVALID_PARAMS', `帧数 ${count} 超过上限 600，请缩小 from/to 区间或降低 fps`);
-    }
-    const renderer = requireRenderer(ctx, room.id);
-    const jobs = requireJobs(ctx);
-    const dir = ctx.exportsDir;
-    if (!dir) throw new AppError('E_INTERNAL', '导出目录未配置');
-    assertRoomIdle(jobs, room.id);
-    const snapshot = structuredClone(room.doc);
-    const revision = room.revision;
-    const job = jobs.store.create('render.sequence', room.id);
-    const settleMs = Math.max(p.settleMs ?? 0, Math.ceil((2 * 1000) / p.fps));
-    const framed = sequenceCamera(p, snapshot, count);
-    const options = {
-      ...imageOptions({ ...p, format: 'png' }, snapshot),
-      settleMs,
-      ...(framed ? { camera: framed } : {}),
-    };
-    try {
-      jobs.queue.enqueue(job, async (record, report) => {
-        report(0.02, 'prepare');
-        await mkdir(dir, { recursive: true });
-        const frames: { index: number; at: number; file: string; url: string; bytes: number }[] = [];
-        const exportLink = (f: string) => ctx.signExport?.(f) ?? signExportUrl(ctx.token ?? '', f);
-        const hashes = new Set<string>();
-        let warning: string | undefined;
-        const file = `${record.id}.json`;
-        const writeManifest = async (status: 'done' | 'cancelled' | 'failed', error?: JobError) => {
-          const manifest = {
-            jobId: record.id,
-            roomId: room.id,
-            revision,
-            status,
-            fps: p.fps,
-            from: p.from,
-            to: p.to,
-            expectedFrames: count,
-            width: options.width,
-            height: options.height,
-            settleMs,
-            frames,
-            ...(warning ? { warning } : {}),
-            ...(error ? { error } : {}),
-          };
-          const body = Buffer.from(JSON.stringify(manifest, null, 2), 'utf8');
-          await writeFile(join(dir, file), body);
-          return body;
-        };
-        try {
-          const frameAt = (i: number): number => Math.min(p.from + i / p.fps, p.to);
-          const persist = async (i: number, at: number, shot: { base64: string }) => {
-            const frameFile = `${record.id}-${String(i).padStart(4, '0')}.png`;
-            const bytes = Buffer.from(shot.base64, 'base64');
-            await writeFile(join(dir, frameFile), bytes);
-            hashes.add(createHash('md5').update(bytes).digest('hex'));
-            frames.push({ index: i, at, file: frameFile, url: exportLink(frameFile), bytes: bytes.length });
-          };
-          for (let i = 0; i < count; i += 1) {
-            if (record.cancelRequested) break;
-            const at = frameAt(i);
-            const shot = await renderer.snapshot({ roomId: room.id, doc: snapshot }, { ...options, at });
-            await persist(i, at, shot);
-            report(0.05 + (0.85 * (i + 1)) / count, `frame ${i + 1}/${count}`);
-          }
-          if (frames.length > 1 && hashes.size === 1) warning = 'animation not advancing';
-          const body = await writeManifest(record.cancelRequested ? 'cancelled' : 'done');
-          report(0.98, 'manifest');
-          return {
-            url: ctx.signExport?.(file) ?? signExportUrl(ctx.token ?? '', file),
-            bytes: body.length + frames.reduce((sum, f) => sum + f.bytes, 0),
-            revision,
-            frames: frames.length,
-            ...(warning ? { warning } : {}),
-          };
-        } catch (err) {
-          await writeManifest('failed', {
-            code: err instanceof AppError ? err.code : 'E_INTERNAL',
-            message: err instanceof Error ? err.message : String(err),
-          }).catch(() => undefined);
-          throw err;
-        }
-      });
-    } catch (err) {
-      jobs.store.cancel(job.id);
-      throw err;
-    }
-    return { jobId: job.id, state: job.state };
-  },
+  'render.sequence': async (p, ctx) =>
+    enqueueFrames('render.sequence', p, ctx, {
+      span: 0.85,
+      finish: async (run) => {
+        const body = await run.manifest(run.record.cancelRequested ? 'cancelled' : 'done');
+        run.report(0.98, 'manifest');
+        return run.result(run.manifestFile, body);
+      },
+    }),
 
   'render.video': async (p, ctx) => {
-    const room = ctx.rooms.get(p.roomId);
-    if (p.to < p.from) {
-      throw new AppError('E_INVALID_PARAMS', `to(${p.to}) 不能小于 from(${p.from})`);
-    }
-    const count = Math.floor((p.to - p.from) * p.fps + 1e-6) + 1;
-    if (count > 600) {
-      throw new AppError('E_INVALID_PARAMS', `帧数 ${count} 超过上限 600，请缩小 from/to 区间或降低 fps`);
-    }
-    const renderer = requireRenderer(ctx, room.id);
-    const jobs = requireJobs(ctx);
-    const dir = ctx.exportsDir;
-    if (!dir) throw new AppError('E_INTERNAL', '导出目录未配置');
     const ffmpeg = ctx.ffmpeg ?? systemFfmpeg();
-    assertRoomIdle(jobs, room.id);
-    const snapshot = structuredClone(room.doc);
-    const revision = room.revision;
-    const job = jobs.store.create('render.video', room.id);
-    const settleMs = Math.max(p.settleMs ?? 0, Math.ceil((2 * 1000) / p.fps));
-    const framed = sequenceCamera(p, snapshot, count);
-    const options = {
-      ...imageOptions({ ...p, format: 'png' }, snapshot),
-      settleMs,
-      ...(framed ? { camera: framed } : {}),
-    };
-    try {
-      jobs.queue.enqueue(job, async (record, report) => {
-        report(0.02, 'prepare');
+    return enqueueFrames('render.video', p, ctx, {
+      span: 0.75,
+      preflight: async () => {
         if (!(await ffmpeg.available())) {
           throw new AppError('E_FFMPEG_MISSING', '未找到 ffmpeg，无法编码视频', {
             hint: '安装 ffmpeg（brew install ffmpeg）或用 VIBE3D_FFMPEG 指定可执行文件路径；只要帧序列可用 vibe3d_render_sequence',
           });
         }
-        await mkdir(dir, { recursive: true });
-        const frames: { index: number; at: number; file: string; url: string; bytes: number }[] = [];
-        const exportLink = (f: string) => ctx.signExport?.(f) ?? signExportUrl(ctx.token ?? '', f);
-        const hashes = new Set<string>();
-        let warning: string | undefined;
-        const video = `${record.id}.mp4`;
-        const file = `${record.id}.json`;
-        const writeManifest = async (status: 'done' | 'cancelled' | 'failed', error?: JobError) => {
-          const manifest = {
-            jobId: record.id,
-            roomId: room.id,
-            revision,
-            status,
-            fps: p.fps,
-            from: p.from,
-            to: p.to,
-            expectedFrames: count,
-            width: options.width,
-            height: options.height,
-            settleMs,
-            ...(status === 'done' ? { video } : {}),
-            frames,
-            ...(warning ? { warning } : {}),
-            ...(error ? { error } : {}),
-          };
-          const body = Buffer.from(JSON.stringify(manifest, null, 2), 'utf8');
-          await writeFile(join(dir, file), body);
-          return body;
-        };
-        try {
-          const frameAt = (i: number): number => Math.min(p.from + i / p.fps, p.to);
-          for (let i = 0; i < count; i += 1) {
-            if (record.cancelRequested) break;
-            const at = frameAt(i);
-            const shot = await renderer.snapshot({ roomId: room.id, doc: snapshot }, { ...options, at });
-            const frameFile = `${record.id}-${String(i).padStart(4, '0')}.png`;
-            const bytes = Buffer.from(shot.base64, 'base64');
-            await writeFile(join(dir, frameFile), bytes);
-            hashes.add(createHash('md5').update(bytes).digest('hex'));
-            frames.push({ index: i, at, file: frameFile, url: exportLink(frameFile), bytes: bytes.length });
-            report(0.05 + (0.75 * (i + 1)) / count, `frame ${i + 1}/${count}`);
-          }
-          if (frames.length > 1 && hashes.size === 1) warning = 'animation not advancing';
-          if (record.cancelRequested) {
-            await writeManifest('cancelled');
-            return { url: '', bytes: 0, revision, frames: frames.length };
-          }
-          report(0.85, 'encode');
-          await ffmpeg.run(
-            [
-              '-y',
-              '-framerate',
-              String(p.fps),
-              '-i',
-              `${record.id}-%04d.png`,
-              '-c:v',
-              'libx264',
-              '-pix_fmt',
-              'yuv420p',
-              '-vf',
-              'scale=trunc(iw/2)*2:trunc(ih/2)*2',
-              video,
-            ],
-            dir,
-          );
-          const body = await writeManifest('done');
-          report(0.98, 'manifest');
-          return {
-            url: ctx.signExport?.(video) ?? signExportUrl(ctx.token ?? '', video),
-            bytes: body.length + frames.reduce((sum, f) => sum + f.bytes, 0),
-            revision,
-            frames: frames.length,
-            ...(warning ? { warning } : {}),
-          };
-        } catch (err) {
-          await writeManifest('failed', {
-            code: err instanceof AppError ? err.code : 'E_INTERNAL',
-            message: err instanceof Error ? err.message : String(err),
-          }).catch(() => undefined);
-          throw err;
+      },
+      finish: async (run) => {
+        if (run.record.cancelRequested) {
+          await run.manifest('cancelled');
+          return { url: '', bytes: 0, revision: run.revision, frames: run.frames.length };
         }
-      });
-    } catch (err) {
-      jobs.store.cancel(job.id);
-      throw err;
-    }
-    return { jobId: job.id, state: job.state };
+        run.report(0.85, 'encode');
+        const video = `${run.record.id}.mp4`;
+        await ffmpeg.run(
+          [
+            '-y',
+            '-framerate',
+            String(p.fps),
+            '-i',
+            `${run.record.id}-%04d.png`,
+            '-c:v',
+            'libx264',
+            '-pix_fmt',
+            'yuv420p',
+            '-vf',
+            'scale=trunc(iw/2)*2:trunc(ih/2)*2',
+            video,
+          ],
+          run.dir,
+        );
+        const body = await run.manifest('done', { video });
+        run.report(0.98, 'manifest');
+        return run.result(video, body);
+      },
+    });
   },
 
   'export.glb': async (p, ctx) => {

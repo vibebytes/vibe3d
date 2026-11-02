@@ -213,12 +213,7 @@ export function createIngest({
     ...(loaded.image ? { image: loaded.image } : {}),
   });
 
-  const ingest = async (
-    src: string,
-    policy: AssetPolicy = 'local',
-    opts: IngestOptions = {},
-  ): Promise<IngestResult> => {
-    const loaded = await load(src, policy, opts);
+  const store = async (loaded: Loaded): Promise<IngestResult> => {
     const report = loaded.kind === 'gltf' ? parseGltf(loaded.bytes, loaded.name) : undefined;
     const sha = createHash('sha256').update(loaded.bytes).digest('hex');
     const cached = existsSync(blobs.path(sha));
@@ -226,14 +221,14 @@ export function createIngest({
     return { meta: makeMeta(sha, loaded, report), report, cached };
   };
 
-  const ingestBytes = async (bytes: Uint8Array, name: string): Promise<IngestResult> => {
-    const loaded = settle(Buffer.from(bytes), name, null);
-    const report = loaded.kind === 'gltf' ? parseGltf(loaded.bytes, loaded.name) : undefined;
-    const sha = createHash('sha256').update(loaded.bytes).digest('hex');
-    const cached = existsSync(blobs.path(sha));
-    if (!cached) await blobs.put(loaded.bytes);
-    return { meta: makeMeta(sha, loaded, report), report, cached };
-  };
+  const ingest = async (
+    src: string,
+    policy: AssetPolicy = 'local',
+    opts: IngestOptions = {},
+  ): Promise<IngestResult> => store(await load(src, policy, opts));
+
+  const ingestBytes = async (bytes: Uint8Array, name: string): Promise<IngestResult> =>
+    store(settle(Buffer.from(bytes), name, null));
 
   return { ingest, ingestBytes, inspect };
 }

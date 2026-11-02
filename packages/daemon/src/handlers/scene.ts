@@ -909,7 +909,7 @@ export const sceneHandlers: HandlersFor<Keys> = {
     const result = await room.run(() =>
       room.apply([{ op: 'animation.define', target: nodeId, clip: p.clip, applyTo: p.applyTo }]),
     );
-    return { revision: result.revision, nodeId: nodeId, appliedTo };
+    return { revision: result.revision, nodeId, appliedTo };
   },
 
   'animation.clear': async (p, ctx) => {
@@ -936,7 +936,7 @@ export const sceneHandlers: HandlersFor<Keys> = {
       if (!room.doc.nodes[target.nodeId])
         throw new AppError('E_NODE_NOT_FOUND', `节点 ${target.nodeId} 不存在`);
     }
-    const result = await room.run(() => room.apply([{ op: 'animation.pose', targets: targets }]));
+    const result = await room.run(() => room.apply([{ op: 'animation.pose', targets }]));
     return { revision: result.revision, appliedTo: targets.map((t) => t.nodeId) };
   },
 
