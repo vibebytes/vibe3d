@@ -25,4 +25,5 @@ export { describeOpField, mergedFieldDocs, opFieldDoc, opFieldDocs, type OpField
 export { buildOpSample, opExample } from './op-example';
 export { describeIssues, type ParamIssue, toIssues } from './issues';
 export { coerceForSchema, deepCamel, lenientRecord, defOf, unwrap } from './coerce';
+export { kebab, normalized } from './names';
 export { GLOBAL_CONVENTIONS, conventionMap, conventionText, type ConventionEntry } from './conventions';
