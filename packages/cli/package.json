@@ -11,6 +11,7 @@
     "dev": "tsx src/index.ts"
   },
   "dependencies": {
+    "@vibebyte/vibe3d-capabilities": "workspace:*",
     "@vibebyte/vibe3d-client": "workspace:*",
     "@vibebyte/vibe3d-daemon": "workspace:*",
     "@vibebyte/vibe3d-protocol": "workspace:*"

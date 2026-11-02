@@ -170,7 +170,7 @@ function acceptsFile(schema: z.ZodTypeAny): boolean {
     return item instanceof z.ZodObject || item instanceof z.ZodRecord;
   }
   if (inner instanceof z.ZodUnion || inner instanceof z.ZodDiscriminatedUnion) {
-    return inner.options.some((option) => acceptsFile(option));
+    return (inner.options as z.ZodTypeAny[]).some((option) => acceptsFile(option));
   }
   return false;
 }
@@ -178,7 +178,7 @@ function acceptsFile(schema: z.ZodTypeAny): boolean {
 function requiredNumberKeys(schema: z.ZodTypeAny): string[] | undefined {
   const inner = unwrap(schema);
   if (inner instanceof z.ZodUnion || inner instanceof z.ZodDiscriminatedUnion) {
-    for (const option of inner.options) {
+    for (const option of inner.options as z.ZodTypeAny[]) {
       const keys = requiredNumberKeys(option);
       if (keys && keys.length > 0) return keys;
     }
@@ -187,8 +187,9 @@ function requiredNumberKeys(schema: z.ZodTypeAny): string[] | undefined {
   if (!(inner instanceof z.ZodObject)) return undefined;
   const keys: string[] = [];
   for (const [key, field] of Object.entries(inner.shape)) {
-    if (!(unwrap(field) instanceof z.ZodNumber)) continue;
-    const wrapped = defOf(field).typeName;
+    const fieldSchema = field as z.ZodTypeAny;
+    if (!(unwrap(fieldSchema) instanceof z.ZodNumber)) continue;
+    const wrapped = defOf(fieldSchema).typeName;
     if (wrapped === 'ZodOptional' || wrapped === 'ZodDefault') continue;
     keys.push(key);
   }
@@ -231,6 +232,7 @@ function cliText(schema: z.ZodTypeAny, value: string, ctx: Ctx, depth: number): 
         coerceValue(item, part, depth + 1, child(ctx, `${ctx.path}[${index}]`)),
       );
     }
+    if (def.typeName === 'ZodTuple' && !value.includes(',')) return undefined;
     const parts = value.includes(',') ? value.split(',').map((part) => part.trim()) : [value];
     if (def.typeName === 'ZodTuple' && Array.isArray(def.items)) {
       const items = def.items as z.ZodTypeAny[];

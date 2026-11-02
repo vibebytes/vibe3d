@@ -63,6 +63,9 @@ importers:
 
   packages/cli:
     dependencies:
+      '@vibebyte/vibe3d-capabilities':
+        specifier: workspace:*
+        version: link:../capabilities
       '@vibebyte/vibe3d-client':
         specifier: workspace:*
         version: link:../client
