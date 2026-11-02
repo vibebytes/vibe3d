@@ -133,3 +133,47 @@ describe('render.node', () => {
     expect(codeOf(body)).toBe('E_RENDER_UNAVAILABLE');
   });
 });
+
+describe('render framing at an animation time', () => {
+  const lift = {
+    duration: 1,
+    tracks: [
+      {
+        path: 'position',
+        keys: [
+          { t: 0, v: [0, 2, 0] },
+          { t: 1, v: [0, 6, 0] },
+        ],
+      },
+    ],
+  };
+
+  it('render.node frames the posed node when at is given', async () => {
+    const h = makeHarness();
+    h.ctx.renderer = fakeRenderer([]) as unknown as DispatchContext['renderer'];
+    const { roomId, nodeId } = await roomWithBox(h);
+    const def = await call(h, 'animation.define', { roomId, nodeId, clip: lift }, roomId);
+    expect(def.body.error).toBeUndefined();
+
+    const rest = await call(h, 'render.node', { roomId, nodeId }, roomId);
+    const posed = await call(h, 'render.node', { roomId, nodeId, at: 1 }, roomId);
+    expect(rest.body.result.target.max[1]).toBeCloseTo(2.5, 5);
+    expect(posed.body.result.target.min[1]).toBeCloseTo(5.5, 5);
+  });
+
+  it('render.views frames the posed scene when at is given', async () => {
+    const h = makeHarness();
+    h.ctx.renderer = fakeRenderer([]) as unknown as DispatchContext['renderer'];
+    const { roomId, nodeId } = await roomWithBox(h);
+    await call(h, 'animation.define', { roomId, nodeId, clip: lift }, roomId);
+
+    const { body } = await call(
+      h,
+      'render.views',
+      { roomId, nodeIds: [nodeId], views: ['front'], at: 1 },
+      roomId,
+    );
+    expect(body.error).toBeUndefined();
+    expect(body.result.target.min[1]).toBeCloseTo(5.5, 5);
+  });
+});

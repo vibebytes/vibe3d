@@ -384,6 +384,40 @@ const halve = (value: unknown, fallback: number): number => {
   return Math.max(64, Math.round(n / 2));
 };
 
+/** Moves every `{base64, mime}` payload into image blocks; the JSON keeps `image: <1-based index>` instead. */
+/** Rewrites daemon-relative `/exports/...` links (any depth) into absolute URLs on the studio base. */
+export function absoluteExportUrls(value: unknown, base: string | undefined, depth = 0): unknown {
+  if (!base) return value;
+  if (typeof value === 'string')
+    return value.startsWith('/exports/') ? `${base.replace(/\/$/, '')}${value}` : value;
+  if (depth > 6 || value === null || typeof value !== 'object') return value;
+  if (Array.isArray(value)) return value.map((v) => absoluteExportUrls(v, base, depth + 1));
+  return Object.fromEntries(
+    Object.entries(value).map(([k, v]) => [k, absoluteExportUrls(v, base, depth + 1)]),
+  );
+}
+
+export function extractImages(value: unknown): { value: unknown; images: ImageContent[] } {
+  const images: ImageContent[] = [];
+  const walk = (node: unknown, depth: number): unknown => {
+    if (depth > 6 || node === null || typeof node !== 'object') return node;
+    if (Array.isArray(node)) return node.map((item) => walk(item, depth + 1));
+    const record = node as Record<string, unknown>;
+    if (
+      typeof record.base64 === 'string' &&
+      typeof record.mime === 'string' &&
+      record.mime.startsWith('image/')
+    ) {
+      images.push({ type: 'image', data: record.base64, mimeType: record.mime });
+      const { base64: _bytes, ...rest } = record;
+      return { ...(walk(rest, depth + 1) as Record<string, unknown>), image: images.length };
+    }
+    return Object.fromEntries(Object.entries(record).map(([key, child]) => [key, walk(child, depth + 1)]));
+  };
+  const stripped = walk(value, 0);
+  return { value: images.length > 0 ? stripped : value, images };
+}
+
 const fogFar = (fog: unknown): number | string => {
   const far = (fog as { far?: unknown } | null | undefined)?.far;
   return typeof far === 'number' && Number.isFinite(far) ? far : '?';
@@ -647,17 +681,20 @@ export class ToolRuntime {
           structuredContent: meta,
         };
       }
-      const card = artifactBlock(capability, result);
+      const linked = absoluteExportUrls(result, this.studio.url);
+      const card = artifactBlock(capability, linked);
+      const { value: body, images } = extractImages(linked);
       const content: Array<TextContent | ImageContent> = [
+        ...images,
         {
           type: 'text',
-          text: JSON.stringify(capability === 'editor.open' ? editorOpenView(result) : result),
+          text: JSON.stringify(capability === 'editor.open' ? editorOpenView(body) : body),
         },
         ...(card ? [{ type: 'text' as const, text: card }] : []),
       ];
       if (droppedNote) content.push({ type: 'text', text: droppedNote });
       content.push(...notes);
-      return { content, structuredContent: result };
+      return { content, structuredContent: body };
     } catch (err) {
       if (err instanceof Vibe3DError && err.code === 'E_ROOM_NOT_FOUND' && targetRoom)
         this.session.release(targetRoom);

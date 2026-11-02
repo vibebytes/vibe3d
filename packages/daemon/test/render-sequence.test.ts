@@ -240,3 +240,88 @@ describe('render.sequence', () => {
     expect(codeOf(bad.body)).toBe('E_INVALID_PARAMS');
   });
 });
+
+describe('render.sequence / render.video framing params', () => {
+  const lift = {
+    duration: 1,
+    tracks: [
+      {
+        path: 'position',
+        keys: [
+          { t: 0, v: [0, 0, 0] },
+          { t: 1, v: [0, 4, 0] },
+        ],
+      },
+    ],
+  };
+
+  async function animatedBox(h: Harness): Promise<{ roomId: string; nodeId: string }> {
+    const roomId = await room(h);
+    const created = await call(
+      h,
+      'node.create',
+      { roomId, kind: 'mesh', shape: 'box', size: [1, 1, 1] },
+      roomId,
+    );
+    const nodeId = created.body.result.nodeId as string;
+    await call(h, 'animation.define', { roomId, nodeId, clip: lift }, roomId);
+    return { roomId, nodeId };
+  }
+
+  for (const method of ['render.sequence', 'render.video'] as const) {
+    it(`${method} uses one camera framed on the union of posed bounds, with isolate`, async () => {
+      const h = makeHarness();
+      const { roomId, nodeId } = await animatedBox(h);
+      const seen: any[] = [];
+      const store = new JobStore();
+      const queue = new JobQueue(store);
+      h.ctx.renderer = {
+        ...frameRenderer([]),
+        snapshot: async (_input: unknown, opts: any) => {
+          seen.push(structuredClone(opts));
+          return { mime: 'image/png', base64: `F${seen.length}`, width: 64, height: 64 };
+        },
+      } as Renderer;
+      h.ctx.jobs = { store, queue };
+      h.ctx.ffmpeg = { available: async () => true, run: async () => undefined } as never;
+      const before = await call(h, 'scene.get', { roomId }, roomId);
+
+      const started = await call(
+        h,
+        method,
+        { roomId, from: 0, to: 1, fps: 2, nodeIds: [nodeId], view: 'front', isolate: [nodeId] },
+        roomId,
+      );
+      expect(started.body.error).toBeUndefined();
+      await queue.idle();
+
+      expect(seen).toHaveLength(3);
+      const cams = seen.map((o) => JSON.stringify(o.camera));
+      expect(new Set(cams).size).toBe(1);
+      expect(seen[0].camera.target[1]).toBeCloseTo(2, 5);
+      expect(seen[0].isolate).toEqual([nodeId]);
+      const after = await call(h, 'scene.get', { roomId }, roomId);
+      expect(after.body.result.revision).toBe(before.body.result.revision);
+    });
+  }
+
+  it('an explicit camera wins over framing', async () => {
+    const h = makeHarness();
+    const { roomId, nodeId } = await animatedBox(h);
+    const seen: any[] = [];
+    const store = new JobStore();
+    const queue = new JobQueue(store);
+    h.ctx.renderer = {
+      ...frameRenderer([]),
+      snapshot: async (_input: unknown, opts: any) => {
+        seen.push(opts);
+        return { mime: 'image/png', base64: `F${seen.length}`, width: 64, height: 64 };
+      },
+    } as Renderer;
+    h.ctx.jobs = { store, queue };
+    const camera = { position: [5, 5, 5], target: [0, 1, 0] };
+    await call(h, 'render.sequence', { roomId, from: 0, to: 0.5, fps: 2, nodeIds: [nodeId], camera }, roomId);
+    await queue.idle();
+    expect(seen[0].camera.target).toEqual([0, 1, 0]);
+  });
+});

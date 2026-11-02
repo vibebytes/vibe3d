@@ -1,4 +1,5 @@
 import type { CameraState, SceneDoc, SceneNode } from '@vibebyte/vibe3d-protocol';
+import { posedDoc } from './anim';
 
 export type Mat4 = [
   number,
@@ -354,6 +355,8 @@ export interface FrameTargetOptions {
   view?: ViewName;
   padding?: number;
   bbox?: Bounds;
+  /** Animation time(s); the framed box is the union of the poses at these times. */
+  at?: number | readonly number[];
 }
 
 export interface FrameResult {
@@ -394,16 +397,31 @@ function frameBox(camera: CameraState, box: Aabb, mode: FrameMode, view: ViewNam
   };
 }
 
+function unionBox(a: Aabb | null, b: Aabb | null): Aabb | null {
+  if (!a || !b) return a ?? b;
+  return {
+    min: [Math.min(a.min[0], b.min[0]), Math.min(a.min[1], b.min[1]), Math.min(a.min[2], b.min[2])],
+    max: [Math.max(a.max[0], b.max[0]), Math.max(a.max[1], b.max[1]), Math.max(a.max[2], b.max[2])],
+  };
+}
+
+function targetBounds(doc: SceneDoc, ids: readonly string[] | null): Aabb | null {
+  return ids
+    ? boundsOf(
+        doc,
+        ids.flatMap((id) => subtreeIds(doc, id)),
+      )
+    : sceneBounds(doc);
+}
+
 export function frameTarget(doc: SceneDoc, opts: FrameTargetOptions = {}): FrameResult | null {
   const ids = opts.ids && opts.ids.length > 0 ? opts.ids : null;
+  const times = opts.at === undefined ? [] : typeof opts.at === 'number' ? [opts.at] : opts.at;
   const box = validBox(opts.bbox)
     ? opts.bbox
-    : ids
-      ? boundsOf(
-          doc,
-          ids.flatMap((id) => subtreeIds(doc, id)),
-        )
-      : sceneBounds(doc);
+    : times.length === 0
+      ? targetBounds(doc, ids)
+      : times.reduce<Aabb | null>((acc, t) => unionBox(acc, targetBounds(posedDoc(doc, t), ids)), null);
   if (!box) return null;
   const source = validBox(opts.bbox) ? 'bbox' : ids ? 'ids' : 'scene';
   const mode = opts.mode ?? (source === 'scene' ? 'fit' : 'close');

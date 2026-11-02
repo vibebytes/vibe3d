@@ -1,4 +1,4 @@
-import type { ClipKey, ClipSpec, TrackSpec, Transform } from '@vibebyte/vibe3d-protocol';
+import type { ClipKey, ClipSpec, SceneDoc, TrackSpec, Transform } from '@vibebyte/vibe3d-protocol';
 
 const TAU = Math.PI * 2;
 
@@ -231,4 +231,18 @@ export function applyNodeClips(base: Transform, clips: ClipSpec[], t: number): T
   let out = base;
   for (const clip of clips) out = applyClipTransform(out, clip, t);
   return out;
+}
+
+/** A copy of the doc with every procedural clip evaluated at time t and written into node transforms. */
+export function posedDoc(doc: SceneDoc, t: number): SceneDoc {
+  const nodes = Object.fromEntries(
+    Object.entries(doc.nodes).map(([id, node]) => {
+      const clips = nodeClipsOf(node as ClipCarrier);
+      return [
+        id,
+        clips.length === 0 ? node : { ...node, transform: applyNodeClips(node.transform, clips, t) },
+      ];
+    }),
+  );
+  return { ...doc, nodes } as SceneDoc;
 }

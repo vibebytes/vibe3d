@@ -181,6 +181,20 @@ function resolveFraming(p: ImageParams, doc: SceneDoc): CameraOverrideInput | un
   return undefined;
 }
 
+function sequenceCamera(
+  p: { from: number; to: number; fps: number; nodeIds?: string[]; view?: ViewName; camera?: unknown },
+  doc: SceneDoc,
+  count: number,
+): SnapshotOptions['camera'] | undefined {
+  if (p.camera || (!p.nodeIds?.length && !p.view)) return undefined;
+  const missing = (p.nodeIds ?? []).filter((id) => !doc.nodes[id]);
+  if (missing.length > 0) throw new AppError('E_INVALID_PARAMS', `nodeIds 含未知节点：${missing.join(', ')}`);
+  const at = Array.from({ length: count }, (_, i) => Math.min(p.from + i / p.fps, p.to));
+  const framed = frameTarget(doc, { ids: p.nodeIds, view: p.view, at });
+  if (!framed) throw new AppError('E_INVALID_PARAMS', '取景目标没有可见几何');
+  return framed.camera;
+}
+
 function imageOptions(p: ImageParams, doc?: SceneDoc, quality?: QualityPreset): SnapshotOptions {
   const at = p.at ?? (doc && hasDocAnimation(doc) ? 0 : undefined);
   const camera = doc ? cameraOverride(resolveFraming(p, doc), doc) : undefined;
@@ -379,7 +393,7 @@ export const renderHandlers: HandlersFor<Keys> = {
       throw new AppError('E_INVALID_PARAMS', `nodeIds 含未知节点：${missing.join(', ')}`);
     }
     const views: ViewName[] = p.views && p.views.length > 0 ? p.views : DEFAULT_VIEWS;
-    const target = frameTarget(room.doc, { ids });
+    const target = frameTarget(room.doc, { ids, at: p.at });
     if (!target) {
       throw new AppError('E_INVALID_PARAMS', '场景里没有可见几何，无法取景');
     }
@@ -389,7 +403,7 @@ export const renderHandlers: HandlersFor<Keys> = {
     const results = await Promise.all(
       views.map(async (view) => {
         try {
-          const framed = frameTarget(room.doc, { ids, view }) ?? target;
+          const framed = frameTarget(room.doc, { ids, view, at: p.at }) ?? target;
           const shot = await renderer.snapshot(
             { roomId: room.id, doc: room.doc },
             {
@@ -453,6 +467,7 @@ export const renderHandlers: HandlersFor<Keys> = {
       ids: [p.nodeId],
       view,
       padding: p.padding ?? DEFAULT_NODE_PADDING,
+      at: p.at,
     });
     if (!framed) {
       throw new AppError('E_INVALID_PARAMS', `节点没有可见几何，无法取景：${p.nodeId}`);
@@ -774,12 +789,18 @@ export const renderHandlers: HandlersFor<Keys> = {
     const revision = room.revision;
     const job = jobs.store.create('render.sequence', room.id);
     const settleMs = Math.max(p.settleMs ?? 0, Math.ceil((2 * 1000) / p.fps));
-    const options = { ...imageOptions({ ...p, format: 'png' }, snapshot), settleMs };
+    const framed = sequenceCamera(p, snapshot, count);
+    const options = {
+      ...imageOptions({ ...p, format: 'png' }, snapshot),
+      settleMs,
+      ...(framed ? { camera: framed } : {}),
+    };
     try {
       jobs.queue.enqueue(job, async (record, report) => {
         report(0.02, 'prepare');
         await mkdir(dir, { recursive: true });
-        const frames: { index: number; at: number; file: string; bytes: number }[] = [];
+        const frames: { index: number; at: number; file: string; url: string; bytes: number }[] = [];
+        const exportLink = (f: string) => ctx.signExport?.(f) ?? signExportUrl(ctx.token ?? '', f);
         const hashes = new Set<string>();
         let warning: string | undefined;
         const file = `${record.id}.json`;
@@ -811,7 +832,7 @@ export const renderHandlers: HandlersFor<Keys> = {
             const bytes = Buffer.from(shot.base64, 'base64');
             await writeFile(join(dir, frameFile), bytes);
             hashes.add(createHash('md5').update(bytes).digest('hex'));
-            frames.push({ index: i, at, file: frameFile, bytes: bytes.length });
+            frames.push({ index: i, at, file: frameFile, url: exportLink(frameFile), bytes: bytes.length });
           };
           for (let i = 0; i < count; i += 1) {
             if (record.cancelRequested) break;
@@ -864,7 +885,12 @@ export const renderHandlers: HandlersFor<Keys> = {
     const revision = room.revision;
     const job = jobs.store.create('render.video', room.id);
     const settleMs = Math.max(p.settleMs ?? 0, Math.ceil((2 * 1000) / p.fps));
-    const options = { ...imageOptions({ ...p, format: 'png' }, snapshot), settleMs };
+    const framed = sequenceCamera(p, snapshot, count);
+    const options = {
+      ...imageOptions({ ...p, format: 'png' }, snapshot),
+      settleMs,
+      ...(framed ? { camera: framed } : {}),
+    };
     try {
       jobs.queue.enqueue(job, async (record, report) => {
         report(0.02, 'prepare');
@@ -874,7 +900,8 @@ export const renderHandlers: HandlersFor<Keys> = {
           });
         }
         await mkdir(dir, { recursive: true });
-        const frames: { index: number; at: number; file: string; bytes: number }[] = [];
+        const frames: { index: number; at: number; file: string; url: string; bytes: number }[] = [];
+        const exportLink = (f: string) => ctx.signExport?.(f) ?? signExportUrl(ctx.token ?? '', f);
         const hashes = new Set<string>();
         let warning: string | undefined;
         const video = `${record.id}.mp4`;
@@ -911,7 +938,7 @@ export const renderHandlers: HandlersFor<Keys> = {
             const bytes = Buffer.from(shot.base64, 'base64');
             await writeFile(join(dir, frameFile), bytes);
             hashes.add(createHash('md5').update(bytes).digest('hex'));
-            frames.push({ index: i, at, file: frameFile, bytes: bytes.length });
+            frames.push({ index: i, at, file: frameFile, url: exportLink(frameFile), bytes: bytes.length });
             report(0.05 + (0.75 * (i + 1)) / count, `frame ${i + 1}/${count}`);
           }
           if (frames.length > 1 && hashes.size === 1) warning = 'animation not advancing';

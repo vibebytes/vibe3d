@@ -1,12 +1,13 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-export const EXPORT_FILE_RE = /^[a-f0-9]{32}(-\d{4})?\.(glb|json|png)$/;
+export const EXPORT_FILE_RE = /^[a-f0-9]{32}(-\d{4})?\.(glb|json|png|mp4)$/;
 export const EXPORT_LINK_TTL_MS = 10 * 60_000;
 
 const MIME: Record<string, string> = {
   glb: 'model/gltf-binary',
   json: 'application/json; charset=utf-8',
   png: 'image/png',
+  mp4: 'video/mp4',
 };
 
 export function exportKey(file: string): string {

@@ -14,6 +14,7 @@ export {
   boneTracksOf,
   clipChannelOf,
   clipKeyOf,
+  posedDoc,
   nodeClipsOf,
   sampleClip,
   sampleTrack,

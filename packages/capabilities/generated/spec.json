@@ -56737,6 +56737,95 @@
             "minimum": 0,
             "maximum": 10000
           },
+          "nodeIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "maxItems": 20,
+            "description": "取景这些节点（含子树）；整段动画只算一次相机，覆盖所有采样时刻的姿态"
+          },
+          "view": {
+            "type": "string",
+            "enum": [
+              "front",
+              "back",
+              "left",
+              "right",
+              "top",
+              "three_quarter"
+            ],
+            "description": "取景视角；给 nodeIds 或 view 时按动画包围盒自动取景"
+          },
+          "isolate": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "maxItems": 200
+          },
+          "camera": {
+            "type": "object",
+            "properties": {
+              "position": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "target": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "fov": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 179
+              }
+            },
+            "additionalProperties": false,
+            "description": "显式相机，优先于 nodeIds/view 自动取景"
+          },
           "format": {
             "type": "string",
             "const": "png"
@@ -56870,6 +56959,95 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 10000
+          },
+          "nodeIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "maxItems": 20,
+            "description": "取景这些节点（含子树）；整段动画只算一次相机，覆盖所有采样时刻的姿态"
+          },
+          "view": {
+            "type": "string",
+            "enum": [
+              "front",
+              "back",
+              "left",
+              "right",
+              "top",
+              "three_quarter"
+            ],
+            "description": "取景视角；给 nodeIds 或 view 时按动画包围盒自动取景"
+          },
+          "isolate": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^n_[a-z0-9]{8}$"
+            },
+            "maxItems": 200
+          },
+          "camera": {
+            "type": "object",
+            "properties": {
+              "position": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "p": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "target": {
+                "type": "array",
+                "minItems": 3,
+                "maxItems": 3,
+                "items": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ]
+              },
+              "fov": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 179
+              }
+            },
+            "additionalProperties": false,
+            "description": "显式相机，优先于 nodeIds/view 自动取景"
           }
         },
         "required": [

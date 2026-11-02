@@ -676,6 +676,14 @@ export const renderOps = {
       shading: imageOpts.shading,
       overlay: imageOpts.overlay,
       settleMs: imageOpts.settleMs,
+      nodeIds: z
+        .array(nodeIdSchema)
+        .max(20)
+        .optional()
+        .describe('取景这些节点（含子树）；整段动画只算一次相机，覆盖所有采样时刻的姿态'),
+      view: viewName.optional().describe('取景视角；给 nodeIds 或 view 时按动画包围盒自动取景'),
+      isolate: imageOpts.isolate,
+      camera: cameraOverride.optional().describe('显式相机，优先于 nodeIds/view 自动取景'),
       format: z.literal('png').optional(),
     }),
     output: z.object({
@@ -710,6 +718,14 @@ export const renderOps = {
       shading: imageOpts.shading,
       overlay: imageOpts.overlay,
       settleMs: imageOpts.settleMs,
+      nodeIds: z
+        .array(nodeIdSchema)
+        .max(20)
+        .optional()
+        .describe('取景这些节点（含子树）；整段动画只算一次相机，覆盖所有采样时刻的姿态'),
+      view: viewName.optional().describe('取景视角；给 nodeIds 或 view 时按动画包围盒自动取景'),
+      isolate: imageOpts.isolate,
+      camera: cameraOverride.optional().describe('显式相机，优先于 nodeIds/view 自动取景'),
     }),
     output: z.object({
       jobId: z.string().min(1),
