@@ -51,6 +51,20 @@ describe('vibe3d_help 不依赖 daemon', () => {
     );
   });
 
+  it('vibe3d_animation 的 help 列出 gait 及其 style 参数', async () => {
+    const { client } = await connectClient({
+      runtime: async () => {
+        throw new Error('daemon 启动失败');
+      },
+    });
+    const result = await client.callTool({ name: 'vibe3d_help', arguments: { tool: 'vibe3d_animation' } });
+    const body = JSON.parse(textOf(result));
+    const gait = body.ops.find((op: { op: string }) => op.op === 'gait');
+    expect(gait.params.map((p: { name: string }) => p.name)).toEqual(
+      expect.arrayContaining(['node_id', 'style']),
+    );
+  });
+
   it('vibe3d_help 也接受全名 op', async () => {
     const { client } = await connectClient({
       runtime: async () => {

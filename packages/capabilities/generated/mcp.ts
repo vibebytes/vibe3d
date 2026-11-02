@@ -253,13 +253,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
   },
   {
     name: "vibe3d_animation",
-    title: "程序化动画：定义轨道 / 播放 / 停止 / 清除 / 批量摆姿势",
+    title: "程序化动画：定义轨道 / 播放 / 停止 / 清除 / 批量摆姿势 / 人形步态",
     ops: [
       { op: "define", capability: "animation.define", title: "定义程序化动画：周期函数（sway/ripple/float/flicker/spin）、标量关键帧（keyframes），或任意属性轨道（tracks）" },
       { op: "play", capability: "animation.play", title: "播放模型动画，默认取首条 clip；clips 可多 clip 叠加" },
       { op: "stop", capability: "animation.stop", title: "停止模型动画；程序化 clip 节点为幂等空操作" },
       { op: "clear", capability: "animation.clear", title: "清除节点上的程序化动画" },
       { op: "pose", capability: "animation.pose", title: "一次性摆姿势：批量写入多个节点的 keyframes 姿态" },
+      { op: "gait", capability: "animation.gait", title: "给带骨骼的人形模型套程序化步态（walk / run / idle）：循环 bone 轨道 + 根运动 drift；替换该节点已有的程序化动画" },
     ],
     annotations: {"readOnlyHint":false,"destructiveHint":true,"idempotentHint":false,"openWorldHint":false},
     inputSchema: {
@@ -273,13 +274,14 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
             "play",
             "stop",
             "clear",
-            "pose"
+            "pose",
+            "gait"
           ],
           "description": "animation 下的 op；每个 op 的参数字段用 vibe3d_help {tool, op} 查"
         },
         "params": {
           "type": "object",
-          "description": "op 与必填字段：define{node_id,clip} play{node_id} stop{node_id} clear{node_id} pose{targets}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
+          "description": "op 与必填字段：define{node_id,clip} play{node_id} stop{node_id} clear{node_id} pose{targets} gait{node_id,style}。参数可平铺在顶层（顶层优先），省略 params 时取其顶层字段"
         },
         "room_id": {
           "type": "string",
@@ -5933,6 +5935,13 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                             "type": "integer",
                             "minimum": 0
                           },
+                          "bones": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "skin 关节节点名（所有 skin 合并去重）"
+                          },
                           "size": {
                             "type": "object",
                             "properties": {
@@ -8749,6 +8758,13 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                                   "type": "integer",
                                   "minimum": 0
                                 },
+                                "bones": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "description": "skin 关节节点名（所有 skin 合并去重）"
+                                },
                                 "size": {
                                   "type": "object",
                                   "properties": {
@@ -9380,6 +9396,7 @@ export const MCP_LEGACY_ALIASES: Readonly<Record<string, { tool: string; op: str
   "vibe3d_stop_animation": { tool: "vibe3d_animation", op: "stop" },
   "vibe3d_clear_animation": { tool: "vibe3d_animation", op: "clear" },
   "vibe3d_pose_animation": { tool: "vibe3d_animation", op: "pose" },
+  "vibe3d_gait_animation": { tool: "vibe3d_animation", op: "gait" },
   "vibe3d_create_fx": { tool: "vibe3d_fx", op: "create" },
   "vibe3d_delete_fx": { tool: "vibe3d_fx", op: "delete" },
   "vibe3d_boolean_mesh": { tool: "vibe3d_mesh", op: "boolean" },

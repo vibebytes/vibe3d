@@ -24,6 +24,7 @@ describe('scene toGlb → daemon parseGltf', () => {
     });
     const report = parseGltf(Buffer.from(bytes), 'stick.glb');
     expect(report.skins).toBe(1);
+    expect(report.bones).toEqual(['Root', 'Tip']);
     expect(report.meshes).toBe(1);
     expect(report.tris).toBe(1);
     expect(report.unsupported).toEqual([]);

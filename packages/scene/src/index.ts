@@ -170,3 +170,4 @@ export {
   type PresetResolution,
 } from './material';
 export { type GlbBone, type GlbMaterial, type GlbPrimitive, type SkinnedModel, toGlb } from './glb';
+export { GAIT_BONES, gaitClip, type GaitSpec, type GaitStyle } from './gait';

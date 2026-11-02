@@ -228,6 +228,7 @@ export const gltfReportSchema = z.object({
   textures: z.number().int().min(0),
   animations: z.array(gltfAnimationSchema),
   skins: z.number().int().min(0),
+  bones: z.array(z.string()).optional().describe('skin 关节节点名（所有 skin 合并去重）'),
   size: z.object({
     min: z.tuple([z.number(), z.number(), z.number()]),
     max: z.tuple([z.number(), z.number(), z.number()]),

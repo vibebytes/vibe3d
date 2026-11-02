@@ -18,12 +18,14 @@ import {
 } from '@vibebyte/vibe3d-protocol';
 import {
   DEFAULT_LIMITS,
+  GAIT_BONES,
   type NodeFilter,
   arrayPlacements,
   attachDelta,
   checkBudget,
   clipChannelOf,
   frameTarget,
+  gaitClip,
   mergeGroup,
   meshLocalBounds,
   nodeBounds,
@@ -88,6 +90,7 @@ type Keys =
   | 'animation.define'
   | 'animation.clear'
   | 'animation.pose'
+  | 'animation.gait'
   | 'fx.create'
   | 'fx.delete'
   | 'env.set'
@@ -935,6 +938,30 @@ export const sceneHandlers: HandlersFor<Keys> = {
     }
     const result = await room.run(() => room.apply([{ op: 'animation.pose', targets: targets }]));
     return { revision: result.revision, appliedTo: targets.map((t) => t.nodeId) };
+  },
+
+  'animation.gait': async (p, ctx) => {
+    const room = ctx.rooms.get(p.roomId);
+    const nodeId = nodeIdOf(room.doc, p.nodeId);
+    const node = room.doc.nodes[nodeId];
+    if (!node) throw new AppError('E_NODE_NOT_FOUND', `节点 ${nodeId} 不存在`);
+    const bones = node.kind === 'model' ? (room.doc.assets[node.sha]?.gltf?.bones ?? []) : [];
+    const missing = GAIT_BONES.filter((bone) => !bones.includes(bone));
+    if (missing.length > 0) {
+      throw new AppError('E_INVALID_PARAMS', `节点 ${nodeId} 的骨架缺少步态所需骨骼：${missing.join(', ')}`, {
+        missing,
+        hint: 'animation.gait 需要带这些骨骼的 model 节点；mesh.mannequin 生成的人偶满足；其他模型请用 animation.define 写 bone.<名>.rotation 轨道',
+      });
+    }
+    const { roomId: _roomId, nodeId: _ref, ...spec } = p;
+    const clip = gaitClip(spec);
+    const result = await room.run(() =>
+      room.apply([
+        { op: 'animation.clear', target: nodeId },
+        { op: 'animation.define', target: nodeId, clip },
+      ]),
+    );
+    return { revision: result.revision, nodeId, period: clip.duration ?? 0, drift: clip.drift ?? [0, 0, 0] };
   },
 
   'fx.create': async (p, ctx) => {

@@ -3746,6 +3746,13 @@
                           "type": "integer",
                           "minimum": 0
                         },
+                        "bones": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "skin 关节节点名（所有 skin 合并去重）"
+                        },
                         "size": {
                           "type": "object",
                           "properties": {
@@ -6091,6 +6098,13 @@
                   "skins": {
                     "type": "integer",
                     "minimum": 0
+                  },
+                  "bones": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "skin 关节节点名（所有 skin 合并去重）"
                   },
                   "size": {
                     "type": "object",
@@ -14509,6 +14523,13 @@
                               "type": "integer",
                               "minimum": 0
                             },
+                            "bones": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "skin 关节节点名（所有 skin 合并去重）"
+                            },
                             "size": {
                               "type": "object",
                               "properties": {
@@ -17708,6 +17729,13 @@
                                   "skins": {
                                     "type": "integer",
                                     "minimum": 0
+                                  },
+                                  "bones": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "description": "skin 关节节点名（所有 skin 合并去重）"
                                   },
                                   "size": {
                                     "type": "object",
@@ -24675,6 +24703,13 @@
                               "type": "integer",
                               "minimum": 0
                             },
+                            "bones": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "skin 关节节点名（所有 skin 合并去重）"
+                            },
                             "size": {
                               "type": "object",
                               "properties": {
@@ -27874,6 +27909,13 @@
                                   "skins": {
                                     "type": "integer",
                                     "minimum": 0
+                                  },
+                                  "bones": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "description": "skin 关节节点名（所有 skin 合并去重）"
                                   },
                                   "size": {
                                     "type": "object",
@@ -39025,6 +39067,13 @@
                               "type": "integer",
                               "minimum": 0
                             },
+                            "bones": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "skin 关节节点名（所有 skin 合并去重）"
+                            },
                             "size": {
                               "type": "object",
                               "properties": {
@@ -42225,6 +42274,13 @@
                                     "type": "integer",
                                     "minimum": 0
                                   },
+                                  "bones": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "description": "skin 关节节点名（所有 skin 合并去重）"
+                                  },
                                   "size": {
                                     "type": "object",
                                     "properties": {
@@ -43969,6 +44025,135 @@
         "required": [
           "revision",
           "appliedTo"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "animation.gait",
+      "title": "给带骨骼的人形模型套程序化步态（walk / run / idle）：循环 bone 轨道 + 根运动 drift；替换该节点已有的程序化动画",
+      "wire": "scene.apply",
+      "scope": "room",
+      "mutating": true,
+      "hostCoupled": false,
+      "errors": [
+        "E_INVALID_PARAMS",
+        "E_NODE_NOT_FOUND",
+        "E_ROOM_NOT_FOUND"
+      ],
+      "mcp": {
+        "tool": "vibe3d_animation",
+        "op": "gait",
+        "legacy": "vibe3d_gait_animation",
+        "annotations": {},
+        "roomArg": false
+      },
+      "cli": {
+        "command": "anim gait",
+        "args": "<roomId> <nodeId> --style walk|run|idle [--period s] [--stride m] [--arm-swing rad] [--heading rad]"
+      },
+      "input": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "pattern": "^r_[a-z0-9]{8}$"
+          },
+          "nodeId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^n_[a-z0-9]{8}$"
+              },
+              {
+                "type": "string",
+                "pattern": "^@\\S{1,200}$"
+              }
+            ],
+            "description": "带骨骼的 model 节点 id 或 @名称（如 mesh.mannequin 的结果）"
+          },
+          "style": {
+            "type": "string",
+            "enum": [
+              "walk",
+              "run",
+              "idle"
+            ]
+          },
+          "period": {
+            "type": "number",
+            "minimum": 0.2,
+            "maximum": 10,
+            "description": "一个完整周期（两步）的秒数；缺省 walk 1.1 / run 0.7 / idle 3"
+          },
+          "stride": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1.8,
+            "description": "步长（米）；根运动速度 = stride*2/period"
+          },
+          "armSwing": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1.6,
+            "description": "肩摆幅（弧度）"
+          },
+          "speed": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "时间轴倍率"
+          },
+          "heading": {
+            "type": "number",
+            "description": "前进方向，弧度，绕 +Y；0 表示沿 +Z"
+          }
+        },
+        "required": [
+          "roomId",
+          "nodeId",
+          "style"
+        ],
+        "additionalProperties": false,
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "nodeId": {
+            "type": "string",
+            "pattern": "^n_[a-z0-9]{8}$"
+          },
+          "period": {
+            "type": "number"
+          },
+          "drift": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "description": "根运动，米/秒；idle 为 [0,0,0]"
+          }
+        },
+        "required": [
+          "revision",
+          "nodeId",
+          "period",
+          "drift"
         ],
         "additionalProperties": false,
         "$schema": "http://json-schema.org/draft-07/schema#"
@@ -47086,6 +47271,13 @@
                         "skins": {
                           "type": "integer",
                           "minimum": 0
+                        },
+                        "bones": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "skin 关节节点名（所有 skin 合并去重）"
                         },
                         "size": {
                           "type": "object",
@@ -50936,6 +51128,13 @@
                           "type": "integer",
                           "minimum": 0
                         },
+                        "bones": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "description": "skin 关节节点名（所有 skin 合并去重）"
+                        },
                         "size": {
                           "type": "object",
                           "properties": {
@@ -53771,6 +53970,13 @@
                 "type": "integer",
                 "minimum": 0
               },
+              "bones": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "skin 关节节点名（所有 skin 合并去重）"
+              },
               "size": {
                 "type": "object",
                 "properties": {
@@ -53987,6 +54193,13 @@
               "skins": {
                 "type": "integer",
                 "minimum": 0
+              },
+              "bones": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "skin 关节节点名（所有 skin 合并去重）"
               },
               "size": {
                 "type": "object",
@@ -54242,6 +54455,13 @@
                   "skins": {
                     "type": "integer",
                     "minimum": 0
+                  },
+                  "bones": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "skin 关节节点名（所有 skin 合并去重）"
                   },
                   "size": {
                     "type": "object",
@@ -54501,6 +54721,13 @@
                     "skins": {
                       "type": "integer",
                       "minimum": 0
+                    },
+                    "bones": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "skin 关节节点名（所有 skin 合并去重）"
                     },
                     "size": {
                       "type": "object",

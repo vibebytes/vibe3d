@@ -46,6 +46,7 @@ export type CapabilityName =
   | "animation.define"
   | "animation.clear"
   | "animation.pose"
+  | "animation.gait"
   | "scene.export"
   | "scene.import"
   | "scene.checkpoint"
@@ -128,6 +129,7 @@ export type InputOf<N extends CapabilityName> = {
   "animation.define": z.infer<(typeof CAPABILITIES)["animation.define"]['input']>;
   "animation.clear": z.infer<(typeof CAPABILITIES)["animation.clear"]['input']>;
   "animation.pose": z.infer<(typeof CAPABILITIES)["animation.pose"]['input']>;
+  "animation.gait": z.infer<(typeof CAPABILITIES)["animation.gait"]['input']>;
   "scene.export": z.infer<(typeof CAPABILITIES)["scene.export"]['input']>;
   "scene.import": z.infer<(typeof CAPABILITIES)["scene.import"]['input']>;
   "scene.checkpoint": z.infer<(typeof CAPABILITIES)["scene.checkpoint"]['input']>;
@@ -211,6 +213,7 @@ export type OutputOf<N extends CapabilityName> = {
   "animation.define": z.infer<(typeof CAPABILITIES)["animation.define"]['output']>;
   "animation.clear": z.infer<(typeof CAPABILITIES)["animation.clear"]['output']>;
   "animation.pose": z.infer<(typeof CAPABILITIES)["animation.pose"]['output']>;
+  "animation.gait": z.infer<(typeof CAPABILITIES)["animation.gait"]['output']>;
   "scene.export": z.infer<(typeof CAPABILITIES)["scene.export"]['output']>;
   "scene.import": z.infer<(typeof CAPABILITIES)["scene.import"]['output']>;
   "scene.checkpoint": z.infer<(typeof CAPABILITIES)["scene.checkpoint"]['output']>;

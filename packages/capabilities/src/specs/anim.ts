@@ -91,4 +91,43 @@ export const animOps = {
     cli: { command: 'anim pose', args: '<roomId> --targets <json>' },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
+  'animation.gait': {
+    title:
+      '给带骨骼的人形模型套程序化步态（walk / run / idle）：循环 bone 轨道 + 根运动 drift；替换该节点已有的程序化动画',
+    input: z.object({
+      roomId,
+      nodeId: nodeRefSchema.describe('带骨骼的 model 节点 id 或 @名称（如 mesh.mannequin 的结果）'),
+      style: z.enum(['walk', 'run', 'idle']),
+      period: z
+        .number()
+        .finite()
+        .min(0.2)
+        .max(10)
+        .optional()
+        .describe('一个完整周期（两步）的秒数；缺省 walk 1.1 / run 0.7 / idle 3'),
+      stride: z
+        .number()
+        .finite()
+        .min(0)
+        .max(1.8)
+        .optional()
+        .describe('步长（米）；根运动速度 = stride*2/period'),
+      armSwing: z.number().finite().min(0).max(1.6).optional().describe('肩摆幅（弧度）'),
+      speed: z.number().finite().positive().optional().describe('时间轴倍率'),
+      heading: z.number().finite().optional().describe('前进方向，弧度，绕 +Y；0 表示沿 +Z'),
+    }),
+    output: revisionOut.extend({
+      nodeId: nodeIdSchema,
+      period: z.number(),
+      drift: z.tuple([z.number(), z.number(), z.number()]).describe('根运动，米/秒；idle 为 [0,0,0]'),
+    }),
+    scope: 'room' as const,
+    mutating: true,
+    wire: 'scene.apply' as const,
+    cli: {
+      command: 'anim gait',
+      args: '<roomId> <nodeId> --style walk|run|idle [--period s] [--stride m] [--arm-swing rad] [--heading rad]',
+    },
+    errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
+  },
 };

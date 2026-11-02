@@ -43,6 +43,7 @@ export const CLI_COMMANDS = [
   { command: "anim define", args: "<roomId> <nodeId> --type sway [--axis x|y|z] [--gust 0..1] [--apply-to subtree]；任意属性用 --clip-json '{\"tracks\":[{\"path\":\"position\",\"keys\":[{\"t\":0,\"v\":[0,0,0]}]}]}'", capability: "animation.define" },
   { command: "anim clear", args: "<roomId> <nodeId> [--apply-to subtree] [--channel ry]", capability: "animation.clear" },
   { command: "anim pose", args: "<roomId> --targets <json>", capability: "animation.pose" },
+  { command: "anim gait", args: "<roomId> <nodeId> --style walk|run|idle [--period s] [--stride m] [--arm-swing rad] [--heading rad]", capability: "animation.gait" },
   { command: "scene export", args: "<roomId> [--out doc.json]", capability: "scene.export" },
   { command: "scene import", args: "<roomId> --file doc.json", capability: "scene.import" },
   { command: "scene checkpoint", args: "<roomId> [--name baseline]", capability: "scene.checkpoint" },

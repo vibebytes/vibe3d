@@ -27,7 +27,7 @@ interface GltfDoc {
   images?: { uri?: string; bufferView?: number }[];
   buffers?: { uri?: string; byteLength?: number }[];
   animations?: { name?: string; channels?: unknown[]; samplers?: { input?: number }[] }[];
-  skins?: unknown[];
+  skins?: { joints?: number[] }[];
   extensionsUsed?: string[];
   extensionsRequired?: string[];
 }
@@ -107,9 +107,17 @@ export function parseGltf(bytes: Buffer, name: string): GltfReport {
     textures: doc.textures?.length ?? 0,
     animations,
     skins: doc.skins?.length ?? 0,
+    ...(doc.skins?.length ? { bones: boneNames(doc) } : {}),
     size,
     heroGuess: animations.length ? 'animated' : 'static',
   };
+}
+
+function boneNames(doc: GltfDoc): string[] {
+  const names = (doc.skins ?? []).flatMap((skin) =>
+    (skin.joints ?? []).map((j) => doc.nodes?.[j]?.name ?? ''),
+  );
+  return [...new Set(names.filter((n) => n.length > 0))];
 }
 
 function readJsonChunk(bytes: Buffer, name: string): string {
