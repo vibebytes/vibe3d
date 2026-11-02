@@ -47,7 +47,9 @@ const brief = (tool: McpToolDoc): string => {
 export const describeTool = (tool: McpToolDoc): string => `[${tool.name.slice(7)}] ${brief(tool)}`;
 
 type ZodArm = { _def: { shape: () => Record<string, ZodLike> } };
-type ZodLike = { _def: { typeName?: string; value?: unknown; innerType?: ZodLike; schema?: ZodLike } };
+type ZodLike = {
+  _def: { typeName?: string; value?: unknown; innerType?: ZodLike; schema?: ZodLike; options?: ZodLike[] };
+};
 
 const UNWRAP = new Set(['ZodOptional', 'ZodNullable', 'ZodDefault', 'ZodCatch', 'ZodEffects', 'ZodReadonly']);
 const COMPOSITE = new Set([
@@ -69,6 +71,15 @@ const unwrap = (schema: ZodLike): ZodLike => {
   return current;
 };
 
+const isStringUnion = (schema: ZodLike): boolean =>
+  schema._def.typeName === 'ZodUnion' &&
+  (schema._def.options ?? []).every((o) => unwrap(o)._def.typeName === 'ZodString');
+
+const isComposite = (schema: ZodLike): boolean => {
+  const inner = unwrap(schema);
+  return COMPOSITE.has(inner._def.typeName ?? '') && !isStringUnion(inner);
+};
+
 const armTable = (arm: ZodArm): { op: string; fields: string[]; required: string[]; wrapped: boolean } => {
   let op = '';
   const fields: string[] = [];
@@ -80,7 +91,7 @@ const armTable = (arm: ZodArm): { op: string; fields: string[]; required: string
       continue;
     }
     const optional = schema._def.typeName === 'ZodOptional';
-    const body = COMPOSITE.has(unwrap(schema)._def.typeName ?? '') ? ':{…}' : '';
+    const body = isComposite(schema) ? ':{…}' : '';
     if (body) wrapped = true;
     fields.push(`${key}${optional ? '?' : ''}${body}`);
     if (!optional) required.push(key);

@@ -608,7 +608,7 @@
       "properties": {
         "ops": {
           "type": "array",
-          "description": "按顺序原子执行；每个元素是 {op:\"名字\", ...字段}。复合载荷要包在同名字段里，不能平铺在 op 顶层：node.create 传 {op,node:{…}}、env.set 传 {op,env:{…}}、stage.set 传 {op,stage:{…}}、camera.set 传 {op,camera:{…}}、fx.create 传 {op,fx:{…}}。op 与顶层字段：node.create{node:{…}} node.update{id:{…},patch:{…}} node.delete{id:{…},cascade?} node.reparent{id:{…},parent:{…},index?} material.set{id,material:{…}} material.delete{id,force?} material.create{id,preset?,params?:{…}} material.patch{id,patch:{…}} material.map{id,map:{…}} env.set{env:{…}} stage.set{stage:{…}} animation.play{target:{…},clip?,clips?,speed?,loop?,direction?,weight?} animation.stop{target:{…}} animation.define{target:{…},clip:{…},applyTo?} animation.clear{target:{…},applyTo?,channel?} animation.pose{targets} fx.create{fx:{…}} fx.delete{id} camera.set{camera?:{…},frame?,name?,preset?} camera.save{name,camera?:{…}} camera.delete{name} asset.register{asset:{…}} asset.unregister{sha} scene.replace{doc:{…}}。字段细节见 vibe3d_help {tool:\"vibe3d_apply_ops\", op:\"node.create\"}。",
+          "description": "按顺序原子执行；每个元素是 {op:\"名字\", ...字段}。复合载荷要包在同名字段里，不能平铺在 op 顶层：node.create 传 {op,node:{…}}、env.set 传 {op,env:{…}}、stage.set 传 {op,stage:{…}}、camera.set 传 {op,camera:{…}}、fx.create 传 {op,fx:{…}}。op 与顶层字段：node.create{node:{…}} node.update{id,patch:{…}} node.delete{id,cascade?} node.reparent{id,parent,index?} material.set{id,material:{…}} material.delete{id,force?} material.create{id,preset?,params?:{…}} material.patch{id,patch:{…}} material.map{id,map:{…}} env.set{env:{…}} stage.set{stage:{…}} animation.play{target,clip?,clips?,speed?,loop?,direction?,weight?} animation.stop{target} animation.define{target,clip:{…},applyTo?} animation.clear{target,applyTo?,channel?} animation.pose{targets} fx.create{fx:{…}} fx.delete{id} camera.set{camera?:{…},frame?,name?,preset?} camera.save{name,camera?:{…}} camera.delete{name} asset.register{asset:{…}} asset.unregister{sha} scene.replace{doc:{…}}。字段细节见 vibe3d_help {tool:\"vibe3d_apply_ops\", op:\"node.create\"}。",
           "items": {
             "type": "object",
             "properties": {
@@ -661,24 +661,6 @@
                   }
                 },
                 "required": ["op", "id", "patch"]
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "op": {
-                    "const": "node.delete"
-                  }
-                },
-                "required": ["op", "id"]
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "op": {
-                    "const": "node.reparent"
-                  }
-                },
-                "required": ["op", "id", "parent"]
               },
               {
                 "type": "object",
@@ -738,37 +720,10 @@
                 "type": "object",
                 "properties": {
                   "op": {
-                    "const": "animation.play"
-                  }
-                },
-                "required": ["op", "target"]
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "op": {
-                    "const": "animation.stop"
-                  }
-                },
-                "required": ["op", "target"]
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "op": {
                     "const": "animation.define"
                   }
                 },
                 "required": ["op", "target", "clip"]
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "op": {
-                    "const": "animation.clear"
-                  }
-                },
-                "required": ["op", "target"]
               },
               {
                 "type": "object",

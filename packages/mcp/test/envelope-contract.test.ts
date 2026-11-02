@@ -47,6 +47,20 @@ describe('envelope op coverage', () => {
     }
   });
 
+  it('lists every op of a multi-op tool in the description op segment', () => {
+    for (const tool of multi.filter((t) => t.name !== 'vibe3d_help')) {
+      const segment = tool.description?.split('｜').find((part) => part.startsWith('op: ')) ?? '';
+      const listed = segment
+        .replace(/\[(read|write)\] /g, '')
+        .replace(/[；]/g, ' ')
+        .slice(4)
+        .split(' ');
+      expect(listed.sort(), tool.name).toEqual(
+        [...(schemaOf(tool.name).properties?.op?.enum as string[])].sort(),
+      );
+    }
+  });
+
   it('names tree and mannequin in the mesh tool title', () => {
     const mesh = tools.find((tool) => tool.name === 'vibe3d_mesh');
     const title = mesh?.description ?? '';
