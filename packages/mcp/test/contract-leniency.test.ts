@@ -1,7 +1,7 @@
+import { coerceForSchema, lenientRecord } from '@vibebyte/vibe3d-capabilities';
 import { newNodeSchema } from '@vibebyte/vibe3d-protocol';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { coerceForSchema, lenientRecord } from '../src/coerce';
 
 const mesh = {
   kind: 'mesh',

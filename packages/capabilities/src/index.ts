@@ -24,4 +24,5 @@ export { describeCapability, type ParamDoc } from './help';
 export { describeOpField, mergedFieldDocs, opFieldDoc, opFieldDocs, type OpFieldDoc } from './op-fields';
 export { buildOpSample, opExample } from './op-example';
 export { describeIssues, type ParamIssue, toIssues } from './issues';
+export { coerceForSchema, deepCamel, lenientRecord, defOf, unwrap } from './coerce';
 export { GLOBAL_CONVENTIONS, conventionMap, conventionText, type ConventionEntry } from './conventions';

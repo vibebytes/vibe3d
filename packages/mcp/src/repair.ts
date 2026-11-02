@@ -1,5 +1,5 @@
+import { defOf, unwrap } from '@vibebyte/vibe3d-capabilities';
 import type { z } from 'zod';
-import { defOf, unwrap } from './coerce';
 
 type Def = { typeName?: string; [key: string]: unknown };
 

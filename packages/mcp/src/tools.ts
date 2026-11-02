@@ -5,15 +5,17 @@ import {
   MCP_LEGACY_ALIASES,
   MCP_TOOLS,
   type McpToolDoc,
+  coerceForSchema,
   conventionMap,
+  deepCamel,
   describeCapability,
   describeIssues,
+  lenientRecord,
   mergedFieldDocs,
   opExample,
   toIssues,
 } from '@vibebyte/vibe3d-capabilities';
 import { type CallOptions, type RoomHandle, type Studio, Vibe3DError } from '@vibebyte/vibe3d-client';
-import { coerceForSchema, deepCamel, lenientRecord } from './coerce';
 import { opItemAt, opNameAt, paramHint, schemaHint } from './hints';
 import { describeTool, presentSchema } from './presentation';
 import { repairInput } from './repair';

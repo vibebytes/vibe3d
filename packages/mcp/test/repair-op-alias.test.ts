@@ -1,6 +1,6 @@
 import { CAPABILITIES } from '@vibebyte/vibe3d-capabilities';
+import { coerceForSchema } from '@vibebyte/vibe3d-capabilities';
 import { describe, expect, it } from 'vitest';
-import { coerceForSchema } from '../src/coerce';
 import { repairInput } from '../src/repair';
 
 const spec = (CAPABILITIES as unknown as Record<string, { input: Parameters<typeof repairInput>[0] }>)[
