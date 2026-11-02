@@ -475,6 +475,30 @@ describe('legacy 工具的同名包装与忽略字段', () => {
     expect((params.params as Record<string, unknown>).baseColor).toEqual([1, 0, 0, 1]);
   });
 
+  it('material.create 只有字段 params 时不被当作外层包装剥掉', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const result = await runtime.call('vibe3d_material', {
+      op: 'create',
+      params: { params: { baseColor: [1, 0, 0, 1] } },
+    });
+    expect(result.isError).toBeFalsy();
+    const params = (calls.at(-1) as Call).params as Record<string, unknown>;
+    expect((params.params as Record<string, unknown>).baseColor).toEqual([1, 0, 0, 1]);
+  });
+
+  it('没有 params 字段的 op：多包一层 params 且带兄弟字段时合并而非丢弃', async () => {
+    const { studio, calls } = fakeStudio();
+    const runtime = new ToolRuntime(studio, 'r_0000000c');
+    const result = await runtime.call('vibe3d_stage', {
+      op: 'env',
+      params: { exposure: 1.2, params: { background: [0.1, 0.2, 0.3, 1] } },
+    });
+    expect(result.isError).toBeFalsy();
+    const params = (calls.at(-1) as Call).params as Record<string, unknown>;
+    expect(params.background).toEqual([0.1, 0.2, 0.3, 1]);
+  });
+
   it('合法调用不带 warning', async () => {
     const { studio } = fakeStudio();
     const runtime = new ToolRuntime(studio, 'r_0000000c');
