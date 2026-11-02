@@ -100,7 +100,10 @@ export const animOps = {
     scope: 'room' as const,
     mutating: true,
     wire: 'scene.apply' as const,
-    cli: { command: 'anim pose', example: 'anim pose r1 --targets []' },
+    cli: {
+      command: 'anim pose',
+      example: 'anim pose r1 --targets [{"nodeId":"n1","clip":{"type":"sway"}}]',
+    },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_ROOM_NOT_FOUND'] as const,
   },
   'animation.gait': {

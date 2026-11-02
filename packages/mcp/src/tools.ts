@@ -10,6 +10,7 @@ import {
   deepCamel,
   describeCapability,
   describeIssues,
+  imagePayloads,
   lenientRecord,
   mergedFieldDocs,
   opExample,
@@ -406,24 +407,26 @@ export function absoluteExportUrls(value: unknown, base: string | undefined, dep
 
 /** Moves every `{base64, mime}` payload into image blocks; the JSON keeps `image: <1-based index>` instead. */
 export function extractImages(value: unknown): { value: unknown; images: ImageContent[] } {
-  const images: ImageContent[] = [];
-  const walk = (node: unknown, depth: number): unknown => {
-    if (depth > 6 || node === null || typeof node !== 'object') return node;
-    if (Array.isArray(node)) return node.map((item) => walk(item, depth + 1));
-    const record = node as Record<string, unknown>;
-    if (
-      typeof record.base64 === 'string' &&
-      typeof record.mime === 'string' &&
-      record.mime.startsWith('image/')
-    ) {
-      images.push({ type: 'image', data: record.base64, mimeType: record.mime });
-      const { base64: _bytes, ...rest } = record;
-      return { ...(walk(rest, depth + 1) as Record<string, unknown>), image: images.length };
+  const payloads = imagePayloads(value);
+  if (payloads.length === 0) return { value, images: [] };
+  let root: unknown = structuredClone(value);
+  for (const [index, payload] of payloads.entries()) {
+    let parent: unknown = root;
+    for (const key of payload.path) parent = (parent as Record<string | number, unknown>)[key];
+    const { base64: _bytes, ...rest } = parent as Record<string, unknown>;
+    const next = { ...rest, image: index + 1 };
+    if (payload.path.length === 0) {
+      root = next;
+      continue;
     }
-    return Object.fromEntries(Object.entries(record).map(([key, child]) => [key, walk(child, depth + 1)]));
+    let cursor: unknown = root;
+    for (const key of payload.path.slice(0, -1)) cursor = (cursor as Record<string | number, unknown>)[key];
+    (cursor as Record<string | number, unknown>)[payload.path.at(-1) ?? 0] = next;
+  }
+  return {
+    value: root,
+    images: payloads.map((payload) => ({ type: 'image', data: payload.base64, mimeType: payload.mime })),
   };
-  const stripped = walk(value, 0);
-  return { value: images.length > 0 ? stripped : value, images };
 }
 
 const fogFar = (fog: unknown): number | string => {

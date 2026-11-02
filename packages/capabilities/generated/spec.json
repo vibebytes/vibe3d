@@ -8116,7 +8116,7 @@
         "positional": [
           "nodeId"
         ],
-        "example": "node fit-screen r1 n1 --rect {}"
+        "example": "node fit-screen r1 n1 --rect {\"u\":0,\"v\":0,\"w\":1,\"h\":1}"
       },
       "input": {
         "type": "object",
@@ -44369,7 +44369,7 @@
       },
       "cli": {
         "command": "anim pose",
-        "example": "anim pose r1 --targets []"
+        "example": "anim pose r1 --targets [{\"nodeId\":\"n1\",\"clip\":{\"type\":\"sway\"}}]"
       },
       "input": {
         "type": "object",
@@ -53568,7 +53568,7 @@
       },
       "cli": {
         "command": "mesh lathe",
-        "example": "mesh lathe r1 --profile []"
+        "example": "mesh lathe r1 --profile [[0,0],[1,1]]"
       },
       "input": {
         "type": "object",
@@ -59506,7 +59506,7 @@
       },
       "cli": {
         "command": "render assert",
-        "example": "render assert r1 --anchors []"
+        "example": "render assert r1 --anchors [{\"at\":[10,10],\"hex\":\"#ff0000\"}]"
       },
       "input": {
         "type": "object",

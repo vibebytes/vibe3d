@@ -482,7 +482,7 @@ export const sceneOps = defineCapabilities({
       command: 'node fit-screen',
 
       positional: ['nodeId'],
-      example: 'node fit-screen r1 n1 --rect {}',
+      example: 'node fit-screen r1 n1 --rect {"u":0,"v":0,"w":1,"h":1}',
     },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_UNSUPPORTED', 'E_ROOM_NOT_FOUND'] as const,
   },
@@ -1266,7 +1266,7 @@ export const sceneIoOps = {
     wire: 'mesh.lathe' as const,
     cli: {
       command: 'mesh lathe',
-      example: 'mesh lathe r1 --profile []',
+      example: 'mesh lathe r1 --profile [[0,0],[1,1]]',
     },
     errors: ['E_INVALID_PARAMS', 'E_NODE_NOT_FOUND', 'E_PAYLOAD_TOO_LARGE', 'E_ROOM_NOT_FOUND'] as const,
   },

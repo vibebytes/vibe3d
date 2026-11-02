@@ -7,6 +7,7 @@ import { Studio, type StudioOptions } from '@vibebyte/vibe3d-client';
 import { type ParsedArgs, bool, jsonArg, num, parseSize, str, vec } from './args';
 import { cameraFromFlags, saveNameFrom } from './camera-args';
 import { backdropFromFlags, booleanFromFlags, decalFromFlags, tubeFromFlags } from './decal-args';
+import { GENERIC_COMMANDS, commandOf, execute } from './exec';
 import { applyToFromFlags, clipFromFlags, fogFromFlags, fxSpecFromFlags, playOptsFromFlags } from './fx-args';
 import { parseLookFlags } from './look';
 import { mapFromFlags, materialPatchFromFlags } from './material-args';
@@ -69,6 +70,8 @@ export async function run(
   }
 
   const studio = await connect(connectOptions(flags));
+  const hit = commandOf(parsed._);
+  if (hit && GENERIC_COMMANDS.has(hit.command)) return execute(studio, hit, flags);
 
   if (group === 'status') {
     const [health, hello] = await Promise.all([studio.health(), studio.hello()]);

@@ -642,7 +642,7 @@ export const renderOps = {
     cli: {
       command: 'render assert',
 
-      example: 'render assert r1 --anchors []',
+      example: 'render assert r1 --anchors [{"at":[10,10],"hex":"#ff0000"}]',
     },
     errors: ['E_RENDER_UNAVAILABLE', 'E_ROOM_NOT_FOUND', 'E_INVALID_PARAMS'] as const,
   },

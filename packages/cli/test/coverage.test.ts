@@ -9,27 +9,7 @@ import { recording } from './support/recording';
 /** 这些命令不发出自己的 capability 调用，覆盖棘轮不计它们。 */
 const LOCAL = new Set(['status']);
 
-const KNOWN_MISSING = new Set([
-  'room use',
-  'scene pick',
-  'selection get',
-  'node attach',
-  'node reparent',
-  'anim stop',
-  'anim pose',
-  'anim gait',
-  'mesh lathe',
-  'mesh organic',
-  'mesh bevel',
-  'mesh tree',
-  'mesh mannequin',
-  'render assert',
-  'render id-pass',
-  'render sequence',
-  'render video',
-  'camera project',
-  'camera unproject',
-]);
+const KNOWN_MISSING = new Set<string>([]);
 
 function argvOf(command: string, capability: keyof typeof CAPABILITIES): string[] {
   const spec = CAPABILITIES[capability];

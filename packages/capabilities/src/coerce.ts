@@ -202,6 +202,7 @@ function child(ctx: Ctx, path: string): Ctx {
 
 /** CLI 文本：逗号 / 分号列表、按必填数字键填对象、@文件。不匹配时返回 undefined，个数不符则抛错。 */
 function cliText(schema: z.ZodTypeAny, value: string, ctx: Ctx, depth: number): unknown | undefined {
+  if (/^[\[{]/.test(value.trim())) return undefined;
   if (value.startsWith('@') && ctx.readFile && acceptsFile(schema)) {
     let text: string;
     try {
@@ -220,6 +221,18 @@ function cliText(schema: z.ZodTypeAny, value: string, ctx: Ctx, depth: number): 
   const inner = unwrap(schema);
   const def = defOf(inner);
   if (def.typeName === 'ZodArray' || def.typeName === 'ZodTuple') {
+    const itemSchema = def.type as z.ZodTypeAny | undefined;
+    const itemInner = itemSchema ? unwrap(itemSchema) : undefined;
+    const scalarItem =
+      itemInner instanceof z.ZodString || itemInner instanceof z.ZodEnum || itemInner instanceof z.ZodNumber;
+    if (def.typeName === 'ZodArray' && itemSchema && !scalarItem) {
+      const groups = (value.includes(';') ? value.split(';') : [value])
+        .map((part) => part.trim())
+        .filter(Boolean);
+      return groups.map((part, index) =>
+        coerceValue(itemSchema, part, depth + 1, child(ctx, `${ctx.path}[${index}]`)),
+      );
+    }
     const groups = value.includes(';')
       ? value
           .split(';')
