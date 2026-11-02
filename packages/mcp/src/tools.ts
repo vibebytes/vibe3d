@@ -384,19 +384,25 @@ const halve = (value: unknown, fallback: number): number => {
   return Math.max(64, Math.round(n / 2));
 };
 
-/** Moves every `{base64, mime}` payload into image blocks; the JSON keeps `image: <1-based index>` instead. */
-/** Rewrites daemon-relative `/exports/...` links (any depth) into absolute URLs on the studio base. */
+const isLinkKey = (key: string): boolean => key === 'url' || key.endsWith('Url');
+
+/** Rewrites daemon-relative `/exports/...` values of `url` / `*Url` fields (any depth) into absolute URLs. */
 export function absoluteExportUrls(value: unknown, base: string | undefined, depth = 0): unknown {
-  if (!base) return value;
-  if (typeof value === 'string')
-    return value.startsWith('/exports/') ? `${base.replace(/\/$/, '')}${value}` : value;
-  if (depth > 6 || value === null || typeof value !== 'object') return value;
+  if (!base || depth > 6 || value === null || typeof value !== 'object') return value;
   if (Array.isArray(value)) return value.map((v) => absoluteExportUrls(v, base, depth + 1));
   return Object.fromEntries(
-    Object.entries(value).map(([k, v]) => [k, absoluteExportUrls(v, base, depth + 1)]),
+    Object.entries(value).map(([k, v]) => [
+      k,
+      typeof v === 'string'
+        ? isLinkKey(k) && v.startsWith('/exports/')
+          ? `${base.replace(/\/$/, '')}${v}`
+          : v
+        : absoluteExportUrls(v, base, depth + 1),
+    ]),
   );
 }
 
+/** Moves every `{base64, mime}` payload into image blocks; the JSON keeps `image: <1-based index>` instead. */
 export function extractImages(value: unknown): { value: unknown; images: ImageContent[] } {
   const images: ImageContent[] = [];
   const walk = (node: unknown, depth: number): unknown => {

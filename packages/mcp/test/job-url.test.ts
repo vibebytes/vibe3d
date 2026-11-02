@@ -32,4 +32,19 @@ describe('export links are absolute in MCP results', () => {
     });
     expect(out.structuredContent).toMatchObject({ url: 'https://cdn/x.glb', openUrl: '/rooms/r' });
   });
+
+  it('rewrites nested frame urls but not free text that happens to start with /exports/', async () => {
+    const job = {
+      jobId: 'j',
+      state: 'done',
+      result: { frames: [{ url: '/exports/f-0000.png' }], note: '/exports/ 目录可手动清理' },
+    };
+    const out = await new ToolRuntime(studio(job), 'r_0000000a').call('vibe3d_job', {
+      op: 'get',
+      job_id: 'j',
+    });
+    const result = (out.structuredContent as { result: { frames: { url: string }[]; note: string } }).result;
+    expect(result.frames[0]?.url).toBe('http://127.0.0.1:7777/exports/f-0000.png');
+    expect(result.note).toBe('/exports/ 目录可手动清理');
+  });
 });
