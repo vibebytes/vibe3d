@@ -101,6 +101,70 @@ describe('@name references in ops', () => {
     expect(res.body.error.message).toContain('同名');
   });
 
+  it('同批先 create 再用 @name 做 animation.define / pose / clear 与 fx.create', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    const templateId = await makeNamed(h, roomId, '模板');
+    const base = (await doc(h, roomId)).nodes[templateId];
+    const hip = { ...base, name: 'hip' };
+    delete hip.id;
+    const sway = { type: 'sway', amplitude: 0.2, frequency: 1 };
+
+    const res = await call(
+      h,
+      'ops.apply',
+      {
+        roomId,
+        ops: [
+          { op: 'node.create', node: hip },
+          { op: 'animation.define', target: '@hip', clip: sway },
+          { op: 'animation.pose', targets: [{ nodeId: '@模板', clip: { type: 'spin', frequency: 1 } }] },
+          { op: 'animation.clear', target: '@模板' },
+          { op: 'fx.create', fx: { id: 'f_hipdust1', type: 'particles', nodeId: '@hip' } },
+        ],
+      },
+      roomId,
+    );
+    expect(res.body.error).toBeUndefined();
+    const id = res.body.result.assigned[0].id;
+    expect(res.body.result.resolved).toEqual({ '@hip': id, '@模板': templateId });
+    const after = await doc(h, roomId);
+    expect(after.nodes[id].clips?.[0] ?? after.nodes[id].clip).toMatchObject({ type: 'sway' });
+    expect(after.nodes[templateId].clips ?? []).toEqual([]);
+    expect(after.fx.find((f: { id: string }) => f.id === 'f_hipdust1').nodeId).toBe(id);
+  });
+
+  it('animation.play / stop 的 target 也接受 @name', async () => {
+    const h = makeHarness();
+    const roomId = await room(h);
+    await makeNamed(h, roomId, '摆件');
+
+    const res = await call(
+      h,
+      'ops.apply',
+      {
+        roomId,
+        ops: [
+          { op: 'animation.define', target: '@摆件', clip: { type: 'spin', frequency: 1 } },
+          { op: 'animation.play', target: '@摆件' },
+          { op: 'animation.stop', target: '@摆件' },
+        ],
+      },
+      roomId,
+    );
+    expect(res.body.error).toBeUndefined();
+  });
+
+  it('未解析的 @ 引用直达 reducer 时报错而不是当作 id', async () => {
+    const { applyOps } = await import('@vibebyte/vibe3d-scene');
+    const h = makeHarness();
+    const roomId = await room(h);
+    const before = await doc(h, roomId);
+    expect(() =>
+      applyOps(before, [{ op: 'animation.define', target: '@悬空', clip: { type: 'spin' } } as never]),
+    ).toThrow(/未解析.*@悬空/);
+  });
+
   it('批次里没有 @ 时不产生 resolved 键', async () => {
     const h = makeHarness();
     const roomId = await room(h);

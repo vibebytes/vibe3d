@@ -77,6 +77,30 @@ const assignNodeIds = (ops: readonly Op[]): { ops: Op[]; assigned: AssignedId[] 
   return { ops: out, assigned };
 };
 
+type Take = <T>(v: T) => T;
+type OpOf<K extends Op['op']> = Extract<Op, { op: K }>;
+type RefRewrite = { [K in Op['op']]?: (op: OpOf<K>, take: Take) => Op };
+
+/** Every op field that may carry an `@name` node ref. */
+const refFields: RefRewrite = {
+  'node.create': (op, take) => ({ ...op, node: { ...op.node, parent: take(op.node.parent) } }) as Op,
+  'node.update': (op, take) => ({ ...op, id: take(op.id) }),
+  'node.delete': (op, take) => ({ ...op, id: take(op.id) }),
+  'node.reparent': (op, take) => ({ ...op, id: take(op.id), parent: take(op.parent) }),
+  'animation.play': (op, take) => ({ ...op, target: take(op.target) }),
+  'animation.stop': (op, take) => ({ ...op, target: take(op.target) }),
+  'animation.define': (op, take) => ({ ...op, target: take(op.target) }),
+  'animation.clear': (op, take) => ({ ...op, target: take(op.target) }),
+  'animation.pose': (op, take) => ({
+    ...op,
+    targets: op.targets.map((t) => ({ ...t, nodeId: take(t.nodeId) })),
+  }),
+  'fx.create': (op, take) => ({ ...op, fx: { ...op.fx, nodeId: take(op.fx.nodeId) } }),
+};
+
+const rewriteRefs = (op: Op, take: Take): Op =>
+  (refFields[op.op] as ((op: Op, take: Take) => Op) | undefined)?.(op, take) ?? op;
+
 const resolveNodeRefs = (
   doc: SceneDoc,
   ops: readonly Op[],
@@ -88,21 +112,13 @@ const resolveNodeRefs = (
     resolved[ref] = id;
     return id;
   };
-  const take = (v: unknown): unknown => (isRef(v) ? resolve(v) : v);
+  const take = <T>(v: T): T => (isRef(v) ? (resolve(v) as T) : v);
   const out = ops.map((op) => {
-    let next: Op = op;
-    if (op.op === 'node.create') {
-      next = { ...op, node: { ...op.node, parent: take(op.node.parent) as string | null } } as Op;
-      const id = op.node.id;
-      if (id) {
-        const ids = table.get(op.node.name) ?? new Set<string>();
-        ids.add(id);
-        table.set(op.node.name, ids);
-      }
-    } else if (op.op === 'node.update' || op.op === 'node.delete') {
-      next = { ...op, id: take(op.id) as string } as Op;
-    } else if (op.op === 'node.reparent') {
-      next = { ...op, id: take(op.id) as string, parent: take(op.parent) as string | null } as Op;
+    const next = rewriteRefs(op, take);
+    if (op.op === 'node.create' && op.node.id) {
+      const ids = table.get(op.node.name) ?? new Set<string>();
+      ids.add(op.node.id);
+      table.set(op.node.name, ids);
     }
     return next;
   });

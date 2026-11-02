@@ -13472,8 +13472,16 @@
                       "const": "animation.play"
                     },
                     "target": {
-                      "type": "string",
-                      "pattern": "^n_[a-z0-9]{8}$"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^n_[a-z0-9]{8}$"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^@\\S{1,200}$"
+                        }
+                      ]
                     },
                     "clip": {
                       "type": "string",
@@ -13523,8 +13531,16 @@
                       "const": "animation.stop"
                     },
                     "target": {
-                      "type": "string",
-                      "pattern": "^n_[a-z0-9]{8}$"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^n_[a-z0-9]{8}$"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^@\\S{1,200}$"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -13541,8 +13557,16 @@
                       "const": "animation.define"
                     },
                     "target": {
-                      "type": "string",
-                      "pattern": "^n_[a-z0-9]{8}$"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^n_[a-z0-9]{8}$"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^@\\S{1,200}$"
+                        }
+                      ]
                     },
                     "clip": {
                       "type": "object",
@@ -13786,8 +13810,16 @@
                       "const": "animation.clear"
                     },
                     "target": {
-                      "type": "string",
-                      "pattern": "^n_[a-z0-9]{8}$"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^n_[a-z0-9]{8}$"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^@\\S{1,200}$"
+                        }
+                      ]
                     },
                     "applyTo": {
                       "type": "string",
@@ -13830,8 +13862,16 @@
                         "type": "object",
                         "properties": {
                           "nodeId": {
-                            "type": "string",
-                            "pattern": "^n_[a-z0-9]{8}$"
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^n_[a-z0-9]{8}$"
+                              },
+                              {
+                                "type": "string",
+                                "pattern": "^@\\S{1,200}$"
+                              }
+                            ]
                           },
                           "clip": {
                             "type": "object",
@@ -14091,8 +14131,16 @@
                           ]
                         },
                         "nodeId": {
-                          "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^n_[a-z0-9]{8}$"
+                            },
+                            {
+                              "type": "string",
+                              "pattern": "^@\\S{1,200}$"
+                            }
+                          ]
                         },
                         "position": {
                           "type": "array",
@@ -23652,8 +23700,16 @@
                       "const": "animation.play"
                     },
                     "target": {
-                      "type": "string",
-                      "pattern": "^n_[a-z0-9]{8}$"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^n_[a-z0-9]{8}$"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^@\\S{1,200}$"
+                        }
+                      ]
                     },
                     "clip": {
                       "type": "string",
@@ -23703,8 +23759,16 @@
                       "const": "animation.stop"
                     },
                     "target": {
-                      "type": "string",
-                      "pattern": "^n_[a-z0-9]{8}$"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^n_[a-z0-9]{8}$"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^@\\S{1,200}$"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -23721,8 +23785,16 @@
                       "const": "animation.define"
                     },
                     "target": {
-                      "type": "string",
-                      "pattern": "^n_[a-z0-9]{8}$"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^n_[a-z0-9]{8}$"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^@\\S{1,200}$"
+                        }
+                      ]
                     },
                     "clip": {
                       "type": "object",
@@ -23966,8 +24038,16 @@
                       "const": "animation.clear"
                     },
                     "target": {
-                      "type": "string",
-                      "pattern": "^n_[a-z0-9]{8}$"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^n_[a-z0-9]{8}$"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^@\\S{1,200}$"
+                        }
+                      ]
                     },
                     "applyTo": {
                       "type": "string",
@@ -24010,8 +24090,16 @@
                         "type": "object",
                         "properties": {
                           "nodeId": {
-                            "type": "string",
-                            "pattern": "^n_[a-z0-9]{8}$"
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^n_[a-z0-9]{8}$"
+                              },
+                              {
+                                "type": "string",
+                                "pattern": "^@\\S{1,200}$"
+                              }
+                            ]
                           },
                           "clip": {
                             "type": "object",
@@ -24271,8 +24359,16 @@
                           ]
                         },
                         "nodeId": {
-                          "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^n_[a-z0-9]{8}$"
+                            },
+                            {
+                              "type": "string",
+                              "pattern": "^@\\S{1,200}$"
+                            }
+                          ]
                         },
                         "position": {
                           "type": "array",
@@ -38016,8 +38112,16 @@
                       "const": "animation.play"
                     },
                     "target": {
-                      "type": "string",
-                      "pattern": "^n_[a-z0-9]{8}$"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^n_[a-z0-9]{8}$"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^@\\S{1,200}$"
+                        }
+                      ]
                     },
                     "clip": {
                       "type": "string",
@@ -38067,8 +38171,16 @@
                       "const": "animation.stop"
                     },
                     "target": {
-                      "type": "string",
-                      "pattern": "^n_[a-z0-9]{8}$"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^n_[a-z0-9]{8}$"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^@\\S{1,200}$"
+                        }
+                      ]
                     }
                   },
                   "required": [
@@ -38085,8 +38197,16 @@
                       "const": "animation.define"
                     },
                     "target": {
-                      "type": "string",
-                      "pattern": "^n_[a-z0-9]{8}$"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^n_[a-z0-9]{8}$"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^@\\S{1,200}$"
+                        }
+                      ]
                     },
                     "clip": {
                       "type": "object",
@@ -38330,8 +38450,16 @@
                       "const": "animation.clear"
                     },
                     "target": {
-                      "type": "string",
-                      "pattern": "^n_[a-z0-9]{8}$"
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^n_[a-z0-9]{8}$"
+                        },
+                        {
+                          "type": "string",
+                          "pattern": "^@\\S{1,200}$"
+                        }
+                      ]
                     },
                     "applyTo": {
                       "type": "string",
@@ -38374,8 +38502,16 @@
                         "type": "object",
                         "properties": {
                           "nodeId": {
-                            "type": "string",
-                            "pattern": "^n_[a-z0-9]{8}$"
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^n_[a-z0-9]{8}$"
+                              },
+                              {
+                                "type": "string",
+                                "pattern": "^@\\S{1,200}$"
+                              }
+                            ]
                           },
                           "clip": {
                             "type": "object",
@@ -38635,8 +38771,16 @@
                           ]
                         },
                         "nodeId": {
-                          "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^n_[a-z0-9]{8}$"
+                            },
+                            {
+                              "type": "string",
+                              "pattern": "^@\\S{1,200}$"
+                            }
+                          ]
                         },
                         "position": {
                           "type": "array",

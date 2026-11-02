@@ -20,7 +20,6 @@ import {
   materialIdSchema,
   materialPatchSchema,
   materialSchema,
-  nodeIdSchema,
   nodeRefSchema,
   nprSchema,
   postSchema,
@@ -84,7 +83,7 @@ export const opSchema = z.discriminatedUnion('op', [
   z.object({ op: z.literal('stage.set'), stage: stagePatchSchema }),
   z.object({
     op: z.literal('animation.play'),
-    target: nodeIdSchema,
+    target: nodeRefSchema,
     clip: z.string().min(1).optional(),
     clips: z
       .array(z.string().min(1))
@@ -97,27 +96,27 @@ export const opSchema = z.discriminatedUnion('op', [
     direction: z.enum(['forward', 'reverse']).optional(),
     weight: z.number().finite().min(0).max(1).optional(),
   }),
-  z.object({ op: z.literal('animation.stop'), target: nodeIdSchema }),
+  z.object({ op: z.literal('animation.stop'), target: nodeRefSchema }),
   z.object({
     op: z.literal('animation.define'),
-    target: nodeIdSchema,
+    target: nodeRefSchema,
     clip: clipSchema,
     applyTo: z.enum(['node', 'subtree']).optional(),
   }),
   z.object({
     op: z.literal('animation.clear'),
-    target: nodeIdSchema,
+    target: nodeRefSchema,
     applyTo: z.enum(['node', 'subtree']).optional(),
     channel: z.enum(['px', 'py', 'pz', 'rx', 'ry', 'rz', 'sx', 'sy', 'sz']).optional(),
   }),
   z.object({
     op: z.literal('animation.pose'),
     targets: z
-      .array(z.object({ nodeId: nodeIdSchema, clip: clipSchema }))
+      .array(z.object({ nodeId: nodeRefSchema, clip: clipSchema }))
       .min(1)
       .max(64),
   }),
-  z.object({ op: z.literal('fx.create'), fx: fxSchema }),
+  z.object({ op: z.literal('fx.create'), fx: fxSchema.extend({ nodeId: nodeRefSchema.optional() }) }),
   z.object({ op: z.literal('fx.delete'), id: fxIdSchema }),
   z.object({
     op: z.literal('camera.set'),

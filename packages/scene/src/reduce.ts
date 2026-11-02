@@ -1,6 +1,7 @@
 import {
   AppError,
   type ClipSpec,
+  type FxSpec,
   type MapTransform,
   type Material,
   type ModelAnim,
@@ -32,6 +33,11 @@ export interface ReduceResult {
 
 function fail(message: string, data?: Record<string, unknown>): never {
   throw new AppError('E_INVALID_PARAMS', message, data);
+}
+
+function nodeAt(doc: SceneDoc, id: string): SceneNode {
+  if (id.startsWith('@')) fail(`未解析的节点引用 ${id}：@name 需在 ops.apply 入口解析为 node id`, { id });
+  return doc.nodes[id] ?? fail('节点不存在', { id });
 }
 
 function failWith(
@@ -168,7 +174,7 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       return;
     }
     case 'node.update': {
-      const node = doc.nodes[op.id] ?? fail('节点不存在', { id: op.id });
+      const node = nodeAt(doc, op.id);
       const patch: NodePatch = op.patch;
       const old: NodePatch = {};
       if (patch.name !== undefined) {
@@ -245,7 +251,7 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       return;
     }
     case 'node.delete': {
-      const node = doc.nodes[op.id] ?? fail('节点不存在', { id: op.id });
+      const node = nodeAt(doc, op.id);
       const ids = subtree(doc, op.id);
       const cascade = op.cascade ?? true;
       if (!cascade && ids.length > 1)
@@ -267,7 +273,7 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       return;
     }
     case 'node.reparent': {
-      const node = doc.nodes[op.id] ?? fail('节点不存在', { id: op.id });
+      const node = nodeAt(doc, op.id);
       if (op.parent) {
         if (!doc.nodes[op.parent]) fail('目标父节点不存在', { id: op.parent });
         if (op.parent === op.id || isAncestor(doc, op.id, op.parent)) {
@@ -405,7 +411,7 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       return;
     }
     case 'animation.play': {
-      const node = doc.nodes[op.target] ?? fail('节点不存在', { id: op.target });
+      const node = nodeAt(doc, op.target);
       if (node.kind !== 'model') {
         if (nodeClipsOf(node).length > 0) return;
         fail(
@@ -437,7 +443,7 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
       return;
     }
     case 'animation.stop': {
-      const node = doc.nodes[op.target] ?? fail('节点不存在', { id: op.target });
+      const node = nodeAt(doc, op.target);
       if (node.kind !== 'model') {
         if (nodeClipsOf(node).length > 0) return;
         fail('该节点没有动画：程序化 clip 由渲染 at 采样，无需 stop；只有导入模型(GPU动画)需要 stop', {
@@ -452,7 +458,7 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
     case 'animation.define': {
       const ids = op.applyTo === 'subtree' ? subtree(doc, op.target) : [op.target];
       for (const id of ids) {
-        const node = doc.nodes[id] ?? fail('节点不存在', { id });
+        const node = nodeAt(doc, id);
         const next = upsertNodeClip(node, op.clip);
         if (next === null) continue;
         const previousClips = nodeClipsOf(node);
@@ -465,7 +471,7 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
     case 'animation.clear': {
       const ids = op.applyTo === 'subtree' ? subtree(doc, op.target) : [op.target];
       for (const id of ids) {
-        const node = doc.nodes[id] ?? fail('节点不存在', { id });
+        const node = nodeAt(doc, id);
         const existing = nodeClipsOf(node);
         if (existing.length === 0) continue;
         const kept = op.channel ? existing.filter((c) => clipChannelOf(c) !== op.channel) : [];
@@ -481,7 +487,7 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
     }
     case 'animation.pose': {
       for (const target of op.targets) {
-        const node = doc.nodes[target.nodeId] ?? fail('节点不存在', { id: target.nodeId });
+        const node = nodeAt(doc, target.nodeId);
         const next = upsertNodeClip(node, target.clip);
         if (next === null) continue;
         const previousClips = nodeClipsOf(node);
@@ -500,8 +506,8 @@ function applyOne(doc: SceneDoc, op: Op, inverse: Op[], warnings: string[]): voi
         fail('特效已存在；新建特效请用 vibe3d_create_fx（服务端生成 id），或换一个 f_ + 8 位 id', {
           fxId: op.fx.id,
         });
-      if (op.fx.nodeId && !doc.nodes[op.fx.nodeId]) fail('节点不存在', { id: op.fx.nodeId });
-      doc.fx.push(clone(op.fx));
+      if (op.fx.nodeId) nodeAt(doc, op.fx.nodeId);
+      doc.fx.push(clone(op.fx) as FxSpec);
       inverse.push({ op: 'fx.delete', id: op.fx.id });
       return;
     }

@@ -4989,8 +4989,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                     "const": "animation.play"
                   },
                   "target": {
-                    "type": "string",
-                    "pattern": "^n_[a-z0-9]{8}$"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^n_[a-z0-9]{8}$"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^@\\S{1,200}$"
+                      }
+                    ]
                   },
                   "clip": {
                     "type": "string",
@@ -5040,8 +5048,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                     "const": "animation.stop"
                   },
                   "target": {
-                    "type": "string",
-                    "pattern": "^n_[a-z0-9]{8}$"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^n_[a-z0-9]{8}$"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^@\\S{1,200}$"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -5058,8 +5074,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                     "const": "animation.define"
                   },
                   "target": {
-                    "type": "string",
-                    "pattern": "^n_[a-z0-9]{8}$"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^n_[a-z0-9]{8}$"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^@\\S{1,200}$"
+                      }
+                    ]
                   },
                   "clip": {
                     "type": "object",
@@ -5287,8 +5311,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                     "const": "animation.clear"
                   },
                   "target": {
-                    "type": "string",
-                    "pattern": "^n_[a-z0-9]{8}$"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^n_[a-z0-9]{8}$"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^@\\S{1,200}$"
+                      }
+                    ]
                   },
                   "apply_to": {
                     "type": "string",
@@ -5331,8 +5363,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                       "type": "object",
                       "properties": {
                         "node_id": {
-                          "type": "string",
-                          "pattern": "^n_[a-z0-9]{8}$"
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^n_[a-z0-9]{8}$"
+                            },
+                            {
+                              "type": "string",
+                              "pattern": "^@\\S{1,200}$"
+                            }
+                          ]
                         },
                         "clip": {
                           "type": "object",
@@ -5576,8 +5616,16 @@ export const MCP_TOOLS: readonly McpToolDoc[] = [
                         ]
                       },
                       "node_id": {
-                        "type": "string",
-                        "pattern": "^n_[a-z0-9]{8}$"
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^n_[a-z0-9]{8}$"
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^@\\S{1,200}$"
+                          }
+                        ]
                       },
                       "position": {
                         "type": "array",
