@@ -7,10 +7,10 @@
   },
   "files": ["dist"],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && chmod +x dist/index.js",
     "dev": "tsx src/index.ts"
   },
-  "dependencies": {
+  "devDependencies": {
     "@vibebyte/vibe3d-capabilities": "workspace:*",
     "@vibebyte/vibe3d-client": "workspace:*",
     "@vibebyte/vibe3d-daemon": "workspace:*",

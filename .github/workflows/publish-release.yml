@@ -1,8 +1,8 @@
-# Publish @vibebyte/vibe3d-daemon + @vibebyte/vibe3d-mcp to npm (OIDC trusted publishing),
-# then publish io.github.vibebytes/vibe3d to the MCP Registry (GitHub OIDC).
+# Publish @vibebyte/vibe3d-daemon, @vibebyte/vibe3d-cli, and @vibebyte/vibe3d-mcp to npm
+# (OIDC trusted publishing), then publish io.github.vibebytes/vibe3d to the MCP Registry (GitHub OIDC).
 #
 # Prerequisites (one-time):
-# 1. npm Trusted Publisher on both packages → GitHub Actions
+# 1. npm Trusted Publisher on daemon, cli, and mcp → GitHub Actions
 #    org/user: vibebytes, repo: vibe3d, workflow: publish-release.yml, environment: (empty)
 # 2. Tag must match package versions after sync, e.g. v0.2.2
 #
@@ -66,7 +66,7 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
           const version = process.env.VERSION;
-          for (const rel of ['packages/daemon/package.json', 'packages/mcp/package.json']) {
+          for (const rel of ['packages/daemon/package.json', 'packages/cli/package.json', 'packages/mcp/package.json']) {
             const p = JSON.parse(fs.readFileSync(rel, 'utf8'));
             p.version = version;
             fs.writeFileSync(rel, JSON.stringify(p, null, 2) + '\n');
@@ -101,6 +101,7 @@ jobs:
         run: |
           pnpm --filter @vibebyte/vibe3d-editor build
           pnpm --filter @vibebyte/vibe3d-daemon build
+          pnpm --filter @vibebyte/vibe3d-cli build
           pnpm --filter @vibebyte/vibe3d-mcp build
 
       - name: Release check
@@ -114,6 +115,16 @@ jobs:
             echo "already on npm: @vibebyte/vibe3d-daemon@$VERSION"
           else
             pnpm --filter @vibebyte/vibe3d-daemon publish --access public --no-git-checks
+          fi
+
+      - name: Publish cli to npm
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.ver.outputs.version }}"
+          if npm view "@vibebyte/vibe3d-cli@$VERSION" version --registry="$NPM_REGISTRY" >/dev/null 2>&1; then
+            echo "already on npm: @vibebyte/vibe3d-cli@$VERSION"
+          else
+            pnpm --filter @vibebyte/vibe3d-cli publish --access public --no-git-checks
           fi
 
       - name: Publish mcp to npm
